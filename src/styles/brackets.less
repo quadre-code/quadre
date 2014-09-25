@@ -1633,15 +1633,15 @@ a, img {
         display: inline-block;
     }
 
-    #find-case-sensitive, #find-regexp {
+    #find-case-sensitive {
         padding: 1px 5px;
-    }
-    .button-icon {  // icons must be nested inside button so we can apply padding w/o tiling icon
-        .sprite-icon(0, 0, 24px, 24px, @button-icon);
-        background-repeat: no-repeat;
 
-        .dark & {
-            .sprite-icon(0, 0, 24px, 24px, @dark-button-icon);
+        &.active, &:active { // Make the toggle buttons' down states the same color as 'on' state to prevent a flash of different color.
+            background-color: @bc-bg-highlight;
+
+            .dark & {
+                background-color: @dark-bc-bg-highlight;
+            }
         }
     }
     #find-regexp.active .button-icon {
@@ -1681,7 +1681,7 @@ a, img {
         border-right: none;
         margin-right: 0;
     }
-    #find-next, #replace-all, #find-regexp {
+    #find-next, #replace-all, #find-further-options {
         border-top-left-radius: 0;
         border-bottom-left-radius: 0;
         margin-left: 0;
@@ -1694,7 +1694,7 @@ a, img {
         border-top-right-radius: 3px;
         border-bottom-right-radius: 3px;
         border-left: none;
-        border-right: 1px solid #b2b5b5;
+        margin-left: 0;
     }
 
     // Make find field snug with options buttons
@@ -1715,6 +1715,36 @@ a, img {
         right: 10px;
         top: 50%;
         margin-top: -8px;
+    }
+}
+
+.find-toggle {
+    .button-icon {  // icons must be nested inside button so we can apply padding w/o tiling icon
+        .sprite-icon(0, 0, 24px, 24px, @button-icon);
+        background-repeat: no-repeat;
+
+        .dark & {
+            .sprite-icon(0, 0, 24px, 24px, @dark-button-icon);
+        }
+    }
+    &#find-regexp.active .button-icon {
+        .sprite-swap(0, 24px);
+    }
+    &#find-case-sensitive .button-icon {
+        .sprite-swap(0, 48px);
+    }
+    &#find-case-sensitive.active .button-icon {
+        .sprite-swap(0, 72px);
+    }
+    &#find-whole-word .button-icon {
+        .sprite-swap(0, 96px);
+    }
+    &#find-whole-word.active .button-icon {
+        .sprite-swap(0, 120px);
+    }
+    
+    .dropdownbutton-popup & {
+        padding: 0;
     }
 }
 
