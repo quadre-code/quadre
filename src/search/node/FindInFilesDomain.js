@@ -328,6 +328,8 @@ function parseQueryInfo(queryInfo) {
         } catch (e) {
             return {valid: false, error: e.message};
         }
+    } else if (queryInfo.isWholeWord) {
+        return new RegExp("\\b" + regexEscape(queryInfo.query) + "\\b", flags);
     } else {
         // Query is a plain string. Turn it into a regexp
         queryExpr = new RegExp(regexEscape(queryInfo.query), flags);
