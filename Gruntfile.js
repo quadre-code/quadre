@@ -138,6 +138,14 @@ module.exports = function (grunt) {
                         src: [
                             'less/dist/less.min.js'
                         ]
+                    },
+                    {
+                        expand: true,
+                        dest: 'src/thirdparty/acorn',
+                        cwd: 'src/node_modules/acorn',
+                        src: [
+                            'dist/{,*/}*'
+                        ]
                     }
                 ]
             }
