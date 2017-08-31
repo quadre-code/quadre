@@ -63,6 +63,9 @@
     "publish-mac": "npm run build-optimized && build -m --publish onTagOrDraft",
     "publish-linux": "npm run build-optimized && build -l --publish onTagOrDraft"
   },
+  "defaultExtensions": {
+      "brackets-eslint": "3.0.5"
+  },
   "dependencies": {
     "anymatch": "1.3.0",
     "async": "2.3.0",
@@ -122,10 +125,12 @@
     "q": "1.4.1",
     "rewire": "1.1.2",
     "rimraf": "2.6.1",
+    "tar": "2.2.1",
     "tslint": "5.8.0",
     "typescript": "2.6.1",
     "typescript-eslint-parser": "8.0.1",
     "webpack": "2.4.1",
-    "xmldoc": "0.1.2"
+    "xmldoc": "0.1.2",
+    "zlib": "1.0.5"
   }
 }

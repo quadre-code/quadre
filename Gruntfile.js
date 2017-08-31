@@ -345,7 +345,14 @@ module.exports = function (grunt) {
     });
 
     // task: install
-    grunt.registerTask('install', ['write-config:dist', 'sync-tsconfigs', 'less', /*'npm-install-source', 'pack-web-dependencies'*/]);
+    grunt.registerTask('install', [
+        'write-config:dist',
+        'sync-tsconfigs',
+        'less',
+        'npm-download-default-extensions'
+        // 'npm-install-source',
+        // 'pack-web-dependencies'
+    ]);
 
     // task: test
     grunt.registerTask('test', ['eslint', 'jasmine', 'nls-check']);
