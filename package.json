@@ -1,25 +1,25 @@
 {
-    "name": "brackets-electron",
-    "productName": "Brackets-Electron",
-    "description": "Brackets-Electron",
-    "author": "Brackets Team <brackets-dev@googlegroups.com>",
+    "name": "quadre",
+    "productName": "Quadre",
+    "description": "Quadre",
+    "author": "Quadre Team <ficristo.work@gmail.com>",
     "license": "MIT",
-    "homepage": "http://brackets.io",
+    "homepage": "https://github.com/quadre-code/quadre",
     "version": "1.10.4",
     "apiVersion": "1.10.0",
     "issues": {
-        "url": "http://github.com/zaggino/brackets-electron/issues"
+        "url": "https://github.com/quadre-code/quadre/issues"
     },
     "repository": {
         "type": "git",
-        "url": "https://github.com/zaggino/brackets-electron.git"
+        "url": "https://github.com/quadre-code/quadre.git"
     },
     "main": "./dist/index.js",
     "bin": {
         "brackets": "./dist/index.js"
     },
     "build": {
-        "appId": "com.squirrel.brackets-electron.Brackets-Electron",
+        "appId": "com.squirrel.quadre.Quadre",
         "asar": false,
         "files": [],
         "npmRebuild": true,

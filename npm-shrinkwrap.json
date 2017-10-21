@@ -1,5 +1,5 @@
 {
-  "name": "brackets-electron",
+  "name": "quadre",
   "version": "1.10.4",
   "dependencies": {
     "@sindresorhus/df": {
