@@ -1,6 +1,6 @@
 ### Prerequisites
 
-* [ ] Is this `Brackets-Electron` specific problem (did you test it with latest [brackets build](http://brackets.io/))?
+Check if the issue is already reported.
 
 ### Description
 
@@ -8,7 +8,7 @@
 
 ### Versions
 
-[Please include the OS and what version of `Brackets-Electron` you're running.]
+[Please include the OS and what version of `Quadre` you're running.]
 
 ### Steps to Reproduce
 
