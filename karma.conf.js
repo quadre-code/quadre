@@ -24,6 +24,7 @@ module.exports = function(config) {
             {pattern: 'utils/StringUtils.js', included: false},
             {pattern: 'utils/UrlParams.js', included: false},
             {pattern: 'utils/ValidationUtils.js', included: false},
+            {pattern: 'view/MainViewFactory.js', included: false},
             {pattern: '../../test/SpecRunnerGlobals.js', included: true},
             {pattern: '../../test/spec/Async-test.js', included: false},
             {pattern: '../../test/spec/CommandManager-test.js', included: false},
@@ -31,7 +32,8 @@ module.exports = function(config) {
             {pattern: '../../test/spec/StringMatch-test.js', included: false},
             {pattern: '../../test/spec/StringUtils-test.js', included: false},
             {pattern: '../../test/spec/UrlParams-test.js', included: false},
-            {pattern: '../../test/spec/ValidationUtils-test.js', included: false}
+            {pattern: '../../test/spec/ValidationUtils-test.js', included: false},
+            {pattern: '../../test/spec/ViewFactory-test.js', included: false}
         ],
 
         // list of files to exclude
