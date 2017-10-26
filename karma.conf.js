@@ -22,7 +22,8 @@ module.exports = function(config) {
             {pattern: 'utils/EventDispatcher.js', included: false},
             {pattern: '../../test/SpecRunnerGlobals.js', included: true},
             {pattern: '../../test/spec/Async-test.js', included: false},
-            {pattern: '../../test/spec/CommandManager-test.js', included: false}
+            {pattern: '../../test/spec/CommandManager-test.js', included: false},
+            {pattern: '../../test/spec/EventDispatcher-test.js', included: false}
         ],
 
         // list of files to exclude
