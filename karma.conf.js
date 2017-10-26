@@ -18,8 +18,10 @@ module.exports = function(config) {
             {pattern: 'thirdparty/jquery-2.1.3.js', included: true, served: true, watched: false},
             {pattern: 'thirdparty/lodash.js', included: false},
             {pattern: 'command/CommandManager.js', included: false},
+            {pattern: 'utils/Async.js', included: false},
             {pattern: 'utils/EventDispatcher.js', included: false},
-            {pattern: '../../test/exampleSpec.js', included: false},
+            {pattern: '../../test/SpecRunnerGlobals.js', included: true},
+            {pattern: '../../test/spec/Async-test.js', included: false},
             {pattern: '../../test/spec/CommandManager-test.js', included: false}
         ],
 
