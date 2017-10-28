@@ -90,7 +90,7 @@
         "electron-builder": "17.1.1",
         "electron-builder-squirrel-windows": "17.0.1",
         "electron-packager": "8.6.0",
-        "electron-rebuild": "1.5.7",
+        "electron-rebuild": "1.6.0",
         "eslint": "3.19.0",
         "glob": "7.1.1",
         "grunt": "0.4.5",
