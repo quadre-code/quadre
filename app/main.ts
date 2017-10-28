@@ -11,12 +11,12 @@ import { readBracketsPreferences } from "./brackets-config";
 const appInfo = require("./package.json");
 
 const log = getLogger("main");
-process.on("uncaughtException", (err: Error) => {
+(process as NodeJS.EventEmitter).on("uncaughtException", (err: Error) => {
     log.error(`[uncaughtException] ${err.stack}`);
 });
 
 const ipclog = getLogger("ipc-log");
-ipcMain.on("log", function (event, ...args) {
+ipcMain.on("log", function (event: Event, ...args: any[]) {
     ipclog.info(...args);
 });
 

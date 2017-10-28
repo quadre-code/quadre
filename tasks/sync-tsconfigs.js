@@ -25,7 +25,11 @@ module.exports = function (grunt) {
             compilerOptions: {
                 outDir: `../dist/www`
             },
-            include: ['./**/*', '../node_modules/@types/**/*']
+            include: [
+                './**/*',
+                '../node_modules/@types/**/*',
+                '../node_modules/electron/electron.d.ts'
+            ]
         }, tsconfigJSON));
 
     });

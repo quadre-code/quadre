@@ -174,7 +174,7 @@ define(function (require, exports, module) {
             result.resolve(data);
         }
 
-        return result.promise();
+        return result.promise() as JQueryPromise<UpdateFeedInfo>;
     }
 
     /**
