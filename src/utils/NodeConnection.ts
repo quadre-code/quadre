@@ -111,7 +111,7 @@ import { NodeConnectionInterfaceSpec, NodeConnectionDomainSpec } from "../types/
                     if (this._autoReconnect) {
                         (this as any).trigger("close", this.connect(true));
                     } else {
-                        (this as any).trigger("close", );
+                        (this as any).trigger("close", ); // tslint:disable-line
                     }
                 });
                 deferred.resolve();
