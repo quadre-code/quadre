@@ -1,10 +1,12 @@
+/// <amd-dependency path="module" name="module"/>
+
 import * as cp from "child_process";
 import { NodeConnectionRequestMessage, NodeConnectionResponseMessage } from "../types/NodeConnectionMessages";
 import { NodeConnectionInterfaceSpec, NodeConnectionDomainSpec } from "../types/NodeConnectionInterfaceSpec";
 
-define((require, exports, module) => {
+// define((require, exports, module) => {
 
-    const EventDispatcher = require("utils/EventDispatcher");
+    import EventDispatcher = require("utils/EventDispatcher");
     const fork            = node.require("child_process").fork;
     const getLogger       = node.require("./utils").getLogger;
     const log             = getLogger("NodeConnection");
@@ -367,4 +369,4 @@ define((require, exports, module) => {
 
     module.exports = NodeConnection;
 
-});
+// });
