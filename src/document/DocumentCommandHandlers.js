@@ -1406,9 +1406,6 @@ define(function (require, exports, module) {
                     console.error(ex);
                 }
 
-                // save state, this will call async writeFile and needs a bit of time
-                PreferencesManager.savePreferences();
-
                 // setTimeout to make sure saving state got time to finish
                 setTimeout(postCloseHandler, 500);
             })
