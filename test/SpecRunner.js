@@ -40,7 +40,8 @@ require.config({
         "*": {
             "thirdparty/react": "react"
         }
-    }
+    },
+    locale: "en" // force English (US)
 });
 
 define(function (require, exports, module) {
