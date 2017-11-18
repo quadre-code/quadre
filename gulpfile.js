@@ -33,7 +33,7 @@ gulp.task('copy-src-dist', (_cb) => {
 gulp.task('copy-test-dist', (_cb) => {
     const cb = _.after(BASE_TESTS_DIRS.length, _cb);
     BASE_TESTS_DIRS.forEach((srcDir, idx) => {
-        gulp.src(`${srcDir}/**/!(*.ts|*.tsx)`)
+        gulp.src(`${srcDir}/**/!(*.ts|*.tsx)`, { dot: true })
             .pipe(gulp.dest(DIST_TESTS_DIRS[idx]))
             .on('end', cb);
     });
