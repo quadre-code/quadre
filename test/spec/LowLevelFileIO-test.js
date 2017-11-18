@@ -516,7 +516,7 @@ define(function (require, exports, module) {
                     error = e;
                 }
                 expect(error.name).toBe("TypeError");
-                expect(error.message).toBe("Expected options to be either an object or a string, but got number instead");
+                expect(error.message).toBe("\"options\" must be a string or an object, got number instead.");
             });
 
             it("should return an error if trying to write a directory", function () {
