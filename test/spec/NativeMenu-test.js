@@ -45,6 +45,8 @@ define(function (require, exports, module) {
             TEST_MENU_ID            = "test",
             TEST_MENU_ITEM          = "Item 1",
             TEST_MENU_ITEM_ID       = "item1";
+        
+        var winId = electron.remote.getCurrentWindow().id;
 
         it("should have a brackets.app namespace", function () {
             var complete = false,
@@ -54,7 +56,7 @@ define(function (require, exports, module) {
 
             // Add an empty native menu so the menu bar doesn't keep flashing
             runs(function () {
-                brackets.app.addMenu(PLACEHOLDER_MENU_TITLE, PLACEHOLDER_MENU_ID, "", "", function (err) {
+                brackets.app.addMenu(winId, PLACEHOLDER_MENU_TITLE, PLACEHOLDER_MENU_ID, "", "", function (err) {
                     complete = true;
                     error = err;
                 });
@@ -77,7 +79,7 @@ define(function (require, exports, module) {
 
                 // Make sure menu isn't present
                 runs(function () {
-                    brackets.app.getMenuTitle(TEST_MENU_ID, function (err) {
+                    brackets.app.getMenuTitle(winId, TEST_MENU_ID, function (err) {
                         complete = true;
                         error = err;
                     });
@@ -92,7 +94,7 @@ define(function (require, exports, module) {
                 // Add menu
                 runs(function () {
                     complete = false;
-                    brackets.app.addMenu(TEST_MENU_TITLE, TEST_MENU_ID, "", "", function (err) {
+                    brackets.app.addMenu(winId, TEST_MENU_TITLE, TEST_MENU_ID, "", "", function (err) {
                         complete = true;
                         error = err;
                     });
@@ -107,7 +109,7 @@ define(function (require, exports, module) {
                 // Verify menu is found
                 runs(function () {
                     complete = false;
-                    brackets.app.getMenuTitle(TEST_MENU_ID, function (err, titleStr) {
+                    brackets.app.getMenuTitle(winId, TEST_MENU_ID, function (err, titleStr) {
                         complete = true;
                         error = err;
                         title = titleStr;
@@ -124,7 +126,7 @@ define(function (require, exports, module) {
                 // Remove menu
                 runs(function () {
                     complete = false;
-                    brackets.app.removeMenu(TEST_MENU_ID, function (err) {
+                    brackets.app.removeMenu(winId, TEST_MENU_ID, function (err) {
                         complete = true;
                         // Ignore error
                     });
@@ -135,7 +137,7 @@ define(function (require, exports, module) {
             it("should return an error if invalid parameters are passed", function () {
                 var error;
                 try {
-                    brackets.app.addMenu(TEST_MENU_TITLE, TEST_MENU_ID, 42, "", function () {});
+                    brackets.app.addMenu(winId, TEST_MENU_TITLE, TEST_MENU_ID, 42, "", function () {});
                 } catch (e) {
                     error = e;
                 }
@@ -152,7 +154,7 @@ define(function (require, exports, module) {
             beforeEach(function () {
                 runs(function () {
                     complete = false;
-                    brackets.app.addMenu(TEST_MENU_TITLE, TEST_MENU_ID, "", "", function (err) {
+                    brackets.app.addMenu(winId, TEST_MENU_TITLE, TEST_MENU_ID, "", "", function (err) {
                         complete = true;
                         error = err;
                     });
@@ -168,7 +170,7 @@ define(function (require, exports, module) {
             afterEach(function () {
                 runs(function () {
                     complete = false;
-                    brackets.app.removeMenu(TEST_MENU_ID, function (err) {
+                    brackets.app.removeMenu(winId, TEST_MENU_ID, function (err) {
                         complete = true;
                         error = err;
                     });
@@ -185,7 +187,7 @@ define(function (require, exports, module) {
                 error = 0;
                 runs(function () {
                     complete = false;
-                    brackets.app.addMenu("Custom1", "menu-unittest1", "", "", function (err) {
+                    brackets.app.addMenu(winId, "Custom1", "menu-unittest1", "", "", function (err) {
                         complete = true;
                         error = err;
                     });
@@ -202,7 +204,7 @@ define(function (require, exports, module) {
                     complete = false;
                     parentId = null;
                     position = -1;
-                    brackets.app.getMenuPosition("menu-unittest1", function (err, parent, index) {
+                    brackets.app.getMenuPosition(winId, "menu-unittest1", function (err, parent, index) {
                         complete = true;
                         error = err;
                         parentId = parent;
@@ -221,7 +223,7 @@ define(function (require, exports, module) {
                 // Remove menu
                 runs(function () {
                     complete = false;
-                    brackets.app.removeMenu("menu-unittest1", function (err) {
+                    brackets.app.removeMenu(winId, "menu-unittest1", function (err) {
                         complete = true;
                         error = err;
                     });
@@ -239,7 +241,7 @@ define(function (require, exports, module) {
 
                 runs(function () {
                     complete = false;
-                    brackets.app.addMenu("CustomFirst", "menu-unittest-first", "first", "", function (err) {
+                    brackets.app.addMenu(winId, "CustomFirst", "menu-unittest-first", "first", "", function (err) {
                         complete = true;
                         error = err;
                     });
@@ -253,7 +255,7 @@ define(function (require, exports, module) {
 
                 runs(function () {
                     complete = false;
-                    brackets.app.addMenu("CustomAfter", "menu-unittest-after", "after", "menu-unittest-first", function (err) {
+                    brackets.app.addMenu(winId, "CustomAfter", "menu-unittest-after", "after", "menu-unittest-first", function (err) {
                         complete = true;
                         error = err;
                     });
@@ -271,7 +273,7 @@ define(function (require, exports, module) {
                     parentId = null;
                     position = -1;
                     targetPos = -1;
-                    brackets.app.getMenuPosition("menu-unittest-first", function (err, parent, index) {
+                    brackets.app.getMenuPosition(winId, "menu-unittest-first", function (err, parent, index) {
                         complete = true;
                         error = err;
                         parentId = parent;
@@ -292,7 +294,7 @@ define(function (require, exports, module) {
                     complete = false;
                     parentId = null;
                     position = -1;
-                    brackets.app.getMenuPosition("menu-unittest-after", function (err, parent, index) {
+                    brackets.app.getMenuPosition(winId, "menu-unittest-after", function (err, parent, index) {
                         complete = true;
                         error = err;
                         parentId = parent;
@@ -311,7 +313,7 @@ define(function (require, exports, module) {
                 // Remove menu
                 runs(function () {
                     complete = false;
-                    brackets.app.removeMenu("menu-unittest-first", function (err) {
+                    brackets.app.removeMenu(winId, "menu-unittest-first", function (err) {
                         complete = true;
                         // Ignore error
                     });
@@ -320,7 +322,7 @@ define(function (require, exports, module) {
 
                 runs(function () {
                     complete = false;
-                    brackets.app.removeMenu("menu-unittest-after", function (err) {
+                    brackets.app.removeMenu(winId, "menu-unittest-after", function (err) {
                         complete = true;
                         // Ignore error
                     });
@@ -334,7 +336,7 @@ define(function (require, exports, module) {
 
                 runs(function () {
                     complete = false;
-                    brackets.app.addMenu("CustomLast", "menu-unittest-last", "last", "", function (err) {
+                    brackets.app.addMenu(winId, "CustomLast", "menu-unittest-last", "last", "", function (err) {
                         complete = true;
                         error = err;
                     });
@@ -348,7 +350,7 @@ define(function (require, exports, module) {
 
                 runs(function () {
                     complete = false;
-                    brackets.app.addMenu("CustomBefore", "menu-unittest-before", "before", "menu-unittest-last", function (err) {
+                    brackets.app.addMenu(winId, "CustomBefore", "menu-unittest-before", "before", "menu-unittest-last", function (err) {
                         complete = true;
                         error = err;
                     });
@@ -366,7 +368,7 @@ define(function (require, exports, module) {
                     parentId = null;
                     position = -1;
                     targetPos = -1;
-                    brackets.app.getMenuPosition("menu-unittest-last", function (err, parent, index) {
+                    brackets.app.getMenuPosition(winId, "menu-unittest-last", function (err, parent, index) {
                         complete = true;
                         error = err;
                         parentId = parent;
@@ -387,7 +389,7 @@ define(function (require, exports, module) {
                     complete = false;
                     parentId = null;
                     position = -1;
-                    brackets.app.getMenuPosition("menu-unittest-before", function (err, parent, index) {
+                    brackets.app.getMenuPosition(winId, "menu-unittest-before", function (err, parent, index) {
                         complete = true;
                         error = err;
                         parentId = parent;
@@ -406,7 +408,7 @@ define(function (require, exports, module) {
                 // Remove menu
                 runs(function () {
                     complete = false;
-                    brackets.app.removeMenu("menu-unittest-last", function (err) {
+                    brackets.app.removeMenu(winId, "menu-unittest-last", function (err) {
                         complete = true;
                         // Ignore error
                     });
@@ -415,7 +417,7 @@ define(function (require, exports, module) {
 
                 runs(function () {
                     complete = false;
-                    brackets.app.removeMenu("menu-unittest-before", function (err) {
+                    brackets.app.removeMenu(winId, "menu-unittest-before", function (err) {
                         complete = true;
                         // Ignore error
                     });
@@ -427,7 +429,7 @@ define(function (require, exports, module) {
                 error = 0;
                 runs(function () {
                     complete = false;
-                    brackets.app.addMenu("Custom4", "menu-unittest4", "after", "NONEXISTANT", function (err) {
+                    brackets.app.addMenu(winId, "Custom4", "menu-unittest4", "after", "NONEXISTANT", function (err) {
                         complete = true;
                         error = err;
                     });
@@ -444,7 +446,7 @@ define(function (require, exports, module) {
                     complete = false;
                     parentId = null;
                     position = -1;
-                    brackets.app.getMenuPosition("menu-unittest4", function (err, parent, index) {
+                    brackets.app.getMenuPosition(winId, "menu-unittest4", function (err, parent, index) {
                         complete = true;
                         error = err;
                         parentId = parent;
@@ -463,7 +465,7 @@ define(function (require, exports, module) {
                 // Remove menu
                 runs(function () {
                     complete = false;
-                    brackets.app.removeMenu("menu-unittest4", function (err) {
+                    brackets.app.removeMenu(winId, "menu-unittest4", function (err) {
                         complete = true;
                         // Ignore error
                     });
@@ -481,7 +483,7 @@ define(function (require, exports, module) {
             beforeEach(function () {
                 runs(function () {
                     complete = false;
-                    brackets.app.addMenu(TEST_MENU_TITLE, TEST_MENU_ID, "", "", function (err) {
+                    brackets.app.addMenu(winId, TEST_MENU_TITLE, TEST_MENU_ID, "", "", function (err) {
                         complete = true;
                         error = err;
                     });
@@ -497,7 +499,7 @@ define(function (require, exports, module) {
             afterEach(function () {
                 runs(function () {
                     complete = false;
-                    brackets.app.removeMenu(TEST_MENU_ID, function (err) {
+                    brackets.app.removeMenu(winId, TEST_MENU_ID, function (err) {
                         complete = true;
                         error = err;
                     });
@@ -514,7 +516,7 @@ define(function (require, exports, module) {
                 error = 0;
                 runs(function () {
                     complete = false;
-                    brackets.app.addMenuItem(TEST_MENU_ID, TEST_MENU_ITEM, TEST_MENU_ITEM_ID, "", "", "", "", function (err) {
+                    brackets.app.addMenuItem(winId, TEST_MENU_ID, TEST_MENU_ITEM, TEST_MENU_ITEM_ID, "", "", "", "", function (err) {
                         complete = true;
                         error = err;
                     });
@@ -529,7 +531,7 @@ define(function (require, exports, module) {
                 // Verify item
                 runs(function () {
                     complete = false;
-                    brackets.app.getMenuTitle(TEST_MENU_ITEM_ID, function (err, titleStr) {
+                    brackets.app.getMenuTitle(winId, TEST_MENU_ITEM_ID, function (err, titleStr) {
                         complete = true;
                         error = err;
                         title = titleStr;
@@ -542,7 +544,7 @@ define(function (require, exports, module) {
                     expect(error).toBe(null);
                     expect(title).toBe(TEST_MENU_ITEM);
                     complete = false;
-                    brackets.app.removeMenuItem(TEST_MENU_ITEM_ID, function (err) {
+                    brackets.app.removeMenuItem(winId, TEST_MENU_ITEM_ID, function (err) {
                         complete = true;
                     });
                 });
@@ -553,7 +555,7 @@ define(function (require, exports, module) {
             it("should return an error if invalid parameters are passed", function () {
                 var error;
                 try {
-                    brackets.app.addMenuItem(TEST_MENU_ID, TEST_MENU_ITEM, TEST_MENU_ITEM_ID, "", 42, "", "", function () {});
+                    brackets.app.addMenuItem(winId, TEST_MENU_ID, TEST_MENU_ITEM, TEST_MENU_ITEM_ID, "", 42, "", "", function () {});
                 } catch (e) {
                     error = e;
                 }
@@ -571,7 +573,7 @@ define(function (require, exports, module) {
             beforeEach(function () {
                 runs(function () {
                     complete = false;
-                    brackets.app.addMenu(TEST_MENU_TITLE, TEST_MENU_ID, "", "", function (err) {
+                    brackets.app.addMenu(winId, TEST_MENU_TITLE, TEST_MENU_ID, "", "", function (err) {
                         complete = true;
                         error = err;
                     });
@@ -586,7 +588,7 @@ define(function (require, exports, module) {
                 // Add a menu item into the empty menu
                 runs(function () {
                     complete = false;
-                    brackets.app.addMenuItem(TEST_MENU_ID, TEST_MENU_ITEM, TEST_MENU_ITEM_ID, "", "", "", "", function (err) {
+                    brackets.app.addMenuItem(winId, TEST_MENU_ID, TEST_MENU_ITEM, TEST_MENU_ITEM_ID, "", "", "", "", function (err) {
                         complete = true;
                         error = err;
                     });
@@ -603,7 +605,7 @@ define(function (require, exports, module) {
             afterEach(function () {
                 runs(function () {
                     complete = false;
-                    brackets.app.removeMenuItem(TEST_MENU_ITEM_ID, function (err) {
+                    brackets.app.removeMenuItem(winId, TEST_MENU_ITEM_ID, function (err) {
                         complete = true;
                     });
                 });
@@ -611,7 +613,7 @@ define(function (require, exports, module) {
 
                 runs(function () {
                     complete = false;
-                    brackets.app.removeMenu(TEST_MENU_ID, function (err) {
+                    brackets.app.removeMenu(winId, TEST_MENU_ID, function (err) {
                         complete = true;
                         error = err;
                     });
@@ -627,7 +629,7 @@ define(function (require, exports, module) {
                 error = 0;
                 runs(function () {
                     complete = false;
-                    brackets.app.addMenuItem(TEST_MENU_ID, "Brackets Test Command Custom 1", "Menu-test.command01", "", "", "first", "", function (err) {
+                    brackets.app.addMenuItem(winId, TEST_MENU_ID, "Brackets Test Command Custom 1", "Menu-test.command01", "", "", "first", "", function (err) {
                         complete = true;
                         error = err;
                     });
@@ -644,7 +646,7 @@ define(function (require, exports, module) {
                     complete = false;
                     parentId = null;
                     position = -1;
-                    brackets.app.getMenuPosition("Menu-test.command01", function (err, parent, index) {
+                    brackets.app.getMenuPosition(winId, "Menu-test.command01", function (err, parent, index) {
                         complete = true;
                         error = err;
                         parentId = parent;
@@ -663,7 +665,7 @@ define(function (require, exports, module) {
                 // Verify item
                 runs(function () {
                     complete = false;
-                    brackets.app.getMenuTitle("Menu-test.command01", function (err, titleStr) {
+                    brackets.app.getMenuTitle(winId, "Menu-test.command01", function (err, titleStr) {
                         complete = true;
                         error = err;
                         title = titleStr;
@@ -679,7 +681,7 @@ define(function (require, exports, module) {
 
                 runs(function () {
                     complete = false;
-                    brackets.app.removeMenuItem("Menu-test.command01", function (err) {
+                    brackets.app.removeMenuItem(winId, "Menu-test.command01", function (err) {
                         complete = true;
                     });
                 });
@@ -690,7 +692,7 @@ define(function (require, exports, module) {
                 error = 0;
                 runs(function () {
                     complete = false;
-                    brackets.app.addMenuItem(TEST_MENU_ID, "Brackets Test Command Custom 2", "Menu-test.command02", "", "", "last", "", function (err) {
+                    brackets.app.addMenuItem(winId, TEST_MENU_ID, "Brackets Test Command Custom 2", "Menu-test.command02", "", "", "last", "", function (err) {
                         complete = true;
                         error = err;
                     });
@@ -707,7 +709,7 @@ define(function (require, exports, module) {
                     complete = false;
                     parentId = null;
                     position = -1;
-                    brackets.app.getMenuPosition("Menu-test.command02", function (err, parent, index) {
+                    brackets.app.getMenuPosition(winId, "Menu-test.command02", function (err, parent, index) {
                         complete = true;
                         error = err;
                         parentId = parent;
@@ -726,7 +728,7 @@ define(function (require, exports, module) {
                 // Verify item
                 runs(function () {
                     complete = false;
-                    brackets.app.getMenuTitle("Menu-test.command02", function (err, titleStr) {
+                    brackets.app.getMenuTitle(winId, "Menu-test.command02", function (err, titleStr) {
                         complete = true;
                         error = err;
                         title = titleStr;
@@ -742,7 +744,7 @@ define(function (require, exports, module) {
 
                 runs(function () {
                     complete = false;
-                    brackets.app.removeMenuItem("Menu-test.command02", function (err) {
+                    brackets.app.removeMenuItem(winId, "Menu-test.command02", function (err) {
                         complete = true;
                     });
                 });
@@ -754,7 +756,7 @@ define(function (require, exports, module) {
                 error = 0;
                 runs(function () {
                     complete = false;
-                    brackets.app.addMenuItem(TEST_MENU_ID, "Brackets Test Command Custom 3", "Menu-test.command03", "", "", "after", TEST_MENU_ITEM_ID, function (err) {
+                    brackets.app.addMenuItem(winId, TEST_MENU_ID, "Brackets Test Command Custom 3", "Menu-test.command03", "", "", "after", TEST_MENU_ITEM_ID, function (err) {
                         complete = true;
                         error = err;
                     });
@@ -771,7 +773,7 @@ define(function (require, exports, module) {
                     complete = false;
                     parentId = null;
                     position = -1;
-                    brackets.app.getMenuPosition("Menu-test.command03", function (err, parent, index) {
+                    brackets.app.getMenuPosition(winId, "Menu-test.command03", function (err, parent, index) {
                         complete = true;
                         error = err;
                         parentId = parent;
@@ -790,7 +792,7 @@ define(function (require, exports, module) {
                 // Verify item
                 runs(function () {
                     complete = false;
-                    brackets.app.getMenuTitle("Menu-test.command03", function (err, titleStr) {
+                    brackets.app.getMenuTitle(winId, "Menu-test.command03", function (err, titleStr) {
                         complete = true;
                         error = err;
                         title = titleStr;
@@ -806,7 +808,7 @@ define(function (require, exports, module) {
 
                 runs(function () {
                     complete = false;
-                    brackets.app.removeMenuItem("Menu-test.command03", function (err) {
+                    brackets.app.removeMenuItem(winId, "Menu-test.command03", function (err) {
                         complete = true;
                     });
                 });
@@ -817,7 +819,7 @@ define(function (require, exports, module) {
                 error = 0;
                 runs(function () {
                     complete = false;
-                    brackets.app.addMenuItem(TEST_MENU_ID, "Brackets Test Command Custom 4", "Menu-test.command04", "", "", "before", TEST_MENU_ITEM_ID, function (err) {
+                    brackets.app.addMenuItem(winId, TEST_MENU_ID, "Brackets Test Command Custom 4", "Menu-test.command04", "", "", "before", TEST_MENU_ITEM_ID, function (err) {
                         complete = true;
                         error = err;
                     });
@@ -834,7 +836,7 @@ define(function (require, exports, module) {
                     complete = false;
                     parentId = null;
                     position = -1;
-                    brackets.app.getMenuPosition("Menu-test.command04", function (err, parent, index) {
+                    brackets.app.getMenuPosition(winId, "Menu-test.command04", function (err, parent, index) {
                         complete = true;
                         error = err;
                         parentId = parent;
@@ -853,7 +855,7 @@ define(function (require, exports, module) {
                 // Verify item
                 runs(function () {
                     complete = false;
-                    brackets.app.getMenuTitle("Menu-test.command04", function (err, titleStr) {
+                    brackets.app.getMenuTitle(winId, "Menu-test.command04", function (err, titleStr) {
                         complete = true;
                         error = err;
                         title = titleStr;
@@ -869,7 +871,7 @@ define(function (require, exports, module) {
 
                 runs(function () {
                     complete = false;
-                    brackets.app.removeMenuItem("Menu-test.command04", function (err) {
+                    brackets.app.removeMenuItem(winId, "Menu-test.command04", function (err) {
                         complete = true;
                     });
                 });
@@ -880,7 +882,7 @@ define(function (require, exports, module) {
                 error = 0;
                 runs(function () {
                     complete = false;
-                    brackets.app.addMenuItem(TEST_MENU_ID, "Brackets Test Command Custom 5", "Menu-test.command05", "", "", "before", "NONEXISTANT", function (err) {
+                    brackets.app.addMenuItem(winId, TEST_MENU_ID, "Brackets Test Command Custom 5", "Menu-test.command05", "", "", "before", "NONEXISTANT", function (err) {
                         complete = true;
                         error = err;
                     });
@@ -897,7 +899,7 @@ define(function (require, exports, module) {
                     complete = false;
                     parentId = null;
                     position = -1;
-                    brackets.app.getMenuPosition("Menu-test.command05", function (err, parent, index) {
+                    brackets.app.getMenuPosition(winId, "Menu-test.command05", function (err, parent, index) {
                         complete = true;
                         error = err;
                         parentId = parent;
@@ -916,7 +918,7 @@ define(function (require, exports, module) {
                 // Verify item
                 runs(function () {
                     complete = false;
-                    brackets.app.getMenuTitle("Menu-test.command05", function (err, titleStr) {
+                    brackets.app.getMenuTitle(winId, "Menu-test.command05", function (err, titleStr) {
                         complete = true;
                         error = err;
                         title = titleStr;
@@ -932,7 +934,7 @@ define(function (require, exports, module) {
 
                 runs(function () {
                     complete = false;
-                    brackets.app.removeMenuItem("Menu-test.command05", function (err) {
+                    brackets.app.removeMenuItem(winId, "Menu-test.command05", function (err) {
                         complete = true;
                     });
                 });
@@ -948,19 +950,19 @@ define(function (require, exports, module) {
                 // set up test menu and menu items
                 var SECTION_MENU = "menuitem-sectiontest";
                 runs(function () {
-                    brackets.app.addMenu("Section Test", "menuitem-sectiontest", "", "", function (err) {});
-                    brackets.app.addMenuItem(SECTION_MENU, "Command 10", "Menu-test.command10", "", "", "", "", function (err) {});
-                    brackets.app.addMenuItem(SECTION_MENU, "Command 11", "Menu-test.command11", "", "", "", "", function (err) {});
-                    brackets.app.addMenuItem(SECTION_MENU, "---", String(Date.now()), "", "", "", "", function (err) {});
-                    brackets.app.addMenuItem(SECTION_MENU, "Command 12", "Menu-test.command12", "", "", "", "", function (err) {});
-                    brackets.app.addMenuItem(SECTION_MENU, "Command 13", "Menu-test.command13", "", "", "", "", function (err) {});
+                    brackets.app.addMenu(winId, "Section Test", "menuitem-sectiontest", "", "", function (err) {});
+                    brackets.app.addMenuItem(winId, SECTION_MENU, "Command 10", "Menu-test.command10", "", "", "", "", function (err) {});
+                    brackets.app.addMenuItem(winId, SECTION_MENU, "Command 11", "Menu-test.command11", "", "", "", "", function (err) {});
+                    brackets.app.addMenuItem(winId, SECTION_MENU, "---", String(Date.now()), "", "", "", "", function (err) {});
+                    brackets.app.addMenuItem(winId, SECTION_MENU, "Command 12", "Menu-test.command12", "", "", "", "", function (err) {});
+                    brackets.app.addMenuItem(winId, SECTION_MENU, "Command 13", "Menu-test.command13", "", "", "", "", function (err) {});
                 });
 
                 // Add new menu to END of menuSectionCmd10
                 runs(function () {
                     complete = false;
                     error = 0;
-                    brackets.app.addMenuItem(SECTION_MENU, "Command 14", "Menu-test.command14", "", "", "lastInSection", "Menu-test.command10", function (err) {
+                    brackets.app.addMenuItem(winId, SECTION_MENU, "Command 14", "Menu-test.command14", "", "", "lastInSection", "Menu-test.command10", function (err) {
                         complete = true;
                         error = err;
                     });
@@ -971,7 +973,7 @@ define(function (require, exports, module) {
                 runs(function () {
                     complete = false;
                     error = 0;
-                    brackets.app.getMenuPosition("Menu-test.command14", function (err, par, idx) {
+                    brackets.app.getMenuPosition(winId, "Menu-test.command14", function (err, par, idx) {
                         complete = true;
                         error = err;
                         parent = par;
@@ -990,7 +992,7 @@ define(function (require, exports, module) {
                 runs(function () {
                     complete = false;
                     error = 0;
-                    brackets.app.addMenuItem(SECTION_MENU, "Command 15", "Menu-test.command15", "", "", "lastInSection", "Menu-test.command13", function (err) {
+                    brackets.app.addMenuItem(winId, SECTION_MENU, "Command 15", "Menu-test.command15", "", "", "lastInSection", "Menu-test.command13", function (err) {
                         complete = true;
                         error = err;
                     });
@@ -1001,7 +1003,7 @@ define(function (require, exports, module) {
                 runs(function () {
                     complete = false;
                     error = 0;
-                    brackets.app.getMenuPosition("Menu-test.command15", function (err, par, idx) {
+                    brackets.app.getMenuPosition(winId, "Menu-test.command15", function (err, par, idx) {
                         complete = true;
                         error = err;
                         parent = par;
@@ -1020,7 +1022,7 @@ define(function (require, exports, module) {
                 runs(function () {
                     complete = false;
                     error = 0;
-                    brackets.app.addMenuItem(SECTION_MENU, "Command 16", "Menu-test.command16", "", "", "firstInSection", "Menu-test.command11", function (err) {
+                    brackets.app.addMenuItem(winId, SECTION_MENU, "Command 16", "Menu-test.command16", "", "", "firstInSection", "Menu-test.command11", function (err) {
                         complete = true;
                         error = err;
                     });
@@ -1031,7 +1033,7 @@ define(function (require, exports, module) {
                 runs(function () {
                     complete = false;
                     error = 0;
-                    brackets.app.getMenuPosition("Menu-test.command16", function (err, par, idx) {
+                    brackets.app.getMenuPosition(winId, "Menu-test.command16", function (err, par, idx) {
                         complete = true;
                         error = err;
                         parent = par;
@@ -1050,7 +1052,7 @@ define(function (require, exports, module) {
                 runs(function () {
                     complete = false;
                     error = 0;
-                    brackets.app.addMenuItem(SECTION_MENU, "Command 17", "Menu-test.command17", "", "", "firstInSection", "Menu-test.command12", function (err) {
+                    brackets.app.addMenuItem(winId, SECTION_MENU, "Command 17", "Menu-test.command17", "", "", "firstInSection", "Menu-test.command12", function (err) {
                         complete = true;
                         error = err;
                     });
@@ -1061,7 +1063,7 @@ define(function (require, exports, module) {
                 runs(function () {
                     complete = false;
                     error = 0;
-                    brackets.app.getMenuPosition("Menu-test.command17", function (err, par, idx) {
+                    brackets.app.getMenuPosition(winId, "Menu-test.command17", function (err, par, idx) {
                         complete = true;
                         error = err;
                         parent = par;
@@ -1076,15 +1078,15 @@ define(function (require, exports, module) {
                     expect(index).toBe(5);
                 });
                 runs(function () {
-                    brackets.app.removeMenuItem("Menu-test.command10", function (err) {});
-                    brackets.app.removeMenuItem("Menu-test.command11", function (err) {});
-                    brackets.app.removeMenuItem("Menu-test.command12", function (err) {});
-                    brackets.app.removeMenuItem("Menu-test.command13", function (err) {});
-                    brackets.app.removeMenuItem("Menu-test.command14", function (err) {});
-                    brackets.app.removeMenuItem("Menu-test.command15", function (err) {});
-                    brackets.app.removeMenuItem("Menu-test.command16", function (err) {});
-                    brackets.app.removeMenuItem("Menu-test.command17", function (err) {});
-                    brackets.app.removeMenu(SECTION_MENU, function (err) {});
+                    brackets.app.removeMenuItem(winId, "Menu-test.command10", function (err) {});
+                    brackets.app.removeMenuItem(winId, "Menu-test.command11", function (err) {});
+                    brackets.app.removeMenuItem(winId, "Menu-test.command12", function (err) {});
+                    brackets.app.removeMenuItem(winId, "Menu-test.command13", function (err) {});
+                    brackets.app.removeMenuItem(winId, "Menu-test.command14", function (err) {});
+                    brackets.app.removeMenuItem(winId, "Menu-test.command15", function (err) {});
+                    brackets.app.removeMenuItem(winId, "Menu-test.command16", function (err) {});
+                    brackets.app.removeMenuItem(winId, "Menu-test.command17", function (err) {});
+                    brackets.app.removeMenu(winId, SECTION_MENU, function (err) {});
                 });
             });
         });  // describe("addMenuItem (with reference)")
@@ -1095,7 +1097,7 @@ define(function (require, exports, module) {
 
             it("should remove a menu", function () {
                 runs(function () {
-                    brackets.app.addMenu(TEST_MENU_TITLE, TEST_MENU_ID, "", "", function (err) {
+                    brackets.app.addMenu(winId, TEST_MENU_TITLE, TEST_MENU_ID, "", "", function (err) {
                         complete = true;
                         error = err;
                     });
@@ -1109,7 +1111,7 @@ define(function (require, exports, module) {
 
                 runs(function () {
                     complete = false;
-                    brackets.app.removeMenu(TEST_MENU_ID, function (err) {
+                    brackets.app.removeMenu(winId, TEST_MENU_ID, function (err) {
                         complete = true;
                         error = err;
                     });
@@ -1125,7 +1127,7 @@ define(function (require, exports, module) {
             it("should return an error if invalid parameters are passed", function () {
                 var error;
                 try {
-                    brackets.app.removeMenu(42, function () {});
+                    brackets.app.removeMenu(winId, 42, function () {});
                 } catch (e) {
                     error = e;
                 }
@@ -1137,7 +1139,7 @@ define(function (require, exports, module) {
                 error = 0;
 
                 runs(function () {
-                    brackets.app.removeMenu(TEST_MENU_ID, function (err) {
+                    brackets.app.removeMenu(winId, TEST_MENU_ID, function (err) {
                         complete = true;
                         error = err;
                     });
@@ -1159,12 +1161,12 @@ define(function (require, exports, module) {
                     error = 0;
 
                 runs(function () {
-                    brackets.app.addMenu(TEST_MENU_TITLE, TEST_MENU_ID, "", "", function (err) {
+                    brackets.app.addMenu(winId, TEST_MENU_TITLE, TEST_MENU_ID, "", "", function (err) {
                         if (err) {
                             complete = true;
                             error = err;
                         } else {
-                            brackets.app.addMenuItem(TEST_MENU_ID, TEST_MENU_ITEM, ITEM_ID, "", "", "", "", function (err) {
+                            brackets.app.addMenuItem(winId, TEST_MENU_ID, TEST_MENU_ITEM, ITEM_ID, "", "", "", "", function (err) {
                                 complete = true;
                                 error = err;
                             });
@@ -1184,10 +1186,10 @@ define(function (require, exports, module) {
                     error = 0;
 
                 runs(function () {
-                    brackets.app.removeMenuItem(ITEM_ID, function (err) {
+                    brackets.app.removeMenuItem(winId, ITEM_ID, function (err) {
                         // Ignore the error from removeMenuItem(). The item may have
                         // already been removed by the test.
-                        brackets.app.removeMenu(TEST_MENU_ID, function (err) {
+                        brackets.app.removeMenu(winId, TEST_MENU_ID, function (err) {
                             complete = true;
                             error = err;
                         });
@@ -1206,7 +1208,7 @@ define(function (require, exports, module) {
                     error = 0;
 
                 runs(function () {
-                    brackets.app.removeMenuItem(ITEM_ID, function (err) {
+                    brackets.app.removeMenuItem(winId, ITEM_ID, function (err) {
                         complete = true;
                         error = err;
                     });
@@ -1221,7 +1223,7 @@ define(function (require, exports, module) {
                 // Make sure it's gone
                 runs(function () {
                     complete = false;
-                    brackets.app.getMenuTitle(ITEM_ID, function (err, titleStr) {
+                    brackets.app.getMenuTitle(winId, ITEM_ID, function (err, titleStr) {
                         complete = true;
                         error = err;
                     });
@@ -1236,7 +1238,7 @@ define(function (require, exports, module) {
             it("should return an error if invalid parameters are passed", function () {
                 var error;
                 try {
-                    brackets.app.removeMenuItem(42, function () {});
+                    brackets.app.removeMenuItem(winId, 42, function () {});
                 } catch (e) {
                     error = e;
                 }
@@ -1247,7 +1249,7 @@ define(function (require, exports, module) {
                     error = 0;
 
                 runs(function () {
-                    brackets.app.removeMenuItem(ITEM_ID + "foo", function (err) {
+                    brackets.app.removeMenuItem(winId, ITEM_ID + "foo", function (err) {
                         complete = true;
                         error = err;
                     });
@@ -1269,12 +1271,12 @@ define(function (require, exports, module) {
                     error = 0;
 
                 runs(function () {
-                    brackets.app.addMenu(TEST_MENU_TITLE, TEST_MENU_ID, "", "", function (err) {
+                    brackets.app.addMenu(winId, TEST_MENU_TITLE, TEST_MENU_ID, "", "", function (err) {
                         if (err) {
                             complete = true;
                             error = err;
                         } else {
-                            brackets.app.addMenuItem(TEST_MENU_ID, TEST_MENU_ITEM, ITEM_ID, "", "", "", "", function (err) {
+                            brackets.app.addMenuItem(winId, TEST_MENU_ID, TEST_MENU_ITEM, ITEM_ID, "", "", "", "", function (err) {
                                 complete = true;
                                 error = err;
                             });
@@ -1294,11 +1296,11 @@ define(function (require, exports, module) {
                     error = 0;
 
                 runs(function () {
-                    brackets.app.removeMenuItem(ITEM_ID, function (err) {
+                    brackets.app.removeMenuItem(winId, ITEM_ID, function (err) {
                         // Ignore errors from removeMenuItem() and always remove
                         // the menu too. This is cleanup time so it's okay if
                         // an error gets missed here.
-                        brackets.app.removeMenu(TEST_MENU_ID, function (err) {
+                        brackets.app.removeMenu(winId, TEST_MENU_ID, function (err) {
                             complete = true;
                             error = err;
                         });
@@ -1318,7 +1320,7 @@ define(function (require, exports, module) {
 
                 // Should start out enabled
                 runs(function () {
-                    brackets.app.getMenuItemState(ITEM_ID, function (err, bEnabled, bChecked) {
+                    brackets.app.getMenuItemState(winId, ITEM_ID, function (err, bEnabled, bChecked) {
                         complete = true;
                         enabled = bEnabled;
                         error = err;
@@ -1335,7 +1337,7 @@ define(function (require, exports, module) {
                 // Enable it
                 runs(function () {
                     complete = false;
-                    brackets.app.setMenuItemState(ITEM_ID, false, false, function (err) {
+                    brackets.app.setMenuItemState(winId, ITEM_ID, false, false, function (err) {
                         complete = true;
                         error = err;
                     });
@@ -1350,7 +1352,7 @@ define(function (require, exports, module) {
                 // Make sure it is enabled
                 runs(function () {
                     complete = false;
-                    brackets.app.getMenuItemState(ITEM_ID, function (err, bEnabled, bChecked) {
+                    brackets.app.getMenuItemState(winId, ITEM_ID, function (err, bEnabled, bChecked) {
                         complete = true;
                         enabled = bEnabled;
                         error = err;
@@ -1371,7 +1373,7 @@ define(function (require, exports, module) {
 
                 // Should start out unchecked
                 runs(function () {
-                    brackets.app.getMenuItemState(ITEM_ID, function (err, bEnabled, bChecked) {
+                    brackets.app.getMenuItemState(winId, ITEM_ID, function (err, bEnabled, bChecked) {
                         complete = true;
                         checked = bChecked;
                         error = err;
@@ -1388,7 +1390,7 @@ define(function (require, exports, module) {
                 // Enable it
                 runs(function () {
                     complete = false;
-                    brackets.app.setMenuItemState(ITEM_ID, true, true, function (err) {
+                    brackets.app.setMenuItemState(winId, ITEM_ID, true, true, function (err) {
                         complete = true;
                         error = err;
                     });
@@ -1403,7 +1405,7 @@ define(function (require, exports, module) {
                 // Make sure it is enabled
                 runs(function () {
                     complete = false;
-                    brackets.app.getMenuItemState(ITEM_ID, function (err, bEnabled, bChecked) {
+                    brackets.app.getMenuItemState(winId, ITEM_ID, function (err, bEnabled, bChecked) {
                         complete = true;
                         checked = bChecked;
                         error = err;
@@ -1420,7 +1422,7 @@ define(function (require, exports, module) {
             it("should return an error if invalid parameters are passed", function () {
                 var error;
                 try {
-                    brackets.app.setMenuItemState(ITEM_ID, "hello", "world", function () {});
+                    brackets.app.setMenuItemState(winId, ITEM_ID, "hello", "world", function () {});
                 } catch (e) {
                     error = e;
                 }
@@ -1434,12 +1436,12 @@ define(function (require, exports, module) {
                     error = 0;
 
                 runs(function () {
-                    brackets.app.addMenu(TEST_MENU_TITLE, TEST_MENU_ID, "", "", function (err) {
+                    brackets.app.addMenu(winId, TEST_MENU_TITLE, TEST_MENU_ID, "", "", function (err) {
                         if (err) {
                             complete = true;
                             error = err;
                         } else {
-                            brackets.app.addMenuItem(TEST_MENU_ID, TEST_MENU_ITEM, TEST_MENU_ITEM_ID, "", "", "", "", function (err) {
+                            brackets.app.addMenuItem(winId, TEST_MENU_ID, TEST_MENU_ITEM, TEST_MENU_ITEM_ID, "", "", "", "", function (err) {
                                 complete = true;
                                 error = err;
                             });
@@ -1459,12 +1461,12 @@ define(function (require, exports, module) {
                     error = 0;
 
                 runs(function () {
-                    brackets.app.removeMenuItem(TEST_MENU_ITEM_ID, function (err) {
+                    brackets.app.removeMenuItem(winId, TEST_MENU_ITEM_ID, function (err) {
                         if (err) {
                             complete = true;
                             error = err;
                         } else {
-                            brackets.app.removeMenu(TEST_MENU_ID, function (err) {
+                            brackets.app.removeMenu(winId, TEST_MENU_ID, function (err) {
                                 complete = true;
                                 error = err;
                             });
@@ -1486,7 +1488,7 @@ define(function (require, exports, module) {
                     title;
 
                 runs(function () {
-                    brackets.app.getMenuTitle(TEST_MENU_ID, function (err, titleStr) {
+                    brackets.app.getMenuTitle(winId, TEST_MENU_ID, function (err, titleStr) {
                         complete = true;
                         title = titleStr;
                         error = err;
@@ -1503,7 +1505,7 @@ define(function (require, exports, module) {
                 // Change title
                 runs(function () {
                     complete = false;
-                    brackets.app.setMenuTitle(TEST_MENU_ID, NEW_TITLE, function (err) {
+                    brackets.app.setMenuTitle(winId, TEST_MENU_ID, NEW_TITLE, function (err) {
                         complete = true;
                         error = err;
                     });
@@ -1518,7 +1520,7 @@ define(function (require, exports, module) {
                 // Make sure it is set
                 runs(function () {
                     complete = false;
-                    brackets.app.getMenuTitle(TEST_MENU_ID, function (err, titleStr) {
+                    brackets.app.getMenuTitle(winId, TEST_MENU_ID, function (err, titleStr) {
                         complete = true;
                         title = titleStr;
                         error = err;
@@ -1540,7 +1542,7 @@ define(function (require, exports, module) {
                     title;
 
                 runs(function () {
-                    brackets.app.getMenuTitle(TEST_MENU_ITEM_ID, function (err, titleStr) {
+                    brackets.app.getMenuTitle(winId, TEST_MENU_ITEM_ID, function (err, titleStr) {
                         complete = true;
                         title = titleStr;
                         error = err;
@@ -1557,7 +1559,7 @@ define(function (require, exports, module) {
                 // Change title
                 runs(function () {
                     complete = false;
-                    brackets.app.setMenuTitle(TEST_MENU_ITEM_ID, NEW_TITLE, function (err) {
+                    brackets.app.setMenuTitle(winId, TEST_MENU_ITEM_ID, NEW_TITLE, function (err) {
                         complete = true;
                         error = err;
                     });
@@ -1572,7 +1574,7 @@ define(function (require, exports, module) {
                 // Make sure it is set
                 runs(function () {
                     complete = false;
-                    brackets.app.getMenuTitle(TEST_MENU_ITEM_ID, function (err, titleStr) {
+                    brackets.app.getMenuTitle(winId, TEST_MENU_ITEM_ID, function (err, titleStr) {
                         complete = true;
                         title = titleStr;
                         error = err;
@@ -1589,7 +1591,7 @@ define(function (require, exports, module) {
             it("should return an error if invalid parameters are passed", function () {
                 var error;
                 try {
-                    brackets.app.setMenuTitle(TEST_MENU_ITEM_ID, 42, function () {});
+                    brackets.app.setMenuTitle(winId, TEST_MENU_ITEM_ID, 42, function () {});
                 } catch (e) {
                     error = e;
                 }
@@ -1602,7 +1604,7 @@ define(function (require, exports, module) {
                 error = 0;
 
             runs(function () {
-                brackets.app.removeMenu(PLACEHOLDER_MENU_ID, function (err) {
+                brackets.app.removeMenu(winId, PLACEHOLDER_MENU_ID, function (err) {
                     complete = true;
                     error = err;
                 });
