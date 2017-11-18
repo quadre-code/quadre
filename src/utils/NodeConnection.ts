@@ -363,6 +363,15 @@ import { NodeConnectionInterfaceSpec, NodeConnectionDomainSpec } from "../types/
             this._refreshName();
         }
 
+        /**
+         * @private
+         * Get the default timeout value.
+         * @return {number} Timeout value in milliseconds
+         */
+        public static _getConnectionTimeout  = function () {
+            return CONNECTION_TIMEOUT;
+        };
+
     }
 
     EventDispatcher.makeEventDispatcher(NodeConnection.prototype);
