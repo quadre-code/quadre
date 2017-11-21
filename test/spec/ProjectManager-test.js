@@ -568,7 +568,7 @@ define(function (require, exports, module) {
                 expect(shouldShow(makeEntry(".DS_Store"))).toBe(false);
                 expect(shouldShow(makeEntry("Thumbs.db"))).toBe(false);
                 expect(shouldShow(makeEntry(".hg"))).toBe(false);
-                expect(shouldShow(makeEntry(".gitmodules"))).toBe(false);
+                expect(shouldShow(makeEntry(".gitmodules"))).toBe(true);
                 expect(shouldShow(makeEntry(".gitignore"))).toBe(true);
                 expect(shouldShow(makeEntry("foobar"))).toBe(true);
                 expect(shouldShow(makeEntry("pyc.py"))).toBe(true);
