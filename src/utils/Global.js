@@ -74,8 +74,15 @@ define(function (require, exports, module) {
         global.brackets.platform = "win";
     }
 
-    global.brackets.inBrowser = false;
-    global.brackets.nativeMenus = true;
+    global.brackets.inBrowser = !global.brackets.hasOwnProperty("fs");
+
+    // Are we in a desktop shell with a native menu bar?
+    var hasNativeMenus = params.get("hasNativeMenus");
+    if (hasNativeMenus) {
+        global.brackets.nativeMenus = (hasNativeMenus === "true");
+    } else {
+        global.brackets.nativeMenus = !global.brackets.inBrowser;
+    }
 
     // Locale-related APIs
     global.brackets.isLocaleDefault = function () {
