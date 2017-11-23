@@ -2307,7 +2307,9 @@ define(function (require, exports, module) {
                             waitsForDone(promisify(FileSystem.getFileForPath(testPath + "/foo.html"), "write", "changed content"));
                         });
                         runs(function () {
-                            expect($("#find-in-files-results").is(":visible")).toBe(false);
+                            setTimeout(function () {
+                                expect($("#find-in-files-results").is(":visible")).toBe(false);
+                            }, 120);
                         });
                     });
 
