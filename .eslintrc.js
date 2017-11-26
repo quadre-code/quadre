@@ -1,4 +1,8 @@
 module.exports = {
+    "parser": "typescript-eslint-parser",
+    "parserOptions": {
+        "sourceType": "module"
+    },
     "rules": {
         // the rules below should be sorted in a same way they are sorted on http://eslint.org/docs/rules page
         // http://eslint.org/docs/rules/#possible-errors
@@ -12,7 +16,7 @@ module.exports = {
         "valid-typeof": 2,
         // http://eslint.org/docs/rules/#best-practices
         "curly": 2,
-        "eqeqeq": [2, "smart"],
+        "eqeqeq": ["error", "always", {"null": "ignore"}],
         "guard-for-in": 0,
         "no-else-return": 1,
         "no-fallthrough": 2,
@@ -46,7 +50,7 @@ module.exports = {
         "computed-property-spacing": 1,
         "eol-last": 1,
         "func-call-spacing": 1,
-        "indent": [1, 4],
+        "indent": ["warn", 4, { "SwitchCase": 1 }],
         "key-spacing": [1, { beforeColon: false, afterColon: true }],
         "max-len": [1, 120],
         "new-cap": [0, {
@@ -68,10 +72,13 @@ module.exports = {
     },
     "globals": {
         "$": false,
+        "appshell": false,
         "brackets": false,
         "clearTimeout": false,
         "console": false,
         "define": false,
+        "node": false,
+        "Promise": false,
         "require": false,
         "setTimeout": false,
         "window": false,
