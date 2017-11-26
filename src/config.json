@@ -1,13 +1,13 @@
 {
     "config": {
-        "app_title": "Brackets",
-        "app_name_about": "Brackets",
+        "app_title": "Quadre",
+        "app_name_about": "Quadre",
         "about_icon": "styles/images/brackets_icon.svg",
         "update_info_url": "https://getupdates.brackets.io/getupdates/",
         "how_to_use_url": "https://github.com/adobe/brackets/wiki/How-to-Use-Brackets",
         "support_url": "https://github.com/adobe/brackets/wiki/Troubleshooting",
         "suggest_feature_url": "https://github.com/adobe/brackets/wiki/Suggest-a-Feature",
-        "get_involved_url": "https://github.com/adobe/brackets/blob/master/CONTRIBUTING.md",
+        "get_involved_url": "https://github.com/adobe/brackets/blob/master/.github/CONTRIBUTING.md",
         "glob_help_url": "https://github.com/adobe/brackets/wiki/Using-File-Filters",
         "release_notes_url": "https://github.com/adobe/brackets/wiki/Release-Notes",
         "homepage_url": "http://brackets.io",
@@ -20,80 +20,143 @@
         "extension_url": "https://s3.amazonaws.com/extend.brackets/{0}/{0}-{1}.zip",
         "linting.enabled_by_default": true,
         "build_timestamp": "",
-        "healthDataServerURL": "https://healthdev.brackets.io/healthDataLog"
+        "healthDataServerURLs": [
+            "https://health.brackets.io/healthDataLog",
+            "https://brackets-electron-data.herokuapp.com/api/health"
+        ]
     },
-    "name": "Brackets",
-    "version": "1.12.0-0",
-    "apiVersion": "1.12.0",
-    "homepage": "http://brackets.io",
+    "name": "quadre",
+    "productName": "Quadre",
+    "description": "Quadre",
+    "author": "Quadre Team <ficristo.work@gmail.com>",
+    "license": "MIT",
+    "homepage": "https://github.com/quadre-code/quadre",
+    "version": "1.10.4",
+    "apiVersion": "1.10.0",
     "issues": {
-        "url": "http://github.com/adobe/brackets/issues"
+        "url": "https://github.com/quadre-code/quadre/issues"
     },
     "repository": {
         "type": "git",
-        "url": "https://github.com/adobe/brackets.git",
-        "branch": "",
-        "SHA": ""
+        "url": "https://github.com/quadre-code/quadre.git"
+    },
+    "main": "./dist/index.js",
+    "bin": {
+        "brackets": "./dist/index.js"
+    },
+    "build": {
+        "appId": "com.squirrel.quadre.Quadre",
+        "asar": false,
+        "files": [],
+        "npmRebuild": true,
+        "directories": {
+            "buildResources": "build",
+            "app": "dist",
+            "output": "dist-build"
+        },
+        "win": {
+            "target": [
+                "nsis",
+                "squirrel"
+            ]
+        },
+        "mac": {
+            "category": "public.app-category.developer-tools"
+        },
+        "linux": {
+            "category": "Utility;TextEditor;Development;IDE;",
+            "target": [
+                "AppImage",
+                "deb"
+            ]
+        }
+    },
+    "scripts": {
+        "prepush": "npm run test",
+        "dep-change": "grunt dep-change",
+        "postinstall": "grunt install && npm run build",
+        "build": "rimraf ./dist && gulp copy-src-dist && grunt build && tsc --project app && tsc --project src",
+        "build-optimized": "npm run build && grunt optimize",
+        "test": "npm run tslint",
+        "tslint:app": "tslint -c tslint.json --project app/tsconfig.json",
+        "tslint:src": "tslint -c src/tslint.json --project src/tsconfig.json",
+        "tslint": "npm run tslint:app && npm run tslint:src",
+        "dev": "concurrently --kill-others \"gulp watch\" \"tsc --watch --project app\" \"tsc --watch --project src\"",
+        "start": "electron .",
+        "pack": "npm run build-optimized && build --dir",
+        "dist": "npm run build-optimized && build",
+        "publish-win": "npm run build-optimized && build -w --publish onTagOrDraft",
+        "publish-mac": "npm run build-optimized && build -m --publish onTagOrDraft",
+        "publish-linux": "npm run build-optimized && build -l --publish onTagOrDraft"
     },
     "defaultExtensions": {
-        "brackets-eslint": "3.2.0"
+        "brackets-eslint": "3.0.5"
     },
     "dependencies": {
         "anymatch": "1.3.0",
-        "async": "2.1.4",
+        "async": "2.3.0",
         "chokidar": "1.6.1",
         "decompress-zip": "0.3.0",
-        "fs-extra": "2.0.0",
+        "fs-extra": "2.1.2",
+        "isbinaryfile": "3.0.2",
         "lodash": "4.17.4",
-        "npm": "3.10.10",
+        "npm": "3.10.9",
         "opn": "4.0.2",
-        "request": "2.79.0",
+        "request": "2.81.0",
+        "requirejs": "2.3.3",
         "semver": "5.3.0",
+        "strip-bom": "3.0.0",
         "temp": "0.8.3",
-        "ws": "~0.4.31"
+        "trash": "4.0.1",
+        "xml2js": "0.4.17"
     },
     "devDependencies": {
+        "@types/fs-extra": "2.1.0",
+        "@types/jquery": "2.0.41",
+        "@types/lodash": "4.14.63",
+        "@types/ws": "0.0.40",
+        "concurrently": "3.4.0",
+        "cross-spawn": "5.1.0",
+        "electron": "1.7.9",
+        "electron-builder": "19.45.5",
+        "electron-builder-lib": "19.46.0",
+        "electron-builder-squirrel-windows": "19.46.0",
+        "electron-packager": "8.6.0",
+        "electron-rebuild": "1.6.0",
+        "eslint": "3.19.0",
         "glob": "7.1.1",
         "grunt": "0.4.5",
-        "husky": "0.13.2",
-        "jasmine-node": "1.11.0",
-        "grunt-jasmine-node": "0.1.0",
+        "grunt-cleanempty": "1.0.3",
         "grunt-cli": "0.1.9",
-        "phantomjs": "1.9.18",
-        "grunt-lib-phantomjs": "0.3.0",
-        "grunt-eslint": "19.0.0",
-        "grunt-contrib-watch": "1.0.0",
-        "grunt-contrib-jasmine": "0.4.2",
-        "grunt-template-jasmine-requirejs": "0.1.0",
-        "grunt-contrib-cssmin": "0.6.0",
         "grunt-contrib-clean": "0.4.1",
+        "grunt-contrib-concat": "0.3.0",
         "grunt-contrib-copy": "0.4.1",
+        "grunt-contrib-cssmin": "0.6.0",
         "grunt-contrib-htmlmin": "0.1.3",
+        "grunt-contrib-jasmine": "0.4.2",
         "grunt-contrib-less": "1.4.0",
         "grunt-contrib-requirejs": "0.4.1",
         "grunt-contrib-uglify": "0.2.0",
-        "grunt-contrib-concat": "0.3.0",
+        "grunt-contrib-watch": "1.0.0",
+        "grunt-eslint": "19.0.0",
+        "grunt-jasmine-node": "0.1.0",
         "grunt-targethtml": "0.2.6",
+        "grunt-template-jasmine-requirejs": "0.1.0",
         "grunt-usemin": "0.1.11",
-        "grunt-cleanempty": "1.0.3",
-        "load-grunt-tasks": "3.5.0",
+        "gulp": "3.9.1",
+        "gulp-watch": "4.3.11",
+        "husky": "0.13.3",
+        "jasmine-node": "1.11.0",
+        "load-grunt-tasks": "3.5.2",
         "q": "1.4.1",
         "rewire": "1.1.2",
+        "rimraf": "2.6.1",
         "tar": "2.2.1",
-        "webpack": "2.2.1",
+        "tslint": "5.8.0",
+        "typescript": "2.6.1",
+        "typescript-eslint-parser": "8.0.1",
+        "webpack": "2.4.1",
         "xmldoc": "0.1.2",
         "zlib": "1.0.5"
-    },
-    "scripts": {
-        "prepush": "npm run eslint",
-        "postinstall": "grunt install",
-        "test": "grunt test cla-check-pull",
-        "eslint": "grunt eslint"
-    },
-    "licenses": [
-        {
-            "type": "MIT",
-            "url": "https://github.com/adobe/brackets/blob/master/LICENSE"
-        }
-    ]
+    }
 }

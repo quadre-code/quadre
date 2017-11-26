@@ -108,65 +108,6 @@
       "from": "binary-extensions@>=1.0.0 <2.0.0",
       "resolved": "https://registry.npmjs.org/binary-extensions/-/binary-extensions-1.10.0.tgz"
     },
-    "bl": {
-      "version": "0.9.5",
-      "from": "bl@>=0.9.0 <0.10.0",
-      "resolved": "https://registry.npmjs.org/bl/-/bl-0.9.5.tgz",
-      "dev": true,
-      "dependencies": {
-        "isarray": {
-          "version": "0.0.1",
-          "from": "isarray@0.0.1",
-          "resolved": "https://registry.npmjs.org/isarray/-/isarray-0.0.1.tgz",
-          "dev": true
-        },
-        "readable-stream": {
-          "version": "1.0.34",
-          "from": "readable-stream@>=1.0.26 <1.1.0",
-          "resolved": "https://registry.npmjs.org/readable-stream/-/readable-stream-1.0.34.tgz",
-          "dev": true
-        },
-        "string_decoder": {
-          "version": "0.10.31",
-          "from": "string_decoder@>=0.10.0 <0.11.0",
-          "resolved": "https://registry.npmjs.org/string_decoder/-/string_decoder-0.10.31.tgz",
-          "dev": true
-        }
-      }
-    },
-    "block-stream": {
-      "version": "0.0.9",
-      "from": "block-stream@*",
-      "resolved": "https://registry.npmjs.org/block-stream/-/block-stream-0.0.9.tgz",
-      "dev": true
-    },
-    "bn.js": {
-      "version": "4.11.7",
-      "from": "bn.js@>=4.1.1 <5.0.0",
-      "resolved": "https://registry.npmjs.org/bn.js/-/bn.js-4.11.7.tgz",
-      "dev": true
-    },
-    "body-parser": {
-      "version": "1.14.2",
-      "from": "body-parser@>=1.14.0 <1.15.0",
-      "resolved": "https://registry.npmjs.org/body-parser/-/body-parser-1.14.2.tgz",
-      "dev": true,
-      "dependencies": {
-        "iconv-lite": {
-          "version": "0.4.13",
-          "from": "iconv-lite@0.4.13",
-          "resolved": "https://registry.npmjs.org/iconv-lite/-/iconv-lite-0.4.13.tgz",
-          "dev": true
-        },
-        "qs": {
-          "version": "5.2.0",
-          "from": "qs@5.2.0",
-          "resolved": "https://registry.npmjs.org/qs/-/qs-5.2.0.tgz",
-          "dev": true
-        }
-      }
->>>>>>> 764fb0270... download eslint package from npm and place it into default extensions (#13108)
-    },
     "boom": {
       "version": "2.10.1",
       "from": "boom@>=2.0.0 <3.0.0",
@@ -181,65 +122,6 @@
       "version": "1.8.5",
       "from": "braces@>=1.8.2 <2.0.0",
       "resolved": "https://registry.npmjs.org/braces/-/braces-1.8.5.tgz"
-    },
-    "brorand": {
-      "version": "1.1.0",
-      "from": "brorand@>=1.0.1 <2.0.0",
-      "resolved": "https://registry.npmjs.org/brorand/-/brorand-1.1.0.tgz",
-      "dev": true
-    },
-    "browserify-aes": {
-      "version": "1.0.6",
-      "from": "browserify-aes@>=1.0.4 <2.0.0",
-      "resolved": "https://registry.npmjs.org/browserify-aes/-/browserify-aes-1.0.6.tgz",
-      "dev": true
-    },
-    "browserify-cipher": {
-      "version": "1.0.0",
-      "from": "browserify-cipher@>=1.0.0 <2.0.0",
-      "resolved": "https://registry.npmjs.org/browserify-cipher/-/browserify-cipher-1.0.0.tgz",
-      "dev": true
-    },
-    "browserify-des": {
-      "version": "1.0.0",
-      "from": "browserify-des@>=1.0.0 <2.0.0",
-      "resolved": "https://registry.npmjs.org/browserify-des/-/browserify-des-1.0.0.tgz",
-      "dev": true
-    },
-    "browserify-rsa": {
-      "version": "4.0.1",
-      "from": "browserify-rsa@>=4.0.0 <5.0.0",
-      "resolved": "https://registry.npmjs.org/browserify-rsa/-/browserify-rsa-4.0.1.tgz",
-      "dev": true
-    },
-    "browserify-sign": {
-      "version": "4.0.4",
-      "from": "browserify-sign@>=4.0.0 <5.0.0",
-      "resolved": "https://registry.npmjs.org/browserify-sign/-/browserify-sign-4.0.4.tgz",
-      "dev": true
-    },
-    "browserify-zlib": {
-      "version": "0.1.4",
-      "from": "browserify-zlib@>=0.1.4 <0.2.0",
-      "resolved": "https://registry.npmjs.org/browserify-zlib/-/browserify-zlib-0.1.4.tgz",
-      "dev": true
-    },
-    "buffer": {
-      "version": "4.9.1",
-      "from": "buffer@>=4.3.0 <5.0.0",
-      "resolved": "https://registry.npmjs.org/buffer/-/buffer-4.9.1.tgz",
-      "dev": true
-    },
-    "buffer-shims": {
-      "version": "1.0.0",
-      "from": "buffer-shims@>=1.0.0 <1.1.0",
-      "resolved": "https://registry.npmjs.org/buffer-shims/-/buffer-shims-1.0.0.tgz"
-    },
-    "buffer-xor": {
-      "version": "1.0.3",
-      "from": "buffer-xor@>=1.0.2 <2.0.0",
-      "resolved": "https://registry.npmjs.org/buffer-xor/-/buffer-xor-1.0.3.tgz",
-      "dev": true
     },
     "buffers": {
       "version": "0.1.1",
@@ -312,11 +194,6 @@
           "version": "0.0.1",
           "from": "isarray@0.0.1",
           "resolved": "https://registry.npmjs.org/isarray/-/isarray-0.0.1.tgz"
-        },
-        "q": {
-          "version": "1.5.0",
-          "from": "q@>=1.1.2 <2.0.0",
-          "resolved": "https://registry.npmjs.org/q/-/q-1.5.0.tgz"
         },
         "readable-stream": {
           "version": "1.1.14",
@@ -413,44 +290,8 @@
     },
     "fs.realpath": {
       "version": "1.0.0",
-      "from": "fs.realpath@>=1.0.0 <2.0.0",
-      "resolved": "https://registry.npmjs.org/fs.realpath/-/fs.realpath-1.0.0.tgz",
-      "dev": true
-    },
-    "fstream": {
-      "version": "1.0.11",
-      "from": "fstream@>=1.0.2 <2.0.0",
-      "resolved": "https://registry.npmjs.org/fstream/-/fstream-1.0.11.tgz",
-      "dev": true
-    },
-    "gaze": {
-      "version": "1.1.2",
-      "from": "gaze@>=1.0.0 <2.0.0",
-      "resolved": "https://registry.npmjs.org/gaze/-/gaze-1.1.2.tgz",
-      "dev": true
-    },
-    "generate-function": {
-      "version": "2.0.0",
-      "from": "generate-function@>=2.0.0 <3.0.0",
-      "resolved": "https://registry.npmjs.org/generate-function/-/generate-function-2.0.0.tgz"
-    },
-    "generate-object-property": {
-      "version": "1.2.0",
-      "from": "generate-object-property@>=1.1.0 <2.0.0",
-      "resolved": "https://registry.npmjs.org/generate-object-property/-/generate-object-property-1.2.0.tgz"
-    },
-    "get-caller-file": {
-      "version": "1.0.2",
-      "from": "get-caller-file@>=1.0.1 <2.0.0",
-      "resolved": "https://registry.npmjs.org/get-caller-file/-/get-caller-file-1.0.2.tgz",
-      "dev": true
-    },
-    "getobject": {
-      "version": "0.1.0",
-      "from": "getobject@>=0.1.0 <0.2.0",
-      "resolved": "https://registry.npmjs.org/getobject/-/getobject-0.1.0.tgz",
-      "dev": true
->>>>>>> 764fb0270... download eslint package from npm and place it into default extensions (#13108)
+      "from": "fs.realpath@^1.0.0",
+      "resolved": "https://registry.npmjs.org/fs.realpath/-/fs.realpath-1.0.0.tgz"
     },
     "getpass": {
       "version": "0.1.7",
@@ -701,49 +542,6 @@
       "version": "1.2.0",
       "from": "mount-point@>=1.0.0 <2.0.0",
       "resolved": "https://registry.npmjs.org/mount-point/-/mount-point-1.2.0.tgz"
-    },
-    "ms": {
-      "version": "0.7.1",
-      "from": "ms@0.7.1",
-      "resolved": "https://registry.npmjs.org/ms/-/ms-0.7.1.tgz",
-      "dev": true
-    },
-    "multimatch": {
-      "version": "2.1.0",
-      "from": "multimatch@>=2.0.0 <3.0.0",
-      "resolved": "https://registry.npmjs.org/multimatch/-/multimatch-2.1.0.tgz",
-      "dev": true
-    },
-    "mute-stream": {
-      "version": "0.0.5",
-      "from": "mute-stream@0.0.5",
-      "resolved": "https://registry.npmjs.org/mute-stream/-/mute-stream-0.0.5.tgz",
-      "dev": true
-    },
-    "nan": {
-      "version": "1.0.0",
-      "from": "nan@>=1.0.0 <1.1.0",
-      "resolved": "https://registry.npmjs.org/nan/-/nan-1.0.0.tgz"
-    },
-    "natural-compare": {
-      "version": "1.4.0",
-      "from": "natural-compare@>=1.4.0 <2.0.0",
-      "resolved": "https://registry.npmjs.org/natural-compare/-/natural-compare-1.4.0.tgz",
-      "dev": true
-    },
-    "node-libs-browser": {
-      "version": "2.0.0",
-      "from": "node-libs-browser@>=2.0.0 <3.0.0",
-      "resolved": "https://registry.npmjs.org/node-libs-browser/-/node-libs-browser-2.0.0.tgz",
-      "dev": true,
-      "dependencies": {
-        "string_decoder": {
-          "version": "0.10.31",
-          "from": "string_decoder@>=0.10.25 <0.11.0",
-          "resolved": "https://registry.npmjs.org/string_decoder/-/string_decoder-0.10.31.tgz",
-          "dev": true
-        }
-      }
     },
     "nopt": {
       "version": "3.0.6",
@@ -2342,8 +2140,7 @@
     "q": {
       "version": "1.4.1",
       "from": "q@1.4.1",
-      "resolved": "https://registry.npmjs.org/q/-/q-1.4.1.tgz",
-      "dev": true
+      "resolved": "https://registry.npmjs.org/q/-/q-1.4.1.tgz"
     },
     "qs": {
       "version": "6.4.0",
@@ -2481,12 +2278,6 @@
       "from": "strip-eof@>=1.0.0 <2.0.0",
       "resolved": "https://registry.npmjs.org/strip-eof/-/strip-eof-1.0.0.tgz"
     },
-    "tar": {
-      "version": "2.2.1",
-      "from": "tar@2.2.1",
-      "resolved": "https://registry.npmjs.org/tar/-/tar-2.2.1.tgz",
-      "dev": true
-    },
     "temp": {
       "version": "0.8.3",
       "from": "temp@0.8.3",
@@ -2622,18 +2413,6 @@
       "version": "2.1.2",
       "from": "yallist@>=2.1.2 <3.0.0",
       "resolved": "https://registry.npmjs.org/yallist/-/yallist-2.1.2.tgz"
-    },
-    "zlib": {
-      "version": "1.0.5",
-      "from": "zlib@1.0.5",
-      "resolved": "https://registry.npmjs.org/zlib/-/zlib-1.0.5.tgz",
-      "dev": true
-    },
-    "zlib-browserify": {
-      "version": "0.0.1",
-      "from": "zlib-browserify@0.0.1",
-      "resolved": "https://registry.npmjs.org/zlib-browserify/-/zlib-browserify-0.0.1.tgz",
-      "dev": true
     }
   }
 }

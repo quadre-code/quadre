@@ -141,8 +141,8 @@ module.exports = function (grunt) {
                     },
                     {
                         expand: true,
-                        dest: 'src/thirdparty/acorn',
-                        cwd: 'src/node_modules/acorn',
+                        dest: 'dist/www/thirdparty/acorn',
+                        cwd: 'dist/www/node_modules/acorn',
                         src: [
                             'dist/{,*/}*'
                         ]
