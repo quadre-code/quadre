@@ -92,7 +92,7 @@ define(function (require, exports, module) {
     require("file/FileUtils");
     require("project/SidebarView");
     require("utils/Resizer");
-    // require("LiveDevelopment/main");
+    require("LiveDevelopment/main");
     require("utils/NodeConnection");
     require("utils/NodeDomain");
     require("utils/ColorUtils");
@@ -183,7 +183,7 @@ define(function (require, exports, module) {
             DocumentCommandHandlers : require("document/DocumentCommandHandlers"),
             DocumentManager         : require("document/DocumentManager"),
             DocumentModule          : require("document/Document"),
-            // DOMAgent                : require("LiveDevelopment/Agents/DOMAgent"),
+            DOMAgent                : require("LiveDevelopment/Agents/DOMAgent"),
             DragAndDrop             : require("utils/DragAndDrop"),
             EditorManager           : require("editor/EditorManager"),
             ExtensionLoader         : require("utils/ExtensionLoader"),
@@ -197,14 +197,14 @@ define(function (require, exports, module) {
             FindInFiles             : require("search/FindInFiles"),
             FindInFilesUI           : require("search/FindInFilesUI"),
             HTMLInstrumentation     : require("language/HTMLInstrumentation"),
-            // Inspector               : require("LiveDevelopment/Inspector/Inspector"),
+            Inspector               : require("LiveDevelopment/Inspector/Inspector"),
             InstallExtensionDialog  : require("extensibility/InstallExtensionDialog"),
             JSUtils                 : require("language/JSUtils"),
             KeyBindingManager       : require("command/KeyBindingManager"),
             LanguageManager         : require("language/LanguageManager"),
-            // LiveDevelopment         : require("LiveDevelopment/LiveDevelopment"),
-            // LiveDevMultiBrowser     : require("LiveDevelopment/LiveDevMultiBrowser"),
-            // LiveDevServerManager    : require("LiveDevelopment/LiveDevServerManager"),
+            LiveDevelopment         : require("LiveDevelopment/LiveDevelopment"),
+            LiveDevMultiBrowser     : require("LiveDevelopment/LiveDevMultiBrowser"),
+            LiveDevServerManager    : require("LiveDevelopment/LiveDevServerManager"),
             MainViewFactory         : require("view/MainViewFactory"),
             MainViewManager         : require("view/MainViewManager"),
             Menus                   : require("command/Menus"),
@@ -213,7 +213,7 @@ define(function (require, exports, module) {
             PerfUtils               : require("utils/PerfUtils"),
             PreferencesManager      : require("preferences/PreferencesManager"),
             ProjectManager          : require("project/ProjectManager"),
-            // RemoteAgent             : require("LiveDevelopment/Agents/RemoteAgent"),
+            RemoteAgent             : require("LiveDevelopment/Agents/RemoteAgent"),
             ScrollTrackMarkers      : require("search/ScrollTrackMarkers"),
             UpdateNotification      : require("utils/UpdateNotification"),
             WorkingSetView          : require("project/WorkingSetView"),

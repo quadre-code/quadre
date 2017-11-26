@@ -582,8 +582,7 @@ define(function (require, exports, module) {
                 commandID = command;
                 command = CommandManager.get(commandID);
                 if (!command) {
-                    var err = new Error();
-                    console.error("addMenuItem(): commandID not found: " + commandID + " at " + err.stack);
+                    console.error("addMenuItem(): commandID not found: " + commandID);
                     return null;
                 }
                 name = command.getName();

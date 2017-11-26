@@ -24,45 +24,45 @@
 define(function (require, exports, module) {
     "use strict";
 
-//    var AppInit              = brackets.getModule("utils/AppInit"),
-//        ExtensionUtils       = brackets.getModule("utils/ExtensionUtils"),
-//        LiveDevServerManager = brackets.getModule("LiveDevelopment/LiveDevServerManager"),
-//        NodeDomain           = brackets.getModule("utils/NodeDomain"),
-//        ProjectManager       = brackets.getModule("project/ProjectManager"),
-//        StaticServer         = require("StaticServer");
-//
-//    /**
-//     * @private
-//     * @type {string} fullPath of the StaticServerDomain implementation
-//     */
-//    var _domainPath = ExtensionUtils.getModulePath(module, "node/StaticServerDomain");
-//
-//    /**
-//     * @private
-//     * @type {NodeDomain}
-//     */
-//    var _nodeDomain = new NodeDomain("staticServer", _domainPath);
-//
-//    /**
-//     * @private
-//     * @return {StaticServerProvider} The singleton StaticServerProvider initialized
-//     * on app ready.
-//     */
-//    function _createStaticServer() {
-//        var config = {
-//            nodeDomain      : _nodeDomain,
-//            pathResolver    : ProjectManager.makeProjectRelativeIfPossible,
-//            root            : ProjectManager.getProjectRoot().fullPath
-//        };
-//
-//        return new StaticServer(config);
-//    }
-//
-//    AppInit.appReady(function () {
-//        LiveDevServerManager.registerServer({ create: _createStaticServer }, 5);
-//    });
-//
-//    // For unit tests only
-//    exports._getStaticServerProvider = _createStaticServer;
-//    exports._nodeDomain = _nodeDomain;
+    var AppInit              = brackets.getModule("utils/AppInit"),
+        ExtensionUtils       = brackets.getModule("utils/ExtensionUtils"),
+        LiveDevServerManager = brackets.getModule("LiveDevelopment/LiveDevServerManager"),
+        NodeDomain           = brackets.getModule("utils/NodeDomain"),
+        ProjectManager       = brackets.getModule("project/ProjectManager"),
+        StaticServer         = require("StaticServer");
+
+    /**
+     * @private
+     * @type {string} fullPath of the StaticServerDomain implementation
+     */
+    var _domainPath = ExtensionUtils.getModulePath(module, "node/StaticServerDomain");
+
+    /**
+     * @private
+     * @type {NodeDomain}
+     */
+    var _nodeDomain = new NodeDomain("staticServer", _domainPath);
+
+    /**
+     * @private
+     * @return {StaticServerProvider} The singleton StaticServerProvider initialized
+     * on app ready.
+     */
+    function _createStaticServer() {
+        var config = {
+            nodeDomain      : _nodeDomain,
+            pathResolver    : ProjectManager.makeProjectRelativeIfPossible,
+            root            : ProjectManager.getProjectRoot().fullPath
+        };
+
+        return new StaticServer(config);
+    }
+
+    AppInit.appReady(function () {
+        LiveDevServerManager.registerServer({ create: _createStaticServer }, 5);
+    });
+
+    // For unit tests only
+    exports._getStaticServerProvider = _createStaticServer;
+    exports._nodeDomain = _nodeDomain;
 });
