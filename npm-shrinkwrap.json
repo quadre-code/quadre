@@ -2340,6 +2340,11 @@
       "resolved": "https://registry.npmjs.org/tweetnacl/-/tweetnacl-0.14.5.tgz",
       "optional": true
     },
+    "ultron": {
+      "version": "1.1.1",
+      "from": "ultron@>=1.1.0 <1.2.0",
+      "resolved": "https://registry.npmjs.org/ultron/-/ultron-1.1.1.tgz"
+    },
     "user-home": {
       "version": "1.1.1",
       "from": "user-home@>=1.1.0 <2.0.0",
@@ -2376,6 +2381,18 @@
       "version": "1.0.2",
       "from": "wrappy@1",
       "resolved": "https://registry.npmjs.org/wrappy/-/wrappy-1.0.2.tgz"
+    },
+    "ws": {
+      "version": "2.3.1",
+      "from": "ws@2.3.1",
+      "resolved": "https://registry.npmjs.org/ws/-/ws-2.3.1.tgz",
+      "dependencies": {
+        "safe-buffer": {
+          "version": "5.0.1",
+          "from": "safe-buffer@>=5.0.1 <5.1.0",
+          "resolved": "https://registry.npmjs.org/safe-buffer/-/safe-buffer-5.0.1.tgz"
+        }
+      }
     },
     "xdg-basedir": {
       "version": "1.0.1",

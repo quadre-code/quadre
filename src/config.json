@@ -108,6 +108,7 @@
         "strip-bom": "3.0.0",
         "temp": "0.8.3",
         "trash": "4.0.1",
+        "ws": "2.3.1",
         "xml2js": "0.4.17"
     },
     "devDependencies": {
@@ -154,9 +155,8 @@
         "tar": "2.2.1",
         "tslint": "5.8.0",
         "typescript": "2.6.1",
-        "typescript-eslint-parser": "8.0.1",
+        "typescript-eslint-parser": "9.0.0",
         "webpack": "2.4.1",
-        "xmldoc": "0.1.2",
-        "zlib": "1.0.5"
+        "xmldoc": "0.1.2"
     }
 }
