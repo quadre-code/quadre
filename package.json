@@ -130,7 +130,6 @@
     "typescript": "2.6.1",
     "typescript-eslint-parser": "9.0.0",
     "webpack": "2.4.1",
-    "xmldoc": "0.1.2",
-    "zlib": "1.0.5"
+    "xmldoc": "0.1.2"
   }
 }
