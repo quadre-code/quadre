@@ -7,6 +7,7 @@ import { getLogger, setLoggerWindow, unsetLoggerWindow, convertWindowsPathToUnix
 import * as pathLib from "path";
 import * as shellConfig from "./shell-config";
 import { readBracketsPreferences } from "./brackets-config";
+import { wins, menuTemplates } from "./shared";
 
 const appInfo = require("./package.json");
 
@@ -23,10 +24,6 @@ ipcMain.on("log", function (event: Event, ...args: any[]) {
 // Report crashes to electron server
 // TODO: doesn't work
 // electron.crashReporter.start();
-
-// Keep a global reference of the window object, if you don't, the window will
-// be closed automatically when the javascript object is GCed.
-const wins: Electron.BrowserWindow[] = [];
 
 // fetch window position values from the window and save them to config file
 function _saveWindowPosition(sync: boolean, win: Electron.BrowserWindow) {
@@ -189,7 +186,11 @@ export function openMainBracketsWindow(query: {} | string = {}): Electron.Browse
         // in an array if your app supports multi windows, this is the time
         // when you should delete the corresponding element.
         const io = wins.indexOf(win);
-        if (io !== -1) { wins.splice(io, 1); }
+        if (io !== -1) {
+            const oldWin = wins.splice(io, 1) as BrowserWindow[];
+
+            delete menuTemplates[oldWin[0].id];
+        }
     });
 
     // this is used to remember the size from the last time

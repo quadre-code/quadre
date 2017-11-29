@@ -3,16 +3,12 @@
 /* globals Electron, process */
 
 interface MenuItemOptions extends Electron.MenuItemConstructorOptions {}
-interface MenuTemplates {
-    [winId: number]: MenuItemOptions[];
-}
 
 import * as _ from "lodash";
 import * as assert from "assert";
 import { app, Menu, BrowserWindow } from "electron";
 import * as shell from "./shell";
-
-const menuTemplates: MenuTemplates = {};
+import { menuTemplates } from "../shared";
 
 export const ERR_NOT_FOUND = "NOTFOUND";
 
