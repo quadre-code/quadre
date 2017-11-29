@@ -39,4 +39,3 @@ You'll find runnable Quadre in `dist-build` directory.
 ---
 
 Please note that this project is released with a [Contributor Code of Conduct](https://github.com/adobe/brackets/blob/master/.github/CODE_OF_CONDUCT.md). By participating in this project you agree to abide by its terms.
-

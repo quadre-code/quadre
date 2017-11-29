@@ -7,7 +7,6 @@ interface MenuItemOptions extends Electron.MenuItemConstructorOptions {}
 import * as _ from "lodash";
 import * as assert from "assert";
 import { app, Menu, BrowserWindow } from "electron";
-import * as shell from "./shell";
 import { menuTemplates } from "../shared";
 
 export const ERR_NOT_FOUND = "NOTFOUND";
@@ -45,11 +44,10 @@ const __refreshMenu = _.debounce(function (win: Electron.BrowserWindow) {
     } else if (menu) {
         Menu.setApplicationMenu(menu);
     }
-    const mainWindow = shell.getMainWindow();
-    if (mainWindow.isFocused()) {
+    if (win.isFocused()) {
         currentShortcuts = {};
-        menuTemplate.forEach((menuItem) => registerShortcuts(mainWindow, menuItem));
-        mainWindow.webContents.send("updateShortcuts", JSON.stringify(currentShortcuts));
+        menuTemplate.forEach((menuItem) => registerShortcuts(win, menuItem));
+        win.webContents.send("updateShortcuts", JSON.stringify(currentShortcuts));
     }
 }, 100);
 
@@ -206,6 +204,8 @@ export function addMenuItem(
     assert(!relativeId || relativeId && typeof relativeId === "string", "relativeId must be a string");
     assert(typeof callback === "function", "callback must be a function");
     process.nextTick(function () {
+        const win = BrowserWindow.fromId(winId);
+
         if (typeof key === "string") {
             key = _fixBracketsKeyboardShortcut(key);
         }
@@ -215,7 +215,7 @@ export function addMenuItem(
             type: isSeparator ? "separator" : "normal",
             id,
             label: title,
-            click: () => shell.getMainWindow().webContents.send("executeCommand", id)
+            click: () => win.webContents.send("executeCommand", id)
         };
 
         if (key) {
@@ -234,7 +234,6 @@ export function addMenuItem(
             parentObj.submenu = [];
         }
 
-        const win = BrowserWindow.fromId(winId);
         const err = _addToPosition(newObj, parentObj.submenu as MenuItemOptions[], position || "last", relativeId);
         _refreshMenu(win, callback.bind(null, err));
     });
