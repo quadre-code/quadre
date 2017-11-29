@@ -184,33 +184,37 @@ define(function (require, exports, module) {
             it("should open docs when the selection is on an HTML tag", function () {
                 queryInlineAtPos(testHTMLInfo, 1, true, "<body>");
             });
+
+            it("should open docs for CSS in a style attribute", function () {
+                queryInlineAtPos(testHTMLInfo, 2, true, "background-color");
+            });
             
             it("should not open docs when the selection is on an invalid HTML tag", function () {
-                queryInlineAtPos(testHTMLInfo, 2, false);
+                queryInlineAtPos(testHTMLInfo, 3, false);
             });
             
             it("should not open docs when the selection is not an HTML tag", function () {
                 /* Text */
-                queryInlineAtPos(testHTMLInfo, 3, false);
+                queryInlineAtPos(testHTMLInfo, 4, false);
                 
                 /* Commented tag */
-                queryInlineAtPos(testHTMLInfo, 4, false);
+                queryInlineAtPos(testHTMLInfo, 5, false);
             });
             
             it("should open docs when the selection is on an HTML attribute", function () {
-                queryInlineAtPos(testHTMLInfo, 5, true, "<div>");
-            });
-            
-            it("should open docs for tag (fallback) when the selection is on an HTML attribute's value", function () {
                 queryInlineAtPos(testHTMLInfo, 6, true, "<div>");
             });
             
-            it("should open docs for tag (fallback) when the selection is on an invalid HTML attribute", function () {
+            it("should open docs for tag (fallback) when the selection is on an HTML attribute's value", function () {
                 queryInlineAtPos(testHTMLInfo, 7, true, "<div>");
             });
             
+            it("should open docs for tag (fallback) when the selection is on an invalid HTML attribute", function () {
+                queryInlineAtPos(testHTMLInfo, 8, true, "<div>");
+            });
+            
             it("should not open docs when the selection is on an invalid HTML attribute on an invalid HTML tag", function () {
-                queryInlineAtPos(testHTMLInfo, 8, false);
+                queryInlineAtPos(testHTMLInfo, 9, false);
             });
 
         });
