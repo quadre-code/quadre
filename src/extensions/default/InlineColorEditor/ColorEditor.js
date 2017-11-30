@@ -610,8 +610,9 @@ define(function (require, exports, module) {
      */
     ColorEditor.prototype.undo = function () {
         if (this._originalColor.toString() !== this._color.toString()) {
+            var curColor = this._color.toString();
             this._commitColor(this._originalColor, true);
-            this._redoColor = this._color.toString();
+            this._redoColor = curColor;
         }
     };
 
