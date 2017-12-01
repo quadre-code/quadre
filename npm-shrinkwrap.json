@@ -284,9 +284,16 @@
       "resolved": "https://registry.npmjs.org/form-data/-/form-data-2.1.4.tgz"
     },
     "fs-extra": {
-      "version": "2.1.2",
-      "from": "fs-extra@2.1.2",
-      "resolved": "https://registry.npmjs.org/fs-extra/-/fs-extra-2.1.2.tgz"
+      "version": "4.0.2",
+      "from": "fs-extra@4.0.2",
+      "resolved": "https://registry.npmjs.org/fs-extra/-/fs-extra-4.0.2.tgz",
+      "dependencies": {
+        "jsonfile": {
+          "version": "4.0.0",
+          "from": "jsonfile@>=4.0.0 <5.0.0",
+          "resolved": "https://registry.npmjs.org/jsonfile/-/jsonfile-4.0.0.tgz"
+        }
+      }
     },
     "fs.realpath": {
       "version": "1.0.0",
@@ -2212,9 +2219,9 @@
       "resolved": "https://registry.npmjs.org/requirejs/-/requirejs-2.3.3.tgz"
     },
     "rimraf": {
-      "version": "2.6.1",
-      "from": "rimraf@2.6.1",
-      "resolved": "https://registry.npmjs.org/rimraf/-/rimraf-2.6.1.tgz"
+      "version": "2.6.2",
+      "from": "rimraf@2.6.2",
+      "resolved": "https://registry.npmjs.org/rimraf/-/rimraf-2.6.2.tgz"
     },
     "run-applescript": {
       "version": "3.0.0",
@@ -2344,6 +2351,11 @@
       "version": "1.1.1",
       "from": "ultron@>=1.1.0 <1.2.0",
       "resolved": "https://registry.npmjs.org/ultron/-/ultron-1.1.1.tgz"
+    },
+    "universalify": {
+      "version": "0.1.1",
+      "from": "universalify@>=0.1.0 <0.2.0",
+      "resolved": "https://registry.npmjs.org/universalify/-/universalify-0.1.1.tgz"
     },
     "user-home": {
       "version": "1.1.1",
