@@ -762,7 +762,7 @@ define(function (require, exports, module) {
             var commandCalled, ctrlAlt1Event, ctrlAltEvents;
             var ctrlEvent = {
                 ctrlKey: true,
-                keyIdentifier: "Control",
+                key: "Control",
                 keyCode: KeyEvent.DOM_VK_CONTROL,
                 immediatePropagationStopped: false,
                 propagationStopped: false,
@@ -782,7 +782,7 @@ define(function (require, exports, module) {
                 var altGrEvents = [],
                     altEvent = _.cloneDeep(ctrlEvent);
 
-                altEvent.keyIdentifier = "Alt";
+                altEvent.key = "Alt";
                 altEvent.altKey = true;
                 altEvent.keyCode = KeyEvent.DOM_VK_ALT;
 
