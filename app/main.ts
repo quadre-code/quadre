@@ -5,6 +5,7 @@ import AutoUpdater from "./auto-updater";
 import * as _ from "lodash";
 import { getLogger, setLoggerWindow, unsetLoggerWindow, convertWindowsPathToUnixPath } from "./utils";
 import * as pathLib from "path";
+import * as yargs from "yargs";
 import * as shellConfig from "./shell-config";
 import { readBracketsPreferences } from "./brackets-config";
 import { wins, menuTemplates } from "./shared";
@@ -110,9 +111,14 @@ export function getMainBracketsWindow(): Electron.BrowserWindow {
 }
 
 export function openMainBracketsWindow(query: {} | string = {}): Electron.BrowserWindow {
+    const argv = yargs.argv;
 
     // compose path to brackets' index file
-    const indexPath = "file:///" + convertWindowsPathToUnixPath(pathLib.resolve(__dirname, "www", "index.html"));
+    let indexPath = "file:///" + convertWindowsPathToUnixPath(pathLib.resolve(__dirname, "www", "index.html"));
+    if (argv["startup-path"]) {
+        const startupPath = argv["startup-path"];
+        indexPath = "file:///" + convertWindowsPathToUnixPath(pathLib.resolve(__dirname, startupPath));
+    }
 
     // build a query for brackets' window
     let queryString = "";

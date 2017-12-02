@@ -27,9 +27,9 @@
 
 module.exports = function (grunt) {
     var common          = require("./lib/common")(grunt),
-        child_process   = require("child_process"),
-        q               = require("q"),
-        qexec           = q.denodeify(child_process.exec),
+        childProcess    = require("child_process"),
+        path            = require("path"),
+        fs              = require("fs-extra"),
         XmlDocument     = require("xmldoc").XmlDocument;
 
     /**
@@ -42,7 +42,15 @@ module.exports = function (grunt) {
             failures = 0;
 
         testSuites.forEach(function (testSuite) {
-            failures += Number(testSuite.attr.failures);
+            const num = Number(testSuite.attr.failures);
+            failures += num;
+            if (num > 0) {
+                testSuite.children.forEach(function (testCases) {
+                    testCases.children.forEach(function (testCase) {
+                        grunt.log.writeln(testSuite.attr.name, testCase.val);
+                    });
+                });
+            }
         });
 
         return failures;
@@ -56,30 +64,47 @@ module.exports = function (grunt) {
             cmd             = common.resolve(grunt.option("shell") || grunt.config("shell." + platform)),
             spec            = grunt.option("spec") || "all",
             suite           = grunt.option("suite") || "all",
-            results         = grunt.option("results") || process.cwd() + "/results.xml",
+            resultsDir      = process.env.TEST_JUNIT_XML_ROOT || path.join(process.cwd(), "dist", "test", "results"),
+            results         = grunt.option("results") || resultsDir + "/TEST-results.xml",
             resultsPath     = common.resolve(results).replace(/\\/g, "/"),
-            specRunnerPath  = common.resolve("test/SpecRunner.html"),
+            specRunnerPath  = common.resolve("dist/test/SpecRunner.html"),
             args            = " --startup-path=\"" + specRunnerPath + "?suite=" + encodeURIComponent(suite) + "&spec=" + encodeURIComponent(spec) + "&resultsPath=" + encodeURIComponent(resultsPath) + "\"";
 
-        if (platform === "mac") {
-            cmd = "open \"" + cmd + "\" -W --args " + args;
-        } else {
-            cmd += args;
-        }
-
+        cmd = path.join("node_modules", ".bin", "electron") + " . " + args;
         grunt.log.writeln(cmd);
 
-        qexec(cmd, opts).then(function (stdout, stderr) {
-            var failures = checkForTestFailures(resultsPath);
-            if (failures) {
-                var e = new Error(failures + ' test failure(s). Results are available from ' + resultsPath);
-                done(e);
-            } else {
-                done();
-            }
-        }, function (err) {
+        fs.emptyDir(resultsDir)
+        .then(() => {
+            var cp = childProcess.exec(cmd, opts, function (err, stdout, stderr) {
+                if (err) {
+                    grunt.log.writeln(err);
+                    return done(err);
+                }
+                grunt.log.writeln(`stdout: ${stdout}`);
+                grunt.log.writeln(`stderr: ${stderr}`);
+            });
+            cp.on("error", function (error) {
+                grunt.log.writeln(error);
+                done(error);
+            });
+            cp.on("exit", function (code, signal) {
+                if (code !== 0) {
+                    var e = new Error("Process exited with code " + code);
+                    return done(e);
+                }
+
+                var failures = checkForTestFailures(resultsPath);
+                if (failures) {
+                    var e = new Error(failures + ' test failure(s). Results are available from ' + resultsPath);
+                    done(e);
+                } else {
+                    done();
+                }
+            });
+        })
+        .catch((err) => {
             grunt.log.writeln(err);
-            done(false);
+            done(err);
         });
     });
 };

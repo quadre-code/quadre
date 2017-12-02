@@ -11,7 +11,7 @@ matrix:
     - os: linux
       dist: trusty
       sudo: required
-      env: CC=clang CXX=clang++ npm_config_clang=1
+      env: DISPLAY=:99.0 CC=clang CXX=clang++ npm_config_clang=1
       compiler: clang
 
 cache:
@@ -29,6 +29,9 @@ addons:
 
 before_install:
   - mkdir -p /tmp/git-lfs && curl -L https://github.com/github/git-lfs/releases/download/v1.2.1/git-lfs-$([ "$TRAVIS_OS_NAME" == "linux" ] && echo "linux" || echo "darwin")-amd64-1.2.1.tar.gz | tar -xz -C /tmp/git-lfs --strip-components 1 && /tmp/git-lfs/git-lfs pull
+  - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then
+      /sbin/start-stop-daemon --start --quiet --pidfile /tmp/custom_xvfb_99.pid --make-pidfile --background --exec /usr/bin/Xvfb -- :99 -ac -screen 0 1280x1024x16;
+    fi
 
 install:
 - nvm install 8.3
@@ -39,9 +42,8 @@ install:
 script:
 - node --version
 - npm --version
-- npm run test
 - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then
-    npm run publish-mac;
+    npm run test && npm run publish-mac;
   else
-    npm run publish-linux;
+    npm run test && npm run publish-linux;
   fi
