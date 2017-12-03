@@ -24,11 +24,11 @@
     }
 
     function escapeInvalidXmlChars(str) {
-        return str.replace(/\&/g, "&amp;")
-            .replace(/</g, "&lt;")
+        return str.replace(/</g, "&lt;")
             .replace(/\>/g, "&gt;")
             .replace(/\"/g, "&quot;")
-            .replace(/\'/g, "&apos;");
+            .replace(/\'/g, "&apos;")
+            .replace(/\&/g, "&amp;");
     }
 
     /**
@@ -36,21 +36,34 @@
      * Allows the test results to be used in java based CI
      * systems like CruiseControl and Hudson.
      *
-     * @param {string} savePath where to save the files
-     * @param {boolean} consolidate whether to save nested describes within the
+     * @param {string} [savePath] where to save the files
+     * @param {boolean} [consolidate] whether to save nested describes within the
      *                  same file as their parent; default: true
-     * @param {boolean} useDotNotation whether to separate suite names with
+     * @param {boolean} [useDotNotation] whether to separate suite names with
      *                  dots rather than spaces (ie "Class.init" not
      *                  "Class init"); default: true
+     * @param {string} [filePrefix] is the string value that is prepended to the
+     *                 xml output file; default: 'TEST-'
+     * @param {boolean} [consolidateAll] whether to save test results from different
+     *                  specs all in a single file; filePrefix is then the whole file
+     *                  name without extension; default: false
      */
-    var JUnitXmlReporter = function(savePath, consolidate, useDotNotation) {
+    var JUnitXmlReporter = function(savePath, consolidate, useDotNotation, filePrefix, consolidateAll) {
         this.savePath = savePath || '';
         this.consolidate = consolidate === jasmine.undefined ? true : consolidate;
+        this.consolidateAll = consolidateAll === jasmine.undefined ? false : consolidateAll;
         this.useDotNotation = useDotNotation === jasmine.undefined ? true : useDotNotation;
+        this.filePrefix = filePrefix || (this.consolidateAll ? 'junitresults' : 'TEST-');
     };
+    JUnitXmlReporter.started_at = null; // will be updated when test runner start
     JUnitXmlReporter.finished_at = null; // will be updated after all files have been written
 
     JUnitXmlReporter.prototype = {
+        reportRunnerStarting: function() {
+            // When run test, make it known on JUnitXmlReporter
+            JUnitXmlReporter.started_at = (new Date()).getTime();
+        },
+
         reportSpecStarting: function(spec) {
             spec.startTime = new Date();
 
@@ -65,6 +78,9 @@
             spec.duration = elapsed(spec.startTime, new Date());
             spec.output = '<testcase classname="' + this.getFullName(spec.suite) +
                 '" name="' + escapeInvalidXmlChars(spec.description) + '" time="' + spec.duration + '">';
+            if(results.skipped) {
+              spec.output = spec.output + "<skipped />";
+            }
 
             var failure = "";
             var failures = 0;
@@ -114,25 +130,41 @@
         },
 
         reportRunnerResults: function(runner) {
+            var fileName;
+            if (this.consolidateAll) {
+                fileName = this.filePrefix + '.xml';
+                var output = '<?xml version="1.0" encoding="UTF-8" ?>';
+                output += "\n<testsuites>";
+            }
             var suites = runner.suites();
             for (var i = 0; i < suites.length; i++) {
                 var suite = suites[i];
-                var fileName = 'TEST-' + this.getFullName(suite, true) + '.xml';
-                var output = '<?xml version="1.0" encoding="UTF-8" ?>';
+                fileName = this.consolidateAll ? fileName : this.filePrefix + this.getFullName(suite, true) + '.xml';
+                if (!this.consolidateAll) {
+                    var output = '<?xml version="1.0" encoding="UTF-8" ?>';
+                }
                 // if we are consolidating, only write out top-level suites
-                if (this.consolidate && suite.parentSuite) {
+                if ((this.consolidate || this.consolidateAll) && suite.parentSuite) {
                     continue;
                 }
-                else if (this.consolidate) {
-                    output += "\n<testsuites>";
+                else if (this.consolidate || this.consolidateAll) {
+                    if (!this.consolidateAll) {
+                        output += "\n<testsuites>";
+                    }
                     output += this.getNestedOutput(suite);
-                    output += "\n</testsuites>";
-                    this.writeFile(this.savePath, fileName, output);
+                    if (!this.consolidateAll) {
+                        output += "\n</testsuites>";
+                        this.writeFile(this.savePath, fileName, output);
+                    }
                 }
                 else {
                     output += suite.output;
                     this.writeFile(this.savePath, fileName, output);
                 }
+            }
+            if (this.consolidateAll) {
+                output += "\n</testsuites>";
+                this.writeFile(this.savePath, fileName, output);
             }
             // When all done, make it known on JUnitXmlReporter
             JUnitXmlReporter.finished_at = (new Date()).getTime();
@@ -147,17 +179,18 @@
         },
 
         writeFile: function(path, filename, text) {
+            var errors = [];
+
             function getQualifiedFilename(separator) {
-                if (path && path.substr(-1) !== separator && filename.substr(0) !== separator) {
-                    path += separator;
+                if (separator && path && path.substr(-1) !== separator && filename.substr(0) !== separator) {
+                    return path + separator + filename;
                 }
                 return path + filename;
             }
 
-            // Rhino
-            try {
-                // turn filename into a qualified path
+            function rhinoWrite(path, filename, text) {
                 if (path) {
+                    // turn filename into a qualified path
                     filename = getQualifiedFilename(java.lang.System.getProperty("file.separator"));
                     // create parent dir and ancestors if necessary
                     var file = java.io.File(filename);
@@ -170,25 +203,55 @@
                 var out = new java.io.BufferedWriter(new java.io.FileWriter(filename));
                 out.write(text);
                 out.close();
-                return;
-            } catch (e) {}
-            // PhantomJS, via a method injected by phantomjs-testrunner.js
-            try {
+            }
+
+            function phantomWrite(path, filename, text) {
                 // turn filename into a qualified path
                 filename = getQualifiedFilename(window.fs_path_separator);
+                // write via a method injected by phantomjs-testrunner.js
                 __phantom_writeFile(filename, text);
-                return;
-            } catch (f) {}
-            // Node.js
-            try {
+            }
+
+            function nodeWrite(path, filename, text) {
                 var fs = require("fs");
                 var nodejs_path = require("path");
-                var fd = fs.openSync(nodejs_path.join(path, filename), "w");
-                fs.writeSync(fd, text, 0);
-                fs.closeSync(fd);
+                require("mkdirp").sync(path); // make sure the path exists
+                var filepath = nodejs_path.join(path, filename);
+                var xmlfile = fs.openSync(filepath, "w");
+                fs.writeSync(xmlfile, text, 0);
+                fs.closeSync(xmlfile);
+            }
+
+
+            // Attempt writing with each possible environment.
+            // Track errors in case no write succeeds
+            try {
+                rhinoWrite(path, filename, text);
                 return;
-            } catch (g) {}
+            } catch (e) {
+                errors.push('  Rhino attempt: ' + e.message);
+            }
+
+            try {
+                phantomWrite(path, filename, text);
+                return;
+            } catch (f) {
+                errors.push('  PhantomJs attempt: ' + f.message);
+            }
+
+            try {
+                nodeWrite(path, filename, text);
+                return;
+            } catch (g) {
+                errors.push('  NodeJS attempt: ' + g.message);
+            }
+
+            // If made it here, no write succeeded.  Let user know.
+            this.log("Warning: writing junit report failed for '" + path + "', '" +
+                     filename + "'. Reasons:\n" +
+                     errors.join("\n"));
         },
+
 
         getFullName: function(suite, isFilename) {
             var fullName;
