@@ -279,7 +279,8 @@ define(function (require, exports, module) {
                     // we should still create an empty one, so we can attach
                     // disabled property on it in case it's disabled
                     json = {
-                        name: baseName
+                        name: baseName,
+                        title: baseName
                     };
                 }
                 json.disabled = disabled;
