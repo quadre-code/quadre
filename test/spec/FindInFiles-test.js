@@ -22,7 +22,7 @@
  */
 
 /*jslint regexp: true */
-/*global describe, it, expect, beforeFirst, afterLast, beforeEach, afterEach, waits, waitsFor, waitsForDone, runs, spyOn */
+/*global describe, xdescribe, it, expect, beforeFirst, afterLast, beforeEach, afterEach, waits, waitsFor, waitsForDone, runs, spyOn */
 
 define(function (require, exports, module) {
     "use strict";
@@ -43,7 +43,16 @@ define(function (require, exports, module) {
 
     var promisify = Async.promisify; // for convenience
 
-    describe("FindInFiles", function () {
+    // Verify if we are running in a CI.
+    var UrlParams = require("utils/UrlParams").UrlParams,
+        params    = new UrlParams();
+
+    // parse URL parameters
+    params.parse();
+
+    var isCI = /true/i.test(params.get("isCI"));
+
+    (isCI ? xdescribe : describe)("FindInFiles", function () {
 
         this.category = "integration";
 

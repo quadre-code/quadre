@@ -23,7 +23,11 @@ export function unsetLoggerWindow(win: Electron.BrowserWindow) {
 const _console: any = {};
 function callMainWindowConsole(method: string, ...args: string[]) {
     if (mainWindow) {
-        mainWindow.webContents.send("console-msg", method, ...args);
+        try {
+            mainWindow.webContents.send("console-msg", method, ...args);
+        } catch (e) {
+            // Do nothing.
+        }
         return;
     }
     _console[method].call(console, ...args);

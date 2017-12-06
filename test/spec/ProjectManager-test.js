@@ -21,7 +21,7 @@
  *
  */
 
-/*global describe, it, expect, afterEach, waitsFor, runs, waitsForDone, beforeFirst, afterLast, waits */
+/*global describe, xdescribe, it, expect, afterEach, waitsFor, runs, waitsForDone, beforeFirst, afterLast, waits */
 
 define(function (require, exports, module) {
     "use strict";
@@ -35,8 +35,16 @@ define(function (require, exports, module) {
         SpecRunnerUtils     = require("spec/SpecRunnerUtils"),
         _                   = require("thirdparty/lodash");
 
+    // Verify if we are running in a CI.
+    var UrlParams = require("utils/UrlParams").UrlParams,
+        params    = new UrlParams();
 
-    describe("ProjectManager", function () {
+    // parse URL parameters
+    params.parse();
+
+    var isCI = /true/i.test(params.get("isCI"));
+
+    (isCI ? xdescribe : describe)("ProjectManager", function () {
 
         this.category = "integration";
 

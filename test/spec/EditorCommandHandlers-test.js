@@ -21,7 +21,7 @@
  *
  */
 
-/*global describe, it, expect, beforeEach, afterEach, runs, waitsForDone, beforeFirst, afterLast */
+/*global describe, xdescribe, it, expect, beforeEach, afterEach, runs, waitsForDone, beforeFirst, afterLast */
 
 define(function (require, exports, module) {
     'use strict';
@@ -38,6 +38,15 @@ define(function (require, exports, module) {
     require("editor/EditorCommandHandlers");
 
     var shouldIndentLineComment = Editor.getIndentLineComment();
+
+    // Verify if we are running in a CI.
+    var UrlParams = require("utils/UrlParams").UrlParams,
+        params    = new UrlParams();
+
+    // parse URL parameters
+    params.parse();
+
+    var isCI = /true/i.test(params.get("isCI"));
 
     describe("EditorCommandHandlers", function () {
 
@@ -4124,7 +4133,7 @@ define(function (require, exports, module) {
             });
         });
 
-        describe("EditorCommandHandlers Integration", function () {
+        (isCI ? xdescribe : describe)("EditorCommandHandlers Integration", function () {
             this.category = "integration";
 
             beforeFirst(function () {

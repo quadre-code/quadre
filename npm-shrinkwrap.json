@@ -543,6 +543,11 @@
       "from": "is-number@>=2.1.0 <3.0.0",
       "resolved": "https://registry.npmjs.org/is-number/-/is-number-2.1.0.tgz"
     },
+    "is-number-like": {
+      "version": "1.0.8",
+      "from": "is-number-like@>=1.0.3 <2.0.0",
+      "resolved": "https://registry.npmjs.org/is-number-like/-/is-number-like-1.0.8.tgz"
+    },
     "is-posix-bracket": {
       "version": "0.1.1",
       "from": "is-posix-bracket@>=0.1.0 <0.2.0",
@@ -670,6 +675,11 @@
       "version": "4.5.0",
       "from": "lodash.isequal@>=4.5.0 <5.0.0",
       "resolved": "https://registry.npmjs.org/lodash.isequal/-/lodash.isequal-4.5.0.tgz"
+    },
+    "lodash.isfinite": {
+      "version": "3.3.2",
+      "from": "lodash.isfinite@>=3.3.2 <4.0.0",
+      "resolved": "https://registry.npmjs.org/lodash.isfinite/-/lodash.isfinite-3.3.2.tgz"
     },
     "lru-cache": {
       "version": "4.1.1",
@@ -2336,6 +2346,18 @@
       "version": "2.0.1",
       "from": "pinkie-promise@>=2.0.0 <3.0.0",
       "resolved": "https://registry.npmjs.org/pinkie-promise/-/pinkie-promise-2.0.1.tgz"
+    },
+    "portscanner": {
+      "version": "2.1.1",
+      "from": "portscanner@latest",
+      "resolved": "https://registry.npmjs.org/portscanner/-/portscanner-2.1.1.tgz",
+      "dependencies": {
+        "async": {
+          "version": "1.5.2",
+          "from": "async@1.5.2",
+          "resolved": "https://registry.npmjs.org/async/-/async-1.5.2.tgz"
+        }
+      }
     },
     "preserve": {
       "version": "0.2.0",

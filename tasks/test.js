@@ -65,15 +65,16 @@ module.exports = function (grunt) {
             spec            = grunt.option("spec") || "all",
             suite           = grunt.option("suite") || "all",
             resultsDir      = process.env.TEST_JUNIT_XML_ROOT || path.join(process.cwd(), "dist", "test", "results"),
-            results         = grunt.option("results") || resultsDir + "/TEST-results.xml",
+            results         = resultsDir + "/" + (grunt.option("results") || "TEST-results") + ".xml",
             resultsPath     = common.resolve(results).replace(/\\/g, "/"),
             specRunnerPath  = common.resolve("dist/test/SpecRunner.html"),
-            args            = " --startup-path=\"" + specRunnerPath + "?suite=" + encodeURIComponent(suite) + "&spec=" + encodeURIComponent(spec) + "&resultsPath=" + encodeURIComponent(resultsPath) + "\"";
+            isCI            = /true/i.test(process.env.CI),
+            args            = " --startup-path=\"" + specRunnerPath + "?suite=" + encodeURIComponent(suite) + "&spec=" + encodeURIComponent(spec) + "&resultsPath=" + encodeURIComponent(resultsPath) + "&isCI=" + isCI + "\"";
 
         cmd = path.join("node_modules", ".bin", "electron") + " . " + args;
         grunt.log.writeln(cmd);
 
-        fs.emptyDir(resultsDir)
+        fs.ensureDir(resultsDir)
         .then(() => {
             var cp = childProcess.exec(cmd, opts, function (err, stdout, stderr) {
                 if (err) {

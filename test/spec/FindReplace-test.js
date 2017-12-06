@@ -21,7 +21,7 @@
  *
  */
 
-/*global describe, it, expect, beforeFirst, afterLast, beforeEach, afterEach, waitsFor, waitsForDone, runs, jasmine */
+/*global describe, xdescribe, it, expect, beforeFirst, afterLast, beforeEach, afterEach, waitsFor, waitsForDone, runs, jasmine */
 /*unittests: FindReplace*/
 
 define(function (require, exports, module) {
@@ -69,6 +69,15 @@ define(function (require, exports, module) {
         });
         return sels;
     }
+
+    // Verify if we are running in a CI.
+    var UrlParams = require("utils/UrlParams").UrlParams,
+        params    = new UrlParams();
+
+    // parse URL parameters
+    params.parse();
+
+    var isCI = /true/i.test(params.get("isCI"));
 
     describe("FindReplace - Unit", function () {
         var editor, doc;
@@ -356,7 +365,7 @@ define(function (require, exports, module) {
         });
     });
 
-    describe("FindReplace - Integration", function () {
+    (isCI ? xdescribe : describe)("FindReplace - Integration", function () {
 
         this.category = "integration";
 

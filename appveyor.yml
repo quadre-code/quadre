@@ -36,6 +36,7 @@ build_script:
 test_script:
   - npm run test:prepare:ci
   - npm run test:unit
+  - npm run test:integration
 
 on_finish:
   # upload results to AppVeyor
