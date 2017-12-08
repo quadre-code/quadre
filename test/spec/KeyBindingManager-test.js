@@ -66,6 +66,17 @@ define(function (require, exports, module) {
             "Shift-Cmd-H": "view.toggleSidebar",
             "Shift-Cmd-O": "navigate.quickOpen",
             "Cmd-T": "navigate.gotoDefinition"
+        },
+        linuxDefaultKeyBindings = {
+            "Ctrl-L": "edit.selectLine",
+            "Ctrl-Shift-L": "edit.splitSelIntoLines",
+            "Alt-Shift-Down": "edit.addCursorToNextLine",
+            "Alt-Shift-Up": "edit.addCursorToPrevLine",
+            "F8": "navigate.gotoFirstProblem",
+            "Ctrl-Alt-O": "file.openFolder",
+            "Ctrl-Alt-H": "view.toggleSidebar",
+            "Ctrl-Shift-O": "navigate.quickOpen",
+            "Ctrl-T": "navigate.gotoDefinition"
         };
 
 
@@ -94,8 +105,19 @@ define(function (require, exports, module) {
         return map;
     }
 
+    function getDefaultKeyBindings() {
+        switch (platform) {
+            case "mac":
+                return macDefaultKeyBindings;
+            case "linux":
+                return linuxDefaultKeyBindings;
+            default:
+                return defaultKeyBindings;
+        }
+    }
+
     function populateDefaultKeyMap() {
-        var defaults = (platform === "mac") ? macDefaultKeyBindings : defaultKeyBindings,
+        var defaults = getDefaultKeyBindings(),
             index = 0;
 
         _.forEach(defaults, function (commandID, key) {
@@ -106,7 +128,7 @@ define(function (require, exports, module) {
 
     function getDefaultKeyMap() {
         var bindings = [],
-            defaults = (platform === "mac") ? macDefaultKeyBindings : defaultKeyBindings,
+            defaults = getDefaultKeyBindings(),
             displayKey = "",
             explicitPlatform;
 
@@ -117,6 +139,11 @@ define(function (require, exports, module) {
                 if (commandID === "edit.selectLine" || commandID === "view.toggleSidebar" ||
                         commandID === "navigate.gotoFirstProblem") {
                     explicitPlatform = "mac";
+                }
+            } else if (platform === "linux") {
+                explicitPlatform = undefined;
+                if (commandID === "edit.splitSelIntoLines") {
+                    explicitPlatform = "linux";
                 }
             }
             bindings.push(keyBinding(key, commandID, displayKey, explicitPlatform));
