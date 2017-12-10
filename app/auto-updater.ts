@@ -1,13 +1,12 @@
-import * as os from "os";
-import { app, autoUpdater, ipcMain } from "electron";
+import { ipcMain } from "electron";
+import { autoUpdater /* , UpdateInfo */ } from "electron-updater";
 import { getLogger, isDev } from "./utils";
 
 const log = getLogger("auto-updater");
-export const UPDATE_SERVER_HOST = "brackets-electron-nuts.herokuapp.com";
 
-function notify(window: Electron.BrowserWindow, title: string, message: string) {
-    window.webContents.send("notify", title, message);
-}
+// function notify(window: Electron.BrowserWindow, title: string, message: string) {
+//     window.webContents.send("notify", title, message);
+// }
 
 export default class AppUpdater {
     constructor(window: Electron.BrowserWindow) {
@@ -16,45 +15,38 @@ export default class AppUpdater {
             return;
         }
 
-        const version = app.getVersion();
-        const feedUrl = `https://${UPDATE_SERVER_HOST}/update/${os.platform()}/${version}`;
-
-        try {
-            autoUpdater.setFeedURL(feedUrl);
-        } catch (err) {
-            log.info(`autoUpdater.setFeedURL failed: ${err}`);
-            return;
-        }
-
-        autoUpdater.addListener("update-available", (event: any) => {
-            log.info("A new update is available");
-        });
-        autoUpdater.addListener(
-            "update-downloaded",
-            (event: Event, releaseNotes: string, releaseName: string, releaseDate: Date, updateURL: string) => {
-                notify(
-                    window,
-                    "A new update is ready to install",
-                    `Version ${releaseName} is downloaded and will be automatically installed on Quit`
-                );
-            }
-        );
-        autoUpdater.addListener("error", (error: any) => {
-            // auto-updater fails a lot because builds are not being signed yet, just ignore
-            //
-            // if (error.message === "Can not find Squirrel") {
-            //     return;
-            // }
-            // log.error(error.stack ? error.stack : error.toString());
-        });
-        autoUpdater.addListener("checking-for-update", (event: any) => {
-            log.info("checking-for-update");
-        });
-        autoUpdater.addListener("update-not-available", () => {
-            log.info("update-not-available");
-        });
+        // autoUpdater.addListener("update-available", (info: UpdateInfo) => {
+        //     log.info("A new update is available");
+        // });
+        // autoUpdater.addListener("download-progress", (progress) => {
+        //     log.info("download-progress");
+        // });
+        // autoUpdater.addListener(
+        //     "update-downloaded",
+        //     (info: UpdateInfo) => {
+        //         notify(
+        //             window,
+        //             "A new update is ready to install",
+        //             `Version ${info.releaseName} is downloaded and will be automatically installed on Quit`
+        //         );
+        //     }
+        // );
+        // autoUpdater.addListener("error", (error: any) => {
+        //     // auto-updater fails a lot because builds are not being signed yet, just ignore
+        //     //
+        //     // if (error.message === "Can not find Squirrel") {
+        //     //     return;
+        //     // }
+        //     // log.error(error.stack ? error.stack : error.toString());
+        // });
+        // autoUpdater.addListener("checking-for-update", () => {
+        //     log.info("checking-for-update");
+        // });
+        // autoUpdater.addListener("update-not-available", (info: UpdateInfo) => {
+        //     log.info("update-not-available");
+        // });
         ipcMain.on("brackets-app-ready", () => {
-            autoUpdater.checkForUpdates();
+            autoUpdater.checkForUpdatesAndNotify();
         });
     }
 }
