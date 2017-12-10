@@ -167,7 +167,7 @@ define(function (require, exports, module) {
         });
     });
 
-    CommandManager.register(Strings.CMD_CHECK_FOR_UPDATE,       Commands.HELP_CHECK_FOR_UPDATE,     _handleCheckForUpdates);
+    // CommandManager.register(Strings.CMD_CHECK_FOR_UPDATE,       Commands.HELP_CHECK_FOR_UPDATE,     _handleCheckForUpdates);
     CommandManager.register(Strings.CMD_HOW_TO_USE_BRACKETS,    Commands.HELP_HOW_TO_USE_BRACKETS,  _handleLinkMenuItem(brackets.config.how_to_use_url));
     CommandManager.register(Strings.CMD_SUPPORT,                Commands.HELP_SUPPORT,              _handleLinkMenuItem(brackets.config.support_url));
     CommandManager.register(Strings.CMD_SUGGEST,                Commands.HELP_SUGGEST,              _handleLinkMenuItem(brackets.config.suggest_feature_url));

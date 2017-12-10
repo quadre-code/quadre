@@ -341,7 +341,7 @@ define(function (require, exports, module) {
         if (!brackets.inBrowser && !params.get("skipUpdateCheck")) {
             AppInit.appReady(function () {
                 // launches periodic checks for updates cca every 24 hours
-                UpdateNotification.launchAutomaticUpdate();
+                // UpdateNotification.launchAutomaticUpdate();
             });
         }
     }

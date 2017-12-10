@@ -208,9 +208,9 @@ define(function (require, exports, module) {
          * Help menu
          */
         menu = Menus.addMenu(Strings.HELP_MENU, Menus.AppMenuBar.HELP_MENU);
-        menu.addMenuItem(Commands.HELP_CHECK_FOR_UPDATE);
+        // menu.addMenuItem(Commands.HELP_CHECK_FOR_UPDATE);
 
-        menu.addMenuDivider();
+        // menu.addMenuDivider();
         if (brackets.config.how_to_use_url) {
             menu.addMenuItem(Commands.HELP_HOW_TO_USE_BRACKETS);
         }
