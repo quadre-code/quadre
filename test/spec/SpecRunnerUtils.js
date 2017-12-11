@@ -249,9 +249,9 @@ define(function (require, exports, module) {
                     deferred.resolve();
                 }
             });
-        });
 
-        waitsForDone(deferred, "Create temp directory", 500);
+            waitsForDone(deferred.promise(), "Create temp directory", 500);
+        });
     }
 
     function _resetPermissionsOnSpecialTempFolders() {

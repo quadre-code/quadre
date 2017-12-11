@@ -73,7 +73,9 @@ define(function (require, exports, module) {
                 spyOn(testWindow, "JSLINT").andCallThrough();
             });
 
-            waitsForDone(SpecRunnerUtils.openProjectFiles(["errors.js"]), "open test file");
+            runs(function () {
+                waitsForDone(SpecRunnerUtils.openProjectFiles(["errors.js"]), "open test file");
+            });
 
             runs(function () {
                 expect(testWindow.JSLINT).toHaveBeenCalled();
@@ -81,8 +83,9 @@ define(function (require, exports, module) {
         });
 
         it("status icon should toggle Errors panel when errors present", function () {
-            waitsForDone(SpecRunnerUtils.openProjectFiles(["errors.js"]), "open test file");
-
+            runs(function () {
+                waitsForDone(SpecRunnerUtils.openProjectFiles(["errors.js"]), "open test file");
+            });
             runs(function () {
                 toggleJSLintResults(false);
                 toggleJSLintResults(true);
@@ -90,7 +93,9 @@ define(function (require, exports, module) {
         });
 
         it("status icon should not toggle Errors panel when no errors present", function () {
-            waitsForDone(SpecRunnerUtils.openProjectFiles(["no-errors.js"]), "open test file");
+            runs(function () {
+                waitsForDone(SpecRunnerUtils.openProjectFiles(["no-errors.js"]), "open test file");
+            });
 
             runs(function () {
                 toggleJSLintResults(false);
@@ -99,7 +104,9 @@ define(function (require, exports, module) {
         });
 
         it("should default to the editor's indent", function () {
-            waitsForDone(SpecRunnerUtils.openProjectFiles(["different-indent.js"]), "open test file");
+            runs(function () {
+                waitsForDone(SpecRunnerUtils.openProjectFiles(["different-indent.js"]), "open test file");
+            });
 
             runs(function () {
                 toggleJSLintResults(false);

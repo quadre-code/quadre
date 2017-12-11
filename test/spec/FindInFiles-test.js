@@ -885,7 +885,9 @@ define(function (require, exports, module) {
 
             afterEach(function () {
                 FindInFiles.searchModel.off(".FindInFilesTest");
-                waitsForDone(CommandManager.execute(Commands.FILE_CLOSE_ALL, { _forceClose: true }), "close all files");
+                runs(function () {
+                    waitsForDone(CommandManager.execute(Commands.FILE_CLOSE_ALL, { _forceClose: true }), "close all files");
+                });
             });
 
             describe("when filename changes", function () {
@@ -1896,7 +1898,9 @@ define(function (require, exports, module) {
                         runs(function () {
                             expect($("#find-what").val()).toBe("Foo");
                         });
-                        waitsForDone(CommandManager.execute(Commands.FILE_CLOSE_ALL), "closing all files");
+                        runs(function () {
+                            waitsForDone(CommandManager.execute(Commands.FILE_CLOSE_ALL), "closing all files");
+                        });
                     });
 
                     it("should prepopulate the find bar with only first line of selected text", function () {
@@ -1919,7 +1923,9 @@ define(function (require, exports, module) {
                         runs(function () {
                             expect($("#find-what").val()).toBe("Foo</title>");
                         });
-                        waitsForDone(CommandManager.execute(Commands.FILE_CLOSE_ALL), "closing all files");
+                        runs(function () {
+                            waitsForDone(CommandManager.execute(Commands.FILE_CLOSE_ALL), "closing all files");
+                        });
                     });
 
                     it("should show results from the search with all checkboxes checked", function () {

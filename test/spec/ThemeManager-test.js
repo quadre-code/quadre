@@ -21,7 +21,7 @@
  *
  */
 
-/*global describe, it, expect, waitsForDone */
+/*global describe, it, expect, waitsForDone, runs */
 
 define(function (require, exports, module) {
     "use strict";
@@ -68,7 +68,9 @@ define(function (require, exports, module) {
                     expect(superTrim(themeScrollbars.content)).toEqual("span{}");
                 });
 
-                waitsForDone(promise, "theme with scrollbar and other css", 5000);
+                runs(function () {
+                    waitsForDone(promise, "theme with scrollbar and other css", 5000);
+                });
             });
 
             it("should extract scrollbars from a theme with only scrollbars", function () {
@@ -80,7 +82,9 @@ define(function (require, exports, module) {
                     expect(superTrim(themeScrollbars.content)).toEqual("");
                 });
 
-                waitsForDone(promise, "theme with only scrollbars", 5000);
+                runs(function () {
+                    waitsForDone(promise, "theme with only scrollbars", 5000);
+                });
             });
 
             it("should be fine with an empty theme", function () {
@@ -91,7 +95,9 @@ define(function (require, exports, module) {
                     expect(superTrim(themeScrollbars.content)).toEqual("");
                 });
 
-                waitsForDone(promise, "empty theme", 5000);
+                runs(function () {
+                    waitsForDone(promise, "empty theme", 5000);
+                });
             });
         });
 
@@ -103,7 +109,9 @@ define(function (require, exports, module) {
                     expect(theme.displayName).toEqual("Scrollbars");
                 });
 
-                waitsForDone(promise, "theme file", 5000);
+                runs(function () {
+                    waitsForDone(promise, "theme file", 5000);
+                });
             });
         });
     });

@@ -36,9 +36,11 @@ define(function (require, exports, module) {
     describe("LanguageManager", function () {
 
         beforeEach(function () {
-            waitsForDone(LanguageManager.ready, "LanguageManager ready", 10000);
+            runs(function () {
+                waitsForDone(LanguageManager.ready, "LanguageManager ready", 10000);
 
-            spyOn(console, "error");
+                spyOn(console, "error");
+            });
         });
 
         afterEach(function () {
@@ -527,9 +529,11 @@ define(function (require, exports, module) {
                         }
                     });
                 });
-                waitsForDone(writeDeferred.promise(), "old file creation");
+                runs(function () {
+                    waitsForDone(writeDeferred.promise(), "old file creation");
 
-                SpecRunnerUtils.loadProjectInTestWindow(tempDir);
+                    SpecRunnerUtils.loadProjectInTestWindow(tempDir);
+                });
 
                 runs(function () {
                     waitsForDone(DocumentManager.getDocumentForPath(oldFilename).done(function (_doc) {
@@ -561,8 +565,9 @@ define(function (require, exports, module) {
                             renameDeferred.resolve();
                         }
                     });
+
+                    waitsForDone(renameDeferred.promise(), "old file rename");
                 });
-                waitsForDone(renameDeferred.promise(), "old file rename");
 
                 runs(function () {
                     html = LanguageManager.getLanguage("html");
@@ -581,8 +586,10 @@ define(function (require, exports, module) {
                     doc.releaseRef();
                 });
 
-                SpecRunnerUtils.closeTestWindow();
-                SpecRunnerUtils.removeTempDirectory();
+                runs(function () {
+                    SpecRunnerUtils.closeTestWindow();
+                    SpecRunnerUtils.removeTempDirectory();
+                });
             });
 
             it("should update the document's language when a language is added", function () {

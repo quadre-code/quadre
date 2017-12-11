@@ -136,8 +136,10 @@ define(function (require, exports, module) {
         afterEach(function () {
             ExtensionLoader.getUserExtensionPath = realGetUserExtensionPath;
             ExtensionLoader.loadExtension = realLoadExtension;
-            var promise = SpecRunnerUtils.deletePath(mockGetUserExtensionPath(), true);
-            waitsForDone(promise, "Mock Extension Removal", 2000);
+            runs(function () {
+                var promise = SpecRunnerUtils.deletePath(mockGetUserExtensionPath(), true);
+                waitsForDone(promise, "Mock Extension Removal", 2000);
+            });
         });
 
         it("extensions should install and load", function () {

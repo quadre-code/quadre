@@ -364,7 +364,9 @@ define(function (require, exports, module) {
                     changeFired = true;
                 });
 
-                waitsForDone(model.setProjectRoot(root));
+                runs(function () {
+                    waitsForDone(model.setProjectRoot(root));
+                });
 
                 runs(function () {
                     expect(vm._treeData.toJS()).toEqual({
@@ -571,7 +573,9 @@ define(function (require, exports, module) {
                             isFile: false
                         }
                     ]).promise());
-                    waitsForDone(model.setDirectoryOpen("/foo/subdir2/", true));
+                    runs(function () {
+                        waitsForDone(model.setDirectoryOpen("/foo/subdir2/", true));
+                    });
                     runs(function () {
                         expect(model._getDirectoryContents).toHaveBeenCalledWith("/foo/subdir2/");
                         expect(vm._treeData.get("subdir2").toJS()).toEqual({
@@ -588,7 +592,9 @@ define(function (require, exports, module) {
 
                 it("shouldn't load a directory that will be closed", function () {
                     spyOn(model, "_getDirectoryContents").andReturn(new $.Deferred().resolve([]).promise());
-                    waitsForDone(model.setDirectoryOpen("/foo/subdir2", false));
+                    runs(function () {
+                        waitsForDone(model.setDirectoryOpen("/foo/subdir2", false));
+                    });
                     runs(function () {
                         expect(vm._treeData.get("subdir2").toJS()).toEqual({
                             children: null
@@ -640,7 +646,9 @@ define(function (require, exports, module) {
 
             describe("startRename and friends", function () {
                 it("should resolve if there's no path or context", function () {
-                    waitsForDone(model.startRename());
+                    runs(function () {
+                        waitsForDone(model.startRename());
+                    });
                 });
 
                 it("should set the rename flag on a file", function () {
@@ -794,10 +802,13 @@ define(function (require, exports, module) {
 
                 it("fails for invalid filenames", function () {
                     model.setContext("/foo/afile.js");
-                    var promise = model.startRename();
-                    model.setRenameValue("com1");
-                    model.performRename();
-                    waitsForFail(promise);
+                    var promise;
+                    runs(function () {
+                        promise = model.startRename();
+                        model.setRenameValue("com1");
+                        model.performRename();
+                        waitsForFail(promise);
+                    });
                     runs(function () {
                         promise.fail(function (errorInfo) {
                             expect(errorInfo.type).toBe(ProjectModel.ERROR_INVALID_FILENAME);
@@ -942,10 +953,12 @@ define(function (require, exports, module) {
                 });
 
                 it("triggers a failure for an invalid filename", function () {
-                    var promise = model.startCreating("/foo/", "Untitled");
-                    model.setRenameValue("com1");
-                    model.performRename();
-                    waitsForFail(promise);
+                    runs(function () {
+                        var promise = model.startCreating("/foo/", "Untitled");
+                        model.setRenameValue("com1");
+                        model.performRename();
+                        waitsForFail(promise);
+                    });
                     runs(function () {
                         expect(creationErrors).toEqual([
                             {
@@ -1118,7 +1131,9 @@ define(function (require, exports, module) {
             });
 
             it("should reopen previously closed nodes", function () {
-                waitsForDone(model.reopenNodes(data.nodesByDepth));
+                runs(function () {
+                    waitsForDone(model.reopenNodes(data.nodesByDepth));
+                });
                 runs(function () {
                     var subdir1 = vm._treeData.get("subdir1");
                     expect(subdir1.get("open")).toBe(true);
@@ -1129,7 +1144,9 @@ define(function (require, exports, module) {
 
             it("should refresh the whole tree", function () {
                 var oldTree;
-                waitsForDone(model.reopenNodes(data.nodesByDepth));
+                runs(function () {
+                    waitsForDone(model.reopenNodes(data.nodesByDepth));
+                });
                 runs(function () {
                     model.setSelected("/foo/subdir1/subsubdir/interior.txt");
                     model.setContext("/foo/subdir3/higher.txt");
@@ -1167,7 +1184,9 @@ define(function (require, exports, module) {
             });
 
             it("should open a closed path via setDirectoryOpen", function () {
-                waitsForDone(model.setDirectoryOpen("/foo/subdir1/subsubdir/", true));
+                runs(function () {
+                    waitsForDone(model.setDirectoryOpen("/foo/subdir1/subsubdir/", true));
+                });
                 runs(function () {
                     expect(vm._treeData.getIn(["subdir1", "open"])).toBe(true);
                     expect(vm._treeData.getIn(["subdir1", "children", "subsubdir", "open"])).toBe(true);
@@ -1176,14 +1195,18 @@ define(function (require, exports, module) {
             });
 
             it("should not have a problem at the root", function () {
-                waitsForDone(model.setDirectoryOpen("/foo/"));
+                runs(function () {
+                    waitsForDone(model.setDirectoryOpen("/foo/"));
+                });
                 runs(function () {
                     expect(vm._treeData.get("open")).toBeUndefined();
                 });
             });
 
             it("should do nothing for a path that is outside of the project", function () {
-                waitsForDone(model.showInTree("/bar/baz.js"));
+                runs(function () {
+                    waitsForDone(model.showInTree("/bar/baz.js"));
+                });
                 runs(function () {
                     expect(vm._treeData.get("baz.js")).toBeUndefined();
                     expect(model._selections.selected).toBeUndefined();
@@ -1192,7 +1215,9 @@ define(function (require, exports, module) {
 
             it("should do nothing for a path that is outside of the project on Windows", function () {
                 model.projectRoot = "c:/foo/";
-                waitsForDone(model.showInTree("c:/bar/baz.js"));
+                runs(function () {
+                    waitsForDone(model.showInTree("c:/bar/baz.js"));
+                });
                 runs(function () {
                     expect(vm._treeData.get("baz.js")).toBeUndefined();
                     expect(model._selections.selected).toBeUndefined();
@@ -1200,14 +1225,18 @@ define(function (require, exports, module) {
             });
 
             it("should select a file at the root", function () {
-                waitsForDone(model.showInTree("/foo/toplevel.txt"));
+                runs(function () {
+                    waitsForDone(model.showInTree("/foo/toplevel.txt"));
+                });
                 runs(function () {
                     expect(vm._treeData.getIn(["toplevel.txt", "selected"])).toBe(true);
                 });
             });
 
             it("should open a subdirectory", function () {
-                waitsForDone(model.showInTree("/foo/subdir1/"));
+                runs(function () {
+                    waitsForDone(model.showInTree("/foo/subdir1/"));
+                });
                 runs(function () {
                     expect(vm._treeData.getIn(["subdir1", "open"])).toBe(true);
                     expect(vm._treeData.getIn(["subdir1", "children", "subsubdir"])).toBeDefined();
@@ -1217,7 +1246,9 @@ define(function (require, exports, module) {
 
             it("should open a subdirectory and select a file", function () {
                 model.setFocused(false);
-                waitsForDone(model.showInTree("/foo/subdir1/subsubdir/interior.txt"));
+                runs(function () {
+                    waitsForDone(model.showInTree("/foo/subdir1/subsubdir/interior.txt"));
+                });
                 runs(function () {
                     expect(vm._treeData.getIn(["subdir1", "open"])).toBe(true);
                     expect(vm._treeData.getIn(["subdir1", "children", "subsubdir", "open"])).toBe(true);
@@ -1239,7 +1270,9 @@ define(function (require, exports, module) {
             });
 
             it("should open all of the sibling directories", function () {
-                waitsForDone(model.setDirectoryOpen("/foo/subdir4/", true));
+                runs(function () {
+                    waitsForDone(model.setDirectoryOpen("/foo/subdir4/", true));
+                });
                 runs(function () {
                     waitsForDone(model.toggleSubdirectories("/foo/subdir4/", true));
                 });
@@ -1251,7 +1284,9 @@ define(function (require, exports, module) {
             });
 
             it("should close all of the sibling directories", function () {
-                waitsForDone(model.setDirectoryOpen("/foo/subdir4/", true));
+                runs(function () {
+                    waitsForDone(model.setDirectoryOpen("/foo/subdir4/", true));
+                });
                 runs(function () {
                     waitsForDone(model.toggleSubdirectories("/foo/subdir4/", true));
                 });
@@ -1277,7 +1312,9 @@ define(function (require, exports, module) {
             });
 
             it("should close the directory and its children", function () {
-                waitsForDone(model.setDirectoryOpen("/foo/subdir4/", true));
+                runs(function () {
+                    waitsForDone(model.setDirectoryOpen("/foo/subdir4/", true));
+                });
                 runs(function () {
                     waitsForDone(model.toggleSubdirectories("/foo/subdir4/", true));
                 });

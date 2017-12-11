@@ -1450,7 +1450,9 @@ define(function (require, exports, module) {
                     originalText = text;
                     deferred.resolve();
                 });
-                waitsForDone(deferred.promise());
+                runs(function () {
+                    waitsForDone(deferred.promise());
+                });
             });
 
             beforeEach(function () {
@@ -1466,7 +1468,9 @@ define(function (require, exports, module) {
                         deferred.resolve();
                     }
                 });
-                waitsForDone(deferred.promise());
+                runs(function () {
+                    waitsForDone(deferred.promise());
+                });
 
                 var deleted = false;
                 runs(function () {
@@ -1483,7 +1487,9 @@ define(function (require, exports, module) {
                 var filestorage = new PreferencesBase.FileStorage(settingsFile.fullPath);
                 var pm = new PreferencesBase.PreferencesSystem();
                 var projectScope = new PreferencesBase.Scope(filestorage);
-                waitsForDone(pm.addScope("project", projectScope));
+                runs(function () {
+                    waitsForDone(pm.addScope("project", projectScope));
+                });
                 runs(function () {
                     projectScope.addLayer(new PreferencesBase.PathLayer("/"));
                     expect(pm.get("spaceUnits")).toBe(9);
@@ -1499,7 +1505,9 @@ define(function (require, exports, module) {
                 var filestorage = new PreferencesBase.FileStorage(settingsFile.fullPath);
                 var pm = new PreferencesBase.PreferencesSystem();
                 var projectScope = new PreferencesBase.Scope(filestorage);
-                waitsForDone(pm.addScope("project", projectScope));
+                runs(function () {
+                    waitsForDone(pm.addScope("project", projectScope));
+                });
                 runs(function () {
                     projectScope.addLayer(new PreferencesBase.PathLayer("/"));
                     pm.definePreference("spaceUnits", "number", 3, {
@@ -1516,7 +1524,9 @@ define(function (require, exports, module) {
                 var filestorage = new PreferencesBase.FileStorage(settingsFile.fullPath);
                 var pm = new PreferencesBase.PreferencesSystem();
                 var projectScope = new PreferencesBase.Scope(filestorage);
-                waitsForDone(pm.addScope("project", projectScope));
+                runs(function () {
+                    waitsForDone(pm.addScope("project", projectScope));
+                });
                 runs(function () {
                     var memstorage = new PreferencesBase.MemoryStorage();
                     pm.addScope("session", new PreferencesBase.Scope(memstorage));
@@ -1541,7 +1551,9 @@ define(function (require, exports, module) {
                 var filestorage = new PreferencesBase.FileStorage(newSettingsFile.fullPath, true);
                 var pm = new PreferencesBase.PreferencesSystem();
                 var newScope = new PreferencesBase.Scope(filestorage);
-                waitsForDone(pm.addScope("new", newScope), "adding scope");
+                runs(function () {
+                    waitsForDone(pm.addScope("new", newScope), "adding scope");
+                });
                 runs(function () {
                     pm.set("unicorn-filled", true, {
                         location: {
@@ -1574,9 +1586,11 @@ define(function (require, exports, module) {
                 var newScope = new PreferencesBase.Scope(filestorage);
                 newScope.addLayer(new PreferencesBase.PathLayer("/"));
                 var changes = [];
-                waitsForDone(pm.addScope("new", newScope), "adding scope");
-                pm.on("change", function (change, data) {
-                    changes.push(data);
+                runs(function () {
+                    waitsForDone(pm.addScope("new", newScope), "adding scope");
+                    pm.on("change", function (change, data) {
+                        changes.push(data);
+                    });
                 });
                 runs(function () {
                     expect(pm.get("spaceUnits")).toBeUndefined();
@@ -1597,7 +1611,9 @@ define(function (require, exports, module) {
                 var filestorage = new PreferencesBase.FileStorage(emptySettingsFile.fullPath),
                     promise = filestorage.load();
 
-                waitsForDone(promise, "loading empty JSON file");
+                runs(function () {
+                    waitsForDone(promise, "loading empty JSON file");
+                });
                 runs(function () {
                     promise.then(function (data) {
                         expect(data).toEqual({});
