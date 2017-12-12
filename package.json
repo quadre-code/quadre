@@ -62,7 +62,8 @@
     "publish-win": "npm run build-optimized && build -w --publish onTagOrDraft",
     "publish-mac": "npm run build-optimized && build -m --publish onTagOrDraft",
     "publish-linux": "npm run build-optimized && build -l --publish onTagOrDraft",
-    "test:ci": "npm run tslint && gulp copy-test-dist && grunt test-integration --suite=unit --spec=all"
+    "test:prepare:ci": "npm run tslint && gulp copy-test-dist",
+    "test:unit": "grunt test-integration --suite=unit --spec=all"
   },
   "defaultExtensions": {
     "brackets-eslint": "3.2.0"
