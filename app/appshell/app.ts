@@ -23,6 +23,16 @@ export const ERR_NODE_PORT_NOT_YET_SET = -2;
 // TODO: this should be changeable
 export const language = "en";
 
+const shellState = remote.require("./shell-state");
+
+export function getNodeState(callback: (errCode: string, port: number) => void) {
+    process.nextTick(function () {
+        const errorCode = exports[shellState.get("socketServer.state")];
+        const port = shellState.get("socketServer.port");
+        callback(errorCode, port);
+    });
+}
+
 export function closeLiveBrowser(callback: (err?: Error) => void) {
     process.nextTick(function () {
         // TODO: implement

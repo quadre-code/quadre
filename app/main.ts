@@ -3,12 +3,14 @@
 import { app, BrowserWindow, ipcMain } from "electron";
 import AutoUpdater from "./auto-updater";
 import * as _ from "lodash";
-import { getLogger, setLoggerWindow, unsetLoggerWindow, convertWindowsPathToUnixPath } from "./utils";
+import { getLogger, setLoggerWindow, unsetLoggerWindow, convertWindowsPathToUnixPath, errToString } from "./utils";
 import * as pathLib from "path";
 import * as yargs from "yargs";
 import * as shellConfig from "./shell-config";
 import { readBracketsPreferences } from "./brackets-config";
 import { wins, menuTemplates } from "./shared";
+import * as shellState from "./shell-state";
+import * as SocketServer from "./socket-server"; // Implementation of Brackets' shell server
 
 const appInfo = require("./package.json");
 
@@ -46,6 +48,19 @@ const saveWindowPosition = _.debounce(_.partial(_saveWindowPosition, false), 100
 
 // Quit when all windows are closed.
 let windowAllClosed = false;
+
+// Start the socket server used by Brackets'
+const socketServerLog = getLogger("socket-server");
+SocketServer.start(function (err: Error, port: number) {
+    if (err) {
+        shellState.set("socketServer.state", "ERR_NODE_FAILED");
+        socketServerLog.error("failed to start: " + errToString(err));
+    } else {
+        shellState.set("socketServer.state", "NO_ERROR");
+        shellState.set("socketServer.port", port);
+        socketServerLog.info("started on port " + port);
+    }
+});
 
 app.on("window-all-closed", function () {
     windowAllClosed = true;
