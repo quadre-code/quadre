@@ -1157,8 +1157,13 @@ define(function (require, exports, module) {
                     expect(doc.isDirty).toBe(true);
 
                     // verify dot in titlebar
-                    expect(testWindow.document.title).toBe("• test.js (DocumentCommandHandlers-test-files) " + WINDOW_TITLE_DOT + " " + brackets.config.app_title);
-
+                    var title;
+                    if (brackets.platform === "mac") {
+                        title = "test.js (DocumentCommandHandlers-test-files)";
+                    } else {
+                        title = "• test.js (DocumentCommandHandlers-test-files)";
+                    }
+                    expect(testWindow.document.title).toBe(title + " " + WINDOW_TITLE_DOT + " " + brackets.config.app_title);
                 });
             });
 
