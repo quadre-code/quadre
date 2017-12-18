@@ -38,6 +38,7 @@ test_script:
   - npm run test:unit
   - npm run test:integration
   - npm run test:mainview
+  - npm run test:extension
 
 on_finish:
   # upload results to AppVeyor

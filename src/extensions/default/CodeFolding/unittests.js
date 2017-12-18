@@ -4,14 +4,23 @@
  * @date 01/08/2015 18:34
  */
 
-/*global describe, beforeEach, afterEach, it, expect, runs, waitsForDone, waitsFor*/
+/*global describe, xdescribe, beforeEach, afterEach, it, expect, runs, waitsForDone, waitsFor*/
 
 define(function (require, exports, module) {
     "use strict";
     var SpecRunnerUtils = brackets.getModule("spec/SpecRunnerUtils"),
         FileUtils = brackets.getModule("file/FileUtils");
 
-    describe("Code Folding", function () {
+    // Verify if we are running in a CI.
+    var UrlParams = brackets.getModule("utils/UrlParams").UrlParams,
+        params    = new UrlParams();
+
+    // parse URL parameters
+    params.parse();
+
+    var isCI = /true/i.test(params.get("isCI"));
+
+    (isCI ? xdescribe : describe)("Code Folding", function () {
         var testWindow,
             testEditor,
             EditorManager,
