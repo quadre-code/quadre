@@ -421,19 +421,23 @@ define(function (require, exports, module) {
             it("should list prop-name hints inside multi-line styletags with cursor in last line", function () {
                 testEditor.setCursorPos({ line: 10, ch: 5 });    // inside style, after colo
                 var hintList = expectHints(CSSCodeHints.cssPropHintProvider);
-                verifyListsAreIdentical(hintList, ["color",
-                                                   "border-color",
-                                                   "background-color",
-                                                   "border-left-color",
-                                                   "border-top-color",
-                                                   "outline-color",
-                                                   "border-bottom-color",
-                                                   "border-right-color",
-                                                   "text-decoration-color",
-                                                   "text-emphasis-color",
-                                                   "column-count",
-                                                   "column-rule-color",
-                                                   "background-blend-mode"]);
+                verifyListsAreIdentical(hintList, [
+                    "color",
+                    "border-color",
+                    "background-color",
+                    "border-left-color",
+                    "border-top-color",
+                    "outline-color",
+                    "border-bottom-color",
+                    "border-right-color",
+                    "text-decoration-color",
+                    "text-emphasis-color",
+                    "column-count",
+                    "column-rule-color",
+                    "caret-color",
+                    "scroll-behavior",
+                    "background-blend-mode"
+                ]);
             });
 
             it("should NOT list prop-name hints between closed styletag and new opening styletag", function () {
