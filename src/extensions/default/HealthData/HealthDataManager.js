@@ -34,7 +34,7 @@ define(function (require, exports, module) {
 
     var prefs      = PreferencesManager.getExtensionPrefs("healthData");
 
-    prefs.definePreference("healthDataTracking", "boolean", true, {
+    prefs.definePreference("healthDataTracking", "boolean", false, {
         description: Strings.DESCRIPTION_HEALTH_DATA_TRACKING
     });
 

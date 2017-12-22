@@ -21,8 +21,6 @@
         "linting.enabled_by_default": true,
         "build_timestamp": "",
         "healthDataServerURLs": [
-            "https://health.brackets.io/healthDataLog",
-            "https://brackets-electron-data.herokuapp.com/api/health"
         ]
     },
     "name": "quadre",
@@ -111,6 +109,7 @@
         "lodash": "4.17.4",
         "npm": "3.10.9",
         "opn": "4.0.2",
+        "portscanner": "^2.1.1",
         "request": "2.81.0",
         "requirejs": "2.3.3",
         "semver": "5.3.0",

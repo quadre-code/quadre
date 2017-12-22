@@ -1,3 +1,4 @@
 {
-    "healthDataServerURLs": ["https://health.brackets.io/healthDataLog", "https://brackets-electron-data.herokuapp.com/api/health"]
+    "healthDataServerURLs": [
+    ]
 }
