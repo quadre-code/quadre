@@ -80,7 +80,7 @@ define(function (require, exports, module) {
 
         function errSpy() {
             var callback = function (err) {
-                callback.error = err;
+                callback.error = err === undefined ? null : err;
                 callback.wasCalled = true;
             };
 
