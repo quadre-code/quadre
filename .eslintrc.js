@@ -1,7 +1,7 @@
 module.exports = {
     "parser": "typescript-eslint-parser",
     "parserOptions": {
-        "sourceType": "module"
+        "sourceType": "script"
     },
     "rules": {
         // the rules below should be sorted in a same way they are sorted on http://eslint.org/docs/rules page
