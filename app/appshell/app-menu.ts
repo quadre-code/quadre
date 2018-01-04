@@ -152,6 +152,7 @@ function _fixBracketsKeyboardShortcut(shortcut: string): string {
     shortcut = shortcut.replace(/\u2193/g, "Down");
     shortcut = shortcut.replace(/\u2212/g, "-");
 
+    // eslint-disable-next-line no-control-regex
     if (!shortcut.match(/^[\x00-\x7F]+$/)) {
         console.error("Non ASCII keyboard shortcut used: " + shortcut);
         return "";

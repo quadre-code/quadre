@@ -1,8 +1,4 @@
 module.exports = {
-    "parser": "typescript-eslint-parser",
-    "parserOptions": {
-        "sourceType": "script"
-    },
     "rules": {
         // the rules below should be sorted in a same way they are sorted on http://eslint.org/docs/rules page
         // http://eslint.org/docs/rules/#possible-errors
@@ -86,5 +82,27 @@ module.exports = {
         "Uint32Array": false,
         "WebSocket": false,
         "XMLHttpRequest": false
-    }
+    },
+    "overrides": [
+      {
+        "files": [ "**/*.ts" ],
+        "excludedFiles": "**/*.js",
+        "parser": "typescript-eslint-parser",
+        "parserOptions": {
+            "sourceType": "module"
+        },
+        "rules": {
+          "no-undef": "off"
+        }
+      },
+      {
+        "files": [
+          "Gruntfile.js",
+          "tasks/**/*.js"
+        ],
+        "parserOptions": {
+          "ecmaVersion": 6
+        }
+      }
+    ]
 };

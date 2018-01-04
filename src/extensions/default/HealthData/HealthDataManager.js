@@ -100,7 +100,7 @@ define(function (require, exports, module) {
             var urls = brackets.config.healthDataServerURLs,
                 data = JSON.stringify(healthData);
 
-            urls.forEach(url => {
+            urls.forEach(function (url) {
 
                 $.ajax({
                     url: url,

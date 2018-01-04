@@ -97,6 +97,7 @@ ipcMain.on("brackets-app-ready", () => {
 app.on("ready", function () {
     const win = openMainBracketsWindow();
     try {
+        // eslint-disable-next-line no-new
         new AutoUpdater(win);
     } catch (err) {
         log.error(err.stack);

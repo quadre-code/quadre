@@ -237,21 +237,28 @@ module.exports = function (grunt) {
                 }]
             }
         },
-        meta : {
-            src   : [
+        meta: {
+            app: [
+                'app/**/*.js',
+                'app/**/*.ts'
+            ],
+            src: [
                 'src/**/*.js',
+                'src/**/*.ts',
                 '!src/thirdparty/**',
                 '!src/widgets/bootstrap-*.js',
                 '!src/extensions/**/unittest-files/**/*.js',
                 '!src/extensions/**/thirdparty/**/*.js',
+                '!src/extensions/default/quadre-eslint/**',
                 '!src/extensions/dev/**',
                 '!src/extensions/disabled/**',
                 '!**/node_modules/**/*.js',
                 '!src/**/*-min.js',
                 '!src/**/*.min.js'
             ],
-            test : [
+            test: [
                 'test/**/*.js',
+                'test/**/*.ts',
                 '!test/perf/*-files/**/*.js',
                 '!test/spec/*-files/**/*.js',
                 '!test/spec/*-known-goods/**/*.js',
@@ -263,10 +270,11 @@ module.exports = function (grunt) {
             ],
             grunt: [
                 'Gruntfile.js',
-                'tasks/**/*.js'
+                'tasks/**/*.js',
+                'tasks/**/*.ts'
             ],
             /* specs that can run in phantom.js */
-            specs : [
+            specs: [
                 'test/spec/CommandManager-test.js',
                 //'test/spec/LanguageManager-test.js',
                 //'test/spec/PreferencesManager-test.js',
@@ -330,6 +338,7 @@ module.exports = function (grunt) {
         },
         eslint: {
             grunt:  '<%= meta.grunt %>',
+            app:    '<%= meta.app %>',
             src:    '<%= meta.src %>',
             test:   '<%= meta.test %>',
             options: {

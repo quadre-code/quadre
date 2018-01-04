@@ -1677,7 +1677,7 @@ define(function (require, exports, module) {
                     href = href.substr(0, fragment);
                 }
 
-                setTimeout(() => electron.remote.require("./main").restart(href), 500);
+                setTimeout(function () { electron.remote.require("./main").restart(href); }, 500);
             });
         }).fail(function () {
             _isReloading = false;
