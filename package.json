@@ -30,8 +30,7 @@
     },
     "win": {
       "target": [
-        "nsis",
-        "squirrel"
+        "nsis"
       ]
     },
     "mac": {
