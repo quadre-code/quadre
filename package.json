@@ -62,7 +62,7 @@
     "publish-win": "npm run build-optimized && build -w --publish onTagOrDraft",
     "publish-mac": "npm run build-optimized && build -m --publish onTagOrDraft",
     "publish-linux": "npm run build-optimized && build -l --publish onTagOrDraft",
-    "test:prepare:ci": "npm run tslint && gulp copy-test-dist",
+    "test:prepare:ci": "grunt test && npm run tslint && gulp copy-test-dist",
     "test:unit": "grunt test-integration --suite=unit --spec=all --results=TEST-unit",
     "test:integration": "grunt test-integration --suite=integration --spec=all --results=TEST-integration",
     "test:mainview": "grunt test-integration --suite=mainview --spec=all --results=TEST-mainview",
