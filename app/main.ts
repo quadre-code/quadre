@@ -5,6 +5,7 @@ import AutoUpdater from "./auto-updater";
 import * as _ from "lodash";
 import { getLogger, setLoggerWindow, unsetLoggerWindow, convertWindowsPathToUnixPath, errToString } from "./utils";
 import * as pathLib from "path";
+import * as urlLib from "url";
 import * as yargs from "yargs";
 import * as shellConfig from "./shell-config";
 import { readBracketsPreferences } from "./brackets-config";
@@ -126,14 +127,35 @@ export function getMainBracketsWindow(): Electron.BrowserWindow {
     return wins[0];
 }
 
+interface FormatOptions {
+    isEncoded?: boolean;
+}
+
+// See also https://github.com/electron/electron/issues/11560
+function formatUrl(filePath: string, options: FormatOptions = {}) {
+    let url = "";
+    if (options.isEncoded) {
+        url = "file:///" + convertWindowsPathToUnixPath(pathLib.resolve(__dirname, filePath));
+    } else {
+        url = urlLib.format({
+            protocol: "file",
+            slashes: true,
+            pathname: pathLib.resolve(__dirname, filePath)
+        });
+    }
+    console.log(url);
+    return url;
+}
+
 export function openMainBracketsWindow(query: {} | string = {}): Electron.BrowserWindow {
     const argv = yargs.argv;
 
     // compose path to brackets' index file
-    let indexPath = "file:///" + convertWindowsPathToUnixPath(pathLib.resolve(__dirname, "www", "index.html"));
+    let indexPath = "www/index.html";
+    const formatOptions: FormatOptions = {};
     if (argv["startup-path"]) {
-        const startupPath = argv["startup-path"];
-        indexPath = "file:///" + convertWindowsPathToUnixPath(pathLib.resolve(__dirname, startupPath));
+        indexPath = argv["startup-path"];
+        formatOptions.isEncoded = true;
     }
 
     // build a query for brackets' window
@@ -156,7 +178,7 @@ export function openMainBracketsWindow(query: {} | string = {}): Electron.Browse
         }
     }
 
-    const indexUrl = indexPath + queryString;
+    const indexUrl = formatUrl(indexPath, formatOptions) + queryString;
 
     const winOptions = {
         title: appInfo.productName,
