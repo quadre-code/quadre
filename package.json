@@ -72,7 +72,7 @@
     "test:all": "grunt test-integration --results=TEST-all"
   },
   "defaultExtensions": {
-    "quadre-eslint": "4.1.0"
+    "quadre-eslint": "4.1.1"
   },
   "dependencies": {
     "anymatch": "1.3.0",
