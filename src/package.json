@@ -2,7 +2,7 @@
   "name": "brackets-src",
   "dependencies": {
     "acorn": "5.1.1",
-    "codemirror": "5.33.0",
-    "less": "2.7.2"
+    "codemirror": "5.34.0",
+    "less": "2.7.3"
   }
 }
