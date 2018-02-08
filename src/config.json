@@ -57,6 +57,9 @@
                 "msi"
             ]
         },
+        "msi": {
+            "warningsAsErrors": false
+        },
         "mac": {
             "category": "public.app-category.developer-tools"
         },
