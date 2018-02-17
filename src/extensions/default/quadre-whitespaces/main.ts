@@ -7,22 +7,34 @@ define(function (require, exports, module) {
     const prefs = PreferencesManager.getExtensionPrefs("whitespaces");
     const styleNodes = {
         showTabs: null,
-        showTrailing: null
+        showTrailingSpace: null,
+        showNoBreakSpace: null
     };
 
     brackets.getModule(["thirdparty/CodeMirror/addon/edit/trailingspace"]);
+    require("nobreakspace");
 
     prefs.definePreference("showTabs", "boolean", true, {
         description: "Show tabs characters"
     });
     prefs.set("showTabs", prefs.get("showTabs"));
 
-    prefs.definePreference("showTrailing", "boolean", true, {
+    prefs.definePreference("showTrailingSpace", "boolean", true, {
         description: "Show trailing whitespaces"
     });
-    prefs.set("showTrailing", prefs.get("showTrailing"));
+    prefs.set("showTrailingSpace", prefs.get("showTrailingSpace"));
 
-    function updateEditors(includeEditor?) {
+    prefs.definePreference("showNoBreakSpace", "boolean", true, {
+        description: "Show non-breakable spaces"
+    });
+    prefs.set("showNoBreakSpace", prefs.get("showNoBreakSpace"));
+
+    enum SpaceOption {
+        showTrailingSpace = "showTrailingSpace",
+        showNoBreakSpace = "showNoBreakSpace",
+    }
+
+    function updateEditors(spaceOption: SpaceOption, includeEditor?) {
         const fullEditor = EditorManager.getCurrentFullEditor();
         if (!fullEditor) {
             return;
@@ -37,23 +49,23 @@ define(function (require, exports, module) {
         }
 
         editors.forEach((instance) => {
-            instance._codeMirror.setOption("showTrailingSpace", prefs.get("showTrailing"));
+            instance._codeMirror.setOption(spaceOption, prefs.get(spaceOption));
             instance._codeMirror.refresh();
         });
     }
 
-    function onActiveEditorChange(e, editor) {
-        updateEditors(editor);
+    function loadEditorSync(spaceOption: SpaceOption) {
+        updateEditors(spaceOption);
+        EditorManager.on("activeEditorChange", (e, editor) => {
+            updateEditors(spaceOption, editor);
+        });
     }
 
-    function loadEditorSync() {
-        updateEditors();
-        EditorManager.on("activeEditorChange", onActiveEditorChange);
-    }
-
-    function unloadEditorSync() {
-        updateEditors();
-        EditorManager.off("activeEditorChange", onActiveEditorChange);
+    function unloadEditorSync(spaceOption: SpaceOption) {
+        updateEditors(spaceOption);
+        EditorManager.off("activeEditorChange", (e, editor) => {
+            updateEditors(spaceOption, editor);
+        });
     }
 
     function prefUpdate(prefName, loadFn?, unloadFn?) {
@@ -76,7 +88,13 @@ define(function (require, exports, module) {
 
     function prefChangeHandler() {
         prefUpdate("showTabs");
-        prefUpdate("showTrailing", loadEditorSync, unloadEditorSync);
+        prefUpdate(
+            "showTrailingSpace",
+            loadEditorSync.call(null, "showTrailingSpace"),
+            unloadEditorSync.call(null, "showTrailingSpace"));
+        prefUpdate("showNoBreakSpace",
+            loadEditorSync.call(null, "showNoBreakSpace"),
+            unloadEditorSync.call(null, "showNoBreakSpace"));
     }
 
     prefs.on("change", prefChangeHandler);
