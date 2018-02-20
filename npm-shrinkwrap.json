@@ -82,6 +82,21 @@
       "integrity": "sha512-CTUtLb6WqCCgp6P59QintjHWqzf4VL1uPA27bipLAPxFqrtK1gEYllePzTICGqQ8rYsCbpnsNypXjjDzGAAjEQ==",
       "dev": true
     },
+    "@types/react": {
+      "version": "0.14.57",
+      "resolved": "https://registry.npmjs.org/@types/react/-/react-0.14.57.tgz",
+      "integrity": "sha1-GHioZU+v3R04G4RXKStkM0mMW2I=",
+      "dev": true
+    },
+    "@types/react-dom": {
+      "version": "0.14.23",
+      "resolved": "https://registry.npmjs.org/@types/react-dom/-/react-dom-0.14.23.tgz",
+      "integrity": "sha1-zs/PrXVLTCdl/l0puBswGImtbC4=",
+      "dev": true,
+      "requires": {
+        "@types/react": "0.14.57"
+      }
+    },
     "@types/ws": {
       "version": "0.0.40",
       "resolved": "https://registry.npmjs.org/@types/ws/-/ws-0.0.40.tgz",

@@ -4,6 +4,7 @@
         "module": "amd",
         "moduleResolution": "classic",
         "noImplicitAny": false,
+        "jsx": "react",
         "rootDir": ".",
         "sourceMap": true,
         "target": "es6",

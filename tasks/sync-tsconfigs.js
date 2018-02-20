@@ -26,7 +26,8 @@ module.exports = function (grunt) {
                 outDir: `../dist/www`,
                 module: "amd",
                 moduleResolution: "classic",
-                noImplicitAny: false
+                noImplicitAny: false,
+                jsx: "react"
             },
             include: [
                 './**/*',

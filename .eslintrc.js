@@ -96,6 +96,21 @@ module.exports = {
         }
       },
       {
+        "files": [ "**/*.tsx" ],
+        "excludedFiles": "**/*.js",
+        "parser": "typescript-eslint-parser",
+        "parserOptions": {
+            "ecmaVersion": 6,
+            "sourceType": "module",
+            "ecmaFeatures": {
+                "jsx": true
+            }
+        },
+        "rules": {
+          "no-undef": "off"
+        }
+      },
+      {
         "files": [
           "Gruntfile.js",
           "tasks/**/*.js"
