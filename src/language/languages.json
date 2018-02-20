@@ -3,7 +3,7 @@
         "name": "Text",
         "mode": ["null", "text/plain"]
     },
-    
+
     "groovy": {
         "name": "Groovy",
         "mode": "groovy",
@@ -11,7 +11,7 @@
         "blockComment": ["/*", "*/"],
         "lineComment": ["//"]
     },
-   
+
     "properties": {
         "name": "Properties",
         "mode": ["properties", "text/x-properties"],
@@ -47,14 +47,14 @@
         "fileExtensions": ["html", "htm", "shtm", "shtml", "xhtml", "cfm", "cfml", "cfc", "dhtml", "xht", "tpl", "twig", "kit", "jsp", "aspx", "ascx", "asp", "master", "cshtml", "vbhtml"],
         "blockComment": ["<!--", "-->"]
     },
-    
+
     "ejs": {
         "name": "EJS",
         "mode": ["htmlembedded", "application/x-ejs"],
         "fileExtensions": ["ejs", "dust"],
         "blockComment": ["<!--", "-->"]
     },
-    
+
     "erb_html": {
         "name": "Embedded Ruby",
         "mode": ["htmlembedded", "application/x-erb"],
@@ -74,6 +74,22 @@
         "name": "JSX",
         "mode": "jsx",
         "fileExtensions": ["jsx"],
+        "blockComment": ["/*", "*/"],
+        "lineComment": ["//"]
+    },
+
+    "typescript": {
+        "name": "TypeScript",
+        "mode": ["javascript", "text/typescript"],
+        "fileExtensions": ["ts"],
+        "blockComment": ["/*", "*/"],
+        "lineComment": ["//"]
+    },
+
+    "tsx": {
+        "name": "TypeScript-JSX",
+        "mode": ["jsx", "text/typescript-jsx"],
+        "fileExtensions": ["tsx"],
         "blockComment": ["/*", "*/"],
         "lineComment": ["//"]
     },
@@ -269,19 +285,19 @@
         "fileNames": [".bash_login", ".bash_logout", ".bash_profile", ".bashrc", ".profile"],
         "lineComment": ["#"]
     },
-  
+
     "image": {
         "name": "Image",
         "fileExtensions": ["gif", "png", "jpe", "jpeg", "jpg", "ico", "bmp", "webp"],
         "isBinary": true
     },
-    
+
     "audio": {
         "name": "Audio",
         "fileExtensions": ["mp3", "wav", "aif", "aiff", "ogg"],
         "isBinary": true
     },
-    
+
     "binary": {
         "name": "Other Binary",
         "fileExtensions": [
@@ -303,14 +319,14 @@
         "blockComment": ["{-", "-}"],
         "lineComment": ["--"]
     },
-    
+
     "turtle": {
         "name": "RDF Turtle",
         "mode": "turtle",
         "fileExtensions": ["ttl"],
         "lineComment": ["#"]
     },
-    
+
     "go": {
         "name": "Go",
         "mode": "go",
