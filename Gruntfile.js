@@ -25,6 +25,8 @@
 /*jslint node: true */
 'use strict';
 
+var pathLib = require("path");
+
 module.exports = function (grunt) {
     // load dependencies
     require('load-grunt-tasks')(grunt, {
@@ -144,6 +146,51 @@ module.exports = function (grunt) {
                         cwd: 'dist/www/node_modules/acorn',
                         src: [
                             'dist/{,*/}*'
+                        ]
+                    },
+                    {
+                        expand: true,
+                        flatten: true,
+                        dest: 'dist/www/thirdparty',
+                        cwd: 'dist/www/node_modules',
+                        src: [
+                            'immutable/dist/immutable.js'
+                        ]
+                    },
+                    {
+                        expand: true,
+                        flatten: true,
+                        dest: 'dist/www/thirdparty',
+                        cwd: 'dist/www/node_modules',
+                        src: [
+                            'react/umd/react.development.js'
+                        ],
+                        rename: function (path, name) {
+                            name = name.replace(".development", "");
+                            return pathLib.join(path, name);
+                        }
+                    },
+                    {
+                        expand: true,
+                        flatten: true,
+                        dest: 'dist/www/thirdparty',
+                        cwd: 'dist/www/node_modules',
+                        src: [
+                            'react-dom/umd/react-dom.development.js',
+                            'react-dom/umd/react-dom-test-utils.development.js'
+                        ],
+                        rename: function (path, name) {
+                            name = name.replace(".development", "");
+                            return pathLib.join(path, name);
+                        }
+                    },
+                    {
+                        expand: true,
+                        flatten: true,
+                        dest: 'dist/www/thirdparty',
+                        cwd: 'dist/www/node_modules',
+                        src: [
+                            'create-react-class/create-react-class.js'
                         ]
                     }
                 ]

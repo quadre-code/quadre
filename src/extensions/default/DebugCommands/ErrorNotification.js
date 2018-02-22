@@ -119,7 +119,11 @@ define(function (require, exports, module) {
 
         window.console.error = function () {
             incErrorCount();
-            return _consoleError.apply(window.console, arguments);
+            var args = Array.prototype.slice.call(arguments);
+            // The next two lines are useful while developing to print stack traces.
+            // var err = new Error();
+            // args.push(err);
+            return _consoleError.apply(window.console, args);
         };
 
         window.console.clear = function () {

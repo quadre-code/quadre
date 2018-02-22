@@ -33,6 +33,7 @@ define(function (require, exports, module) {
 
     var React             = require("thirdparty/react"),
         ReactDOM          = require("thirdparty/react-dom"),
+        createReactClass  = require("thirdparty/create-react-class"),
         Classnames        = require("thirdparty/classnames"),
         Immutable         = require("thirdparty/immutable"),
         _                 = require("thirdparty/lodash"),
@@ -41,8 +42,6 @@ define(function (require, exports, module) {
         FileTreeViewModel = require("project/FileTreeViewModel"),
         ViewUtils         = require("utils/ViewUtils"),
         KeyEvent          = require("utils/KeyEvent");
-
-    var DOM = React.DOM;
 
     /**
      * @private
@@ -119,11 +118,14 @@ define(function (require, exports, module) {
      * @return {ReactComponent} The resulting div.
      */
     function _createThickness(depth) {
-        return DOM.div({
+        // When running tests |depth| can be undefined.
+        depth = depth || 1;
+        return React.createElement("div", {
             style: {
                 display: "inline-block",
                 width: INDENTATION_WIDTH * depth
-            }
+            },
+            key: "thickness"
         });
     }
 
@@ -136,11 +138,14 @@ define(function (require, exports, module) {
      * @return {ReactComponent} The resulting ins.
      */
     function _createAlignedIns(depth) {
-        return DOM.ins({
+        // When running tests |depth| can be undefined.
+        depth = depth || 1;
+        return React.createElement("ins", {
             className: "jstree-icon",
             style: {
                 marginLeft: INDENTATION_WIDTH * depth
-            }
+            },
+            key: "alignedIns"
         });
     }
 
@@ -206,7 +211,7 @@ define(function (require, exports, module) {
      * * name: the name of the file, including the extension
      * * actions: the action creator responsible for communicating actions the user has taken
      */
-    var fileRenameInput = React.createFactory(React.createClass({
+    var fileRenameInput = React.createFactory(createReactClass({
         mixins: [renameBehavior],
 
         /**
@@ -225,7 +230,7 @@ define(function (require, exports, module) {
         render: function () {
             var width = _measureText(this.props.name);
 
-            return DOM.input({
+            return React.createElement("input", {
                 className: "jstree-rename-input",
                 type: "text",
                 defaultValue: this.props.name,
@@ -237,7 +242,8 @@ define(function (require, exports, module) {
                 style: {
                     width: width
                 },
-                ref: "name"
+                ref: "name",
+                key: "fileRenameInput"
             });
         }
     }));
@@ -299,14 +305,15 @@ define(function (require, exports, module) {
 
             if (extensions && extensions.get("icons")) {
                 var data = this.getDataForExtension();
-                result = extensions.get("icons").map(function (callback) {
+                result = extensions.get("icons").map(function (callback, index) {
                     try {
                         var result = callback(data);
                         if (result && !React.isValidElement(result)) {
-                            result = React.DOM.span({
+                            result = React.createElement("span", {
                                 dangerouslySetInnerHTML: {
                                     __html: $(result)[0].outerHTML
-                                }
+                                },
+                                key: "icon-" + index
                             });
                         }
                         return result;  // by this point, returns either undefined or a React object
@@ -317,8 +324,9 @@ define(function (require, exports, module) {
             }
 
             if (!result || result.length === 0) {
-                result = [DOM.ins({
-                    className: "jstree-icon"
+                result = [React.createElement("ins", {
+                    className: "jstree-icon",
+                    key: "icon"
                 }, " ")];
             }
             return result;
@@ -362,7 +370,7 @@ define(function (require, exports, module) {
      * * extensions: registered extensions for the file tree
      * * forceRender: causes the component to run render
      */
-    var fileNode = React.createFactory(React.createClass({
+    var fileNode = React.createFactory(createReactClass({
         mixins: [contextSettable, pathComputer, extendable],
 
         /**
@@ -481,8 +489,9 @@ define(function (require, exports, module) {
                 name = _getName(fullname, extension);
 
             if (extension) {
-                extension = DOM.span({
-                    className: "extension"
+                extension = React.createElement("span", {
+                    className: "extension",
+                    key: "extension"
                 }, "." + extension);
             }
 
@@ -494,40 +503,44 @@ define(function (require, exports, module) {
                 'context-node': this.props.entry.get("context")
             });
 
-            var liArgs = [
-                {
-                    className: this.getClasses("jstree-leaf"),
-                    onClick: this.handleClick,
-                    onMouseDown: this.handleMouseDown,
-                    onDoubleClick: this.handleDoubleClick
-                },
-                DOM.ins({
-                    className: "jstree-icon"
+            var liProps = {
+                className: this.getClasses("jstree-leaf"),
+                onClick: this.handleClick,
+                onMouseDown: this.handleMouseDown,
+                onDoubleClick: this.handleDoubleClick
+            };
+            var liChildren = [
+                React.createElement("ins", {
+                    className: "jstree-icon",
+                    key: "ins"
                 })
             ];
 
             var thickness = _createThickness(this.props.depth);
 
             if (this.props.entry.get("rename")) {
-                liArgs.push(thickness);
+                liChildren.push(thickness);
                 nameDisplay = fileRenameInput({
                     actions: this.props.actions,
                     entry: this.props.entry,
                     name: this.props.name,
-                    parentPath: this.props.parentPath
+                    parentPath: this.props.parentPath,
+                    key: "fileRename"
                 });
             } else {
-                // Need to flatten the argument list because getIcons returns an array
-                var aArgs = _.flatten([{
+                var aProps = {
                     href: "#",
-                    className: fileClasses
-                }, thickness, this.getIcons(), name, extension]);
-                nameDisplay = DOM.a.apply(DOM.a, aArgs);
+                    className: fileClasses,
+                    key: "file"
+                };
+                // Need to flatten the argument list because getIcons returns an array
+                var aChildren = _.flatten([thickness, this.getIcons(), name, extension]);
+                nameDisplay = React.createElement("a", aProps, aChildren);
             }
 
-            liArgs.push(nameDisplay);
+            liChildren.push(nameDisplay);
 
-            return DOM.li.apply(DOM.li, liArgs);
+            return React.createElement("li", liProps, liChildren);
         }
     }));
 
@@ -590,7 +603,7 @@ define(function (require, exports, module) {
      * * name: the name of the file, including the extension
      * * actions: the action creator responsible for communicating actions the user has taken
      */
-    var directoryRenameInput = React.createFactory(React.createClass({
+    var directoryRenameInput = React.createFactory(createReactClass({
         mixins: [renameBehavior],
 
         /**
@@ -607,7 +620,7 @@ define(function (require, exports, module) {
         render: function () {
             var width = _measureText(this.props.name);
 
-            return DOM.input({
+            return React.createElement("input", {
                 className: "jstree-rename-input",
                 type: "text",
                 defaultValue: this.props.name,
@@ -619,7 +632,8 @@ define(function (require, exports, module) {
                     width: width
                 },
                 onClick: this.handleClick,
-                ref: "name"
+                ref: "name",
+                key: "directoryRenameInput"
             });
         }
     }));
@@ -638,7 +652,7 @@ define(function (require, exports, module) {
      * * extensions: registered extensions for the file tree
      * * forceRender: causes the component to run render
      */
-    directoryNode = React.createFactory(React.createClass({
+    directoryNode = React.createFactory(createReactClass({
         mixins: [contextSettable, pathComputer, extendable],
 
         /**
@@ -724,7 +738,8 @@ define(function (require, exports, module) {
                     actions: this.props.actions,
                     forceRender: this.props.forceRender,
                     platform: this.props.platform,
-                    sortDirectoriesFirst: this.props.sortDirectoriesFirst
+                    sortDirectoriesFirst: this.props.sortDirectoriesFirst,
+                    key: "directoryContents"
                 });
             } else {
                 nodeClass = "closed";
@@ -738,38 +753,41 @@ define(function (require, exports, module) {
                 'context-node': entry.get("context")
             });
 
-            var liArgs = [
-                {
-                    className: this.getClasses("jstree-" + nodeClass),
-                    onClick: this.handleClick,
-                    onMouseDown: this.handleMouseDown
-                },
+            var liProps = {
+                className: this.getClasses("jstree-" + nodeClass),
+                onClick: this.handleClick,
+                onMouseDown: this.handleMouseDown
+            };
+            var liChildren = [
                 _createAlignedIns(this.props.depth)
             ];
 
             var thickness = _createThickness(this.props.depth);
 
             if (entry.get("rename")) {
-                liArgs.push(thickness);
+                liChildren.push(thickness);
                 nameDisplay = directoryRenameInput({
                     actions: this.props.actions,
                     entry: entry,
                     name: this.props.name,
-                    parentPath: this.props.parentPath
+                    parentPath: this.props.parentPath,
+                    key: "directoryRename"
                 });
             } else {
-                // Need to flatten the arguments because getIcons returns an array
-                var aArgs = _.flatten([{
+                var aProps = {
                     href: "#",
-                    className: directoryClasses
-                }, thickness, this.getIcons(), this.props.name]);
-                nameDisplay = DOM.a.apply(DOM.a, aArgs);
+                    className: directoryClasses,
+                    key: "directory"
+                };
+                // Need to flatten the arguments because getIcons returns an array
+                var aChildren = _.flatten([thickness, this.getIcons(), this.props.name]);
+                nameDisplay = React.createElement("a", aProps, aChildren);
             }
 
-            liArgs.push(nameDisplay);
-            liArgs.push(childNodes);
+            liChildren.push(nameDisplay);
+            liChildren.push(childNodes);
 
-            return DOM.li.apply(DOM.li, liArgs);
+            return React.createElement("li", liProps, liChildren);
         }
     }));
 
@@ -787,7 +805,7 @@ define(function (require, exports, module) {
      * * extensions: registered extensions for the file tree
      * * forceRender: causes the component to run render
      */
-    directoryContents = React.createFactory(React.createClass({
+    directoryContents = React.createFactory(createReactClass({
 
         /**
          * Need to re-render if the sort order or the contents change.
@@ -802,14 +820,15 @@ define(function (require, exports, module) {
         render: function () {
             var extensions = this.props.extensions,
                 iconClass = extensions && extensions.get("icons") ? "jstree-icons" : "jstree-no-icons",
-                ulProps = this.props.isRoot ? {
-                    className: "jstree-brackets jstree-no-dots " + iconClass
-                } : null;
+                ulProps = { key: "children" };
+            if (this.props.isRoot) {
+                ulProps.className = "jstree-brackets jstree-no-dots " + iconClass;
+            }
 
             var contents = this.props.contents,
                 namesInOrder = _sortDirectoryContents(contents, this.props.sortDirectoriesFirst);
 
-            return DOM.ul(ulProps, namesInOrder.map(function (name) {
+            return React.createElement("ul", ulProps, namesInOrder.map(function (name) {
                 var entry = contents.get(name);
 
                 if (FileTreeViewModel.isFile(entry)) {
@@ -852,7 +871,7 @@ define(function (require, exports, module) {
      * * visible: should this be visible now
      * * selectedClassName: class name applied to the element that is selected
      */
-    var fileSelectionBox = React.createFactory(React.createClass({
+    var fileSelectionBox = React.createFactory(createReactClass({
         /**
          * When the component has updated in the DOM, reposition it to where the currently
          * selected node is located now.
@@ -879,7 +898,7 @@ define(function (require, exports, module) {
                 width = selectionViewInfo.get("width"),
                 scrollWidth = selectionViewInfo.get("scrollWidth");
 
-            return DOM.div({
+            return React.createElement("div", {
                 style: {
                     overflow: "auto",
                     left: left,
@@ -901,7 +920,7 @@ define(function (require, exports, module) {
      * * selectedClassName: class name applied to the element that is selected
      * * className: class to be applied to the extension element
      */
-    var selectionExtension = React.createFactory(React.createClass({
+    var selectionExtension = React.createFactory(createReactClass({
         /**
          * When the component has updated in the DOM, reposition it to where the currently
          * selected node is located now.
@@ -954,7 +973,7 @@ define(function (require, exports, module) {
         },
 
         render: function () {
-            return DOM.div({
+            return React.createElement("div", {
                 style: {
                     display: this.props.visible ? "block" : "none"
                 },
@@ -977,7 +996,7 @@ define(function (require, exports, module) {
      * * forceRender: causes the component to run render
      * * platform: platform that Brackets is running on
      */
-    var fileTreeView = React.createFactory(React.createClass({
+    var fileTreeView = React.createFactory(createReactClass({
 
         /**
          * Update for any change in the tree data or directory sorting preference.
@@ -1033,7 +1052,7 @@ define(function (require, exports, module) {
                     platform: this.props.platform
                 });
 
-            return DOM.div(
+            return React.createElement("div",
                 null,
                 selectionBackground,
                 contextBackground,

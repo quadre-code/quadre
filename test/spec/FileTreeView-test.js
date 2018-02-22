@@ -32,7 +32,7 @@ define(function (require, exports, module) {
         React             = require("thirdparty/react"),
         ReactDOM          = require("thirdparty/react-dom"),
         Immutable         = require("thirdparty/immutable"),
-        RTU               = React.addons.TestUtils,
+        RTU               = require("thirdparty/react-dom-test-utils"),
         _                 = require("thirdparty/lodash");
 
     describe("FileTreeView", function () {
@@ -46,8 +46,8 @@ define(function (require, exports, module) {
                 var a = RTU.findRenderedDOMComponentWithTag(rendered, "a");
                 expect(a.children[0].textContent).toBe("");
                 expect(a.children[1].textContent).toBe(" ");
-                expect(a.children[2].textContent).toBe("afile");
-                expect(a.children[3].textContent).toBe(".js");
+                expect(a.children[2].textContent).toBe(".js");
+                expect(a.textContent).toBe(" afile.js");
             });
 
             it("should call icon extensions to replace the default icon", function () {
@@ -62,7 +62,7 @@ define(function (require, exports, module) {
                                 expect(data.name).toBe("afile.js");
                                 expect(data.isFile).toBe(true);
                                 expect(data.fullPath).toBe("/foo/afile.js");
-                                return React.DOM.ins({}, "ICON");
+                                return React.createElement("ins", { key: "test-ICON" }, "ICON");
                             }]
                         })
                     }));
@@ -72,8 +72,8 @@ define(function (require, exports, module) {
                 var a = RTU.findRenderedDOMComponentWithTag(rendered, "a");
                 expect(a.children[0].textContent).toBe("");
                 expect(a.children[1].textContent).toBe("ICON");
-                expect(a.children[2].textContent).toBe("afile");
-                expect(a.children[3].textContent).toBe(".js");
+                expect(a.children[2].textContent).toBe(".js");
+                expect(a.textContent).toBe("ICONafile.js");
             });
 
             it("should allow icon extensions to return a string for the icon", function () {
@@ -94,8 +94,9 @@ define(function (require, exports, module) {
 
                 var a = RTU.findRenderedDOMComponentWithTag(rendered, "a");
                 expect(a.children[0].textContent).toBe("");
-                expect(a.children[2].textContent).toBe("afile");
-                expect(a.children[3].textContent).toBe(".js");
+                expect(a.children[1].textContent).toBe("ICON");
+                expect(a.children[2].textContent).toBe(".js");
+                expect(a.textContent).toBe("ICONafile.js");
 
                 var $a = $(ReactDOM.findDOMNode(a)),
                     $ins = $a.find("ins");
@@ -112,7 +113,7 @@ define(function (require, exports, module) {
                     parentPath: "/foo/"
                 }));
                 var node = ReactDOM.findDOMNode(rendered);
-                React.addons.TestUtils.Simulate.mouseDown(node, {
+                RTU.Simulate.mouseDown(node, {
                     button: 2
                 });
                 expect(actions.setContext).toHaveBeenCalledWith("/foo/afile.js");
@@ -128,7 +129,7 @@ define(function (require, exports, module) {
                     platform: "mac"
                 }));
                 var node = ReactDOM.findDOMNode(rendered);
-                React.addons.TestUtils.Simulate.mouseDown(node, {
+                RTU.Simulate.mouseDown(node, {
                     button: 0,
                     ctrlKey: true
                 });
@@ -145,7 +146,7 @@ define(function (require, exports, module) {
                     platform: "win"
                 }));
                 var node = ReactDOM.findDOMNode(rendered);
-                React.addons.TestUtils.Simulate.mouseDown(node, {
+                RTU.Simulate.mouseDown(node, {
                     button: 0,
                     ctrlKey: true
                 });
@@ -170,8 +171,9 @@ define(function (require, exports, module) {
 
                 var a = RTU.findRenderedDOMComponentWithTag(rendered, "a");
                 expect(a.children[0].textContent).toBe("");
-                expect(a.children[2].textContent).toBe("afile");
-                expect(a.children[3].textContent).toBe(".js");
+                expect(a.children[1].textContent).toBe("ICON");
+                expect(a.children[2].textContent).toBe(".js");
+                expect(a.textContent).toBe("ICONafile.js");
 
                 var $a = $(a),
                     $ins = $a.find("ins");
@@ -361,7 +363,7 @@ define(function (require, exports, module) {
                         }),
                         extensions: Immutable.fromJS({
                             icons: [function (data) {
-                                return React.DOM.ins({}, "ICON");
+                                return React.createElement("ins", { key: "test-ICON" }, "ICON");
                             }],
                             addClass: [function (data) {
                                 extensionCalled = true;
@@ -405,7 +407,10 @@ define(function (require, exports, module) {
                 }));
                 var fileLI = ReactDOM.findDOMNode(rendered),
                     fileA = $(fileLI).find("a")[0];
-                expect(fileA.children[2].textContent).toBe("afile");
+                expect(fileA.children[0].textContent).toBe("");
+                expect(fileA.children[1].textContent).toBe(" ");
+                expect(fileA.children[2].textContent).toBe(".js");
+                expect(fileA.textContent).toBe(" afile.js");
             });
 
             it("should be able to list closed directories", function () {
@@ -423,7 +428,9 @@ define(function (require, exports, module) {
 
                 var subdirLI = ReactDOM.findDOMNode(rendered),
                     subdirA = $(subdirLI).find(".jstree-closed > a")[0];
-                expect(subdirA.children[2].textContent).toBe("subdir");
+                expect(subdirA.children[0].textContent).toBe("");
+                expect(subdirA.children[1].textContent).toBe(" ");
+                expect(subdirA.textContent).toBe(" subdir");
             });
 
             it("should be able to list open subdirectories", function () {
@@ -437,8 +444,13 @@ define(function (require, exports, module) {
                     aTags = subdirLI.find("a");
 
                 expect(aTags.length).toBe(2);
-                expect(aTags[0].children[2].textContent).toBe("subdir");
-                expect(aTags[1].children[2].textContent).toBe("afile");
+                expect(aTags[0].children[0].textContent).toBe("");
+                expect(aTags[0].children[1].textContent).toBe(" ");
+                expect(aTags[0].textContent).toBe(" subdir");
+                expect(aTags[1].children[0].textContent).toBe("");
+                expect(aTags[1].children[1].textContent).toBe(" ");
+                expect(aTags[1].children[2].textContent).toBe(".js");
+                expect(aTags[1].textContent).toBe(" afile.js");
             });
 
             it("should sort directory contents according to the flag", function () {
@@ -520,8 +532,13 @@ define(function (require, exports, module) {
                 var rootNode = ReactDOM.findDOMNode(rendered),
                     aTags = $(rootNode).find("a");
                 expect(aTags.length).toBe(2);
-                expect(aTags[0].children[2].textContent).toBe("subdir");
-                expect(aTags[1].children[2].textContent).toBe("afile");
+                expect(aTags[0].children[0].textContent).toBe("");
+                expect(aTags[0].children[1].textContent).toBe(" ");
+                expect(aTags[0].textContent).toBe(" subdir");
+                expect(aTags[1].children[0].textContent).toBe("");
+                expect(aTags[1].children[1].textContent).toBe(" ");
+                expect(aTags[1].children[2].textContent).toBe(".js");
+                expect(aTags[1].textContent).toBe(" afile.js");
             });
 
             it("should rerender contents as needed", function () {
