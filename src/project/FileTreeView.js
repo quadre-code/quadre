@@ -21,6 +21,8 @@
  *
  */
 
+/*eslint-env es6*/
+
 /*unittests: FileTreeView*/
 
 /**
@@ -33,7 +35,6 @@ define(function (require, exports, module) {
 
     var React             = require("thirdparty/react"),
         ReactDOM          = require("thirdparty/react-dom"),
-        createReactClass  = require("thirdparty/create-react-class"),
         Classnames        = require("thirdparty/classnames"),
         Immutable         = require("thirdparty/immutable"),
         _                 = require("thirdparty/lodash"),
@@ -75,23 +76,18 @@ define(function (require, exports, module) {
     }
 
     /**
-     * Mixin that allows a component to compute the full path to its directory entry.
+     * Helper that computes the full path of an entry.
      */
-    var pathComputer = {
-        /**
-         * Computes the full path of the file represented by this input.
-         */
-        myPath: function () {
-            var result = this.props.parentPath + this.props.name;
+    function fullPath(props) {
+        var result = props.parentPath + props.name;
 
-            // Add trailing slash for directories
-            if (!FileTreeViewModel.isFile(this.props.entry) && _.last(result) !== "/") {
-                result += "/";
-            }
-
-            return result;
+        // Add trailing slash for directories
+        if (!FileTreeViewModel.isFile(props.entry) && _.last(result) !== "/") {
+            result += "/";
         }
-    };
+
+        return result;
+    }
 
     /**
      * @private
@@ -102,7 +98,15 @@ define(function (require, exports, module) {
      * @return {int} Width to use
      */
     function _measureText(text) {
-        var measuringElement = $("<span />", { css : { "position" : "absolute", "top" : "-200px", "left" : "-1000px", "visibility" : "hidden", "white-space": "pre" } }).appendTo("body");
+        var measuringElement = $("<span />", {
+            css: {
+                "position": "absolute",
+                "top": "-200px",
+                "left": "-1000px",
+                "visibility": "hidden",
+                "white-space": "pre"
+            }
+        }).appendTo("body");
         measuringElement.text("pW" + text);
         var width = measuringElement.width();
         measuringElement.remove();
@@ -150,55 +154,83 @@ define(function (require, exports, module) {
     }
 
     /**
-     * This is a mixin that provides rename input behavior. It is responsible for taking keyboard input
-     * and invoking the correct action based on that input.
+     * This is a High Order Component that provides rename input behavior.
+     * It is responsible for taking keyboard input and invoking the correct action
+     * based on that input.
      */
-    var renameBehavior = {
-        /**
-         * Stop clicks from propagating so that clicking on the rename input doesn't
-         * cause directories to collapse.
-         */
-        handleClick: function (e) {
-            e.stopPropagation();
-            if (e.button !== LEFT_MOUSE_BUTTON) {
-                e.preventDefault();
-            }
-        },
+    function withRenameBehavior(RenameInputComponent) {
+        class WithRenameBehavior extends React.Component {
+            constructor(props) {
+                super(props);
 
-        /**
-         * If the user presses enter or escape, we either successfully complete or cancel, respectively,
-         * the rename or create operation that is underway.
-         */
-        handleKeyDown: function (e) {
-            if (e.keyCode === KeyEvent.DOM_VK_ESCAPE) {
-                this.props.actions.cancelRename();
-            } else if (e.keyCode === KeyEvent.DOM_VK_RETURN) {
+                this.handleClick = this.handleClick.bind(this);
+                this.handleKeyDown = this.handleKeyDown.bind(this);
+                this.handleInput = this.handleInput.bind(this);
+                this.handleBlur = this.handleBlur.bind(this);
+            }
+
+            setInputComponent(instance) {
+                this.textInput = instance ? instance.textInput : null;
+            }
+
+            /**
+             * Stop clicks from propagating so that clicking on the rename input doesn't
+             * cause directories to collapse.
+             */
+            handleClick(e) {
+                e.stopPropagation();
+                if (e.button !== LEFT_MOUSE_BUTTON) {
+                    e.preventDefault();
+                }
+            }
+
+            /**
+             * If the user presses enter or escape, we either successfully complete or cancel, respectively,
+             * the rename or create operation that is underway.
+             */
+            handleKeyDown(e) {
+                if (e.keyCode === KeyEvent.DOM_VK_ESCAPE) {
+                    this.props.actions.cancelRename();
+                } else if (e.keyCode === KeyEvent.DOM_VK_RETURN) {
+                    this.props.actions.performRename();
+                }
+            }
+
+            /**
+             * The rename or create operation can be completed or canceled by actions outside of
+             * this component, so we keep the model up to date by sending every update via an action.
+             */
+            handleInput(e) {
+                this.props.actions.setRenameValue(this.textInput.value.trim());
+
+                if (e.keyCode !== KeyEvent.DOM_VK_LEFT &&
+                        e.keyCode !== KeyEvent.DOM_VK_RIGHT) {
+                    // update the width of the input field
+                    var node = this.textInput,
+                        newWidth = _measureText(node.value);
+                    $(node).width(newWidth);
+                }
+            }
+
+            /**
+             * If we leave the field for any reason, complete the rename.
+             */
+            handleBlur() {
                 this.props.actions.performRename();
             }
-        },
 
-        /**
-         * The rename or create operation can be completed or canceled by actions outside of
-         * this component, so we keep the model up to date by sending every update via an action.
-         */
-        handleInput: function (e) {
-            this.props.actions.setRenameValue(this.refs.name.value.trim());
-
-            if (e.keyCode !== KeyEvent.DOM_VK_LEFT &&
-                    e.keyCode !== KeyEvent.DOM_VK_RIGHT) {
-                // update the width of the input field
-                var node = this.refs.name,
-                    newWidth = _measureText(node.value);
-                $(node).width(newWidth);
+            render() {
+                var renameProps = Object.assign({}, this.props, {
+                    handleClick: this.handleClick,
+                    handleKeyDown: this.handleKeyDown,
+                    handleInput: this.handleInput,
+                    handleBlur: this.handleBlur,
+                    ref: this.setInputComponent.bind(this)
+                });
+                return React.createElement(RenameInputComponent, renameProps);
             }
-        },
-
-        /**
-         * If we leave the field for any reason, complete the rename.
-         */
-        handleBlur: function () {
-            this.props.actions.performRename();
         }
+        return WithRenameBehavior;
     };
 
     /**
@@ -211,23 +243,25 @@ define(function (require, exports, module) {
      * * name: the name of the file, including the extension
      * * actions: the action creator responsible for communicating actions the user has taken
      */
-    var fileRenameInput = React.createFactory(createReactClass({
-        mixins: [renameBehavior],
+    class FileRenameInput extends React.Component {
+        constructor(props) {
+            super(props);
+        }
 
         /**
          * When this component is displayed, we scroll it into view and select the portion
          * of the filename that excludes the extension.
          */
-        componentDidMount: function () {
+        componentDidMount() {
             var fullname = this.props.name,
                 extension = LanguageManager.getCompoundFileExtension(fullname);
 
-            var node = this.refs.name;
+            var node = this.textInput;
             node.setSelectionRange(0, _getName(fullname, extension).length);
             ViewUtils.scrollElementIntoView($("#project-files-container"), $(node), true);
-        },
+        }
 
-        render: function () {
+        render() {
             var width = _measureText(this.props.name);
 
             return React.createElement("input", {
@@ -235,45 +269,74 @@ define(function (require, exports, module) {
                 type: "text",
                 defaultValue: this.props.name,
                 autoFocus: true,
-                onKeyDown: this.handleKeyDown,
-                onInput: this.handleInput,
-                onClick: this.handleClick,
-                onBlur: this.handleBlur,
+                onKeyDown: this.props.handleKeyDown,
+                onInput: this.props.handleInput,
+                onClick: this.props.handleClick,
+                onBlur: this.props.handleBlur,
                 style: {
                     width: width
                 },
-                ref: "name",
+                ref: (input) => {
+                    this.textInput = input;
+                },
                 key: "fileRenameInput"
             });
         }
-    }));
+    }
 
     /**
      * @private
      *
-     * This mixin handles right click (or control click on Mac) action to make a file
+     * This High Order Component handles right click (or control click on Mac) action to make a file
      * the "context" object for performing operations like rename.
      */
-    var contextSettable = {
+    function withContextSettable(nodeComponent) {
+        class WithContextSettable extends React.Component {
+            constructor(props) {
+                super(props);
 
-        /**
-         * Send matching mouseDown events to the action creator as a setContext action.
-         */
-        handleMouseDown: function (e) {
-            e.stopPropagation();
-            if (e.button === RIGHT_MOUSE_BUTTON ||
-                    (this.props.platform === "mac" && e.button === LEFT_MOUSE_BUTTON && e.ctrlKey)) {
-                this.props.actions.setContext(this.myPath());
+                this.handleMouseDown = this.handleMouseDown.bind(this);
+            }
+
+            shouldComponentUpdate(nextProps, nextState) {
+                if (this.node) {
+                    return this.node.shouldComponentUpdate(nextProps, nextState);
+                }
+                return true;
+            }
+
+            setInner(innerComponent) {
+                this.node = innerComponent;
+            }
+
+            /**
+             * Send matching mouseDown events to the action creator as a setContext action.
+             */
+            handleMouseDown(e) {
+                e.stopPropagation();
+                if (e.button === RIGHT_MOUSE_BUTTON ||
+                        (this.props.platform === "mac" && e.button === LEFT_MOUSE_BUTTON && e.ctrlKey)) {
+                    this.props.actions.setContext(fullPath(this.props));
+                    e.preventDefault();
+                    return;
+                }
+                // Return true only for mouse down in rename mode.
+                if (this.props.entry.get("rename")) {
+                    return;
+                }
                 e.preventDefault();
-                return;
             }
-            // Return true only for mouse down in rename mode.
-            if (this.props.entry.get("rename")) {
-                return;
+
+            render() {
+                var nodeProps = Object.assign({}, this.props, {
+                    handleMouseDown: this.handleMouseDown,
+                    ref: this.setInner.bind(this)
+                });
+                return React.createElement(nodeComponent, nodeProps);
             }
-            e.preventDefault();
         }
-    };
+        return WithContextSettable;
+    }
 
     /**
      * @private
@@ -288,74 +351,64 @@ define(function (require, exports, module) {
     }
 
     /**
-     * Mixin for components that support the "icons" and "addClass" extension points.
-     * `fileNode` and `directoryNode` support this.
+     * Calls the icon providers to get the collection of icons (most likely just one) for
+     * the current file or directory.
+     *
+     * @return {Array.<ReactComponent>} icon components to render
      */
-    var extendable = {
+    function getIcons(extensions, getDataForExtension) {
+        var result;
 
-        /**
-         * Calls the icon providers to get the collection of icons (most likely just one) for
-         * the current file or directory.
-         *
-         * @return {Array.<ReactComponent>} icon components to render
-         */
-        getIcons: function () {
-            var result,
-                extensions = this.props.extensions;
-
-            if (extensions && extensions.get("icons")) {
-                var data = this.getDataForExtension();
-                result = extensions.get("icons").map(function (callback, index) {
-                    try {
-                        var result = callback(data);
-                        if (result && !React.isValidElement(result)) {
-                            result = React.createElement("span", {
-                                dangerouslySetInnerHTML: {
-                                    __html: $(result)[0].outerHTML
-                                },
-                                key: "icon-" + index
-                            });
-                        }
-                        return result;  // by this point, returns either undefined or a React object
-                    } catch (e) {
-                        console.error("Exception thrown in FileTreeView icon provider: " + e, e.stack);
+        if (extensions && extensions.get("icons")) {
+            var data = getDataForExtension();
+            result = extensions.get("icons").map(function (callback, index) {
+                try {
+                    var result = callback(data);
+                    if (result && !React.isValidElement(result)) {
+                        result = React.createElement("span", {
+                            dangerouslySetInnerHTML: {
+                                __html: $(result)[0].outerHTML
+                            },
+                            key: "icon-" + index
+                        });
                     }
-                }).filter(isDefined).toArray();
-            }
-
-            if (!result || result.length === 0) {
-                result = [React.createElement("ins", {
-                    className: "jstree-icon",
-                    key: "icon"
-                }, " ")];
-            }
-            return result;
-        },
-
-        /**
-         * Calls the addClass providers to get the classes (in string form) to add for the current
-         * file or directory.
-         *
-         * @param {string} classes Initial classes for this node
-         * @return {string} classes for the current node
-         */
-        getClasses: function (classes) {
-            var extensions = this.props.extensions;
-
-            if (extensions && extensions.get("addClass")) {
-                var data = this.getDataForExtension();
-                classes = classes + " " + extensions.get("addClass").map(function (callback) {
-                    try {
-                        return callback(data);
-                    } catch (e) {
-                        console.error("Exception thrown in FileTreeView addClass provider: " + e, e.stack);
-                    }
-                }).filter(isDefined).toArray().join(" ");
-            }
-
-            return classes;
+                    return result;  // by this point, returns either undefined or a React object
+                } catch (e) {
+                    console.error("Exception thrown in FileTreeView icon provider: " + e, e.stack);
+                }
+            }).filter(isDefined).toArray();
         }
-    };
+
+        if (!result || result.length === 0) {
+            result = [React.createElement("ins", {
+                className: "jstree-icon",
+                key: "icon"
+            }, " ")];
+        }
+        return result;
+    }
+
+    /**
+     * Calls the addClass providers to get the classes (in string form) to add for the current
+     * file or directory.
+     *
+     * @param {string} classes Initial classes for this node
+     * @return {string} classes for the current node
+     */
+    function getClasses(classes, extensions, getDataForExtension) {
+        if (extensions && extensions.get("addClass")) {
+            var data = getDataForExtension();
+            classes = classes + " " + extensions.get("addClass").map(function (callback) {
+                try {
+                    return callback(data);
+                } catch (e) {
+                    console.error("Exception thrown in FileTreeView addClass provider: " + e, e.stack);
+                }
+            }).filter(isDefined).toArray().join(" ");
+        }
+
+        return classes;
+    }
 
     /**
      * @private
@@ -370,33 +423,36 @@ define(function (require, exports, module) {
      * * extensions: registered extensions for the file tree
      * * forceRender: causes the component to run render
      */
-    var fileNode = React.createFactory(createReactClass({
-        mixins: [contextSettable, pathComputer, extendable],
+    class FileNode extends React.Component {
+        constructor(props) {
+            super(props);
 
-        /**
-         * Ensures that we always have a state object.
-         */
-        getInitialState: function () {
-            return {
+            this.state = {
                 clickTimer: null
             };
-        },
+
+            this.clearTimer = this.clearTimer.bind(this);
+            this.startRename = this.startRename.bind(this);
+            this.handleClick = this.handleClick.bind(this);
+            this.handleDoubleClick = this.handleDoubleClick.bind(this);
+            this.getDataForExtension = this.getDataForExtension.bind(this);
+        }
 
         /**
          * Thanks to immutable objects, we can just do a start object identity check to know
          * whether or not we need to re-render.
          */
-        shouldComponentUpdate: function (nextProps, nextState) {
+        shouldComponentUpdate(nextProps, nextState) {
             return nextProps.forceRender ||
                 this.props.entry !== nextProps.entry ||
                 this.props.extensions !== nextProps.extensions;
-        },
+        }
 
         /**
          * If this node is newly selected, scroll it into view. Also, move the selection or
          * context boxes as appropriate.
          */
-        componentDidUpdate: function (prevProps, prevState) {
+        componentDidUpdate(prevProps, prevState) {
             var wasSelected = prevProps.entry.get("selected"),
                 isSelected  = this.props.entry.get("selected");
 
@@ -410,29 +466,29 @@ define(function (require, exports, module) {
             } else if (!isSelected && wasSelected && this.state.clickTimer !== null) {
                 this.clearTimer();
             }
-        },
+        }
 
-        clearTimer: function () {
+        clearTimer() {
             if (this.state.clickTimer !== null) {
                 window.clearTimeout(this.state.clickTimer);
                 this.setState({
                     clickTimer: null
                 });
             }
-        },
+        }
 
-        startRename: function () {
+        startRename() {
             if (!this.props.entry.get("rename")) {
-                this.props.actions.startRename(this.myPath());
+                this.props.actions.startRename(fullPath(this.props));
             }
             this.clearTimer();
-        },
+        }
 
         /**
          * When the user clicks on the node, we'll either select it or, if they've clicked twice
          * with a bit of delay in between, we'll invoke the `startRename` action.
          */
-        handleClick: function (e) {
+        handleClick(e) {
             // If we're renaming, allow the click to go through to the rename input.
             if (this.props.entry.get("rename")) {
                 e.stopPropagation();
@@ -451,39 +507,39 @@ define(function (require, exports, module) {
                     });
                 }
             } else {
-                this.props.actions.setSelected(this.myPath());
+                this.props.actions.setSelected(fullPath(this.props));
             }
             e.stopPropagation();
             e.preventDefault();
-        },
+        }
 
         /**
          * When the user double clicks, we will select this file and add it to the working
          * set (via the `selectInWorkingSet` action.)
          */
-        handleDoubleClick: function () {
+        handleDoubleClick() {
             if (!this.props.entry.get("rename")) {
                 if (this.state.clickTimer !== null) {
                     this.clearTimer();
                 }
-                this.props.actions.selectInWorkingSet(this.myPath());
+                this.props.actions.selectInWorkingSet(fullPath(this.props));
             }
-        },
+        }
 
         /**
          * Create the data object to pass to extensions.
          *
          * @return {!{name:string, isFile:boolean, fullPath:string}} Data for extensions
          */
-        getDataForExtension: function () {
+        getDataForExtension() {
             return {
                 name: this.props.name,
                 isFile: true,
-                fullPath: this.myPath()
+                fullPath: fullPath(this.props)
             };
-        },
+        }
 
-        render: function () {
+        render() {
             var fullname = this.props.name,
                 extension = LanguageManager.getCompoundFileExtension(fullname),
                 name = _getName(fullname, extension);
@@ -504,9 +560,9 @@ define(function (require, exports, module) {
             });
 
             var liProps = {
-                className: this.getClasses("jstree-leaf"),
+                className: getClasses("jstree-leaf", this.props.extensions, this.getDataForExtension),
                 onClick: this.handleClick,
-                onMouseDown: this.handleMouseDown,
+                onMouseDown: this.props.handleMouseDown,
                 onDoubleClick: this.handleDoubleClick
             };
             var liChildren = [
@@ -520,7 +576,7 @@ define(function (require, exports, module) {
 
             if (this.props.entry.get("rename")) {
                 liChildren.push(thickness);
-                nameDisplay = fileRenameInput({
+                nameDisplay = React.createElement(withRenameBehavior(FileRenameInput), {
                     actions: this.props.actions,
                     entry: this.props.entry,
                     name: this.props.name,
@@ -534,7 +590,12 @@ define(function (require, exports, module) {
                     key: "file"
                 };
                 // Need to flatten the argument list because getIcons returns an array
-                var aChildren = _.flatten([thickness, this.getIcons(), name, extension]);
+                var aChildren = _.flatten([
+                    thickness,
+                    getIcons(this.props.extensions, this.getDataForExtension),
+                    name,
+                    extension
+                ]);
                 nameDisplay = React.createElement("a", aProps, aChildren);
             }
 
@@ -542,7 +603,7 @@ define(function (require, exports, module) {
 
             return React.createElement("li", liProps, liChildren);
         }
-    }));
+    }
 
     /**
      * @private
@@ -590,9 +651,6 @@ define(function (require, exports, module) {
         }
     }
 
-    // Forward references to keep JSLint happy.
-    var directoryNode, directoryContents;
-
     /**
      * @private
      *
@@ -603,21 +661,23 @@ define(function (require, exports, module) {
      * * name: the name of the file, including the extension
      * * actions: the action creator responsible for communicating actions the user has taken
      */
-    var directoryRenameInput = React.createFactory(createReactClass({
-        mixins: [renameBehavior],
+    class DirectoryRenameInput extends React.Component {
+        constructor(props) {
+            super(props);
+        }
 
         /**
          * When this component is displayed, we scroll it into view and select the folder name.
          */
-        componentDidMount: function () {
+        componentDidMount() {
             var fullname = this.props.name;
 
-            var node = this.refs.name;
+            var node = this.textInput;
             node.setSelectionRange(0, fullname.length);
             ViewUtils.scrollElementIntoView($("#project-files-container"), $(node), true);
-        },
+        }
 
-        render: function () {
+        render() {
             var width = _measureText(this.props.name);
 
             return React.createElement("input", {
@@ -625,18 +685,20 @@ define(function (require, exports, module) {
                 type: "text",
                 defaultValue: this.props.name,
                 autoFocus: true,
-                onKeyDown: this.handleKeyDown,
-                onInput: this.handleInput,
-                onBlur: this.handleBlur,
+                onKeyDown: this.props.handleKeyDown,
+                onInput: this.props.handleInput,
+                onBlur: this.props.handleBlur,
                 style: {
                     width: width
                 },
-                onClick: this.handleClick,
-                ref: "name",
+                onClick: this.props.handleClick,
+                ref: (input) => {
+                    this.textInput = input;
+                },
                 key: "directoryRenameInput"
             });
         }
-    }));
+    }
 
     /**
      * @private
@@ -652,25 +714,30 @@ define(function (require, exports, module) {
      * * extensions: registered extensions for the file tree
      * * forceRender: causes the component to run render
      */
-    directoryNode = React.createFactory(createReactClass({
-        mixins: [contextSettable, pathComputer, extendable],
+    class DirectoryNode extends React.Component {
+        constructor(props) {
+            super(props);
+
+            this.handleClick = this.handleClick.bind(this);
+            this.getDataForExtension = this.getDataForExtension.bind(this);
+        }
 
         /**
          * We need to update this component if the sort order changes or our entry object
          * changes. Thanks to immutability, if any of the directory contents change, our
          * entry object will change.
          */
-        shouldComponentUpdate: function (nextProps, nextState) {
+        shouldComponentUpdate(nextProps, nextState) {
             return nextProps.forceRender ||
                 this.props.entry !== nextProps.entry ||
                 this.props.sortDirectoriesFirst !== nextProps.sortDirectoriesFirst ||
                 this.props.extensions !== nextProps.extensions;
-        },
+        }
 
         /**
          * If you click on a directory, it will toggle between open and closed.
          */
-        handleClick: function (event) {
+        handleClick(event) {
             if (this.props.entry.get("rename")) {
                 event.stopPropagation();
                 return;
@@ -690,11 +757,11 @@ define(function (require, exports, module) {
                         // when opening, we only open the immediate children because
                         // opening a whole subtree could be really slow (consider
                         // a `node_modules` directory, for example).
-                        this.props.actions.toggleSubdirectories(this.myPath(), setOpen);
-                        this.props.actions.setDirectoryOpen(this.myPath(), setOpen);
+                        this.props.actions.toggleSubdirectories(fullPath(this.props), setOpen);
+                        this.props.actions.setDirectoryOpen(fullPath(this.props), setOpen);
                     } else {
                         // When closing, we recursively close the whole subtree.
-                        this.props.actions.closeSubtree(this.myPath());
+                        this.props.actions.closeSubtree(fullPath(this.props));
                     }
                 } else {
                     // ctrl-click toggles the sibling directories
@@ -702,26 +769,26 @@ define(function (require, exports, module) {
                 }
             } else {
                 // directory toggle with no modifier
-                this.props.actions.setDirectoryOpen(this.myPath(), setOpen);
+                this.props.actions.setDirectoryOpen(fullPath(this.props), setOpen);
             }
             event.stopPropagation();
             event.preventDefault();
-        },
+        }
 
         /**
          * Create the data object to pass to extensions.
          *
          * @return {{name: {string}, isFile: {boolean}, fullPath: {string}}} Data for extensions
          */
-        getDataForExtension: function () {
+        getDataForExtension() {
             return {
                 name: this.props.name,
                 isFile: false,
-                fullPath: this.myPath()
+                fullPath: fullPath(this.props)
             };
-        },
+        }
 
-        render: function () {
+        render() {
             var entry = this.props.entry,
                 nodeClass,
                 childNodes,
@@ -730,9 +797,9 @@ define(function (require, exports, module) {
 
             if (isOpen && children) {
                 nodeClass = "open";
-                childNodes = directoryContents({
+                childNodes = React.createElement(DirectoryContents, {
                     depth: this.props.depth + 1,
-                    parentPath: this.myPath(),
+                    parentPath: fullPath(this.props),
                     contents: children,
                     extensions: this.props.extensions,
                     actions: this.props.actions,
@@ -754,9 +821,9 @@ define(function (require, exports, module) {
             });
 
             var liProps = {
-                className: this.getClasses("jstree-" + nodeClass),
+                className: getClasses("jstree-" + nodeClass, this.props.extensions, this.getDataForExtension),
                 onClick: this.handleClick,
-                onMouseDown: this.handleMouseDown
+                onMouseDown: this.props.handleMouseDown
             };
             var liChildren = [
                 _createAlignedIns(this.props.depth)
@@ -766,7 +833,7 @@ define(function (require, exports, module) {
 
             if (entry.get("rename")) {
                 liChildren.push(thickness);
-                nameDisplay = directoryRenameInput({
+                nameDisplay = React.createElement(withRenameBehavior(DirectoryRenameInput), {
                     actions: this.props.actions,
                     entry: entry,
                     name: this.props.name,
@@ -780,7 +847,11 @@ define(function (require, exports, module) {
                     key: "directory"
                 };
                 // Need to flatten the arguments because getIcons returns an array
-                var aChildren = _.flatten([thickness, this.getIcons(), this.props.name]);
+                var aChildren = _.flatten([
+                    thickness,
+                    getIcons(this.props.extensions, this.getDataForExtension),
+                    this.props.name
+                ]);
                 nameDisplay = React.createElement("a", aProps, aChildren);
             }
 
@@ -789,7 +860,7 @@ define(function (require, exports, module) {
 
             return React.createElement("li", liProps, liChildren);
         }
-    }));
+    }
 
     /**
      * @private
@@ -805,19 +876,22 @@ define(function (require, exports, module) {
      * * extensions: registered extensions for the file tree
      * * forceRender: causes the component to run render
      */
-    directoryContents = React.createFactory(createReactClass({
+    class DirectoryContents extends React.Component {
+        constructor(props) {
+            super(props);
+        }
 
         /**
          * Need to re-render if the sort order or the contents change.
          */
-        shouldComponentUpdate: function (nextProps, nextState) {
+        shouldComponentUpdate(nextProps, nextState) {
             return nextProps.forceRender ||
                 this.props.contents !== nextProps.contents ||
                 this.props.sortDirectoriesFirst !== nextProps.sortDirectoriesFirst ||
                 this.props.extensions !== nextProps.extensions;
-        },
+        }
 
-        render: function () {
+        render() {
             var extensions = this.props.extensions,
                 iconClass = extensions && extensions.get("icons") ? "jstree-icons" : "jstree-no-icons",
                 ulProps = { key: "children" };
@@ -832,7 +906,7 @@ define(function (require, exports, module) {
                 var entry = contents.get(name);
 
                 if (FileTreeViewModel.isFile(entry)) {
-                    return fileNode({
+                    return React.createElement(withContextSettable(FileNode), {
                         depth: this.props.depth,
                         parentPath: this.props.parentPath,
                         name: name,
@@ -844,7 +918,7 @@ define(function (require, exports, module) {
                         key: name
                     });
                 } else {
-                    return directoryNode({
+                    return React.createElement(withContextSettable(DirectoryNode), {
                         depth: this.props.depth,
                         parentPath: this.props.parentPath,
                         name: name,
@@ -859,7 +933,7 @@ define(function (require, exports, module) {
                 }
             }.bind(this)).toArray());
         }
-    }));
+    }
 
     /**
      * Displays the absolutely positioned box for the selection or context in the
@@ -871,12 +945,16 @@ define(function (require, exports, module) {
      * * visible: should this be visible now
      * * selectedClassName: class name applied to the element that is selected
      */
-    var fileSelectionBox = React.createFactory(createReactClass({
+    class FileSelectionBox extends React.Component {
+        constructor(props) {
+            super(props);
+        }
+
         /**
          * When the component has updated in the DOM, reposition it to where the currently
          * selected node is located now.
          */
-        componentDidUpdate: function () {
+        componentDidUpdate() {
             if (!this.props.visible) {
                 return;
             }
@@ -889,14 +967,16 @@ define(function (require, exports, module) {
                 return;
             }
 
-            node.style.top = selectedNode.offset().top - selectionViewInfo.get("offsetTop") + selectionViewInfo.get("scrollTop") - selectedNode.position().top + "px";
-        },
+            node.style.top =
+                selectedNode.offset().top -
+                selectionViewInfo.get("offsetTop") +
+                selectionViewInfo.get("scrollTop") -
+                selectedNode.position().top + "px";
+        }
 
-        render: function () {
+        render() {
             var selectionViewInfo = this.props.selectionViewInfo,
-                left = selectionViewInfo.get("scrollLeft"),
-                width = selectionViewInfo.get("width"),
-                scrollWidth = selectionViewInfo.get("scrollWidth");
+                left = selectionViewInfo.get("scrollLeft");
 
             return React.createElement("div", {
                 style: {
@@ -907,11 +987,11 @@ define(function (require, exports, module) {
                 className: this.props.className
             });
         }
-    }));
+    }
 
     /**
      * On Windows and Linux, the selection bar in the tree does not extend over the scroll bar.
-     * The selectionExtension sits on top of the scroll bar to make the selection bar appear to span the
+     * The SelectionExtension sits on top of the scroll bar to make the selection bar appear to span the
      * whole width of the sidebar.
      *
      * Props:
@@ -920,12 +1000,15 @@ define(function (require, exports, module) {
      * * selectedClassName: class name applied to the element that is selected
      * * className: class to be applied to the extension element
      */
-    var selectionExtension = React.createFactory(createReactClass({
+    class SelectionExtension extends React.Component {
+        constructor(props) {
+            super(props);
+        }
         /**
          * When the component has updated in the DOM, reposition it to where the currently
          * selected node is located now.
          */
-        componentDidUpdate: function () {
+        componentDidUpdate() {
             if (!this.props.visible) {
                 return;
             }
@@ -958,7 +1041,7 @@ define(function (require, exports, module) {
 
             node.style.display = "block";
 
-            // The selectionExtension sits on top of the other nodes
+            // The SelectionExtension sits on top of the other nodes
             // so we need to shrink it if only part of the selection node is visible
             if (top < scrollerTop) {
                 var difference = scrollerTop - top;
@@ -970,9 +1053,9 @@ define(function (require, exports, module) {
             node.style.top = top + "px";
             node.style.height = height + "px";
             node.style.left = selectionViewInfo.get("width") - $(node).outerWidth() + "px";
-        },
+        }
 
-        render: function () {
+        render() {
             return React.createElement("div", {
                 style: {
                     display: this.props.visible ? "block" : "none"
@@ -980,7 +1063,7 @@ define(function (require, exports, module) {
                 className: this.props.className
             });
         }
-    }));
+    }
 
     /**
      * @private
@@ -996,29 +1079,32 @@ define(function (require, exports, module) {
      * * forceRender: causes the component to run render
      * * platform: platform that Brackets is running on
      */
-    var fileTreeView = React.createFactory(createReactClass({
+    class FileTreeView extends React.Component {
+        constructor(props) {
+            super(props);
+        }
 
         /**
          * Update for any change in the tree data or directory sorting preference.
          */
-        shouldComponentUpdate: function (nextProps, nextState) {
+        shouldComponentUpdate(nextProps, nextState) {
             return nextProps.forceRender ||
                 this.props.treeData !== nextProps.treeData ||
                 this.props.sortDirectoriesFirst !== nextProps.sortDirectoriesFirst ||
                 this.props.extensions !== nextProps.extensions ||
                 this.props.selectionViewInfo !== nextProps.selectionViewInfo;
-        },
+        }
 
-        render: function () {
-            var selectionBackground = fileSelectionBox({
-                ref: "selectionBackground",
-                selectionViewInfo: this.props.selectionViewInfo,
-                className: "filetree-selection",
-                visible: this.props.selectionViewInfo.get("hasSelection"),
-                selectedClassName: ".selected-node",
-                forceUpdate: true
-            }),
-                contextBackground = fileSelectionBox({
+        render() {
+            var selectionBackground = React.createElement(FileSelectionBox, {
+                    ref: "selectionBackground",
+                    selectionViewInfo: this.props.selectionViewInfo,
+                    className: "filetree-selection",
+                    visible: this.props.selectionViewInfo.get("hasSelection"),
+                    selectedClassName: ".selected-node",
+                    forceUpdate: true
+                }),
+                contextBackground = React.createElement(FileSelectionBox, {
                     ref: "contextBackground",
                     selectionViewInfo: this.props.selectionViewInfo,
                     className: "filetree-context",
@@ -1026,21 +1112,21 @@ define(function (require, exports, module) {
                     selectedClassName: ".context-node",
                     forceUpdate: true
                 }),
-                extensionForSelection = selectionExtension({
+                extensionForSelection = React.createElement(SelectionExtension, {
                     selectionViewInfo: this.props.selectionViewInfo,
                     selectedClassName: ".selected-node",
                     visible: this.props.selectionViewInfo.get("hasSelection"),
                     forceUpdate: true,
                     className: "filetree-selection-extension"
                 }),
-                extensionForContext = selectionExtension({
+                extensionForContext = React.createElement(SelectionExtension, {
                     selectionViewInfo: this.props.selectionViewInfo,
                     selectedClassName: ".context-node",
                     visible: this.props.selectionViewInfo.get("hasContext"),
                     forceUpdate: true,
                     className: "filetree-context-extension"
                 }),
-                contents = directoryContents({
+                contents = React.createElement(DirectoryContents, {
                     isRoot: true,
                     depth: 1,
                     parentPath: this.props.parentPath,
@@ -1061,7 +1147,7 @@ define(function (require, exports, module) {
                 contents
             );
         }
-    }));
+    }
 
     /**
      * Renders the file tree to the given element.
@@ -1078,7 +1164,7 @@ define(function (require, exports, module) {
             return;
         }
 
-        ReactDOM.render(fileTreeView({
+        ReactDOM.render(React.createElement(FileTreeView, {
             treeData: viewModel.treeData,
             selectionViewInfo: viewModel.selectionViewInfo,
             sortDirectoriesFirst: viewModel.sortDirectoriesFirst,
@@ -1127,11 +1213,16 @@ define(function (require, exports, module) {
     }
 
     // Private API for testing
+    exports._fullPath = fullPath;
     exports._sortFormattedDirectory = _sortDirectoryContents;
-    exports._fileNode = fileNode;
-    exports._directoryNode = directoryNode;
-    exports._directoryContents = directoryContents;
-    exports._fileTreeView = fileTreeView;
+    exports._fileNode = function (props) {
+        return React.createElement(withContextSettable(FileNode), props);
+    };
+    exports._directoryNode = function (props) {
+        return React.createElement(withContextSettable(DirectoryNode), props);
+    };
+    exports._directoryContents = React.createFactory(DirectoryContents);
+    exports._fileTreeView = React.createFactory(FileTreeView);
 
     // Public API
     exports.addIconProvider = addIconProvider;

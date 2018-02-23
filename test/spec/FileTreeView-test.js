@@ -301,18 +301,19 @@ define(function (require, exports, module) {
 
         describe("_directoryNode and _directoryContents", function () {
             it("should format a closed directory", function () {
-                var rendered = RTU.renderIntoDocument(FileTreeView._directoryNode({
+                var props = {
                     name: "thedir",
                     parentPath: "/foo/",
                     entry: Immutable.fromJS({
                         children: null
                     })
-                }));
+                };
+                var rendered = RTU.renderIntoDocument(FileTreeView._directoryNode(props));
                 var dirLI = ReactDOM.findDOMNode(rendered),
                     dirA = $(dirLI).find("a")[0];
 
                 expect(dirLI.children[1].textContent).toBe(" thedir");
-                expect(rendered.myPath()).toBe("/foo/thedir/");
+                expect(FileTreeView._fullPath(props)).toBe("/foo/thedir/");
             });
 
             it("should rerender as needed", function () {
