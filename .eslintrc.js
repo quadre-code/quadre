@@ -106,8 +106,13 @@ module.exports = {
                 "jsx": true
             }
         },
+        "plugins": [
+            "react"
+        ],
         "rules": {
-          "no-undef": "off"
+            "no-undef": "off",
+            "react/jsx-uses-react": "error",
+            "react/jsx-uses-vars": "error"
         }
       },
       {

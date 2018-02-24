@@ -116,6 +116,7 @@
     "electron-packager": "10.1.0",
     "electron-rebuild": "1.6.0",
     "eslint": "4.18.1",
+    "eslint-plugin-react": "7.7.0",
     "glob": "7.1.2",
     "grunt": "0.4.5",
     "grunt-cleanempty": "1.0.3",

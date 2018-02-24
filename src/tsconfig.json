@@ -5,6 +5,13 @@
         "moduleResolution": "classic",
         "noImplicitAny": false,
         "jsx": "react",
+        "baseUrl": ".",
+        "paths": {
+            "thirdparty/*": [
+                "*",
+                "../dist/www/thirdparty/*"
+            ]
+        },
         "rootDir": ".",
         "sourceMap": true,
         "target": "es6",

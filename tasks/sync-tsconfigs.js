@@ -27,7 +27,14 @@ module.exports = function (grunt) {
                 module: "amd",
                 moduleResolution: "classic",
                 noImplicitAny: false,
-                jsx: "react"
+                jsx: "react",
+                "baseUrl": ".",
+                "paths": {
+                    "thirdparty/*": [
+                        "*",
+                        "../dist/www/thirdparty/*"
+                    ]
+                }
             },
             include: [
                 './**/*',
