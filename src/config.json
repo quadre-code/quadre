@@ -138,7 +138,7 @@
         "electron-builder-squirrel-windows": "19.49.0",
         "electron-packager": "10.1.0",
         "electron-rebuild": "1.6.0",
-        "eslint": "4.18.1",
+        "eslint": "4.19.1",
         "eslint-plugin-react": "7.7.0",
         "glob": "7.1.2",
         "grunt": "0.4.5",
@@ -167,8 +167,8 @@
         "rimraf": "2.6.2",
         "tar": "2.2.1",
         "tslint": "5.9.1",
-        "typescript": "2.7.2",
-        "typescript-eslint-parser": "14.0.0",
+        "typescript": "2.8.3",
+        "typescript-eslint-parser": "15.0.0",
         "webpack": "2.4.1",
         "xmldoc": "0.1.2"
     }
