@@ -83,9 +83,9 @@
       "optional": true
     },
     "codemirror": {
-      "version": "5.35.0",
-      "resolved": "https://registry.npmjs.org/codemirror/-/codemirror-5.35.0.tgz",
-      "integrity": "sha512-8HQICjZlDfe1ai7bvU6m2uHxuZuFgsUCdDRU9OHVB+2RTRd+FftN1ezVCqbquG0Fyq+wETqyadKhUX46DswSUQ=="
+      "version": "5.37.0",
+      "resolved": "https://registry.npmjs.org/codemirror/-/codemirror-5.37.0.tgz",
+      "integrity": "sha512-dQaayDJCLU4UJcwg2RM44oFrs0dMNndTp6qxQJF6XI71l1xN3RB4IqiKES0b0rccbARbrD/UBB4t8DNknfaOTw=="
     },
     "combined-stream": {
       "version": "1.0.5",
