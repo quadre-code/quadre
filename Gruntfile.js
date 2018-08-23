@@ -192,6 +192,15 @@ module.exports = function (grunt) {
                         src: [
                             'create-react-class/create-react-class.js'
                         ]
+                    },
+                    {
+                        expand: true,
+                        dest: 'dist/www/thirdparty/codemirror-addon-toggle-comment',
+                        cwd: 'dist/www/node_modules/codemirror-addon-toggle-comment/dist',
+                        src: [
+                            'toggle-comment-simple.min.js',
+                            'toggle-comment-simple.js.map'
+                        ]
                     }
                 ]
             }

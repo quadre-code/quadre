@@ -57,6 +57,9 @@ define(function (require, exports, module) {
     require("thirdparty/CodeMirror/addon/selection/mark-selection");
     require("thirdparty/CodeMirror/keymap/sublime");
 
+    // Load custom CodeMirror add-ons
+    require("thirdparty/codemirror-addon-toggle-comment/toggle-comment-simple");
+
     // Load dependent modules
     var AppInit             = require("utils/AppInit"),
         LanguageManager     = require("language/LanguageManager"),

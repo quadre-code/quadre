@@ -40,7 +40,9 @@ require.config({
         "*": {
             "thirdparty/CodeMirror2": "thirdparty/CodeMirror",
             "thirdparty/react":       "react",
-            "thirdparty/react-dom":   "react-dom"
+            "thirdparty/react-dom":   "react-dom",
+            "codemirror":             "thirdparty/CodeMirror/lib/codemirror",
+            "lodash":                 "thirdparty/lodash"
         }
     }
 });

@@ -15,6 +15,7 @@ package-lock.json
 
 # ignore files copied from node_modules to src/thirdparty
 /src/thirdparty/CodeMirror
+/src/thirdparty/codemirror-addon-toggle-comment
 /src/thirdparty/less.min.js
 
 # ignore compiled files

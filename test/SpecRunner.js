@@ -40,7 +40,9 @@ require.config({
     map: {
         "*": {
             "thirdparty/react": "react",
-            "thirdparty/react-dom": "react-dom"
+            "thirdparty/react-dom": "react-dom",
+            "codemirror": "thirdparty/CodeMirror/lib/codemirror",
+            "lodash": "thirdparty/lodash"
         }
     },
     locale: "en" // force English (US)
@@ -99,6 +101,9 @@ define(function (require, exports, module) {
     require("thirdparty/CodeMirror/addon/mode/overlay");
     require("thirdparty/CodeMirror/addon/search/searchcursor");
     require("thirdparty/CodeMirror/keymap/sublime");
+
+    // Load custom CodeMirror add-ons
+    require("thirdparty/codemirror-addon-toggle-comment/toggle-comment-simple");
 
     var selectedSuites,
         params          = new UrlParams(),
