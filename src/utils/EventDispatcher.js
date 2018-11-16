@@ -1,5 +1,6 @@
 /*
- * Copyright (c) 2014 - present Adobe Systems Incorporated. All rights reserved.
+ * Copyright (c) 2014 - 2017 Adobe Systems Incorporated. All rights reserved.
+ * Copyright (c) 2018 - present The quadre code authors. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
