@@ -92,7 +92,8 @@ module.exports = {
             "sourceType": "module"
         },
         "rules": {
-          "no-undef": "off"
+          "no-undef": "off",
+          "no-unused-vars": "off"
         }
       },
       {
@@ -111,6 +112,7 @@ module.exports = {
         ],
         "rules": {
             "no-undef": "off",
+            "no-unused-vars": "off",
             "react/jsx-uses-react": "error",
             "react/jsx-uses-vars": "error"
         }
