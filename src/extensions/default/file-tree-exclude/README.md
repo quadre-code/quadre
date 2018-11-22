@@ -33,8 +33,8 @@ Create a `.brackets.json` in project root (it may already exist) and add your se
 
 ```JSON
 {
-	"brackets-file-tree-exclude.excludeList": [
-		"/.git/",
+    "brackets-file-tree-exclude.excludeList": [
+        "/.git/",
         "/dist/",
         "/bower_components/",
         "/node_modules/"
