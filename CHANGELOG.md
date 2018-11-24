@@ -2,11 +2,13 @@
 
 Update electron to 1.8.8
 
-Update CodeMirror to 5.37.0
+Update CodeMirror to 5.42.0
 
 Add Typescript and TSX languages
 
 Integrate codemirror-addon-toggle-comment addon
+
+Integrate https://github.com/brackets-userland/brackets-file-tree-exclude as default extension
 
 Reword license to add 'The quadre code authors'
 
