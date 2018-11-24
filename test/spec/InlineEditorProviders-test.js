@@ -22,7 +22,7 @@
  *
  */
 
-/*global describe, it, xit, expect, beforeEach, afterEach, waits, waitsFor, waitsForDone, waitsForFail, runs, beforeFirst, afterLast */
+/*global describe, xdescribe, it, xit, expect, beforeEach, afterEach, waits, waitsFor, waitsForDone, waitsForFail, runs, beforeFirst, afterLast */
 
 define(function (require, exports, module) {
     'use strict';
@@ -40,6 +40,16 @@ define(function (require, exports, module) {
         FileUtils        = require("file/FileUtils"),
         SpecRunnerUtils  = require("spec/SpecRunnerUtils"),
         Strings          = require("strings");
+            
+        
+    // Verify if we are running in a CI.
+    var UrlParams = require("utils/UrlParams").UrlParams,
+        params    = new UrlParams();
+
+    // parse URL parameters
+    params.parse();
+
+    var isCI = /true/i.test(params.get("isCI"));
 
     // Helper functions for testing cursor position / selection range
     function fixPos(pos) {
@@ -49,7 +59,7 @@ define(function (require, exports, module) {
         return pos;
     }
 
-    describe("InlineEditorProviders", function () {
+    (isCI ? xdescribe : describe)("InlineEditorProviders", function () {
 
         this.category = "integration";
 
