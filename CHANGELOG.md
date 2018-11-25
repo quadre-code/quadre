@@ -1,4 +1,4 @@
-## Unreleased
+## v2.0.0-alpha.2 (2018-11-25)
 
 Update electron to 1.8.8
 
@@ -6,7 +6,7 @@ Update CodeMirror to 5.42.0
 
 Add Typescript and TSX languages
 
-Integrate codemirror-addon-toggle-comment addon
+Integrate https://github.com/ficristo/codemirror-addon-toggle-comment addon
 
 Integrate https://github.com/brackets-userland/brackets-file-tree-exclude as default extension
 
@@ -17,7 +17,7 @@ Backport some patches from Brackets
 
 ## v2.0.0-alpha.1 (2018-01-12)
 
-Revert node processes: unfortunately they leak on window close
+Revert node processes: unfortunately they leaked on window close
 
 Reenable LiveDevelopment (for now)
 
