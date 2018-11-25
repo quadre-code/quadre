@@ -58,18 +58,18 @@ define(function DOMNodeModule(require, exports, module) {
      */
     function _makeFindCondition(match) {
         switch (typeof match) {
-        case "function":
-            return match;
-        case "string":
-            return function findCondition(name, node) {
-                return node.name === name;
-            }.bind(undefined, match.toUpperCase());
-        case "number":
-            return function findCondition(type, node) {
-                return node.type === type;
-            }.bind(undefined, match);
-        default:
-            console.error("Invalid find condition: " + match);
+            case "function":
+                return match;
+            case "string":
+                return function findCondition(name, node) {
+                    return node.name === name;
+                }.bind(undefined, match.toUpperCase());
+            case "number":
+                return function findCondition(type, node) {
+                    return node.type === type;
+                }.bind(undefined, match);
+            default:
+                console.error("Invalid find condition: " + match);
         }
     }
 
@@ -201,16 +201,16 @@ define(function DOMNodeModule(require, exports, module) {
         var r = false;
         if (this.type === payload.nodeType) {
             switch (this.type) {
-            case 1:
-                r = this.name === payload.nodeName;
-                break;
-            case 3:
-                // TODO payload.nodeValue's HTML Entities must be decoded
-                // r = this.value === payload.nodeValue;
-                r = true;
-                break;
-            default:
-                r = true;
+                case 1:
+                    r = this.name === payload.nodeName;
+                    break;
+                case 3:
+                    // TODO payload.nodeValue's HTML Entities must be decoded
+                    // r = this.value === payload.nodeValue;
+                    r = true;
+                    break;
+                default:
+                    r = true;
             }
         }
         // Useful output for debugging this - do not remove
@@ -474,21 +474,21 @@ define(function DOMNodeModule(require, exports, module) {
     DOMNode.prototype.toString = function toString() {
         var r;
         switch (this.type) {
-        case TYPE_ELEMENT:
-            r = "<" + this.name + ">";
-            break;
-        case TYPE_ATTRIBUTE:
-            r = "[ATTRIBUTE]";
-            break;
-        case TYPE_TEXT:
-            r = this.value.replace(/\s+/, " ").substr(0, 40);
-            break;
-        case TYPE_COMMENT:
-            r = "<!--" + this.value.replace(/\s+/, " ").substr(0, 33) + "-->";
-            break;
-        case TYPE_DOCUMENT:
-            r = "<!DOCTYPE>";
-            break;
+            case TYPE_ELEMENT:
+                r = "<" + this.name + ">";
+                break;
+            case TYPE_ATTRIBUTE:
+                r = "[ATTRIBUTE]";
+                break;
+            case TYPE_TEXT:
+                r = this.value.replace(/\s+/, " ").substr(0, 40);
+                break;
+            case TYPE_COMMENT:
+                r = "<!--" + this.value.replace(/\s+/, " ").substr(0, 33) + "-->";
+                break;
+            case TYPE_DOCUMENT:
+                r = "<!DOCTYPE>";
+                break;
         }
         return r;
     };

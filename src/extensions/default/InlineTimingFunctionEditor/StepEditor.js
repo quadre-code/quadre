@@ -253,21 +253,21 @@ define(function (require, exports, module) {
 
             // Arrow keys pressed
             switch (code) {
-            case KeyEvent.DOM_VK_LEFT:
-                stepEditor.stepCanvas.stepParams.timing = "start";
-                break;
-            case KeyEvent.DOM_VK_UP:
-                // No upper limit
-                stepEditor.stepCanvas.stepParams.count++;
-                break;
-            case KeyEvent.DOM_VK_RIGHT:
-                stepEditor.stepCanvas.stepParams.timing = "end";
-                break;
-            case KeyEvent.DOM_VK_DOWN:
-                if (stepEditor.stepCanvas.stepParams.count > 1) {
-                    stepEditor.stepCanvas.stepParams.count--;
-                }
-                break;
+                case KeyEvent.DOM_VK_LEFT:
+                    stepEditor.stepCanvas.stepParams.timing = "start";
+                    break;
+                case KeyEvent.DOM_VK_UP:
+                    // No upper limit
+                    stepEditor.stepCanvas.stepParams.count++;
+                    break;
+                case KeyEvent.DOM_VK_RIGHT:
+                    stepEditor.stepCanvas.stepParams.timing = "end";
+                    break;
+                case KeyEvent.DOM_VK_DOWN:
+                    if (stepEditor.stepCanvas.stepParams.count > 1) {
+                        stepEditor.stepCanvas.stepParams.count--;
+                    }
+                    break;
             }
 
             // update step params
@@ -379,10 +379,10 @@ define(function (require, exports, module) {
         } else {
             // handle special cases of steps functions
             switch (match[0]) {
-            case "step-start":
-                return { count: 1, timing: "start" };
-            case "step-end":
-                return { count: 1, timing: "end" };
+                case "step-start":
+                    return { count: 1, timing: "start" };
+                case "step-end":
+                    return { count: 1, timing: "end" };
             }
         }
 

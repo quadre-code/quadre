@@ -219,13 +219,13 @@ define(function LiveDevelopment(require, exports, module) {
      */
     function _classForDocument(doc) {
         switch (doc.getLanguage().getId()) {
-        case "less":
-        case "scss":
-            return CSSPreprocessorDocument;
-        case "css":
-            return CSSDocument;
-        case "javascript":
-            return exports.config.experimental ? JSDocument : null;
+            case "less":
+            case "scss":
+                return CSSPreprocessorDocument;
+            case "css":
+                return CSSDocument;
+            case "javascript":
+                return exports.config.experimental ? JSDocument : null;
         }
 
         if (LiveDevelopmentUtils.isHtmlFileExt(doc.file.fullPath)) {

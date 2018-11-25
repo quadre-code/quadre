@@ -650,16 +650,16 @@ define(function (require, exports, module) {
             var winId = electron.remote.getCurrentWindow().id;
             brackets.app.addMenuItem(winId, this.id, name, commandID, bindingStr, displayStr, position, relativeID, function (err) {
                 switch (err) {
-                case NO_ERROR:
-                    break;
-                case ERR_INVALID_PARAMS:
-                    console.error("addMenuItem(): Invalid Parameters when adding the command " + commandID);
-                    break;
-                case ERR_NOT_FOUND:
-                    console.error("_getRelativeMenuItem(): MenuItem with Command id " + relativeID + " not found in the Menu " + menuID);
-                    break;
-                default:
-                    console.error("addMenuItem(); Unknown Error (" + err + ") when adding the command " + commandID);
+                    case NO_ERROR:
+                        break;
+                    case ERR_INVALID_PARAMS:
+                        console.error("addMenuItem(): Invalid Parameters when adding the command " + commandID);
+                        break;
+                    case ERR_NOT_FOUND:
+                        console.error("_getRelativeMenuItem(): MenuItem with Command id " + relativeID + " not found in the Menu " + menuID);
+                        break;
+                    default:
+                        console.error("addMenuItem(); Unknown Error (" + err + ") when adding the command " + commandID);
                 }
             });
             menuItem.isNative = true;
@@ -914,25 +914,25 @@ define(function (require, exports, module) {
             var winId = electron.remote.getCurrentWindow().id;
             brackets.app.addMenu(winId, name, id, position, relativeID, function (err) {
                 switch (err) {
-                case NO_ERROR:
-                    // Make sure name is up to date
-                    brackets.app.setMenuTitle(winId, id, name, function (err) {
-                        if (err) {
-                            console.error("setMenuTitle() -- error: " + err);
-                        }
-                    });
-                    break;
-                case ERR_UNKNOWN:
-                    console.error("addMenu(): Unknown Error when adding the menu " + id);
-                    break;
-                case ERR_INVALID_PARAMS:
-                    console.error("addMenu(): Invalid Parameters when adding the menu " + id);
-                    break;
-                case ERR_NOT_FOUND:
-                    console.error("addMenu(): Menu with command " + relativeID + " could not be found when adding the menu " + id);
-                    break;
-                default:
-                    console.error("addMenu(): Unknown Error (" + err + ") when adding the menu " + id);
+                    case NO_ERROR:
+                        // Make sure name is up to date
+                        brackets.app.setMenuTitle(winId, id, name, function (err) {
+                            if (err) {
+                                console.error("setMenuTitle() -- error: " + err);
+                            }
+                        });
+                        break;
+                    case ERR_UNKNOWN:
+                        console.error("addMenu(): Unknown Error when adding the menu " + id);
+                        break;
+                    case ERR_INVALID_PARAMS:
+                        console.error("addMenu(): Invalid Parameters when adding the menu " + id);
+                        break;
+                    case ERR_NOT_FOUND:
+                        console.error("addMenu(): Menu with command " + relativeID + " could not be found when adding the menu " + id);
+                        break;
+                    default:
+                        console.error("addMenu(): Unknown Error (" + err + ") when adding the menu " + id);
                 }
             });
             return menu;

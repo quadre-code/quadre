@@ -344,17 +344,17 @@ define(function (require, exports, module) {
                 completion += ": ";
 
                 switch (type) {
-                case "object":
-                    completion += "{}";
-                    break;
+                    case "object":
+                        completion += "{}";
+                        break;
 
-                case "array":
-                    completion += "[]";
-                    break;
+                    case "array":
+                        completion += "[]";
+                        break;
 
-                case "string":
-                    completion += "\"\"";
-                    break;
+                    case "string":
+                        completion += "\"\"";
+                        break;
                 }
             }
 

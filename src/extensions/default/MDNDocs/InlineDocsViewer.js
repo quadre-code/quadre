@@ -143,23 +143,23 @@ define(function (require, exports, module) {
         scrollPos = scroller.scrollTop;
 
         switch (keyCode) {
-        case KeyEvent.DOM_VK_UP:
-            scrollPos = Math.max(0, scrollPos - SCROLL_LINE_HEIGHT);
-            break;
-        case KeyEvent.DOM_VK_PAGE_UP:
-            scrollPos = Math.max(0, scrollPos - scroller.clientHeight);
-            break;
-        case KeyEvent.DOM_VK_DOWN:
-            scrollPos = Math.min(scroller.scrollHeight - scroller.clientHeight,
-                                 scrollPos + SCROLL_LINE_HEIGHT);
-            break;
-        case KeyEvent.DOM_VK_PAGE_DOWN:
-            scrollPos = Math.min(scroller.scrollHeight - scroller.clientHeight,
-                                 scrollPos + scroller.clientHeight);
-            break;
-        default:
-            // Ignore other keys
-            return false;
+            case KeyEvent.DOM_VK_UP:
+                scrollPos = Math.max(0, scrollPos - SCROLL_LINE_HEIGHT);
+                break;
+            case KeyEvent.DOM_VK_PAGE_UP:
+                scrollPos = Math.max(0, scrollPos - scroller.clientHeight);
+                break;
+            case KeyEvent.DOM_VK_DOWN:
+                scrollPos = Math.min(scroller.scrollHeight - scroller.clientHeight,
+                                     scrollPos + SCROLL_LINE_HEIGHT);
+                break;
+            case KeyEvent.DOM_VK_PAGE_DOWN:
+                scrollPos = Math.min(scroller.scrollHeight - scroller.clientHeight,
+                                     scrollPos + scroller.clientHeight);
+                break;
+            default:
+                // Ignore other keys
+                return false;
         }
 
         scroller.scrollTop = scrollPos;

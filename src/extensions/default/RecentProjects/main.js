@@ -212,28 +212,28 @@ define(function (require, exports, module) {
         var keyHandled = false;
 
         switch (event.keyCode) {
-        case KeyEvent.DOM_VK_UP:
-            selectNextItem(-1);
-            keyHandled = true;
-            break;
-        case KeyEvent.DOM_VK_DOWN:
-            selectNextItem(+1);
-            keyHandled = true;
-            break;
-        case KeyEvent.DOM_VK_ENTER:
-        case KeyEvent.DOM_VK_RETURN:
-            if ($dropdownItem) {
-                $dropdownItem.trigger("click");
-            }
-            keyHandled = true;
-            break;
-        case KeyEvent.DOM_VK_BACK_SPACE:
-        case KeyEvent.DOM_VK_DELETE:
-            if ($dropdownItem) {
-                removeSelectedItem(event);
+            case KeyEvent.DOM_VK_UP:
+                selectNextItem(-1);
                 keyHandled = true;
-            }
-            break;
+                break;
+            case KeyEvent.DOM_VK_DOWN:
+                selectNextItem(+1);
+                keyHandled = true;
+                break;
+            case KeyEvent.DOM_VK_ENTER:
+            case KeyEvent.DOM_VK_RETURN:
+                if ($dropdownItem) {
+                    $dropdownItem.trigger("click");
+                }
+                keyHandled = true;
+                break;
+            case KeyEvent.DOM_VK_BACK_SPACE:
+            case KeyEvent.DOM_VK_DELETE:
+                if ($dropdownItem) {
+                    removeSelectedItem(event);
+                    keyHandled = true;
+                }
+                break;
         }
 
         if (keyHandled) {

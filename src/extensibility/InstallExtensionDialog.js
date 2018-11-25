@@ -151,125 +151,125 @@ define(function (require, exports, module) {
         this._state = newState;
 
         switch (newState) {
-        case STATE_START:
-            // This should match the default appearance of the dialog when it first opens.
-            this.$msg.find(".spinner").remove();
-            this.$msgArea.hide();
-            this.$inputArea.show();
-            this.$okButton
-                .prop("disabled", true)
-                .text(Strings.INSTALL);
-            break;
+            case STATE_START:
+                // This should match the default appearance of the dialog when it first opens.
+                this.$msg.find(".spinner").remove();
+                this.$msgArea.hide();
+                this.$inputArea.show();
+                this.$okButton
+                    .prop("disabled", true)
+                    .text(Strings.INSTALL);
+                break;
 
-        case STATE_VALID_URL:
-            this.$okButton.prop("disabled", false);
-            break;
+            case STATE_VALID_URL:
+                this.$okButton.prop("disabled", false);
+                break;
 
-        case STATE_INSTALLING:
-            url = this.$url.val().trim();
-            this.$inputArea.hide();
-            this.$browseExtensionsButton.hide();
-            this.$msg.text(StringUtils.format(Strings.INSTALLING_FROM, url))
-                .append("<span class='spinner inline spin'/>");
-            this.$msgArea.show();
-            this.$okButton.prop("disabled", true);
-            this._installer.install(url)
-                .done(function (result) {
-                    self._installResult = result;
-                    if (result.installationStatus === Package.InstallationStatuses.ALREADY_INSTALLED ||
-                            result.installationStatus === Package.InstallationStatuses.OLDER_VERSION ||
-                            result.installationStatus === Package.InstallationStatuses.SAME_VERSION) {
-                        self._enterState(STATE_ALREADY_INSTALLED);
-                    } else if (result.installationStatus === Package.InstallationStatuses.NEEDS_UPDATE) {
-                        self._enterState(STATE_NEEDS_UPDATE);
-                    } else {
-                        self._enterState(STATE_INSTALLED);
+            case STATE_INSTALLING:
+                url = this.$url.val().trim();
+                this.$inputArea.hide();
+                this.$browseExtensionsButton.hide();
+                this.$msg.text(StringUtils.format(Strings.INSTALLING_FROM, url))
+                    .append("<span class='spinner inline spin'/>");
+                this.$msgArea.show();
+                this.$okButton.prop("disabled", true);
+                this._installer.install(url)
+                    .done(function (result) {
+                        self._installResult = result;
+                        if (result.installationStatus === Package.InstallationStatuses.ALREADY_INSTALLED ||
+                                result.installationStatus === Package.InstallationStatuses.OLDER_VERSION ||
+                                result.installationStatus === Package.InstallationStatuses.SAME_VERSION) {
+                            self._enterState(STATE_ALREADY_INSTALLED);
+                        } else if (result.installationStatus === Package.InstallationStatuses.NEEDS_UPDATE) {
+                            self._enterState(STATE_NEEDS_UPDATE);
+                        } else {
+                            self._enterState(STATE_INSTALLED);
+                        }
+                    })
+                    .fail(function (err) {
+                        // If the "failure" is actually a user-requested cancel, don't show an error UI
+                        if (err === "CANCELED") {
+                            console.assert(self._state === STATE_CANCELING_INSTALL || self._state === STATE_CANCELING_HUNG);
+                            self._enterState(STATE_INSTALL_CANCELED);
+                        } else {
+                            self._errorMessage = Package.formatError(err);
+                            self._enterState(STATE_INSTALL_FAILED);
+                        }
+                    });
+                break;
+
+            case STATE_CANCELING_INSTALL:
+                // This should call back the STATE_INSTALLING fail() handler above, unless it's too late to cancel
+                // in which case we'll still jump to STATE_INSTALLED after this
+                this.$cancelButton.prop("disabled", true);
+                this.$msg.text(Strings.CANCELING_INSTALL);
+                this._installer.cancel();
+                window.setTimeout(function () {
+                    if (self._state === STATE_CANCELING_INSTALL) {
+                        self._enterState(STATE_CANCELING_HUNG);
                     }
-                })
-                .fail(function (err) {
-                    // If the "failure" is actually a user-requested cancel, don't show an error UI
-                    if (err === "CANCELED") {
-                        console.assert(self._state === STATE_CANCELING_INSTALL || self._state === STATE_CANCELING_HUNG);
-                        self._enterState(STATE_INSTALL_CANCELED);
-                    } else {
-                        self._errorMessage = Package.formatError(err);
-                        self._enterState(STATE_INSTALL_FAILED);
-                    }
-                });
-            break;
+                }, this._cancelTimeout);
+                break;
 
-        case STATE_CANCELING_INSTALL:
-            // This should call back the STATE_INSTALLING fail() handler above, unless it's too late to cancel
-            // in which case we'll still jump to STATE_INSTALLED after this
-            this.$cancelButton.prop("disabled", true);
-            this.$msg.text(Strings.CANCELING_INSTALL);
-            this._installer.cancel();
-            window.setTimeout(function () {
-                if (self._state === STATE_CANCELING_INSTALL) {
-                    self._enterState(STATE_CANCELING_HUNG);
+            case STATE_CANCELING_HUNG:
+                this.$msg.text(Strings.CANCELING_HUNG);
+                this.$okButton
+                    .removeAttr("disabled")
+                    .text(Strings.CLOSE);
+                break;
+
+            case STATE_INSTALLED:
+            case STATE_INSTALL_FAILED:
+            case STATE_INSTALL_CANCELED:
+            case STATE_NEEDS_UPDATE:
+                if (newState === STATE_INSTALLED) {
+                    msg = Strings.INSTALL_SUCCEEDED;
+                } else if (newState === STATE_INSTALL_FAILED) {
+                    msg = Strings.INSTALL_FAILED;
+                } else if (newState === STATE_NEEDS_UPDATE) {
+                    msg = Strings.EXTENSION_UPDATE_INSTALLED;
+                } else {
+                    msg = Strings.INSTALL_CANCELED;
                 }
-            }, this._cancelTimeout);
-            break;
+                this.$msg.html($("<strong/>").text(msg));
+                if (this._errorMessage) {
+                    this.$msg.append($("<p/>").text(this._errorMessage));
+                }
+                this.$okButton
+                    .removeAttr("disabled")
+                    .text(Strings.CLOSE);
+                this.$cancelButton.hide();
+                break;
 
-        case STATE_CANCELING_HUNG:
-            this.$msg.text(Strings.CANCELING_HUNG);
-            this.$okButton
-                .removeAttr("disabled")
-                .text(Strings.CLOSE);
-            break;
+            case STATE_ALREADY_INSTALLED:
+                var installResult = this._installResult;
+                var status = installResult.installationStatus;
+                var msgText = Strings["EXTENSION_" + status];
+                if (status === Package.InstallationStatuses.OLDER_VERSION) {
+                    msgText = StringUtils.format(msgText, installResult.metadata.version, installResult.installedVersion);
+                }
+                this.$msg.text(msgText);
+                this.$okButton
+                    .prop("disabled", false)
+                    .text(Strings.OVERWRITE);
+                break;
 
-        case STATE_INSTALLED:
-        case STATE_INSTALL_FAILED:
-        case STATE_INSTALL_CANCELED:
-        case STATE_NEEDS_UPDATE:
-            if (newState === STATE_INSTALLED) {
-                msg = Strings.INSTALL_SUCCEEDED;
-            } else if (newState === STATE_INSTALL_FAILED) {
-                msg = Strings.INSTALL_FAILED;
-            } else if (newState === STATE_NEEDS_UPDATE) {
-                msg = Strings.EXTENSION_UPDATE_INSTALLED;
-            } else {
-                msg = Strings.INSTALL_CANCELED;
-            }
-            this.$msg.html($("<strong/>").text(msg));
-            if (this._errorMessage) {
-                this.$msg.append($("<p/>").text(this._errorMessage));
-            }
-            this.$okButton
-                .removeAttr("disabled")
-                .text(Strings.CLOSE);
-            this.$cancelButton.hide();
-            break;
+            case STATE_OVERWRITE_CONFIRMED:
+                this._enterState(STATE_CLOSED);
+                break;
 
-        case STATE_ALREADY_INSTALLED:
-            var installResult = this._installResult;
-            var status = installResult.installationStatus;
-            var msgText = Strings["EXTENSION_" + status];
-            if (status === Package.InstallationStatuses.OLDER_VERSION) {
-                msgText = StringUtils.format(msgText, installResult.metadata.version, installResult.installedVersion);
-            }
-            this.$msg.text(msgText);
-            this.$okButton
-                .prop("disabled", false)
-                .text(Strings.OVERWRITE);
-            break;
+            case STATE_CLOSED:
+                $(window.document.body).off(".installDialog");
 
-        case STATE_OVERWRITE_CONFIRMED:
-            this._enterState(STATE_CLOSED);
-            break;
-
-        case STATE_CLOSED:
-            $(window.document.body).off(".installDialog");
-
-           // Only resolve as successful if we actually installed something.
-            Dialogs.cancelModalDialogIfOpen("install-extension-dialog");
-            if (prevState === STATE_INSTALLED || prevState === STATE_NEEDS_UPDATE ||
-                    prevState === STATE_OVERWRITE_CONFIRMED) {
-                this._dialogDeferred.resolve(this._installResult);
-            } else {
-                this._dialogDeferred.reject();
-            }
-            break;
+                // Only resolve as successful if we actually installed something.
+                Dialogs.cancelModalDialogIfOpen("install-extension-dialog");
+                if (prevState === STATE_INSTALLED || prevState === STATE_NEEDS_UPDATE ||
+                        prevState === STATE_OVERWRITE_CONFIRMED) {
+                    this._dialogDeferred.resolve(this._installResult);
+                } else {
+                    this._dialogDeferred.reject();
+                }
+                break;
         }
     };
 

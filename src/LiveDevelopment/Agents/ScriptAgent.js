@@ -87,20 +87,20 @@ define(function ScriptAgent(require, exports, module) {
         // res = {callFrames, reason, data}
         switch (res.reason) {
 
-        // Exception
-        case "exception":
-            Inspector.Debugger.resume();
-            // var callFrame = res.callFrames[0];
-            // var script = scriptWithId(callFrame.location.scriptId);
-            break;
+            // Exception
+            case "exception":
+                Inspector.Debugger.resume();
+                // var callFrame = res.callFrames[0];
+                // var script = scriptWithId(callFrame.location.scriptId);
+                break;
 
-        // DOMBreakpoint
-        case "DOM":
-            Inspector.Debugger.resume();
-            if (res.data.type === "subtree-modified" && res.data.insertion === true) {
-                _insertTrace = res.callFrames;
-            }
-            break;
+            // DOMBreakpoint
+            case "DOM":
+                Inspector.Debugger.resume();
+                if (res.data.type === "subtree-modified" && res.data.insertion === true) {
+                    _insertTrace = res.callFrames;
+                }
+                break;
         }
 
     }

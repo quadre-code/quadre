@@ -445,35 +445,35 @@ define(function (require, exports, module) {
 
 
         switch (keycode) {
-        case KeyEvent.DOM_VK_SEMICOLON:
-            return ";";
-        case KeyEvent.DOM_VK_EQUALS:
-            return "=";
-        case KeyEvent.DOM_VK_COMMA:
-            return ",";
-        case KeyEvent.DOM_VK_SUBTRACT:
-        case KeyEvent.DOM_VK_DASH:
-            return "-";
-        case KeyEvent.DOM_VK_ADD:
-            return "+";
-        case KeyEvent.DOM_VK_DECIMAL:
-        case KeyEvent.DOM_VK_PERIOD:
-            return ".";
-        case KeyEvent.DOM_VK_DIVIDE:
-        case KeyEvent.DOM_VK_SLASH:
-            return "/";
-        case KeyEvent.DOM_VK_BACK_QUOTE:
-            return "`";
-        case KeyEvent.DOM_VK_OPEN_BRACKET:
-            return "[";
-        case KeyEvent.DOM_VK_BACK_SLASH:
-            return "\\";
-        case KeyEvent.DOM_VK_CLOSE_BRACKET:
-            return "]";
-        case KeyEvent.DOM_VK_QUOTE:
-            return "'";
-        default:
-            return key;
+            case KeyEvent.DOM_VK_SEMICOLON:
+                return ";";
+            case KeyEvent.DOM_VK_EQUALS:
+                return "=";
+            case KeyEvent.DOM_VK_COMMA:
+                return ",";
+            case KeyEvent.DOM_VK_SUBTRACT:
+            case KeyEvent.DOM_VK_DASH:
+                return "-";
+            case KeyEvent.DOM_VK_ADD:
+                return "+";
+            case KeyEvent.DOM_VK_DECIMAL:
+            case KeyEvent.DOM_VK_PERIOD:
+                return ".";
+            case KeyEvent.DOM_VK_DIVIDE:
+            case KeyEvent.DOM_VK_SLASH:
+                return "/";
+            case KeyEvent.DOM_VK_BACK_QUOTE:
+                return "`";
+            case KeyEvent.DOM_VK_OPEN_BRACKET:
+                return "[";
+            case KeyEvent.DOM_VK_BACK_SLASH:
+                return "\\";
+            case KeyEvent.DOM_VK_CLOSE_BRACKET:
+                return "]";
+            case KeyEvent.DOM_VK_QUOTE:
+                return "'";
+            default:
+                return key;
         }
     }
 

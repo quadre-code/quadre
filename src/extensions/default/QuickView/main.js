@@ -198,15 +198,15 @@ define(function (require, exports, module) {
 
             for (i = 0; i < len; i++) {
                 switch (str[i]) {
-                case "(":
-                    nestLevel++;
-                    break;
-                case ")":
-                    nestLevel--;
-                    break;
-                case "\\":
-                    i++;    // next char is escaped, so skip it
-                    break;
+                    case "(":
+                        nestLevel++;
+                        break;
+                    case ")":
+                        nestLevel--;
+                        break;
+                    case "\\":
+                        i++;    // next char is escaped, so skip it
+                        break;
                 }
             }
 

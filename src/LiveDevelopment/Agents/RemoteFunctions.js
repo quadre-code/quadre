@@ -77,14 +77,14 @@ function RemoteFunctions(config, remoteWSPort) {
     // determine the color for a type
     function _typeColor(type, highlight) {
         switch (type) {
-        case "html":
-            return highlight ? "#eec" : "#ffe";
-        case "css":
-            return highlight ? "#cee" : "#eff";
-        case "js":
-            return highlight ? "#ccf" : "#eef";
-        default:
-            return highlight ? "#ddd" : "#eee";
+            case "html":
+                return highlight ? "#eec" : "#ffe";
+            case "css":
+                return highlight ? "#cee" : "#eff";
+            case "js":
+                return highlight ? "#ccf" : "#eef";
+            default:
+                return highlight ? "#ddd" : "#eee";
         }
     }
 
@@ -242,13 +242,13 @@ function RemoteFunctions(config, remoteWSPort) {
 
         onKeyPress: function (event) {
             switch (event.which) {
-            case 13: // return
-                this.element.blur();
-                break;
-            case 27: // esc
-                this.element.innerHTML = this.revertText;
-                this.element.blur();
-                break;
+                case 13: // return
+                    this.element.blur();
+                    break;
+                case 27: // esc
+                    this.element.innerHTML = this.revertText;
+                    this.element.blur();
+                    break;
             }
         }
     };
@@ -916,56 +916,56 @@ function RemoteFunctions(config, remoteWSPort) {
             }
 
             switch (edit.type) {
-            case "attrChange":
-            case "attrAdd":
-                targetElement.setAttribute(edit.attribute, self._parseEntities(edit.value));
-                break;
-            case "attrDelete":
-                targetElement.removeAttribute(edit.attribute);
-                break;
-            case "elementDelete":
-                if (targetElement.remove) {
-                    targetElement.remove();
-                } else if (targetElement.parentNode && targetElement.parentNode.removeChild) {
-                    targetElement.parentNode.removeChild(targetElement);
-                }
-                break;
-            case "elementInsert":
-                childElement = null;
-                if (editIsSpecialTag) {
-                    // If we already have one of these elements (which we should), then
-                    // just copy the attributes and set the ID.
-                    childElement = self.htmlDocument[edit.tag === "html" ? "documentElement" : edit.tag];
-                    if (!childElement) {
-                        // Treat this as a normal insertion.
-                        editIsSpecialTag = false;
+                case "attrChange":
+                case "attrAdd":
+                    targetElement.setAttribute(edit.attribute, self._parseEntities(edit.value));
+                    break;
+                case "attrDelete":
+                    targetElement.removeAttribute(edit.attribute);
+                    break;
+                case "elementDelete":
+                    if (targetElement.remove) {
+                        targetElement.remove();
+                    } else if (targetElement.parentNode && targetElement.parentNode.removeChild) {
+                        targetElement.parentNode.removeChild(targetElement);
                     }
-                }
-                if (!editIsSpecialTag) {
-                    childElement = self.htmlDocument.createElement(edit.tag);
-                }
+                    break;
+                case "elementInsert":
+                    childElement = null;
+                    if (editIsSpecialTag) {
+                        // If we already have one of these elements (which we should), then
+                        // just copy the attributes and set the ID.
+                        childElement = self.htmlDocument[edit.tag === "html" ? "documentElement" : edit.tag];
+                        if (!childElement) {
+                            // Treat this as a normal insertion.
+                            editIsSpecialTag = false;
+                        }
+                    }
+                    if (!editIsSpecialTag) {
+                        childElement = self.htmlDocument.createElement(edit.tag);
+                    }
 
-                Object.keys(edit.attributes).forEach(function (attr) {
-                    childElement.setAttribute(attr, self._parseEntities(edit.attributes[attr]));
-                });
-                childElement.setAttribute("data-brackets-id", edit.tagID);
+                    Object.keys(edit.attributes).forEach(function (attr) {
+                        childElement.setAttribute(attr, self._parseEntities(edit.attributes[attr]));
+                    });
+                    childElement.setAttribute("data-brackets-id", edit.tagID);
 
-                if (!editIsSpecialTag) {
+                    if (!editIsSpecialTag) {
+                        self._insertChildNode(targetElement, childElement, edit);
+                    }
+                    break;
+                case "elementMove":
+                    childElement = self._queryBracketsID(edit.tagID);
                     self._insertChildNode(targetElement, childElement, edit);
-                }
-                break;
-            case "elementMove":
-                childElement = self._queryBracketsID(edit.tagID);
-                self._insertChildNode(targetElement, childElement, edit);
-                break;
-            case "textInsert":
-                var textElement = self.htmlDocument.createTextNode(_isRawTextNode(targetElement) ? edit.content : self._parseEntities(edit.content));
-                self._insertChildNode(targetElement, textElement, edit);
-                break;
-            case "textReplace":
-            case "textDelete":
-                self._textReplace(targetElement, edit);
-                break;
+                    break;
+                case "textInsert":
+                    var textElement = self.htmlDocument.createTextNode(_isRawTextNode(targetElement) ? edit.content : self._parseEntities(edit.content));
+                    self._insertChildNode(targetElement, textElement, edit);
+                    break;
+                case "textReplace":
+                case "textDelete":
+                    self._textReplace(targetElement, edit);
+                    break;
             }
         });
 

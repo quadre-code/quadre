@@ -560,42 +560,42 @@ define(function (require, exports, module) {
         path = StringUtils.breakableUrl(path);
 
         switch (errType) {
-        case ERR_TYPE_CREATE:
-            title = StringUtils.format(Strings.ERROR_CREATING_FILE_TITLE, titleType);
-            message = StringUtils.format(Strings.ERROR_CREATING_FILE, entryType, path, error);
-            break;
-        case ERR_TYPE_CREATE_EXISTS:
-            title = StringUtils.format(Strings.INVALID_FILENAME_TITLE, titleType);
-            message = StringUtils.format(Strings.ENTRY_WITH_SAME_NAME_EXISTS, path);
-            break;
-        case ERR_TYPE_RENAME:
-            title = StringUtils.format(Strings.ERROR_RENAMING_FILE_TITLE, titleType);
-            message = StringUtils.format(Strings.ERROR_RENAMING_FILE, path, error, entryType);
-            break;
-        case ERR_TYPE_DELETE:
-            title = StringUtils.format(Strings.ERROR_DELETING_FILE_TITLE, titleType);
-            message = StringUtils.format(Strings.ERROR_DELETING_FILE, path, error, entryType);
-            break;
-        case ERR_TYPE_LOADING_PROJECT:
-            title = Strings.ERROR_LOADING_PROJECT;
-            message = StringUtils.format(Strings.READ_DIRECTORY_ENTRIES_ERROR, path, error);
-            break;
-        case ERR_TYPE_LOADING_PROJECT_NATIVE:
-            title = Strings.ERROR_LOADING_PROJECT;
-            message = StringUtils.format(Strings.REQUEST_NATIVE_FILE_SYSTEM_ERROR, path, error);
-            break;
-        case ERR_TYPE_MAX_FILES:
-            title = Strings.ERROR_MAX_FILES_TITLE;
-            message = Strings.ERROR_MAX_FILES;
-            break;
-        case ERR_TYPE_OPEN_DIALOG:
-            title = Strings.ERROR_LOADING_PROJECT;
-            message = StringUtils.format(Strings.OPEN_DIALOG_ERROR, error);
-            break;
-        case ERR_TYPE_INVALID_FILENAME:
-            title = StringUtils.format(Strings.INVALID_FILENAME_TITLE, isFolder ? Strings.DIRECTORY_NAME : Strings.FILENAME);
-            message = StringUtils.format(Strings.INVALID_FILENAME_MESSAGE, isFolder ? Strings.DIRECTORY_NAMES_LEDE : Strings.FILENAMES_LEDE, error);
-            break;
+            case ERR_TYPE_CREATE:
+                title = StringUtils.format(Strings.ERROR_CREATING_FILE_TITLE, titleType);
+                message = StringUtils.format(Strings.ERROR_CREATING_FILE, entryType, path, error);
+                break;
+            case ERR_TYPE_CREATE_EXISTS:
+                title = StringUtils.format(Strings.INVALID_FILENAME_TITLE, titleType);
+                message = StringUtils.format(Strings.ENTRY_WITH_SAME_NAME_EXISTS, path);
+                break;
+            case ERR_TYPE_RENAME:
+                title = StringUtils.format(Strings.ERROR_RENAMING_FILE_TITLE, titleType);
+                message = StringUtils.format(Strings.ERROR_RENAMING_FILE, path, error, entryType);
+                break;
+            case ERR_TYPE_DELETE:
+                title = StringUtils.format(Strings.ERROR_DELETING_FILE_TITLE, titleType);
+                message = StringUtils.format(Strings.ERROR_DELETING_FILE, path, error, entryType);
+                break;
+            case ERR_TYPE_LOADING_PROJECT:
+                title = Strings.ERROR_LOADING_PROJECT;
+                message = StringUtils.format(Strings.READ_DIRECTORY_ENTRIES_ERROR, path, error);
+                break;
+            case ERR_TYPE_LOADING_PROJECT_NATIVE:
+                title = Strings.ERROR_LOADING_PROJECT;
+                message = StringUtils.format(Strings.REQUEST_NATIVE_FILE_SYSTEM_ERROR, path, error);
+                break;
+            case ERR_TYPE_MAX_FILES:
+                title = Strings.ERROR_MAX_FILES_TITLE;
+                message = Strings.ERROR_MAX_FILES;
+                break;
+            case ERR_TYPE_OPEN_DIALOG:
+                title = Strings.ERROR_LOADING_PROJECT;
+                message = StringUtils.format(Strings.OPEN_DIALOG_ERROR, error);
+                break;
+            case ERR_TYPE_INVALID_FILENAME:
+                title = StringUtils.format(Strings.INVALID_FILENAME_TITLE, isFolder ? Strings.DIRECTORY_NAME : Strings.FILENAME);
+                message = StringUtils.format(Strings.INVALID_FILENAME_MESSAGE, isFolder ? Strings.DIRECTORY_NAMES_LEDE : Strings.FILENAMES_LEDE, error);
+                break;
         }
 
         if (title && message) {
@@ -1298,17 +1298,17 @@ define(function (require, exports, module) {
                 // is not displayed.
                 window.setTimeout(function () {
                     switch (errorInfo.type) {
-                    case ProjectModel.ERROR_INVALID_FILENAME:
-                        _showErrorDialog(ERR_TYPE_INVALID_FILENAME, errorInfo.isFolder, ProjectModel._invalidChars);
-                        break;
-                    case FileSystemError.ALREADY_EXISTS:
-                        _showErrorDialog(ERR_TYPE_RENAME, errorInfo.isFolder, Strings.FILE_EXISTS_ERR, errorInfo.fullPath);
-                        break;
-                    case ProjectModel.ERROR_NOT_IN_PROJECT:
-                        _showErrorDialog(ERR_TYPE_RENAME, errorInfo.isFolder, Strings.ERROR_RENAMING_NOT_IN_PROJECT, errorInfo.fullPath);
-                        break;
-                    default:
-                        _showErrorDialog(ERR_TYPE_RENAME, errorInfo.isFolder, FileUtils.getFileErrorString(errorInfo.type), errorInfo.fullPath);
+                        case ProjectModel.ERROR_INVALID_FILENAME:
+                            _showErrorDialog(ERR_TYPE_INVALID_FILENAME, errorInfo.isFolder, ProjectModel._invalidChars);
+                            break;
+                        case FileSystemError.ALREADY_EXISTS:
+                            _showErrorDialog(ERR_TYPE_RENAME, errorInfo.isFolder, Strings.FILE_EXISTS_ERR, errorInfo.fullPath);
+                            break;
+                        case ProjectModel.ERROR_NOT_IN_PROJECT:
+                            _showErrorDialog(ERR_TYPE_RENAME, errorInfo.isFolder, Strings.ERROR_RENAMING_NOT_IN_PROJECT, errorInfo.fullPath);
+                            break;
+                        default:
+                            _showErrorDialog(ERR_TYPE_RENAME, errorInfo.isFolder, FileUtils.getFileErrorString(errorInfo.type), errorInfo.fullPath);
                     }
                 }, 10);
                 d.reject(errorInfo);

@@ -38,24 +38,24 @@ define(function (require, exports, module) {
 
         var errorString;
         switch (errorCode) {
-        case appshell.app.ERR_CL_TOOLS_RMFAILED:
-            errorString = Strings.ERROR_CLTOOLS_RMFAILED;
-            break;
-        case appshell.app.ERR_CL_TOOLS_MKDIRFAILED:
-            errorString = Strings.ERROR_CLTOOLS_MKDIRFAILED;
-            break;
-        case appshell.app.ERR_CL_TOOLS_SYMLINKFAILED:
-            errorString = Strings.ERROR_CLTOOLS_LNFAILED;
-            break;
-        case appshell.app.ERR_CL_TOOLS_SERVFAILED:
-            errorString = Strings.ERROR_CLTOOLS_SERVFAILED;
-            break;
-        case appshell.app.ERR_CL_TOOLS_NOTSUPPORTED:
-            errorString = Strings.ERROR_CLTOOLS_NOTSUPPORTED;
-            break;
-        default:
-            errorString = StringUtils.format(Strings.GENERIC_ERROR, errorCode);
-            break;
+            case appshell.app.ERR_CL_TOOLS_RMFAILED:
+                errorString = Strings.ERROR_CLTOOLS_RMFAILED;
+                break;
+            case appshell.app.ERR_CL_TOOLS_MKDIRFAILED:
+                errorString = Strings.ERROR_CLTOOLS_MKDIRFAILED;
+                break;
+            case appshell.app.ERR_CL_TOOLS_SYMLINKFAILED:
+                errorString = Strings.ERROR_CLTOOLS_LNFAILED;
+                break;
+            case appshell.app.ERR_CL_TOOLS_SERVFAILED:
+                errorString = Strings.ERROR_CLTOOLS_SERVFAILED;
+                break;
+            case appshell.app.ERR_CL_TOOLS_NOTSUPPORTED:
+                errorString = Strings.ERROR_CLTOOLS_NOTSUPPORTED;
+                break;
+            default:
+                errorString = StringUtils.format(Strings.GENERIC_ERROR, errorCode);
+                break;
         }
 
         return errorString;

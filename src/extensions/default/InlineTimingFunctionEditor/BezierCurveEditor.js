@@ -449,34 +449,34 @@ define(function (require, exports, module) {
                 newVal;
 
             switch (code) {
-            case KeyEvent.DOM_VK_LEFT:
-                newVal = Math.max(0, left - offset);
-                if (left === newVal) {
-                    return false;
-                }
-                $this.css({ left: newVal + "px" });
-                break;
-            case KeyEvent.DOM_VK_UP:
-                newVal = Math.max(-HEIGHT_ABOVE, top - offset);
-                if (top === newVal) {
-                    return false;
-                }
-                $this.css({ top: newVal + "px" });
-                break;
-            case KeyEvent.DOM_VK_RIGHT:
-                newVal = Math.min(WIDTH_MAIN, left + offset);
-                if (left === newVal) {
-                    return false;
-                }
-                $this.css({ left: newVal + "px" });
-                break;
-            case KeyEvent.DOM_VK_DOWN:
-                newVal = Math.min(HEIGHT_MAIN + HEIGHT_BELOW, top + offset);
-                if (top === newVal) {
-                    return false;
-                }
-                $this.css({ top: newVal + "px" });
-                break;
+                case KeyEvent.DOM_VK_LEFT:
+                    newVal = Math.max(0, left - offset);
+                    if (left === newVal) {
+                        return false;
+                    }
+                    $this.css({ left: newVal + "px" });
+                    break;
+                case KeyEvent.DOM_VK_UP:
+                    newVal = Math.max(-HEIGHT_ABOVE, top - offset);
+                    if (top === newVal) {
+                        return false;
+                    }
+                    $this.css({ top: newVal + "px" });
+                    break;
+                case KeyEvent.DOM_VK_RIGHT:
+                    newVal = Math.min(WIDTH_MAIN, left + offset);
+                    if (left === newVal) {
+                        return false;
+                    }
+                    $this.css({ left: newVal + "px" });
+                    break;
+                case KeyEvent.DOM_VK_DOWN:
+                    newVal = Math.min(HEIGHT_MAIN + HEIGHT_BELOW, top + offset);
+                    if (top === newVal) {
+                        return false;
+                    }
+                    $this.css({ top: newVal + "px" });
+                    break;
             }
 
             // update coords
@@ -624,16 +624,16 @@ define(function (require, exports, module) {
         } else {
             // handle special cases of cubic-bezier calls
             switch (match[0]) {
-            case "linear":
-                return [ "0", "0", "1", "1" ];
-            case "ease":
-                return [ ".25", ".1", ".25", "1" ];
-            case "ease-in":
-                return [ ".42", "0", "1", "1" ];
-            case "ease-out":
-                return [ "0", "0", ".58", "1" ];
-            case "ease-in-out":
-                return [ ".42", "0", ".58", "1" ];
+                case "linear":
+                    return [ "0", "0", "1", "1" ];
+                case "ease":
+                    return [ ".25", ".1", ".25", "1" ];
+                case "ease-in":
+                    return [ ".42", "0", "1", "1" ];
+                case "ease-out":
+                    return [ "0", "0", ".58", "1" ];
+                case "ease-in-out":
+                    return [ ".42", "0", ".58", "1" ];
             }
         }
 

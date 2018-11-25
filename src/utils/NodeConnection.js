@@ -466,44 +466,44 @@ define(function (require, exports, module) {
         }
 
         switch (m.type) {
-        case "event":
-            if (m.message.domain === "base" && m.message.event === "newDomains") {
-                this._refreshInterface();
-            }
+            case "event":
+                if (m.message.domain === "base" && m.message.event === "newDomains") {
+                    this._refreshInterface();
+                }
 
-            // Event type "domain:event"
-            EventDispatcher.triggerWithArray(this, m.message.domain + ":" + m.message.event,
-                                             m.message.parameters);
-            break;
-        case "commandResponse":
-            responseDeferred = this._pendingCommandDeferreds[m.message.id];
-            if (responseDeferred) {
-                responseDeferred.resolveWith(this, [m.message.response]);
-                delete this._pendingCommandDeferreds[m.message.id];
-            }
-            break;
-        case "commandProgress":
-            responseDeferred = this._pendingCommandDeferreds[m.message.id];
-            if (responseDeferred) {
-                responseDeferred.notifyWith(this, [m.message.message]);
-            }
-            break;
-        case "commandError":
-            responseDeferred = this._pendingCommandDeferreds[m.message.id];
-            if (responseDeferred) {
-                responseDeferred.rejectWith(
-                    this,
-                    [m.message.message, m.message.stack]
-                );
-                delete this._pendingCommandDeferreds[m.message.id];
-            }
-            break;
-        case "error":
-            console.error("[NodeConnection] received error: " +
-                            m.message.message);
-            break;
-        default:
-            console.error("[NodeConnection] unknown event type: " + m.type);
+                // Event type "domain:event"
+                EventDispatcher.triggerWithArray(this, m.message.domain + ":" + m.message.event,
+                                                 m.message.parameters);
+                break;
+            case "commandResponse":
+                responseDeferred = this._pendingCommandDeferreds[m.message.id];
+                if (responseDeferred) {
+                    responseDeferred.resolveWith(this, [m.message.response]);
+                    delete this._pendingCommandDeferreds[m.message.id];
+                }
+                break;
+            case "commandProgress":
+                responseDeferred = this._pendingCommandDeferreds[m.message.id];
+                if (responseDeferred) {
+                    responseDeferred.notifyWith(this, [m.message.message]);
+                }
+                break;
+            case "commandError":
+                responseDeferred = this._pendingCommandDeferreds[m.message.id];
+                if (responseDeferred) {
+                    responseDeferred.rejectWith(
+                        this,
+                        [m.message.message, m.message.stack]
+                    );
+                    delete this._pendingCommandDeferreds[m.message.id];
+                }
+                break;
+            case "error":
+                console.error("[NodeConnection] received error: " +
+                                m.message.message);
+                break;
+            default:
+                console.error("[NodeConnection] unknown event type: " + m.type);
         }
     };
 

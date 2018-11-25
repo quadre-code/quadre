@@ -288,12 +288,12 @@ define(function (require, exports, module) {
      */
     function _tagMatch(match, type) {
         switch (type) {
-        case BEZIER:
-            match.isBezier = true;
-            break;
-        case STEP:
-            match.isStep = true;
-            break;
+            case BEZIER:
+                match.isBezier = true;
+                break;
+            case STEP:
+                match.isStep = true;
+                break;
         }
 
         return match;

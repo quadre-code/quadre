@@ -147,51 +147,51 @@ define(function (require, exports, module) {
             text = cm.getLine(currentLine);
             currentCharacter = (text && text[i]) || "";
             switch (currentCharacter) {
-            case "{":
-                if (text[i + 1] === "{") {
-                    found = scanTextUntil(cm, i + 2, currentLine, endHelperName);
-                    if (found) {
-                        var tag = found.string.substring(0, found.string.length - 1);
-                        if (tag[0] === "#" || tag[0] === "~" || tag[0] === "^") {
-                            tagStack.push(tag.substr(1));
-                        } else if (tag[0] === "/" &&
-                                   (_.last(tagStack) === tag.substr(1) || _.last(tagStack) === "*" + tag.substr(1))) {
-                            tagStack.pop();
-                            if (tagStack.length === 0 && braceStack.length === 0) {
-                                range = {
-                                    from: openPos.to,
-                                    to: {ch: i, line: currentLine}
-                                };
-                                return range;
+                case "{":
+                    if (text[i + 1] === "{") {
+                        found = scanTextUntil(cm, i + 2, currentLine, endHelperName);
+                        if (found) {
+                            var tag = found.string.substring(0, found.string.length - 1);
+                            if (tag[0] === "#" || tag[0] === "~" || tag[0] === "^") {
+                                tagStack.push(tag.substr(1));
+                            } else if (tag[0] === "/" &&
+                                       (_.last(tagStack) === tag.substr(1) || _.last(tagStack) === "*" + tag.substr(1))) {
+                                tagStack.pop();
+                                if (tagStack.length === 0 && braceStack.length === 0) {
+                                    range = {
+                                        from: openPos.to,
+                                        to: {ch: i, line: currentLine}
+                                    };
+                                    return range;
+                                }
+                            } else {
+                                braceStack.push("{{");
                             }
-                        } else {
-                            braceStack.push("{{");
                         }
                     }
-                }
-                break;
-            case "}":
-                if (text[i + 1] === "}") {
-                    braceStack.pop();
-                    if (braceStack.length === 0 && tagStack.length === 0) {
-                        range = {
-                            from: openPos.to,
-                            to: {ch: i, line: currentLine}
-                        };
-                        return range;
+                    break;
+                case "}":
+                    if (text[i + 1] === "}") {
+                        braceStack.pop();
+                        if (braceStack.length === 0 && tagStack.length === 0) {
+                            range = {
+                                from: openPos.to,
+                                to: {ch: i, line: currentLine}
+                            };
+                            return range;
+                        }
                     }
-                }
-                break;
-            case "\"":
-            case "'":
-                found = scanTextUntil(cm, i + 1, currentLine, readUntil(text[i]));
-                if (found) {
-                    i = found.to.ch;
-                    currentLine = found.to.line;
-                }
-                break;
-            default:
-                break;
+                    break;
+                case "\"":
+                case "'":
+                    found = scanTextUntil(cm, i + 1, currentLine, readUntil(text[i]));
+                    if (found) {
+                        i = found.to.ch;
+                        currentLine = found.to.line;
+                    }
+                    break;
+                default:
+                    break;
             }
 
             ++i;

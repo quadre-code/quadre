@@ -633,44 +633,44 @@ define(function (require, exports, module) {
                     //  drop the opacity on the drag affordance
                     //  and show the inserted item at reduced opacity
                     switch (lastHit.where) {
-                    case NOMANSLAND:
-                    case BELOWVIEW:
-                    case ABOVEVIEW:
-                        $el.css({opacity: ".75"});
-                        $ghost.css("opacity", ".25");
-                        break;
-                    default:
-                        $el.css({opacity: ".0001"});
-                        $ghost.css("opacity", "");
-                        break;
+                        case NOMANSLAND:
+                        case BELOWVIEW:
+                        case ABOVEVIEW:
+                            $el.css({opacity: ".75"});
+                            $ghost.css("opacity", ".25");
+                            break;
+                        default:
+                            $el.css({opacity: ".0001"});
+                            $ghost.css("opacity", "");
+                            break;
                     }
 
                     // now do the insertion
                     switch (lastHit.where) {
-                    case TOPSCROLL:
-                    case ABOVEITEM:
-                        if (lastHit.where === TOPSCROLL) {
-                            scrollDir = -1;
-                        }
-                        $el.insertBefore(lastHit.which);
-                        updateContext(lastHit);
-                        break;
-                    case BOTSCROLL:
-                    case BELOWITEM:
-                        if (lastHit.where === BOTSCROLL) {
-                            scrollDir = 1;
-                        }
-                        $el.insertAfter(lastHit.which);
-                        updateContext(lastHit);
-                        break;
-                    case BELOWVIEW:
-                        $el.appendTo(lastHit.which.find("ul"));
-                        updateContext(lastHit);
-                        break;
-                    case ABOVEVIEW:
-                        $el.prependTo(lastHit.which.find("ul"));
-                        updateContext(lastHit);
-                        break;
+                        case TOPSCROLL:
+                        case ABOVEITEM:
+                            if (lastHit.where === TOPSCROLL) {
+                                scrollDir = -1;
+                            }
+                            $el.insertBefore(lastHit.which);
+                            updateContext(lastHit);
+                            break;
+                        case BOTSCROLL:
+                        case BELOWITEM:
+                            if (lastHit.where === BOTSCROLL) {
+                                scrollDir = 1;
+                            }
+                            $el.insertAfter(lastHit.which);
+                            updateContext(lastHit);
+                            break;
+                        case BELOWVIEW:
+                            $el.appendTo(lastHit.which.find("ul"));
+                            updateContext(lastHit);
+                            break;
+                        case ABOVEVIEW:
+                            $el.prependTo(lastHit.which.find("ul"));
+                            updateContext(lastHit);
+                            break;
                     }
 
                     // we need to scroll

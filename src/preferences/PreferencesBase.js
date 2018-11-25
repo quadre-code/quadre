@@ -1400,24 +1400,24 @@ define(function (require, exports, module) {
                 i++;
             }
             switch (shadowScopeOrder[i].promise.state()) {
-            case "pending":
-                // cannot decide now, lookup once pending promise is settled
-                shadowScopeOrder[i].promise.always(function () {
-                    this._tryAddToScopeOrder(shadowEntry);
-                }.bind(this));
-                break;
-            case "resolved":
-                this._pushToScopeOrder(shadowEntry.id, shadowScopeOrder[i].id);
-                this.trigger(SCOPEORDER_CHANGE, {
-                    id: shadowEntry.id,
-                    action: "added"
-                });
-                this._triggerChange({
-                    ids: shadowEntry.scope.getKeys()
-                });
-                break;
-            default:
-                throw new Error("Internal error: no scope found to add before. \"default\" is missing?..");
+                case "pending":
+                    // cannot decide now, lookup once pending promise is settled
+                    shadowScopeOrder[i].promise.always(function () {
+                        this._tryAddToScopeOrder(shadowEntry);
+                    }.bind(this));
+                    break;
+                case "resolved":
+                    this._pushToScopeOrder(shadowEntry.id, shadowScopeOrder[i].id);
+                    this.trigger(SCOPEORDER_CHANGE, {
+                        id: shadowEntry.id,
+                        action: "added"
+                    });
+                    this._triggerChange({
+                        ids: shadowEntry.scope.getKeys()
+                    });
+                    break;
+                default:
+                    throw new Error("Internal error: no scope found to add before. \"default\" is missing?..");
             }
 
         },

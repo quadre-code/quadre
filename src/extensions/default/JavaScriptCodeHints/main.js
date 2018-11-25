@@ -214,18 +214,18 @@ define(function (require, exports, module) {
                 // level indicates either variable scope or property confidence
                 if (!type.property && !token.builtin && token.depth !== undefined) {
                     switch (token.depth) {
-                    case 0:
-                        $hintObj.addClass("priority-high");
-                        break;
-                    case 1:
-                        $hintObj.addClass("priority-medium");
-                        break;
-                    case 2:
-                        $hintObj.addClass("priority-low");
-                        break;
-                    default:
-                        $hintObj.addClass("priority-lowest");
-                        break;
+                        case 0:
+                            $hintObj.addClass("priority-high");
+                            break;
+                        case 1:
+                            $hintObj.addClass("priority-medium");
+                            break;
+                        case 2:
+                            $hintObj.addClass("priority-low");
+                            break;
+                        default:
+                            $hintObj.addClass("priority-lowest");
+                            break;
                     }
                 }
 

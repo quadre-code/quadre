@@ -68,18 +68,18 @@ function watchPath(path, ignored, _watcherMap) {
         // convert type to an event
         var event;
         switch (type) {
-        case 0:
-            event = "changed";
-            break;
-        case 1:
-            event = "created";
-            break;
-        case 2:
-            event = "deleted";
-            break;
-        default:
-            console.warn("CSharpWatcher event type: " + type);
-            return;
+            case 0:
+                event = "changed";
+                break;
+            case 1:
+                event = "created";
+                break;
+            case 2:
+                event = "deleted";
+                break;
+            default:
+                console.warn("CSharpWatcher event type: " + type);
+                return;
         }
 
         // make sure ignored events are not emitted

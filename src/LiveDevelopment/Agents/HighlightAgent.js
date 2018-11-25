@@ -52,12 +52,12 @@ define(function HighlightAgent(require, exports, module) {
     /** Hide in-browser highlighting */
     function hide() {
         switch (_highlight.type) {
-        case "node":
-            Inspector.DOM.hideHighlight();
-            break;
-        case "css":
-            RemoteAgent.call("hideHighlight");
-            break;
+            case "node":
+                Inspector.DOM.hideHighlight();
+                break;
+            case "css":
+                RemoteAgent.call("hideHighlight");
+                break;
         }
         _highlight = {};
     }

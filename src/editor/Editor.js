@@ -722,20 +722,20 @@ define(function (require, exports, module) {
         });
 
         switch (selectionType) {
-        case "indentAtBeginning":
-            // Case 1
-            CodeMirror.commands.indentMore(instance);
-            break;
+            case "indentAtBeginning":
+                // Case 1
+                CodeMirror.commands.indentMore(instance);
+                break;
 
-        case "indentAtSelection":
-            // Case 2
-            this._addIndentAtEachSelection(selections);
-            break;
+            case "indentAtSelection":
+                // Case 2
+                this._addIndentAtEachSelection(selections);
+                break;
 
-        case "indentAuto":
-            // Case 3
-            this._autoIndentEachSelection(selections);
-            break;
+            case "indentAuto":
+                // Case 3
+                this._autoIndentEachSelection(selections);
+                break;
         }
     };
 

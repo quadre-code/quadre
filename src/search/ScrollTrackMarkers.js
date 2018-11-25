@@ -72,15 +72,15 @@ define(function (require, exports, module) {
     var scrollbarTrackOffset;
 
     switch (brackets.platform) {
-    case "win": // Custom scrollbar CSS has no gap around the track
-        scrollbarTrackOffset = 0;
-        break;
-    case "mac": // Native scrollbar has padding around the track
-        scrollbarTrackOffset = 4;
-        break;
-    case "linux": // Custom scrollbar CSS has assymmetrical gap; this approximates it
-        scrollbarTrackOffset = 2;
-        break;
+        case "win": // Custom scrollbar CSS has no gap around the track
+            scrollbarTrackOffset = 0;
+            break;
+        case "mac": // Native scrollbar has padding around the track
+            scrollbarTrackOffset = 4;
+            break;
+        case "linux": // Custom scrollbar CSS has assymmetrical gap; this approximates it
+            scrollbarTrackOffset = 2;
+            break;
     }
 
     /**

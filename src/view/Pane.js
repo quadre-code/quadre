@@ -383,13 +383,13 @@ define(function (require, exports, module) {
         this.updateHeaderText();
 
         switch (showPaneHeaderButtonsPref) {
-        case "always":
-            this.$header.addClass("always-show-header-buttons");
-            break;
-        case "never":
-            this.$headerFlipViewBtn.css("display", "none");
-            this.$headerCloseBtn.css("display", "none");
-            break;
+            case "always":
+                this.$header.addClass("always-show-header-buttons");
+                break;
+            case "never":
+                this.$headerFlipViewBtn.css("display", "none");
+                this.$headerCloseBtn.css("display", "none");
+                break;
         }
 
         // Listen to document events so we can update ourself

@@ -428,19 +428,19 @@ define(function (require, exports, module) {
 
                     for (i = 0; i < result.length; i++) {
                         switch (result[i].provider.name) {
-                        case asyncProvider1.name:
-                            expect(asyncProvider1.scanFile).not.toHaveBeenCalled();
-                            expect(asyncProvider2.scanFileAsync).toHaveBeenCalled();
-                            break;
-                        case asyncProvider2.name:
-                            expect(asyncProvider2.scanFileAsync).toHaveBeenCalled();
-                            break;
-                        case syncProvider3.name:
-                            expect(syncProvider3.scanFile).toHaveBeenCalled();
-                            break;
-                        default:
-                            expect(true).toBe(false);
-                            break;
+                            case asyncProvider1.name:
+                                expect(asyncProvider1.scanFile).not.toHaveBeenCalled();
+                                expect(asyncProvider2.scanFileAsync).toHaveBeenCalled();
+                                break;
+                            case asyncProvider2.name:
+                                expect(asyncProvider2.scanFileAsync).toHaveBeenCalled();
+                                break;
+                            case syncProvider3.name:
+                                expect(syncProvider3.scanFile).toHaveBeenCalled();
+                                break;
+                            default:
+                                expect(true).toBe(false);
+                                break;
                         }
                     }
                 });

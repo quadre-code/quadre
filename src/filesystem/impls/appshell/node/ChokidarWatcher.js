@@ -46,19 +46,19 @@ function watchPath(path, ignored, _watcherMap) {
         watcher.on("all", function (type, filename, nodeFsStats) {
             var event;
             switch (type) {
-            case "change":
-                event = "changed";
-                break;
-            case "add":
-            case "addDir":
-                event = "created";
-                break;
-            case "unlink":
-            case "unlinkDir":
-                event = "deleted";
-                break;
-            default:
-                event = null;
+                case "change":
+                    event = "changed";
+                    break;
+                case "add":
+                case "addDir":
+                    event = "created";
+                    break;
+                case "unlink":
+                case "unlinkDir":
+                    event = "deleted";
+                    break;
+                default:
+                    event = null;
             }
             if (!event || !filename) {
                 return;

@@ -608,15 +608,15 @@ define(function (require, exports, module) {
 
             // Update the dialog label based on the current prefix.
             switch (prefix) {
-            case ":":
-                dialogLabel = Strings.CMD_GOTO_LINE + "\u2026";
-                break;
-            case "@":
-                dialogLabel = Strings.CMD_GOTO_DEFINITION + "\u2026";
-                break;
-            default:
-                dialogLabel = "";
-                break;
+                case ":":
+                    dialogLabel = Strings.CMD_GOTO_LINE + "\u2026";
+                    break;
+                case "@":
+                    dialogLabel = Strings.CMD_GOTO_DEFINITION + "\u2026";
+                    break;
+                default:
+                    dialogLabel = "";
+                    break;
             }
         }
         $(".find-dialog-label", this.dialog).text(dialogLabel);

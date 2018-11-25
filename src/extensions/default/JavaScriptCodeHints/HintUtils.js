@@ -89,17 +89,17 @@ define(function (require, exports, module) {
         }
 
         switch (token.type) {
-        case "comment":
-        case "number":
-        case "regexp":
-        case "string":
-        case "def":     // exclude variable & param decls
-            return false;
-        case "string-2":
-            // exclude strings inside a regexp
-            return !_isInsideRegExp(token);
-        default:
-            return true;
+            case "comment":
+            case "number":
+            case "regexp":
+            case "string":
+            case "def":     // exclude variable & param decls
+                return false;
+            case "string-2":
+                // exclude strings inside a regexp
+                return !_isInsideRegExp(token);
+            default:
+                return true;
         }
     }
 

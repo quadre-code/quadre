@@ -204,62 +204,62 @@ define(function (require, exports, module) {
 
             // Make the move
             switch (direction) {
-            case DIRECTION_UP:
-                if (sel.start.line !== firstLine) {
-                    var prevText = doc.getRange({ line: sel.start.line - 1, ch: 0 }, sel.start);
+                case DIRECTION_UP:
+                    if (sel.start.line !== firstLine) {
+                        var prevText = doc.getRange({ line: sel.start.line - 1, ch: 0 }, sel.start);
 
-                    if (sel.end.line === lastLine + 1) {
-                        if (isInlineWidget) {
-                            prevText   = prevText.substring(0, prevText.length - 1);
-                            lineLength = doc.getLine(sel.end.line - 1).length;
-                            editGroup.push({text: "\n", start: { line: sel.end.line - 1, ch: lineLength }});
-                        } else {
-                            prevText = "\n" + prevText.substring(0, prevText.length - 1);
-                        }
-                    }
-
-                    editGroup.push({text: "", start: { line: sel.start.line - 1, ch: 0 }, end: sel.start});
-                    editGroup.push({text: prevText, start: { line: sel.end.line - 1, ch: 0 }});
-
-                    // Make sure CodeMirror hasn't expanded the selection to include
-                    // the line we inserted below.
-                    _.each(lineSel.selectionsToTrack, function (originalSel) {
-                        originalSel.start.line--;
-                        originalSel.end.line--;
-                    });
-
-                    edits.push({edit: editGroup, selection: lineSel.selectionsToTrack});
-                }
-                break;
-            case DIRECTION_DOWN:
-                if (sel.end.line <= lastLine) {
-                    var nextText      = doc.getRange(sel.end, { line: sel.end.line + 1, ch: 0 }),
-                        deletionStart = sel.end;
-
-                    if (sel.end.line === lastLine) {
-                        if (isInlineWidget) {
-                            if (sel.end.line === totalLines - 1) {
-                                nextText += "\n";
+                        if (sel.end.line === lastLine + 1) {
+                            if (isInlineWidget) {
+                                prevText   = prevText.substring(0, prevText.length - 1);
+                                lineLength = doc.getLine(sel.end.line - 1).length;
+                                editGroup.push({text: "\n", start: { line: sel.end.line - 1, ch: lineLength }});
+                            } else {
+                                prevText = "\n" + prevText.substring(0, prevText.length - 1);
                             }
-                            lineLength = doc.getLine(sel.end.line - 1).length;
-                            editGroup.push({text: "\n", start: { line: sel.end.line, ch: doc.getLine(sel.end.line).length }});
-                        } else {
-                            nextText     += "\n";
-                            deletionStart = { line: sel.end.line - 1, ch: doc.getLine(sel.end.line - 1).length };
                         }
-                    }
 
-                    editGroup.push({text: "", start: deletionStart, end: { line: sel.end.line + 1, ch: 0 }});
-                    if (lineLength) {
-                        editGroup.push({text: "", start: { line: sel.end.line - 1, ch: lineLength }, end: { line: sel.end.line, ch: 0 }});
-                    }
-                    editGroup.push({text: nextText, start: { line: sel.start.line, ch: 0 }});
+                        editGroup.push({text: "", start: { line: sel.start.line - 1, ch: 0 }, end: sel.start});
+                        editGroup.push({text: prevText, start: { line: sel.end.line - 1, ch: 0 }});
 
-                    // In this case, we don't need to track selections, because the edits are done in such a way that
-                    // the existing selections will automatically be updated properly by CodeMirror as it does the edits.
-                    edits.push({edit: editGroup});
-                }
-                break;
+                        // Make sure CodeMirror hasn't expanded the selection to include
+                        // the line we inserted below.
+                        _.each(lineSel.selectionsToTrack, function (originalSel) {
+                            originalSel.start.line--;
+                            originalSel.end.line--;
+                        });
+
+                        edits.push({edit: editGroup, selection: lineSel.selectionsToTrack});
+                    }
+                    break;
+                case DIRECTION_DOWN:
+                    if (sel.end.line <= lastLine) {
+                        var nextText      = doc.getRange(sel.end, { line: sel.end.line + 1, ch: 0 }),
+                            deletionStart = sel.end;
+
+                        if (sel.end.line === lastLine) {
+                            if (isInlineWidget) {
+                                if (sel.end.line === totalLines - 1) {
+                                    nextText += "\n";
+                                }
+                                lineLength = doc.getLine(sel.end.line - 1).length;
+                                editGroup.push({text: "\n", start: { line: sel.end.line, ch: doc.getLine(sel.end.line).length }});
+                            } else {
+                                nextText     += "\n";
+                                deletionStart = { line: sel.end.line - 1, ch: doc.getLine(sel.end.line - 1).length };
+                            }
+                        }
+
+                        editGroup.push({text: "", start: deletionStart, end: { line: sel.end.line + 1, ch: 0 }});
+                        if (lineLength) {
+                            editGroup.push({text: "", start: { line: sel.end.line - 1, ch: lineLength }, end: { line: sel.end.line, ch: 0 }});
+                        }
+                        editGroup.push({text: nextText, start: { line: sel.start.line, ch: 0 }});
+
+                        // In this case, we don't need to track selections, because the edits are done in such a way that
+                        // the existing selections will automatically be updated properly by CodeMirror as it does the edits.
+                        edits.push({edit: editGroup});
+                    }
+                    break;
             }
         });
 
@@ -334,16 +334,16 @@ define(function (require, exports, module) {
                         (direction === DIRECTION_DOWN && sel.end.line > selections[index - 1].end.line)) {
                     // Insert the new line
                     switch (direction) {
-                    case DIRECTION_UP:
-                        line = sel.start.line;
-                        break;
-                    case DIRECTION_DOWN:
-                        line = sel.end.line;
-                        if (!(CodeMirror.cmpPos(sel.start, sel.end) !== 0 && sel.end.ch === 0)) {
-                            // If not linewise selection
-                            line++;
-                        }
-                        break;
+                        case DIRECTION_UP:
+                            line = sel.start.line;
+                            break;
+                        case DIRECTION_DOWN:
+                            line = sel.end.line;
+                            if (!(CodeMirror.cmpPos(sel.start, sel.end) !== 0 && sel.end.ch === 0)) {
+                                // If not linewise selection
+                                line++;
+                            }
+                            break;
                     }
 
                     var insertPos;

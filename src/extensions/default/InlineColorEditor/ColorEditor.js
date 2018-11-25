@@ -278,19 +278,19 @@ define(function (require, exports, module) {
     ColorEditor.prototype._updateColorTypeRadioButtons = function (format) {
         this.$buttonList.find("li").removeClass("selected");
         switch (format) {
-        case "rgb":
-            this.$buttonList.find(".rgba").parent().addClass("selected");
-            break;
-        case "hex":
-        case "name":
-            this.$buttonList.find(".hex").parent().addClass("selected");
-            break;
-        case "hsl":
-            this.$buttonList.find(".hsla").parent().addClass("selected");
-            break;
-        case "0x":
-            this.$buttonList.find(".0x").parent().addClass("selected");
-            break;
+            case "rgb":
+                this.$buttonList.find(".rgba").parent().addClass("selected");
+                break;
+            case "hex":
+            case "name":
+                this.$buttonList.find(".hex").parent().addClass("selected");
+                break;
+            case "hsl":
+                this.$buttonList.find(".hsla").parent().addClass("selected");
+                break;
+            case "0x":
+                this.$buttonList.find(".0x").parent().addClass("selected");
+                break;
         }
     };
 
@@ -305,24 +305,24 @@ define(function (require, exports, module) {
             var colorObject = checkSetFormat(newColor);
 
             switch (newFormat) {
-            case "hsla":
-                newColor = colorObject.toHslString();
-                break;
-            case "rgba":
-                newColor = colorObject.toRgbString();
-                break;
-            case "prgba":
-                newColor = colorObject.toPercentageRgbString();
-                break;
-            case "hex":
-                newColor = colorObject.toHexString();
-                self._hsv.a = 1;
-                break;
-            case "0x":
-                newColor = as0xString(colorObject);
-                self._hsv.a = 1;
-                self._format = "0x";
-                break;
+                case "hsla":
+                    newColor = colorObject.toHslString();
+                    break;
+                case "rgba":
+                    newColor = colorObject.toRgbString();
+                    break;
+                case "prgba":
+                    newColor = colorObject.toPercentageRgbString();
+                    break;
+                case "hex":
+                    newColor = colorObject.toHexString();
+                    self._hsv.a = 1;
+                    break;
+                case "0x":
+                    newColor = as0xString(colorObject);
+                    self._hsv.a = 1;
+                    self._format = "0x";
+                    break;
             }
 
             // We need to run this again whenever RGB/HSL/Hex conversions
@@ -487,22 +487,22 @@ define(function (require, exports, module) {
         newColor = tinycolor(this._hsv);
 
         switch (oldFormat) {
-        case "hsl":
-            colorVal = newColor.toHslString();
-            break;
-        case "rgb":
-            colorVal = newColor.toRgbString();
-            break;
-        case "prgb":
-            colorVal = newColor.toPercentageRgbString();
-            break;
-        case "hex":
-        case "name":
-            colorVal = this._hsv.a < 1 ? newColor.toRgbString() : newColor.toHexString();
-            break;
-        case "0x":
-            colorVal = as0xString(newColor);
-            break;
+            case "hsl":
+                colorVal = newColor.toHslString();
+                break;
+            case "rgb":
+                colorVal = newColor.toRgbString();
+                break;
+            case "prgb":
+                colorVal = newColor.toPercentageRgbString();
+                break;
+            case "hex":
+            case "name":
+                colorVal = this._hsv.a < 1 ? newColor.toRgbString() : newColor.toHexString();
+                break;
+            case "0x":
+                colorVal = as0xString(newColor);
+                break;
         }
         colorVal = this._isUpperCase ? colorVal.toUpperCase() : colorVal;
         this._commitColor(colorVal, false);
@@ -633,16 +633,16 @@ define(function (require, exports, module) {
         var hasCtrl = (brackets.platform === "win") ? (event.ctrlKey) : (event.metaKey);
         if (hasCtrl) {
             switch (event.keyCode) {
-            case KeyEvent.DOM_VK_Z:
-                if (event.shiftKey) {
+                case KeyEvent.DOM_VK_Z:
+                    if (event.shiftKey) {
+                        this.redo();
+                    } else {
+                        this.undo();
+                    }
+                    return false;
+                case KeyEvent.DOM_VK_Y:
                     this.redo();
-                } else {
-                    this.undo();
-                }
-                return false;
-            case KeyEvent.DOM_VK_Y:
-                this.redo();
-                return false;
+                    return false;
             }
         } else {
             if (event.keyCode === KeyEvent.DOM_VK_LEFT ||
@@ -703,35 +703,35 @@ define(function (require, exports, module) {
             adjustedOffset;
 
         switch (event.keyCode) {
-        case KeyEvent.DOM_VK_LEFT:
-        case KeyEvent.DOM_VK_RIGHT:
-            step = event.shiftKey ? step * STEP_MULTIPLIER : step;
-            xOffset = Number($.trim(this.$selectionBase[0].style.left.replace("%", "")));
-            adjustedOffset = (event.keyCode === KeyEvent.DOM_VK_LEFT) ? (xOffset - step) : (xOffset + step);
-            xOffset = Math.min(100, Math.max(0, adjustedOffset));
-            hsv.s = xOffset / 100;
-            this.setColorAsHsv(hsv, false);
-            return false;
-        case KeyEvent.DOM_VK_DOWN:
-        case KeyEvent.DOM_VK_UP:
-            step = event.shiftKey ? step * STEP_MULTIPLIER : step;
-            yOffset = Number($.trim(this.$selectionBase[0].style.bottom.replace("%", "")));
-            adjustedOffset = (event.keyCode === KeyEvent.DOM_VK_DOWN) ? (yOffset - step) : (yOffset + step);
-            yOffset = Math.min(100, Math.max(0, adjustedOffset));
-            hsv.v = yOffset / 100;
-            this.setColorAsHsv(hsv, false);
-            return false;
-        case KeyEvent.DOM_VK_TAB:
-            // Shift+Tab loops back to last focusable element: last swatch if any; format button bar if not
-            if (event.shiftKey) {
-                if (this.$swatches.children().length === 0) {
-                    this.$hslButton.focus();
-                } else {
-                    this.$swatches.find("li:last").focus();
-                }
+            case KeyEvent.DOM_VK_LEFT:
+            case KeyEvent.DOM_VK_RIGHT:
+                step = event.shiftKey ? step * STEP_MULTIPLIER : step;
+                xOffset = Number($.trim(this.$selectionBase[0].style.left.replace("%", "")));
+                adjustedOffset = (event.keyCode === KeyEvent.DOM_VK_LEFT) ? (xOffset - step) : (xOffset + step);
+                xOffset = Math.min(100, Math.max(0, adjustedOffset));
+                hsv.s = xOffset / 100;
+                this.setColorAsHsv(hsv, false);
                 return false;
-            }
-            break;
+            case KeyEvent.DOM_VK_DOWN:
+            case KeyEvent.DOM_VK_UP:
+                step = event.shiftKey ? step * STEP_MULTIPLIER : step;
+                yOffset = Number($.trim(this.$selectionBase[0].style.bottom.replace("%", "")));
+                adjustedOffset = (event.keyCode === KeyEvent.DOM_VK_DOWN) ? (yOffset - step) : (yOffset + step);
+                yOffset = Math.min(100, Math.max(0, adjustedOffset));
+                hsv.v = yOffset / 100;
+                this.setColorAsHsv(hsv, false);
+                return false;
+            case KeyEvent.DOM_VK_TAB:
+                // Shift+Tab loops back to last focusable element: last swatch if any; format button bar if not
+                if (event.shiftKey) {
+                    if (this.$swatches.children().length === 0) {
+                        this.$hslButton.focus();
+                    } else {
+                        this.$swatches.find("li:last").focus();
+                    }
+                    return false;
+                }
+                break;
         }
     };
 
@@ -742,16 +742,16 @@ define(function (require, exports, module) {
             step = 3.6;
 
         switch (event.keyCode) {
-        case KeyEvent.DOM_VK_DOWN:
-            step = event.shiftKey ? step * STEP_MULTIPLIER : step;
-            hsv.h = (hue - step) <= 0 ? 360 - step : hue - step;
-            this.setColorAsHsv(hsv, false);
-            return false;
-        case KeyEvent.DOM_VK_UP:
-            step = event.shiftKey ? step * STEP_MULTIPLIER : step;
-            hsv.h = (hue + step) >= 360 ? step : hue + step;
-            this.setColorAsHsv(hsv, false);
-            return false;
+            case KeyEvent.DOM_VK_DOWN:
+                step = event.shiftKey ? step * STEP_MULTIPLIER : step;
+                hsv.h = (hue - step) <= 0 ? 360 - step : hue - step;
+                this.setColorAsHsv(hsv, false);
+                return false;
+            case KeyEvent.DOM_VK_UP:
+                step = event.shiftKey ? step * STEP_MULTIPLIER : step;
+                hsv.h = (hue + step) >= 360 ? step : hue + step;
+                this.setColorAsHsv(hsv, false);
+                return false;
         }
     };
 
@@ -762,20 +762,20 @@ define(function (require, exports, module) {
             step = 0.01;
 
         switch (event.keyCode) {
-        case KeyEvent.DOM_VK_DOWN:
-            step = event.shiftKey ? step * STEP_MULTIPLIER : step;
-            if (alpha > 0) {
-                hsv.a = (alpha - step) <= 0 ? 0 : alpha - step;
-                this.setColorAsHsv(hsv);
-            }
-            return false;
-        case KeyEvent.DOM_VK_UP:
-            step = event.shiftKey ? step * STEP_MULTIPLIER : step;
-            if (alpha < 100) {
-                hsv.a = (alpha + step) >= 1 ? 1 : alpha + step;
-                this.setColorAsHsv(hsv);
-            }
-            return false;
+            case KeyEvent.DOM_VK_DOWN:
+                step = event.shiftKey ? step * STEP_MULTIPLIER : step;
+                if (alpha > 0) {
+                    hsv.a = (alpha - step) <= 0 ? 0 : alpha - step;
+                    this.setColorAsHsv(hsv);
+                }
+                return false;
+            case KeyEvent.DOM_VK_UP:
+                step = event.shiftKey ? step * STEP_MULTIPLIER : step;
+                if (alpha < 100) {
+                    hsv.a = (alpha + step) >= 1 ? 1 : alpha + step;
+                    this.setColorAsHsv(hsv);
+                }
+                return false;
         }
     };
 
