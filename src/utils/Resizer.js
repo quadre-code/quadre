@@ -470,7 +470,7 @@ define(function (require, exports, module) {
             function endResize(e) {
                 if (isResizing) {
 
-                    var elementSize	= elementSizeFunction.apply($element);
+                    var elementSize = elementSizeFunction.apply($element);
                     if ($element.is(":visible")) {
                         elementPrefs.size = elementSize;
                         if ($resizableElement.length) {

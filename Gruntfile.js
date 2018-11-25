@@ -308,7 +308,7 @@ module.exports = function (grunt) {
                 '!src/extensions/default/quadre-eslint/**',
                 '!src/extensions/dev/**',
                 '!src/extensions/disabled/**',
-                '!**/node_modules/**/*.js',
+                '!**/node_modules/**',
                 '!src/**/*-min.js',
                 '!src/**/*.min.js'
             ],
