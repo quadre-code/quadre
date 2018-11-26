@@ -304,7 +304,7 @@ define(function (require, exports, module) {
         }).fail(function(err) {
             result.reject(err);
         });
-        
+
         return result.promise();
     }
 

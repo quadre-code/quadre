@@ -879,7 +879,7 @@ define(function (require, exports, module) {
                 expect(pm.get("useTabChar")).toBe(true);
                 expect(pm.get("tabSize")).toBe(8);
             });
-            
+
             it("should extend Preference Objects from base", function () {
                 var pm = new PreferencesBase.PreferencesSystem();
                 pm.definePreference("closeTags", "object", {

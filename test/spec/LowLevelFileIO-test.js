@@ -31,11 +31,11 @@ define(function (require, exports, module) {
 
     // Load dependent modules
     var SpecRunnerUtils     = require("spec/SpecRunnerUtils");
-    
+
     // valid encoding names: https://github.com/iojs/io.js/blob/3d3083b91f02ca14acddde97612cec98e97ffe38/lib/buffer.js#L225-L243
     var UTF8 = "utf8",
         UTF16 = "utf16le";
-    
+
     // These are tests for the low-level file io routines in brackets-app. Make sure
     // you have the latest brackets-app before running.
 
@@ -274,7 +274,7 @@ define(function (require, exports, module) {
                     expect(cb.error.code).toBe("ENOENT");
                 });
             });
-        
+
             it("should return an error if trying to use an unsuppported encoding", function () {
                 var cb = readFileSpy();
                 var error;
@@ -413,7 +413,7 @@ define(function (require, exports, module) {
                     expect(cb.error.code).toBe("ECHARSET");
                 });
             });
-            
+
             it("should return an error trying to read a UTF16 file w/o BOM ", function () {
                 var cb = readFileSpy();
 
@@ -628,9 +628,9 @@ define(function (require, exports, module) {
                 runs(function () {
                     brackets.fs.mkdir(delDirName, parseInt("777", 0), cb);
                 });
-                
+
                 waitsFor(function () { return cb.wasCalled; }, "mkdir to finish");
-                
+
                 runs(function () {
                     expect(cb.error).toBe(null);
                 });
@@ -671,9 +671,9 @@ define(function (require, exports, module) {
                 });
             });
         }); // describe("unlink")
-        
+
         describe("mkdir", function () {
-            
+
             it("should make a new directory", function () {
                 var newDirName  = baseDir + "/brackets_unittests_new_dir",
                     cb          = errSpy(),
@@ -683,9 +683,9 @@ define(function (require, exports, module) {
                 runs(function () {
                     brackets.fs.mkdir(newDirName, parseInt("777", 0), cb);
                 });
-                
+
                 waitsFor(function () { return cb.wasCalled; }, "mkdir to finish");
-                
+
                 runs(function () {
                     expect(cb.error).toBe(null);
                 });
@@ -997,9 +997,9 @@ define(function (require, exports, module) {
                 runs(function () {
                     brackets.fs.mkdir(newDirName, parseInt("777", 8), mkdirCB);
                 });
-                
+
                 waitsFor(function () { return mkdirCB.wasCalled; }, "mkdir to finish");
-                
+
                 runs(function () {
                     expect(mkdirCB.error).toBe(null);
                 });

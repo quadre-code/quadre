@@ -228,7 +228,7 @@ define(function (require, exports, module) {
             $elem.attr("title", oldTitle + "(" + KeyBindingManager.formatKeyDescriptor(replaceShortcut.displayKey) + ")");
         }
     };
-    
+
     /**
      * @private
      * Adds element to the search history queue.
@@ -271,7 +271,7 @@ define(function (require, exports, module) {
         templateVars.Strings = Strings;
         templateVars.replaceBatchLabel = (templateVars.multifile ? Strings.BUTTON_REPLACE_ALL_IN_FILES : Strings.BUTTON_REPLACE_BATCH);
         templateVars.replaceAllLabel = Strings.BUTTON_REPLACE_ALL;
-        
+
         self._addElementToSearchHistory(this._options.initialQuery);
 
         this._modalBar = new ModalBar(Mustache.render(_searchBarTemplate, templateVars), true);  // 2nd arg = auto-close on Esc/blur

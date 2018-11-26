@@ -561,7 +561,7 @@ define(function (require, exports, module) {
     function _handleKeyupEvent(jqEvent, editor, event) {
         keyDownEditor = editor;
         if (_inSession(editor)) {
-          if (event.keyCode === KeyEvent.DOM_VK_HOME || 
+          if (event.keyCode === KeyEvent.DOM_VK_HOME ||
                   event.keyCode === KeyEvent.DOM_VK_END) {
                 _endSession();
             } else if (event.keyCode === KeyEvent.DOM_VK_LEFT ||
@@ -710,7 +710,7 @@ define(function (require, exports, module) {
     activeEditorChangeHandler(null, EditorManager.getActiveEditor(), null);
 
     EditorManager.on("activeEditorChange", activeEditorChangeHandler);
- 
+
     // Dismiss code hints before executing any command other than showing code hints since the command
     // may make the current hinting session irrevalent after execution.
     // For example, when the user hits Ctrl+K to open Quick Doc, it is

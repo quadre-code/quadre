@@ -463,7 +463,7 @@ define({
     "BASEURL_ERROR_HASH_DISALLOWED"        : "Adres URL nie może zawierać znaku hash: \"{0}\".",
     "BASEURL_ERROR_INVALID_CHAR"           : "Znaki specjalne takie, jak '{0}' muszą być zakodowane.",
     "BASEURL_ERROR_UNKNOWN_ERROR"          : "Nieznany błąd podczas parsowania adresu URL",
-    
+
     // Strings for Pane.js
     "EMPTY_VIEW_HEADER"                    : "<em>Kliknij w to okno, a następnie otwórz plik</em>",
     "FLIPVIEW_BTN_TOOLTIP"                 : "Przenieś ten widok do: {0}",
@@ -474,7 +474,7 @@ define({
     "FONT_SIZE"                            : "Rozmiar czcionki",
     "FONT_FAMILY"                          : "Rodzina czcionek",
     "THEMES_SETTINGS"                      : "Ustawienia motywów",
-    
+
     // CSS Quick Edit
     "BUTTON_NEW_RULE"                      : "Nowa reguła",
 
@@ -663,7 +663,7 @@ define({
 
     // extensions/default/MDNDocs
     "DOCS_MORE_LINK"                            : "Czytaj więcej",
-    
+
     // extensions/default/CodeFolding
     "COLLAPSE_ALL"                  : "Zwiń wszystko",
     "EXPAND_ALL"                    : "Rozwiń wszystko",

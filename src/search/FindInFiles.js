@@ -80,7 +80,7 @@ define(function (require, exports, module) {
         _debouncedFileSystemChangeHandler,
         _fileNameChangeHandler,
         clearSearch;
-    
+
     /**
      * Waits for FS changes to stack up until processing them
      * (scripts like npm install can do a lot of movements on the disk)
@@ -859,12 +859,12 @@ define(function (require, exports, module) {
             }
         });
     };
-    
+
     /**
      * This stores file system events emitted by watchers that were not yet processed
      */
     var _cachedFileSystemEvents = [];
-    
+
     /**
      * Debounced function to process emitted file system events
      * for cases when there's a lot of fs events emitted in a very short period of time
@@ -887,7 +887,7 @@ define(function (require, exports, module) {
         });
         _cachedFileSystemEvents = [];
     }, FILE_SYSTEM_EVENT_DEBOUNCE_TIME);
-    
+
     /**
      * Wrapper function for _fileSystemChangeHandler which handles all incoming fs events
      * putting them to cache and executing a debounced function

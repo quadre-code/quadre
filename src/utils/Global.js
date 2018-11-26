@@ -128,6 +128,6 @@ define(function (require, exports, module) {
     global.brackets._getGlobalRequireJSConfig = function () {
         return global.require.s.contexts._.config;
     };
-    
+
     exports.global = global;
 });

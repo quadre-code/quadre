@@ -216,7 +216,7 @@ var config = {};
                             self.postMessage({type: MessageIds.TERN_JUMPTODEF_MSG, file: fileInfo.name, offset: offset});
                             return;
                         }
-                        
+
                         var response = {type: MessageIds.TERN_JUMPTODEF_MSG,
                                               file: _getNormalizedFilename(fileInfo.name),
                                               resultFile: data.file,

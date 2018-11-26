@@ -39,7 +39,6 @@ define(function (require, exports, module) {
         PathUtils                 = require("thirdparty/path-utils/path-utils"),
         itemTemplate              = require("text!htmlContent/extension-manager-view-item.html"),
         PreferencesManager        = require("preferences/PreferencesManager");
-        
 
     /**
      * Create a detached link element, so that we can use it later to extract url details like 'protocol'

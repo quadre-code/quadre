@@ -112,13 +112,13 @@ define(function (require, exports, module) {
     function validate(path, options) {
         return _extensionManagerCall(function (extensionManager) {
             var d = new $.Deferred();
-            
+
             // make sure proxy is attached to options before calling validate
             // so npm can use it in the domain
             options = options || {};
             options.proxy = PreferencesManager.get("proxy");
             options.electronVersion = electronVersion;
-            
+
             extensionManager.validate(path, options)
                 .done(function (result) {
                     d.resolve({

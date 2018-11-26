@@ -40,8 +40,7 @@ define(function (require, exports, module) {
         FileUtils        = require("file/FileUtils"),
         SpecRunnerUtils  = require("spec/SpecRunnerUtils"),
         Strings          = require("strings");
-            
-        
+
     // Verify if we are running in a CI.
     var UrlParams = require("utils/UrlParams").UrlParams,
         params    = new UrlParams();

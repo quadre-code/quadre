@@ -52,7 +52,7 @@ define(function (require, exports, module) {
                              " bordborder: \n" +
                              " color\n" +
                              "} \n";
-                             
+
         var defaultHTMLContent = "<html> \n" +
                                  "<head> \n" +
                                  "</head> \n" +
@@ -457,7 +457,7 @@ define(function (require, exports, module) {
             });
 
         });
-        
+
         describe("CSS Hint provider in style attribute value context for html mode", function () {
 
             beforeEach(function () {
@@ -472,7 +472,7 @@ define(function (require, exports, module) {
                 testEditor = null;
                 testDocument = null;
             });
-            
+
             it("should list all prop-name hints right after the open quote for style value context", function () {
                 testEditor.setCursorPos({ line: 4, ch: 12 });    // after "='"
                 var hintList = expectHints(CSSCodeHints.cssPropHintProvider);
@@ -540,7 +540,6 @@ define(function (require, exports, module) {
                 testEditor.setCursorPos({ line: 10, ch: 20 });    // after "'"
                 expectNoHints(CSSCodeHints.cssPropHintProvider);
             });
-            
         });
 
 

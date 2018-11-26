@@ -302,27 +302,26 @@ define(function (require, exports, module) {
                 isOpen = cmenu.isOpen();
                 expect(isOpen).toBe(false);
             });
-            
+
             it("it should disable context menu items when file doesn't exist ", function () {
                 runs(function () {
                     // runs create a new file
                     var promise = CommandManager.execute(Commands.FILE_NEW_UNTITLED);
                     waitsForDone(promise, "FILE_NEW_UNTITLED");
-                    
+
                     // opens context menu
                     var cmenu = Menus.getContextMenu(Menus.ContextMenuIds.WORKING_SET_CONTEXT_MENU);
                     cmenu.open({pageX: 0, pageY: 0});
-                    
+
                     // checks that all the relevant items are disabled
                     var notVisible = [Commands.FILE_RENAME, Commands.NAVIGATE_SHOW_IN_FILE_TREE, Commands.NAVIGATE_SHOW_IN_OS];
                     notVisible.forEach(function (item) { expect(CommandManager.get(item).getEnabled()).toBe(false); });
-                    
+
                     //close menu and new file
                     cmenu.close();
-                    
                 });
             });
-            
+
             it("it should enable context menu items when file does exist ", function () {
                 var testPath = SpecRunnerUtils.getTempDirectory();
                 var newFilePath = testPath + "/contextMenuTest.js";
@@ -333,7 +332,7 @@ define(function (require, exports, module) {
                     var promise = CommandManager.execute(Commands.FILE_NEW_UNTITLED);
 
                     waitsForDone(promise, "FILE_NEW_UNTITLED");
-                    
+
                     spyOn(FileSystem, 'showSaveDialog').andCallFake(function (dialogTitle, initialPath, proposedNewName, callback) {
                         callback(undefined, newFilePath);
                     });
@@ -345,7 +344,7 @@ define(function (require, exports, module) {
                     // opens context menu
                     var cmenu = Menus.getContextMenu(Menus.ContextMenuIds.WORKING_SET_CONTEXT_MENU);
                     cmenu.open({pageX: 0, pageY: 0});
-                    
+
                     // checks that all the items are enabled
                     var visible = [Commands.FILE_SAVE, Commands.FILE_SAVE_AS, Commands.FILE_RENAME, Commands.NAVIGATE_SHOW_IN_FILE_TREE, Commands.NAVIGATE_SHOW_IN_OS, Commands.CMD_FIND_IN_SUBTREE, Commands.CMD_REPLACE_IN_SUBTREE, Commands.FILE_CLOSE];
                     visible.forEach(function (item) { expect(CommandManager.get(item).getEnabled()).toBe(true); });
@@ -797,24 +796,24 @@ define(function (require, exports, module) {
                     var command = CommandManager.get(commandId);
                     command.on("nameChange", function () {});
                     expect(Object.keys(command._eventHandlers).length).toBe(1);
-                    expect(command._eventHandlers.nameChange.length).toBe(1);                    
-                    
+                    expect(command._eventHandlers.nameChange.length).toBe(1);
+
                     var menuItem = menu.addMenuItem(commandId);
                     expect(Object.keys(command._eventHandlers).length).toBe(5);
                     expect(command._eventHandlers.nameChange.length).toBe(2);
                     expect(command._eventHandlers.enabledStateChange.length).toBe(1);
-                    expect(command._eventHandlers.checkedStateChange.length).toBe(1);                    
+                    expect(command._eventHandlers.checkedStateChange.length).toBe(1);
                     expect(command._eventHandlers.keyBindingAdded.length).toBe(1);
                     expect(command._eventHandlers.keyBindingRemoved.length).toBe(1);
 
                     // Check if attached events have been removed
                     menu.removeMenuItem(command);
                     expect(Object.keys(command._eventHandlers).length).toBe(1);
-                    expect(command._eventHandlers.nameChange.length).toBe(1);  
+                    expect(command._eventHandlers.nameChange.length).toBe(1);
                     expect(command._eventHandlers.enabledStateChange).toBeUndefined();
                     expect(command._eventHandlers.checkedStateChange).toBeUndefined();
                     expect(command._eventHandlers.keyBindingAdded).toBeUndefined();
-                    expect(command._eventHandlers.keyBindingRemoved).toBeUndefined();                    
+                    expect(command._eventHandlers.keyBindingRemoved).toBeUndefined();
 
                 });
             });

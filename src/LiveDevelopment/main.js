@@ -104,7 +104,7 @@ define(function main(require, exports, module) {
     }, {
         description: Strings.DESCRIPTION_LIVE_DEV_HIGHLIGHT_SETTINGS
     });
-    
+
     /** Toggles or sets the preference **/
     function _togglePref(key, value) {
         var val,
@@ -380,11 +380,11 @@ define(function main(require, exports, module) {
                     _setImplementation(prefs.get(PREF_MULTIBROWSER));
                 }
             });
-        
+
         remoteHighlightPref
             .on("change", function () {
                 config.remoteHighlight = prefs.get(PREF_REMOTEHIGHLIGHT);
-                       
+
                 if (LiveDevImpl && LiveDevImpl.status >= LiveDevImpl.STATUS_ACTIVE) {
                     LiveDevImpl.agents.remote.call("updateConfig",JSON.stringify(config));
                 }

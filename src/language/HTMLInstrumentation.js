@@ -93,7 +93,7 @@ define(function (require, exports, module) {
         var marks = editor._codeMirror.getAllMarks(),
             i,
             markFound;
-        
+
         markFound = _.find(marks, function (mark) {
             return (mark.tagID === tagId);
         });

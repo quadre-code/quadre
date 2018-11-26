@@ -2265,7 +2265,7 @@ define(function (require, exports, module) {
             });
 
             describe("with multiple selections", function () {
-                
+
                 beforeEach(function () {
                     PreferencesManager.set("indentLineComment", false);
                 });
@@ -2273,7 +2273,7 @@ define(function (require, exports, module) {
                 afterEach(function () {
                     PreferencesManager.set("indentLineComment", shouldIndentLineComment);
                 });
-                
+
                 it("should handle multiple selections in different regions, toggling block selection in each", function () {
                     myEditor.setSelections([{start: {line: 1, ch: 4}, end: {line: 1, ch: 10}},
                                             {start: {line: 4, ch: 16}, end: {line: 4, ch: 32}},
@@ -2291,7 +2291,6 @@ define(function (require, exports, module) {
                 });
 
                 it("should handle multiple selections in different regions, toggling line selection (but falling back to block selection in HTML/CSS)", function () {
-                    
                     myEditor.setSelections([{start: {line: 1, ch: 4}, end: {line: 1, ch: 10}},
                                         {start: {line: 4, ch: 16}, end: {line: 4, ch: 32}},
                                         {start: {line: 10, ch: 0}, end: {line: 10, ch: 0}}]);
@@ -2304,7 +2303,6 @@ define(function (require, exports, module) {
                     testToggleLine(lines.join("\n"), [{start: {line: 1, ch: 8}, end: {line: 1, ch: 14}, primary: false, reversed: false},
                                                       {start: {line: 4, ch: 18}, end: {line: 4, ch: 34}, primary: false, reversed: false},
                                                       {start: {line: 10, ch: 2}, end: {line: 10, ch: 2}, primary: true, reversed: false}]);
-                        
                 });
 
                 it("shouldn't comment anything in a mixed-mode selection, but should track it properly and comment the other selections", function () {
@@ -2326,7 +2324,7 @@ define(function (require, exports, module) {
             });
 
         });
-        
+
         describe("Comment/uncomment with mixed syntax modes with indentLineComment Enabled", function () {
 
             var htmlContent = "<html>\n" +

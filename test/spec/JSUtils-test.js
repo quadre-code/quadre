@@ -116,7 +116,7 @@ define(function (require, exports, module) {
                 var result = JSUtils.findAllMatchingFunctionsInText(jsCode, functionName);
                 expect(result.length).toBe(0);
             }
-            
+
             it("should return correct start and end line numbers for es6 class definitions and methods", function () {
                 runs(function () {
                     doneLoading = false;
@@ -130,7 +130,7 @@ define(function (require, exports, module) {
                     expectFunctionRanges(this, this.fileJsContent, "move", [ {start: 5, end: 8} ]);
                 });
             });
-            
+
             it("should return correct start and end line numbers for es6 static class methods", function () {
                 runs(function () {
                     doneLoading = false;
@@ -143,7 +143,7 @@ define(function (require, exports, module) {
                     expectFunctionRanges(this, this.fileJsContent, "defaultRectangle", [ {start:  1, end:  3} ]);
                 });
             });
-            
+
             it("should return correct start and end line numbers for es6 class inheritance", function () {
                 runs(function () {
                     doneLoading = false;
@@ -157,7 +157,7 @@ define(function (require, exports, module) {
                     expectFunctionRanges(this, this.fileJsContent, "constructor", [ {start:  1, end:  5}, {start:  8, end:  11} ]);
                 });
             });
-            
+
             it("should return correct start and end line numbers for es6 class members getters/setters", function () {
                 runs(function () {
                     doneLoading = false;
@@ -173,7 +173,7 @@ define(function (require, exports, module) {
                     expectFunctionRanges(this, this.fileJsContent, "area", [ {start:  9, end:  9} ]);
                 });
             });
-            
+
             it("should return correct start and end line numbers for es6 async and arrow function expressions", function () {
                 runs(function () {
                     doneLoading = false;

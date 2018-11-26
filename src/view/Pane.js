@@ -261,7 +261,7 @@ define(function (require, exports, module) {
             var otherPaneId = self.id === FIRST_PANE ? SECOND_PANE : FIRST_PANE;
             var otherPane = MainViewManager._getPane(otherPaneId);
             var sameDocInOtherView = otherPane.getViewForPath(currentFile.fullPath);
-            
+
             // If the same doc view is present in the destination, show the file instead of flipping it
             if (sameDocInOtherView) {
                 CommandManager.execute(Commands.FILE_OPEN, {fullPath: currentFile.fullPath,

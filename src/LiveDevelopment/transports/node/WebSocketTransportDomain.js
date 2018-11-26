@@ -25,7 +25,7 @@
 /**
  * WebSocketTransportDomain creates a websocket server for Live Preview
  * It receives the message containing tagID from the Remote Client(onClick)
- * and emits an event which is listened by WebSocketTransport which 
+ * and emits an event which is listened by WebSocketTransport which
  * brings the cursor to the tag corresponding to that particular tagID
  */
 
@@ -111,7 +111,7 @@ function init(domainManager) {
     if (!domainManager.hasDomain("webSocketTransport")) {
         domainManager.registerDomain("webSocketTransport", {major: 0, minor: 1});
     }
-    
+
     domainManager.registerEvent(
         "webSocketTransport",
         "message",
@@ -123,7 +123,7 @@ function init(domainManager) {
             }
         ]
     );
-    
+
     domainManager.registerCommand(
         "webSocketTransport",       // domain name
         "start",                    // command name
@@ -139,7 +139,7 @@ function init(domainManager) {
         ],
         []
     );
-    
+
     domainManager.registerCommand(
         "webSocketTransport",       // domain name
         "close",                    // command name

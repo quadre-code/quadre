@@ -420,7 +420,7 @@ define(function (require, exports, module) {
                     expect(fileResults).toBeFalsy();
                 });
             });
-            
+
             it("should verify the contents of searchHistory array", function () {
                 var fileEntry = FileSystem.getFileForPath(testPath + "/foo.js");
                 openSearchBar(fileEntry);
@@ -436,7 +436,7 @@ define(function (require, exports, module) {
                     expect(searchHistory).toEqual(["foo5", "foo4", "foo3", "foo2", "foo1"]);
                 });
             });
-            
+
             it("should traverse through search history using arrow down key", function () {
                 var fileEntry = FileSystem.getFileForPath(testPath + "/foo.js");
                 openSearchBar(fileEntry);
@@ -457,7 +457,7 @@ define(function (require, exports, module) {
                     expect($("#find-what").val()).toBe("foo5");
                 });
             });
-            
+
             it("should traverse through search history using arrow up key", function () {
                 var fileEntry = FileSystem.getFileForPath(testPath + "/foo.js");
                 openSearchBar(fileEntry);
@@ -478,7 +478,7 @@ define(function (require, exports, module) {
                     expect($("#find-what").val()).toBe("foo1");
                 });
             });
-            
+
             it("should add element to search history if it is pre-filled in search bar", function () {
                 var fileEntry = FileSystem.getFileForPath(testPath + "/foo.js");
                 openSearchBar(fileEntry);
@@ -2384,9 +2384,8 @@ define(function (require, exports, module) {
                         });
                     });
                 });
-                
+
                 describe("Disclosure Arrows", function () {
-               
                     it("should expand/collapse items when clicked", function () {
                         showSearchResults("foo", "bar");
                         runs(function () {

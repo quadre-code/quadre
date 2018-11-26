@@ -63,15 +63,15 @@ define(function (require, exports, module) {
             resultNode,
             memberPrefix,
             match;
-   
+
         PerfUtils.markStart(PerfUtils.JSUTILS_REGEXP);
-        
+
         try {
             AST = Acorn.parse(text, {locations: true});
         } catch (e) {
             AST = AcornLoose.parse_dammit(text, {locations: true});
         }
-        
+
         function _addResult(node, offset, prefix) {
             memberPrefix = prefix ? prefix + " - " : "";
             resultNode = node.id || node.key || node;
@@ -88,7 +88,7 @@ define(function (require, exports, module) {
                 }
             );
         }
-        
+
         ASTWalker.simple(AST, {
             /*
                 function <functionName> () {}
@@ -109,7 +109,7 @@ define(function (require, exports, module) {
                     /*
                         class <className> () {
                             <methodName> () {
-                            
+
                             }
                         }
                     */
@@ -119,10 +119,10 @@ define(function (require, exports, module) {
                 });
             },
             /*
-                var <functionName> = function () {} 
-                
-                or 
-                
+                var <functionName> = function () {}
+
+                or
+
                 var <functionName> = () => {}
             */
             VariableDeclarator: function (node) {

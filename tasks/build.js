@@ -155,8 +155,8 @@ module.exports = function (grunt) {
         options.headers = {
             "User-Agent" : "Node.js"
         };
-        
-        // Append secret env var only when it's available 
+
+        // Append secret env var only when it's available
         // Refer to https://docs.travis-ci.com/user/pull-requests/#Pull-Requests-and-Security-Restrictions
         if (process.env.BRACKETS_REPO_OAUTH_TOKEN) {
             options.path += "?access_token=" + process.env.BRACKETS_REPO_OAUTH_TOKEN;

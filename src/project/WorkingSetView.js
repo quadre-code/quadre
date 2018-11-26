@@ -1467,7 +1467,7 @@ define(function (require, exports, module) {
     AppInit.htmlReady(function () {
         $workingFilesContainer =  $("#working-set-list-container");
     });
-    
+
     /*
      * To be used by other modules/deafult-extensions which needs to borrow working set entry icons
      * @param {!object} data - contains file info {fullPath, name, isFile}
@@ -1492,14 +1492,14 @@ define(function (require, exports, module) {
             $element.addClass(provider(data));
         });
     }
-    
+
     // Public API
     exports.createWorkingSetViewForPane   = createWorkingSetViewForPane;
     exports.refresh                       = refresh;
     exports.addIconProvider               = addIconProvider;
     exports.addClassProvider              = addClassProvider;
     exports.syncSelectionIndicator        = syncSelectionIndicator;
-    
+
     // API to be used only by default extensions
     exports.useIconProviders              = useIconProviders;
     exports.useClassProviders               = useClassProviders;

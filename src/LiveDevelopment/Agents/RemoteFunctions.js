@@ -36,21 +36,21 @@ function RemoteFunctions(config, remoteWSPort) {
 
     var experimental;
     if (!config) {
-        experimental = false;    
+        experimental = false;
     } else {
-        experimental = config.experimental;    
+        experimental = config.experimental;
     }
     var lastKeepAliveTime = Date.now();
     var req, timeout;
     var animateHighlight = function (time) {
         if(req) {
-            window.cancelAnimationFrame(req);	
+            window.cancelAnimationFrame(req);
             window.clearTimeout(timeout);
         }
         req = window.requestAnimationFrame(redrawHighlights);
 
         timeout = setTimeout(function () {
-            window.cancelAnimationFrame(req);	
+            window.cancelAnimationFrame(req);
             req = null;
         }, time * 1000);
     };
@@ -118,7 +118,7 @@ function RemoteFunctions(config, remoteWSPort) {
             element.removeAttribute(key);
         }
     }
-    
+
     // Checks if the element is in Viewport in the client browser
     function isInViewport(element) {
         var rect = element.getBoundingClientRect();
@@ -130,7 +130,7 @@ function RemoteFunctions(config, remoteWSPort) {
             rect.right <= (window.innerWidth || html.clientWidth)
         );
     }
-    
+
     // returns the distance from the top of the closest relatively positioned parent element
     function getDocumentOffsetTop(element) {
         return element.offsetTop + (element.offsetParent ? getDocumentOffsetTop(element.offsetParent) : 0);
@@ -276,7 +276,7 @@ function RemoteFunctions(config, remoteWSPort) {
                 elementStyling = window.getComputedStyle(element),
                 transitionDuration = parseFloat(elementStyling.getPropertyValue('transition-duration')),
                 animationDuration = parseFloat(elementStyling.getPropertyValue('animation-duration'));
-            
+
             if (transitionDuration) {
                 animateHighlight(transitionDuration);
             }
@@ -289,21 +289,21 @@ function RemoteFunctions(config, remoteWSPort) {
             if (elementBounds.width === 0 && elementBounds.height === 0) {
                 return;
             }
-            
+
             var realElBorder = {
               right: elementStyling.getPropertyValue('border-right-width'),
               left: elementStyling.getPropertyValue('border-left-width'),
               top: elementStyling.getPropertyValue('border-top-width'),
               bottom: elementStyling.getPropertyValue('border-bottom-width')
             };
-            
+
             var borderBox = elementStyling.boxSizing === 'border-box';
-            
+
             var innerWidth = parseFloat(elementStyling.width),
                 innerHeight = parseFloat(elementStyling.height),
                 outerHeight = innerHeight,
                 outerWidth = innerWidth;
-                
+
             if (!borderBox) {
                 innerWidth += parseFloat(elementStyling.paddingLeft) + parseFloat(elementStyling.paddingRight);
                 innerHeight += parseFloat(elementStyling.paddingTop) + parseFloat(elementStyling.paddingBottom);
@@ -312,49 +312,49 @@ function RemoteFunctions(config, remoteWSPort) {
                 outerHeight = innerHeight + parseFloat(realElBorder.bottom) + parseFloat(realElBorder.top);
             }
 
-          
+
             var visualisations = {
                 horizontal: "left, right",
                 vertical: "top, bottom"
             };
-          
+
             var drawPaddingRect = function(side) {
               var elStyling = {};
-                
+
               if (visualisations.horizontal.indexOf(side) >= 0) {
                 elStyling['width'] =  elementStyling.getPropertyValue('padding-' + side);
                 elStyling['height'] = innerHeight + "px";
                 elStyling['top'] = 0;
-                  
+
                   if (borderBox) {
                     elStyling['height'] = innerHeight - parseFloat(realElBorder.top) - parseFloat(realElBorder.bottom) + "px";
                   }
-                
+
               } else {
-                elStyling['height'] = elementStyling.getPropertyValue('padding-' + side);  
+                elStyling['height'] = elementStyling.getPropertyValue('padding-' + side);
                 elStyling['width'] = innerWidth + "px";
                 elStyling['left'] = 0;
-                  
+
                   if (borderBox) {
                     elStyling['width'] = innerWidth - parseFloat(realElBorder.left) - parseFloat(realElBorder.right) + "px";
                   }
               }
-                
+
               elStyling[side] = 0;
               elStyling['position'] = 'absolute';
-              
+
               return elStyling;
             };
-          
+
           var drawMarginRect = function(side) {
             var elStyling = {};
-            
+
             var margin = [];
             margin['right'] = parseFloat(elementStyling.getPropertyValue('margin-right'));
             margin['top'] = parseFloat(elementStyling.getPropertyValue('margin-top'));
             margin['bottom'] = parseFloat(elementStyling.getPropertyValue('margin-bottom'));
             margin['left'] = parseFloat(elementStyling.getPropertyValue('margin-left'));
-          
+
             if(visualisations['horizontal'].indexOf(side) >= 0) {
 
               elStyling['width'] = elementStyling.getPropertyValue('margin-' + side);
@@ -374,37 +374,37 @@ function RemoteFunctions(config, remoteWSPort) {
 
             var setVisibility = function (el) {
                 if (
-                    !config.remoteHighlight.showPaddingMargin || 
-                    parseInt(el.height, 10) <= 0 || 
-                    parseInt(el.width, 10) <= 0 
+                    !config.remoteHighlight.showPaddingMargin ||
+                    parseInt(el.height, 10) <= 0 ||
+                    parseInt(el.width, 10) <= 0
                 ) {
                     el.display = 'none';
                 } else {
                     el.display = 'block';
                 }
             };
-            
+
             var mainBoxStyles = config.remoteHighlight.stylesToSet;
-            
+
             var paddingVisualisations = [
               drawPaddingRect('top'),
               drawPaddingRect('right'),
               drawPaddingRect('bottom'),
-              drawPaddingRect('left')  
+              drawPaddingRect('left')
             ];
-                
+
             var marginVisualisations = [
               drawMarginRect('top'),
               drawMarginRect('right'),
               drawMarginRect('bottom'),
-              drawMarginRect('left')  
+              drawMarginRect('left')
             ];
-            
+
             var setupVisualisations = function (arr, config) {
                 var i;
                 for (i = 0; i < arr.length; i++) {
                     setVisibility(arr[i]);
-                    
+
                     // Applies to every visualisationElement (padding or margin div)
                     arr[i]["transform"] = "none";
                     var el = window.document.createElement("div"),
@@ -419,7 +419,7 @@ function RemoteFunctions(config, remoteWSPort) {
                     highlight.appendChild(el);
                 }
             };
-            
+
             setupVisualisations(
                 marginVisualisations,
                 config.remoteHighlight.marginStyling
@@ -428,20 +428,20 @@ function RemoteFunctions(config, remoteWSPort) {
                 paddingVisualisations,
                 config.remoteHighlight.paddingStyling
             );
-            
+
             highlight.className = HIGHLIGHT_CLASSNAME;
 
             var offset = _screenOffset(element);
-            		
-            var el = element,		
-            offsetLeft = 0,		
-            offsetTop  = 0;		
-             		
-            // Probably the easiest way to get elements position without including transform		
-            do {		
-               offsetLeft += el.offsetLeft;		
-               offsetTop  += el.offsetTop;		
-               el = el.offsetParent;		
+
+            var el = element,
+            offsetLeft = 0,
+            offsetTop  = 0;
+
+            // Probably the easiest way to get elements position without including transform
+            do {
+               offsetLeft += el.offsetLeft;
+               offsetTop  += el.offsetTop;
+               el = el.offsetParent;
             } while(el);
 
             var stylesToSet = {
@@ -455,16 +455,16 @@ function RemoteFunctions(config, remoteWSPort) {
                 "position": "absolute",
                 "pointer-events": "none",
                 "box-shadow": "0 0 1px #fff",
-                "box-sizing": elementStyling.getPropertyValue('box-sizing'),		
-                "border-right": elementStyling.getPropertyValue('border-right'),		
-                "border-left": elementStyling.getPropertyValue('border-left'),		
-                "border-top": elementStyling.getPropertyValue('border-top'),		
-                "border-bottom": elementStyling.getPropertyValue('border-bottom'),		
-                "transform": elementStyling.getPropertyValue('transform'),		
-                "transform-origin": elementStyling.getPropertyValue('transform-origin'),		
+                "box-sizing": elementStyling.getPropertyValue('box-sizing'),
+                "border-right": elementStyling.getPropertyValue('border-right'),
+                "border-left": elementStyling.getPropertyValue('border-left'),
+                "border-top": elementStyling.getPropertyValue('border-top'),
+                "border-bottom": elementStyling.getPropertyValue('border-bottom'),
+                "transform": elementStyling.getPropertyValue('transform'),
+                "transform-origin": elementStyling.getPropertyValue('transform-origin'),
                 "border-color": config.remoteHighlight.borderColor
             };
-            
+
             var mergedStyles = Object.assign({}, stylesToSet,  config.remoteHighlight.stylesToSet);
 
             var animateStartValues = config.remoteHighlight.animateStartValue;
@@ -509,7 +509,7 @@ function RemoteFunctions(config, remoteWSPort) {
             if (this.trigger) {
                 _trigger(element, "highlight", 1);
             }
-            
+
             if ((!window.event || window.event instanceof MessageEvent) && !isInViewport(element)) {
                 var top = getDocumentOffsetTop(element);
                 if (top) {
@@ -1015,7 +1015,7 @@ function RemoteFunctions(config, remoteWSPort) {
     function getSimpleDOM() {
         return JSON.stringify(_domElementToJSON(window.document.documentElement));
     }
-    
+
     function updateConfig(newConfig) {
         config = JSON.parse(newConfig);
         return JSON.stringify(config);
@@ -1027,14 +1027,14 @@ function RemoteFunctions(config, remoteWSPort) {
     if (experimental) {
         window.document.addEventListener("keydown", onKeyDown);
     }
-    
+
     var _ws = null;
 
     function onDocumentClick(event) {
         var element = event.target,
             currentDataId,
             newDataId;
-        
+
         if (_ws && element && element.hasAttribute('data-brackets-id')) {
             _ws.send(JSON.stringify({
                 type: "message",
@@ -1042,27 +1042,27 @@ function RemoteFunctions(config, remoteWSPort) {
             }));
         }
     }
-    
-    
+
+
     function createWebSocket() {
         _ws = new WebSocket("ws://localhost:" + remoteWSPort);
         _ws.onopen = function () {
             window.document.addEventListener("click", onDocumentClick);
         };
-                
+
         _ws.onmessage = function (evt) {
         };
-                
+
         _ws.onclose = function () {
             // websocket is closed
             window.document.removeEventListener("click", onDocumentClick);
         };
     }
-    
+
     if (remoteWSPort) {
         createWebSocket();
     }
-    
+
     return {
         "DOMEditHandler"        : DOMEditHandler,
         "keepAlive"             : keepAlive,

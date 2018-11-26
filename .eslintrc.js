@@ -62,7 +62,7 @@ module.exports = {
         "new-parens": 2,
         "no-bitwise": 2,
         "no-new-object": 2,
-        "no-trailing-spaces": 1,
+        "no-trailing-spaces": "error",
         "semi-spacing": 1,
         "semi": 2
     },

@@ -377,7 +377,7 @@
     window.addEventListener('load', function () {
         ProtocolManager.enable();
     });
-    
+
     /**
     * Sends the message containing tagID which is being clicked
     * to the editor in order to change the cursor position to

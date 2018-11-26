@@ -138,7 +138,7 @@ define({
     "RELEASE_NOTES"                     : "Release Notes",
     "NO_UPDATE_TITLE"                   : "Έχετε την τελευταία έκδοση!",
     "NO_UPDATE_MESSAGE"                 : "Τρέχετε την τελευταία έκδοση του {APP_NAME}.",
-    
+
     //Find and replace
     "FIND_REPLACE_TITLE_LABEL"          : "Αντικατάσταση",
     "FIND_REPLACE_TITLE_WITH"           : "με",
@@ -163,7 +163,6 @@ define({
     "UNTITLED"          : "Άτιτλο",
     "WORKING_FILES"     : "Αρχεία Εργασίας",
 
-   
     /**
      * Keyboard modifier names
      */
@@ -451,7 +450,7 @@ define({
     "CMD_LOG_NODE_STATE"                        : "Καταγραφή Node State στη Console",
     "CMD_RESTART_NODE"                          : "Επανεκκίνηση του Node",
     "CMD_OPEN_BRACKETS_SOURCE"                  : "Άνοιξε τον κώδικα του {APP_NAME}",
-    
+
     "CREATING_LAUNCH_SCRIPT_TITLE"              : "{APP_NAME} Συντόμευση γραμμής εντολών",
     "ERROR_CREATING_LAUNCH_SCRIPT"              : "Ένα σφάλμα προέκυψε κατά την εγκατάσταση της συντόμευσης για την γραμμή εντολών. Παρακαλώ δοκίμασε <a href='https://github.com/adobe/brackets/wiki/Command-Line-Arguments#troubleshooting'>αυτές τις προτείνομενες λύσεις</a>.<br/><br/>Αιτιολογία: {0}",
     "ERROR_CLTOOLS_MKDIRFAILED"                 : "Αποτυχία δημιουργίας φακέλου του <code>/usr/local/bin</code>.",
@@ -465,7 +464,6 @@ define({
     "LANGUAGE_CANCEL"                           : "Ακύρωση",
     "LANGUAGE_SYSTEM_DEFAULT"                   : "Προεπιλογή Συστήματος",
 
-    
     // extensions/default/HealthData
     "HEALTH_DATA_NOTIFICATION"                  : "Προτιμήσεις Health Report",
     "HEALTH_FIRST_POPUP_TITLE"                  : "{APP_NAME} Health Report",
@@ -473,8 +471,7 @@ define({
     "HEALTH_DATA_NOTIFICATION_MESSAGE"          : "Προκειμένου να βελτιώσουμε το {APP_NAME}, στέλνουμε περιοδικά περιορισμένα, <strong>ανώνυμα</strong> στατιστικά στοιχεία στην Adobe σχετικά με το πώς χρησιμοποιείς το {APP_NAME}. Αυτές οι πληροφορίες βοηθάνε στην καταχώρηση προτεραιοτήτων στα χαρακτηριστικά,στην εύρεση σφαλμάτων και στον εντοπισμό προβλημάτων χρηστικότητας.<br><br>Μπορείς να δεις τα δεδομένα σου ή να επιλέξεις να μην μοιραστείς κάποια επιλέγοντας <strong>Help > Health Report</strong>.<br><br><a href='https://github.com/adobe/brackets/wiki/Health-Data'>Μάθε περισσότερα για το {APP_NAME} Health Report</a>",
     "HEALTH_DATA_PREVIEW"                       : "{APP_NAME} Health Report",
     "HEALTH_DATA_PREVIEW_INTRO"                 : "<p>Προκειμένου να βελτιώσουμε το {APP_NAME}, στέλνουμε περιοδικά περιορισμένα, <strong>ανώνυμα</strong> στατιστικά στοιχεία στην Adobe σχετικά με το πώς χρησιμοποιείς το {APP_NAME}. Αυτές οι πληροφορίες βοηθάνε στην καταχώρηση προτεραιοτήτων στα χαρακτηριστικά,στην εύρεση σφαλμάτων και στον εντοπισμό προβλημάτων χρηστικότητας. <a href='https://github.com/adobe/brackets/wiki/Health-Data'>Μάθε περισσότερα για το {APP_NAME} Health Report</a> και πόσο ωφελεί την κοινότητα του {APP_NAME} προστατεύοντας παράλληλα την ιδιωτικότητα σου..</p><p>Παρακάτω βλέπεις μια προεπισκόπηση των δεδομένων που θα σταλούν στο επόμενο Health Report <em>εφόσον</em> είναι ενεργοποιημένο.</p>",
-    
-    
+
      // extensions/default/InlineTimingFunctionEditor
     "INLINE_TIMING_EDITOR_TIME"                 : "Χρόνος",
     "INLINE_TIMING_EDITOR_PROGRESSION"          : "Πρόοδος",

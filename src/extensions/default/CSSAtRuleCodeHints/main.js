@@ -70,7 +70,7 @@ define(function (require, exports, module) {
 
         this.filter = token.string;
         this.token = token;
-        
+
         if (!this.filter) {
             return null;
         }
@@ -112,7 +112,7 @@ define(function (require, exports, module) {
         // Register code hint providers
         var restrictedBlockHints = new AtRuleHints();
         CodeHintManager.registerHintProvider(restrictedBlockHints, ["css", "less", "scss"], 0);
-        
+
         // For unit testing
         exports.restrictedBlockHints = restrictedBlockHints;
     });

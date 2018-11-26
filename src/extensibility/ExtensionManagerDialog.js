@@ -470,7 +470,7 @@ define(function (require, exports, module) {
                     $modalDlg.scrollTop(0);
                 }, 200);
             }).on("click", ".search-clear", clearSearch);
-            
+
             // Sort the extension list based on the current selected sorting criteria
             $dlg.on("change", ".sort-extensions", function (e) {
                 var sortBy = $(this).val();

@@ -670,12 +670,11 @@ define({
     "EXPAND_ALL"                    : "Alle ausklappen",
     "COLLAPSE_CURRENT"              : "Aktuelle einklappen",
     "EXPAND_CURRENT"                : "Aktuelle ausklappen",
-    
+
     // extensions/default/NavigationAndHistory
     "RECENT_FILES_DLG_HEADER"                    : "Kürzlich verwendete Dateien",
     "RECENT_FILES_DLG_CLEAR_BUTTON_LABEL"        : "Leeren",
     "RECENT_FILES_DLG_CLEAR_BUTTON_TITLE"        : "Entferne alle Dateien aus der Liste, die nicht im Projekt geöffnet sind",
-    
 
     // Descriptions of core preferences
     "DESCRIPTION_CLOSE_BRACKETS"                     : "Aktiviert das automatische Schließen von runden, eckigen und geschweiften Klammern",

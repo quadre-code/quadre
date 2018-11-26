@@ -642,15 +642,15 @@ define(function (require, exports, module) {
 
             ctx = TokenUtils.getInitialContext(_contextCM, {line: 0, ch: offset + 1});
         }
-        
+
         if (_isInPropName(ctx)) {
             return _getPropNameInfo(ctx, ctx.editor);
         }
-        
+
         if (_isInPropValue(ctx)) {
             return _getRuleInfoStartingFromPropValue(ctx, ctx.editor);
         }
-        
+
         if (_isInAtRule(ctx)) {
             return _getImportUrlInfo(ctx, editor);
         }

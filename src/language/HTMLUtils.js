@@ -227,8 +227,8 @@ define(function (require, exports, module) {
                 return createTagInfo();
             }
         }
-        
-        //Skip all the 'string' tokens backwards. Required to reach to the first line 
+
+        //Skip all the 'string' tokens backwards. Required to reach to the first line
         //of multiline HTML attribute value.
         while (TokenUtils.moveSkippingWhitespace(TokenUtils.movePrevToken, ctx)) {
             if (ctx.token.type !== "string") {

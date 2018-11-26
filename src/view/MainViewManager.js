@@ -829,7 +829,7 @@ define(function (require, exports, module) {
 
         sourcePane.moveView(file, destinationPane, destinationIndex)
             .done(function () {
-                // remove existing entry from mrulist for the same document if present 
+                // remove existing entry from mrulist for the same document if present
                 _removeFileFromMRU(destinationPane.id, file);
                 // update the mru list
                 _mruList.every(function (record) {
@@ -1681,8 +1681,7 @@ define(function (require, exports, module) {
 
         return result;
     }
-    
-    
+
     /**
      * Setup a ready event to initialize ourself
      */

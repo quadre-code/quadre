@@ -48,7 +48,7 @@ module.exports = function (grunt) {
 
         return _platform;
     }
-    
+
     function writeJSON(grunt, path, obj) {
         var content = JSON.stringify(obj, null, "    ");
         if (platform() === "win") {

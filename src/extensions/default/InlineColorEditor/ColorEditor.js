@@ -64,7 +64,7 @@ define(function (require, exports, module) {
     /**
      * Converts 0x-prefixed color to hex
      * @param {string} color - Color to convert
-     * @param {boolean} convertToString - true if color should 
+     * @param {boolean} convertToString - true if color should
      *                                    be returned as string
      * @returns {tinycolor|string} - Hex color as a Tinycolor object
      *                               or a hex string
@@ -82,7 +82,7 @@ define(function (require, exports, module) {
     /**
      * Ensures that a string is in Tinycolor supported format
      * @param {string} color - Color to check the format for
-     * @param {boolean} convertToString - true if color should 
+     * @param {boolean} convertToString - true if color should
      *                                    be returned as string
      * @returns {tinycolor|string} - Color as a Tinycolor object
      *                               or a hex string
@@ -155,8 +155,8 @@ define(function (require, exports, module) {
 
         // Initially selected color
         this.$originalColor.css("background-color", checkSetFormat(this._originalColor));
-        
-        this._commitColor(color);   
+
+        this._commitColor(color);
     }
 
     /**

@@ -462,11 +462,11 @@ define({
     "BASEURL_ERROR_HASH_DISALLOWED"     : "L’URL di base non può contenere hash come \"{0}\".",
     "BASEURL_ERROR_INVALID_CHAR"        : "I caratteri speciali come '{0}' devono essere %-encodate.",
     "BASEURL_ERROR_UNKNOWN_ERROR"       : "Trovato un carattere sconosciuto durante l'analisi del URL di base",
-    
+
     // Strings for Pane.js
     "EMPTY_VIEW_HEADER"                 : "<em>Aprire un file mentre questo riquadro è attivo</em>",
     "FLIPVIEW_BTN_TOOLTIP"              : "Spostare questa vista nel riquadro {0}",
-   
+
     // Strings for themes-settings.html and themes-general.html
     "CURRENT_THEME"                        : "Tema attuale",
     "USE_THEME_SCROLLBARS"                 : "Utilizzare le barre di scorrimento a tema",

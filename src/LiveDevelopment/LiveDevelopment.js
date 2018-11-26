@@ -198,7 +198,7 @@ define(function LiveDevelopment(require, exports, module) {
      * Handles of registered servers
      */
     var _regServers = [];
-    
+
     PreferencesManager.definePreference("livedev.wsPort", "number", 8125, {
         description: Strings.DESCRIPTION_LIVEDEV_WEBSOCKET_PORT
     });

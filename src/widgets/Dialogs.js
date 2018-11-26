@@ -333,7 +333,7 @@ define(function (require, exports, module) {
 
             // Restore previous focus
             if (lastFocus) {
-                lastFocus.focus();    
+                lastFocus.focus();
             }
 
             //Remove wrapper

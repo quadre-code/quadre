@@ -408,7 +408,7 @@ define(function (require, exports, module) {
                             var marks = getEditorFoldMarks();
                             expect(marks.length).toEqual(0);
                         });
-                        
+
                         runs(function () {
                             var lineNumbers = foldableLines;
                             var marks = getGutterFoldMarks();

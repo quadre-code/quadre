@@ -2049,18 +2049,18 @@ define(function (require, exports, module) {
                 });
             });
         });
-        
+
         describe("Gutter APIs", function () {
             var leftGutter = "left",
                 rightGutter = "right",
                 lineNumberGutter = "CodeMirror-linenumbers";
-                
+
             beforeEach(function () {
                 createTestEditor(defaultContent, "javascript");
                 Editor.registerGutter(leftGutter, 1);
                 Editor.registerGutter(rightGutter, 101);
             });
-            
+
             afterEach(function () {
                 var nonLineNumberGutters = Editor.getRegisteredGutters().map(function (gutter) {
                     return gutter.name;
@@ -2071,7 +2071,7 @@ define(function (require, exports, module) {
                     }
                 });
             });
-            
+
             it("should register multiple gutters in the correct order", function () {
                 var expectedGutters = [leftGutter, lineNumberGutter, rightGutter];
                 var gutters  = myEditor._codeMirror.getOption("gutters");
@@ -2081,7 +2081,7 @@ define(function (require, exports, module) {
                 expect(gutters).toEqual(expectedGutters);
                 expect(registeredGutters).toEqual(expectedGutters);
             });
-            
+
             it("should return gutters registered with the same priority in insertion order", function () {
                 var secondRightGutter = "second-right";
                 Editor.registerGutter(secondRightGutter, 101);
@@ -2093,7 +2093,7 @@ define(function (require, exports, module) {
                 expect(gutters).toEqual(expectedGutters);
                 expect(registeredGutters).toEqual(expectedGutters);
             });
-            
+
             it("should have only gutters registered with the intended languageIds ", function () {
                 var lessOnlyGutter = "less-only-gutter";
                 Editor.registerGutter(lessOnlyGutter, 101, ["less"]);
@@ -2106,7 +2106,7 @@ define(function (require, exports, module) {
                 expect(gutters).toEqual(expectedGutters);
                 expect(registeredGutters).toEqual(expectedRegisteredGutters);
             });
-            
+
             it("should unregister gutters correctly", function () {
                 Editor.unregisterGutter(leftGutter);
                 Editor.unregisterGutter(rightGutter);
@@ -2119,7 +2119,7 @@ define(function (require, exports, module) {
                 expect(gutters).toEqual(expectedGutters);
                 expect(registeredGutters).toEqual(expectedGutters);
             });
-            
+
             it("should set gutter marker correctly", function () {
                 var marker = window.document.createElement("div");
                 myEditor.setGutterMarker(1, leftGutter, marker);
