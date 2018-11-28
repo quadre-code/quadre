@@ -324,8 +324,8 @@ module.exports = function (grunt) {
                 '!test/thirdparty/**',
                 '!test/**/node_modules/**/*.js'
             ],
-            grunt: [
-                'Gruntfile.js',
+            build: [
+                '*.js',
                 'tasks/**/*.js',
                 'tasks/**/*.ts'
             ],
@@ -338,9 +338,9 @@ module.exports = function (grunt) {
             ]
         },
         watch: {
-            grunt: {
-                files: ['<%= meta.grunt %>'],
-                tasks: ['eslint:grunt']
+            build: {
+                files: ['<%= meta.build %>'],
+                tasks: ['eslint:build']
             },
             src: {
                 files: ['<%= meta.src %>'],
@@ -358,7 +358,7 @@ module.exports = function (grunt) {
             projectRoot: 'src/extensibility/node/spec/'
         },
         eslint: {
-            grunt:  '<%= meta.grunt %>',
+            build:  '<%= meta.build %>',
             app:    '<%= meta.app %>',
             src:    '<%= meta.src %>',
             test:   '<%= meta.test %>',
