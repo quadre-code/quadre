@@ -4,7 +4,7 @@ module.exports = {
         // http://eslint.org/docs/rules/#possible-errors
         "no-caller": "error",
         "no-control-regex": "error",
-        "no-empty": "warn",
+        "no-empty": "error",
         "no-invalid-regexp": "error",
         "no-regex-spaces": "error",
         "no-unsafe-negation": "error",
@@ -16,7 +16,7 @@ module.exports = {
         "guard-for-in": "off",
         "no-else-return": "warn",
         "no-fallthrough": "error",
-        "no-invalid-this": "warn",
+        "no-invalid-this": "off",
         "no-iterator": "error",
         "no-loop-func": "error",
         "no-multi-str": "error",
@@ -38,7 +38,7 @@ module.exports = {
         "no-new-require": "error",
         // http://eslint.org/docs/rules/#stylistic-issues
         "block-spacing": "warn",
-        "brace-style": ["warn", "1tbs", { allowSingleLine: true }],
+        "brace-style": ["error", "1tbs", { allowSingleLine: true }],
         "camelcase": "warn",
         "comma-dangle": "error",
         "comma-spacing": "warn",

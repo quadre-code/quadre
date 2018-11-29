@@ -495,9 +495,8 @@ define(function (require, exports, module) {
         // preference as well in the latter case.
         if (hasProtocol && (isImage || (!ext && extensionlessImagePreview))) {
             imgPath = tokenString;
-        }
-        // Use this filename if this is a path with a known image extension.
-        else if (!hasProtocol && isImage) {
+        } else if (!hasProtocol && isImage) {
+            // Use this filename if this is a path with a known image extension.
             imgPath = "file:///" + FileUtils.getDirectoryPath(docPath) + tokenString;
         }
 

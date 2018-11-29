@@ -853,8 +853,7 @@ define(function (require, exports, module) {
         var $firstPane = $('#first-pane'), $secondPane = $('#second-pane');
         if($firstPane.hasClass('active-pane')) {
             $secondPane.click();
-        }
-        else {
+        } else {
             $firstPane.click();
         }
     }

@@ -360,8 +360,7 @@ define(function (require, exports, module) {
                 } else {
                     $remainingField.removeClass("exclusions-name-characters-limit-reached");
                 }
-            }
-            else {
+            } else {
                 $remainingField.hide();
             }
             updatePrimaryButton();

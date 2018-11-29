@@ -821,6 +821,7 @@ define(function (require, exports, module) {
                     pm.definePreference("foo.bar", "string");
                     expect("We should have gotten an exception").toEqual("but we didn't");
                 } catch (e) {
+                    // Do nothing
                 }
             });
 
