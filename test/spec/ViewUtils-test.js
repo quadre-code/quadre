@@ -22,7 +22,6 @@
  *
  */
 
-/*global describe, beforeEach, afterEach, it, expect */
 /*unittests: ViewUtils*/
 
 define(function (require, exports, module) {

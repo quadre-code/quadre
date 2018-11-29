@@ -22,8 +22,6 @@
  *
  */
 
-/*global describe, it, expect, beforeEach, afterEach, waitsFor, runs */
-
 define(function (require, exports, module) {
 
     'use strict';

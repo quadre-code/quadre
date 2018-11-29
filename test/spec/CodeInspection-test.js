@@ -22,8 +22,6 @@
  *
  */
 
-/*global describe, it, expect, beforeEach, beforeFirst, afterEach, afterLast, waits, runs, waitsForDone, spyOn */
-
 define(function (require, exports, module) {
     "use strict";
 
@@ -472,20 +470,20 @@ define(function (require, exports, module) {
 
                     for (i = 0; i < result.length; i++) {
                         switch (result[i].provider.name) {
-                        case asyncProvider1.name:
-                        case syncProvider3.name:
-                            expect(result[i].result).toBeDefined();
-                            expect(result[i].result).not.toBeNull();
-                            break;
-                        case asyncProvider2.name:
-                            expect(result[i].result).toBeDefined();
-                            expect(result[i].result.errors.length).toBe(1);
-                            expect(result[i].result.errors[0].pos).toEqual({line: -1, col: 0});
-                            expect(result[i].result.errors[0].message).toBe(StringUtils.format(Strings.LINTER_TIMED_OUT, "javascript async linter 2", prefs.get(CodeInspection._PREF_ASYNC_TIMEOUT)));
-                            break;
-                        default:
-                            expect(true).toBe(false);
-                            break;
+                            case asyncProvider1.name:
+                            case syncProvider3.name:
+                                expect(result[i].result).toBeDefined();
+                                expect(result[i].result).not.toBeNull();
+                                break;
+                            case asyncProvider2.name:
+                                expect(result[i].result).toBeDefined();
+                                expect(result[i].result.errors.length).toBe(1);
+                                expect(result[i].result.errors[0].pos).toEqual({line: -1, col: 0});
+                                expect(result[i].result.errors[0].message).toBe(StringUtils.format(Strings.LINTER_TIMED_OUT, "javascript async linter 2", prefs.get(CodeInspection._PREF_ASYNC_TIMEOUT)));
+                                break;
+                            default:
+                                expect(true).toBe(false);
+                                break;
                         }
                     }
                 });

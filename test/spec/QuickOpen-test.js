@@ -22,7 +22,6 @@
  *
  */
 
-/*global describe, it, expect, beforeEach, afterEach, waitsFor, waitsForDone, runs */
 /*unittests: QuickOpen*/
 
 define(function (require, exports, module) {

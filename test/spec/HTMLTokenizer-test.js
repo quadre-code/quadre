@@ -22,7 +22,6 @@
  *
  */
 
-/*global describe, it, expect */
 /*unittests: HTML Tokenizer*/
 
 define(function (require, exports, module) {

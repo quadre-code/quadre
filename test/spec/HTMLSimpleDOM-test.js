@@ -22,7 +22,6 @@
  *
  */
 
-/*global describe, it, expect, jasmine */
 /*unittests: HTML SimpleDOM*/
 
 define(function (require, exports, module) {

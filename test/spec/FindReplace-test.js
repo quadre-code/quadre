@@ -22,7 +22,6 @@
  *
  */
 
-/*global describe, xdescribe, it, expect, beforeFirst, afterLast, beforeEach, afterEach, waitsFor, waitsForDone, runs, jasmine */
 /*unittests: FindReplace*/
 
 define(function (require, exports, module) {

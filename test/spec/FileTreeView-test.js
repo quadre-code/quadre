@@ -22,7 +22,6 @@
  *
  */
 
-/*global describe, it, expect, jasmine */
 /*unittests: FileTreeView*/
 
 define(function (require, exports, module) {

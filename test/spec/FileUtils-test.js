@@ -22,7 +22,6 @@
  *
  */
 
-/*global describe, it, expect, beforeEach, afterEach, spyOn */
 /*unittests: FileUtils*/
 
 define(function (require, exports, module) {

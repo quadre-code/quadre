@@ -84,6 +84,7 @@ module.exports = {
         "XMLHttpRequest": false
     },
     "overrides": [
+        // TypeScript
         {
             "files": [ "**/*.ts" ],
             "excludedFiles": "**/*.js",
@@ -96,6 +97,7 @@ module.exports = {
                 "no-unused-vars": "off"
             }
         },
+        // TypeScript + React
         {
             "files": [ "**/*.tsx" ],
             "excludedFiles": "**/*.js",
@@ -117,6 +119,7 @@ module.exports = {
                 "react/jsx-uses-vars": "error"
             }
         },
+        // Build files
         {
             "files": [
                 "*.js",
@@ -124,6 +127,22 @@ module.exports = {
             ],
             "parserOptions": {
                 "ecmaVersion": 6
+            }
+        },
+        // Tests
+        {
+            "files": [
+                "test/**",
+            ],
+            "env": {
+                "jasmine": true,
+            },
+            "globals": {
+                "beforeFirst": false,
+                "afterLast": false,
+                "waitsForDone": false,
+                "waitsForFail": false,
+                "electron": false
             }
         }
     ]

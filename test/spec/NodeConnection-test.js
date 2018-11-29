@@ -22,7 +22,7 @@
  *
  */
 
-/*global describe, it, expect, beforeEach, afterEach, waits, waitsFor, runs, ArrayBuffer, DataView, jasmine */
+/*global DataView */
 
 define(function (require, exports, module) {
     "use strict";

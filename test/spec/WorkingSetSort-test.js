@@ -22,8 +22,6 @@
  *
  */
 
-/*global describe, it, expect, waitsFor, runs, beforeFirst, afterLast */
-
 define(function (require, exports, module) {
     "use strict";
 

@@ -23,7 +23,6 @@
  */
 
 /*jslint regexp: true */
-/*global describe, it, expect, beforeEach, afterEach, waitsFor, runs, waitsForDone, spyOn, jasmine */
 /*unittests: ExtensionManager*/
 
 define(function (require, exports, module) {

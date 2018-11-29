@@ -22,7 +22,6 @@
  *
  */
 
-/*global describe, it, beforeEach, expect */
 /*unittests: FileTreeViewModel*/
 
 define(function (require, exports, module) {

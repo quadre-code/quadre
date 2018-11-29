@@ -22,7 +22,6 @@
  *
  */
 
-/*global describe, jasmine, beforeEach, afterEach, it, xit, runs, waitsFor, expect, waitsForDone, spyOn */
 /*unittests: LanguageManager */
 
 define(function (require, exports, module) {

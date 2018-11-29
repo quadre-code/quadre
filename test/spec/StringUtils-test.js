@@ -22,8 +22,6 @@
  *
  */
 
-/*global describe, it, expect */
-
 define(function (require, exports, module) {
     'use strict';
 

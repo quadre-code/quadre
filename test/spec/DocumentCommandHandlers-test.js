@@ -22,8 +22,6 @@
  *
  */
 
-/*global describe, beforeEach, afterEach, it, runs, expect, waitsForDone, waitsForFail, spyOn, beforeFirst, afterLast, jasmine, xit */
-
 define(function (require, exports, module) {
     'use strict';
 

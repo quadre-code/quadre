@@ -22,7 +22,6 @@
  *
  */
 
-/*global describe, beforeEach, afterEach, it, expect, spyOn, runs, waits */
 /*unittests: KeyBindingManager */
 
 define(function (require, exports, module) {

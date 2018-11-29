@@ -22,7 +22,6 @@
  *
  */
 
-/*global describe, it, expect, beforeEach, afterEach, waitsFor, waitsForDone, runs, beforeFirst */
 /*unittests: Preferences Base*/
 
 define(function (require, exports, module) {

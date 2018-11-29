@@ -22,8 +22,6 @@
  *
  */
 
-/*global beforeEach, afterEach, beforeFirst, afterLast, jasmine */
-
 // Set the baseUrl to dist/www
 require.config({
     baseUrl: "../www",

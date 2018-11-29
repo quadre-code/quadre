@@ -23,7 +23,7 @@
  */
 
 /*jslint evil: true, regexp: true */
-/*global describe, beforeEach, afterEach, it, runs, expect, spyOn, jasmine, Node */
+/*global Node */
 /*unittests: HTML Instrumentation*/
 
 define(function (require, exports, module) {

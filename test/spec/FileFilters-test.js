@@ -21,7 +21,6 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-/*global describe, it, expect, beforeFirst, afterLast, beforeEach, afterEach, waitsFor, waitsForDone, waits, runs */
 /*unittests: FileFilters*/
 
 define(function (require, exports, module) {

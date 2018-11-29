@@ -22,7 +22,7 @@
  *
  */
 
-/*global jasmine, expect, beforeEach, waitsFor, waitsForDone, runs, spyOn, KeyboardEvent */
+/*global KeyboardEvent */
 
 define(function (require, exports, module) {
     'use strict';

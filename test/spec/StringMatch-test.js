@@ -22,7 +22,6 @@
  *
  */
 
-/*global describe, it, expect, beforeEach, afterEach, jasmine */
 /*unittests: StringMatch */
 
 define(function (require, exports, module) {

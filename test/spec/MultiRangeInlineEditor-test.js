@@ -22,7 +22,7 @@
  *
  */
 
-/*global describe, it, xit, expect, beforeEach, afterEach, runs, HTMLElement, beforeFirst, afterLast, waitsForDone */
+/*global HTMLElement */
 
 define(function (require, exports, module) {
     'use strict';
