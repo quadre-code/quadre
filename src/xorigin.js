@@ -35,7 +35,7 @@
         testCrossOriginError = function (message, url, line) {
             return url === "" && line === 0 && message === "Script error.";
         };
-    } else if (window.navigator.userAgent.slice(0, 6) === 'Opera/') {
+    } else if (window.navigator.userAgent.slice(0, 6) === "Opera/") {
         // Opera support
         testCrossOriginError = function (message, url, line) {
             return message === "Uncaught exception: DOMException: NETWORK_ERR";

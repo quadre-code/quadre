@@ -25,7 +25,7 @@
 /*unittests: KeyBindingManager */
 
 define(function (require, exports, module) {
-    'use strict';
+    "use strict";
 
     require("utils/Global");
 
@@ -480,7 +480,7 @@ define(function (require, exports, module) {
                     KeyBindingManager._loadUserKeyMap();
                     waits(300);
 
-                    spyOn(Dialogs, 'showModalDialog').andCallFake(function (dlgClass, title, message, buttons) {
+                    spyOn(Dialogs, "showModalDialog").andCallFake(function (dlgClass, title, message, buttons) {
                         expect(message).toEqual(Strings.ERROR_LOADING_KEYMAP);
                         return {done: function (callback) { callback(Dialogs.DIALOG_BTN_OK); } };
                     });
@@ -496,7 +496,7 @@ define(function (require, exports, module) {
                     KeyBindingManager._loadUserKeyMap();
                     waits(300);
 
-                    spyOn(Dialogs, 'showModalDialog').andCallFake(function (dlgClass, title, message, buttons) {
+                    spyOn(Dialogs, "showModalDialog").andCallFake(function (dlgClass, title, message, buttons) {
                         expect(message).toEqual(Strings.ERROR_KEYMAP_CORRUPT);
                         return {done: function (callback) { callback(Dialogs.DIALOG_BTN_OK); } };
                     });
@@ -512,7 +512,7 @@ define(function (require, exports, module) {
                     KeyBindingManager._loadUserKeyMap();
                     waits(300);
 
-                    spyOn(Dialogs, 'showModalDialog').andCallFake(function (dlgClass, title, message, buttons) {
+                    spyOn(Dialogs, "showModalDialog").andCallFake(function (dlgClass, title, message, buttons) {
                         expect(message).toEqual(Strings.ERROR_KEYMAP_CORRUPT);
                         return {done: function (callback) { callback(Dialogs.DIALOG_BTN_OK); } };
                     });
@@ -527,7 +527,7 @@ define(function (require, exports, module) {
                     KeyBindingManager._initCommandAndKeyMaps();
                     KeyBindingManager._setUserKeyMapFilePath(testPath + "/empty.json");
                     KeyBindingManager._loadUserKeyMap();
-                    spyOn(Dialogs, 'showModalDialog').andCallFake(function (dlgClass, title, message, buttons) {
+                    spyOn(Dialogs, "showModalDialog").andCallFake(function (dlgClass, title, message, buttons) {
                         return {done: function (callback) { callback(Dialogs.DIALOG_BTN_OK); } };
                     });
                 });
@@ -541,7 +541,7 @@ define(function (require, exports, module) {
                     KeyBindingManager._initCommandAndKeyMaps();
                     KeyBindingManager._setUserKeyMapFilePath(testPath + "/blank.json");
                     KeyBindingManager._loadUserKeyMap();
-                    spyOn(Dialogs, 'showModalDialog').andCallFake(function (dlgClass, title, message, buttons) {
+                    spyOn(Dialogs, "showModalDialog").andCallFake(function (dlgClass, title, message, buttons) {
                         return {done: function (callback) { callback(Dialogs.DIALOG_BTN_OK); } };
                     });
                 });
@@ -558,7 +558,7 @@ define(function (require, exports, module) {
                     KeyBindingManager._loadUserKeyMap();
                     waits(300);
 
-                    spyOn(Dialogs, 'showModalDialog').andCallFake(function (dlgClass, title, message, buttons) {
+                    spyOn(Dialogs, "showModalDialog").andCallFake(function (dlgClass, title, message, buttons) {
                         var msgPrefix = Strings.ERROR_RESTRICTED_COMMANDS.replace("{0}", "");
                         expect(message).toMatch(msgPrefix);
                         expect(message).toMatch("edit.copy");
@@ -580,7 +580,7 @@ define(function (require, exports, module) {
                     KeyBindingManager._loadUserKeyMap();
                     waits(300);
 
-                    spyOn(Dialogs, 'showModalDialog').andCallFake(function (dlgClass, title, message, buttons) {
+                    spyOn(Dialogs, "showModalDialog").andCallFake(function (dlgClass, title, message, buttons) {
                         var msgPrefix = Strings.ERROR_RESTRICTED_SHORTCUTS.replace("{0}", "");
                         expect(message).toMatch(msgPrefix);
                         if (platform === "mac") {
@@ -607,7 +607,7 @@ define(function (require, exports, module) {
                     KeyBindingManager._loadUserKeyMap();
                     waits(300);
 
-                    spyOn(Dialogs, 'showModalDialog').andCallFake(function (dlgClass, title, message, buttons) {
+                    spyOn(Dialogs, "showModalDialog").andCallFake(function (dlgClass, title, message, buttons) {
                         var msgPrefix = Strings.ERROR_MULTIPLE_SHORTCUTS.replace("{0}", "");
                         expect(message).toMatch(msgPrefix);
                         expect(message).toMatch("file.openFolder");
@@ -629,7 +629,7 @@ define(function (require, exports, module) {
                     KeyBindingManager._loadUserKeyMap();
                     waits(300);
 
-                    spyOn(Dialogs, 'showModalDialog').andCallFake(function (dlgClass, title, message, buttons) {
+                    spyOn(Dialogs, "showModalDialog").andCallFake(function (dlgClass, title, message, buttons) {
                         var msgPrefix = Strings.ERROR_DUPLICATE_SHORTCUTS.replace("{0}", "");
                         expect(message).toMatch(msgPrefix);
                         expect(message).toMatch("Ctrl-2");
@@ -651,7 +651,7 @@ define(function (require, exports, module) {
                     KeyBindingManager._loadUserKeyMap();
                     waits(300);
 
-                    spyOn(Dialogs, 'showModalDialog').andCallFake(function (dlgClass, title, message, buttons) {
+                    spyOn(Dialogs, "showModalDialog").andCallFake(function (dlgClass, title, message, buttons) {
                         var msgPrefix = Strings.ERROR_INVALID_SHORTCUTS.replace("{0}", "");
                         expect(message).toMatch(msgPrefix);
                         expect(message).toMatch("command-2");
@@ -675,7 +675,7 @@ define(function (require, exports, module) {
                     KeyBindingManager._loadUserKeyMap();
                     waits(300);
 
-                    spyOn(Dialogs, 'showModalDialog').andCallFake(function (dlgClass, title, message, buttons) {
+                    spyOn(Dialogs, "showModalDialog").andCallFake(function (dlgClass, title, message, buttons) {
                         var msgPrefix = Strings.ERROR_NONEXISTENT_COMMANDS.replace("{0}", "");
                         expect(message).toMatch(msgPrefix);
                         expect(message).toMatch("file.openFolder");
@@ -700,7 +700,7 @@ define(function (require, exports, module) {
                     KeyBindingManager._loadUserKeyMap();
                     waits(300);
 
-                    spyOn(Dialogs, 'showModalDialog').andCallFake(function (dlgClass, title, message, buttons) {
+                    spyOn(Dialogs, "showModalDialog").andCallFake(function (dlgClass, title, message, buttons) {
                         return {done: function (callback) { callback(Dialogs.DIALOG_BTN_OK); } };
                     });
                 });
@@ -743,7 +743,7 @@ define(function (require, exports, module) {
                     KeyBindingManager._loadUserKeyMap();
                     waits(300);
 
-                    spyOn(Dialogs, 'showModalDialog').andCallFake(function (dlgClass, title, message, buttons) {
+                    spyOn(Dialogs, "showModalDialog").andCallFake(function (dlgClass, title, message, buttons) {
                         return {done: function (callback) { callback(Dialogs.DIALOG_BTN_OK); } };
                     });
                 });

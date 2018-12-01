@@ -33,7 +33,7 @@ define(function (require, exports, module) {
     var testFilePath = SpecRunnerUtils.getTestPath("/spec/Theme-test-files");
 
     function superTrim(text) {
-        return text.replace(/\s/g, '');
+        return text.replace(/\s/g, "");
     }
 
 

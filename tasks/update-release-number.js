@@ -32,7 +32,7 @@ module.exports = function (grunt) {
 
     // task: update-release-number
     // Updates the version property in package.json
-    grunt.registerTask('update-release-number', function () {
+    grunt.registerTask("update-release-number", function () {
         var path        = "package.json",
             packageJSON = grunt.file.readJSON(path),
             release     = grunt.option("release") || "";

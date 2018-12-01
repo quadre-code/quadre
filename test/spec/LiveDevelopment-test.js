@@ -25,7 +25,7 @@
 /*jslint regexp: true */
 
 define(function (require, exports, module) {
-    'use strict';
+    "use strict";
 
     var SpecRunnerUtils         = require("spec/SpecRunnerUtils"),
         Async                   = require("utils/Async"),

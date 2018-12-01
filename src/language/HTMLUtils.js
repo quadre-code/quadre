@@ -55,7 +55,7 @@ define(function (require, exports, module) {
         //If this is a fully quoted value, return the whole
         //thing regardless of position
         if (attrValue.length > 1 &&
-                (startChar === "'" || startChar === '"') &&
+                (startChar === "'" || startChar === `"`) &&
                 endChar === startChar) {
 
             // Find an equal sign before the end quote. If found,
@@ -78,7 +78,7 @@ define(function (require, exports, module) {
                 bracketIndex = attrValue.indexOf(">"),
                 upToIndex = (spaceIndex !== -1 && spaceIndex < bracketIndex) ? spaceIndex : bracketIndex;
             attrValue = attrValue.substring(0, (upToIndex > offset) ? upToIndex : offset);
-        } else if (offset > 0 && (startChar === "'" || startChar === '"')) {
+        } else if (offset > 0 && (startChar === "'" || startChar === `"`)) {
             //The att value is getting edit in progress. There is possible extra
             //stuff in this token state since the quote isn't closed, so we assume
             //the stuff from the quote to the current pos is definitely in the attribute
@@ -88,7 +88,7 @@ define(function (require, exports, module) {
 
         //If the attrValue start with a quote, trim that now
         startChar = attrValue.charAt(0);
-        if (startChar === "'" || startChar === '"') {
+        if (startChar === "'" || startChar === `"`) {
             attrValue = attrValue.substring(1);
             offset--;
         } else {

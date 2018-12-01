@@ -235,7 +235,7 @@
             //check for Javascript files
             if (Utils.isExternalScript(nodes[i])) {
                 _transport.send(JSON.stringify({
-                    method: 'ScriptAdded',
+                    method: "ScriptAdded",
                     src: nodes[i].src
                 }));
             }
@@ -254,7 +254,7 @@
             // check for external JS files
             if (Utils.isExternalScript(nodes[i])) {
                 _transport.send(JSON.stringify({
-                    method: 'ScriptRemoved',
+                    method: "ScriptRemoved",
                     src: nodes[i].src
                 }));
             }
@@ -285,10 +285,10 @@
             });
         } else {
             // use MutationEvents as fallback
-            window.document.addEventListener('DOMNodeInserted', function niLstnr(e) {
+            window.document.addEventListener("DOMNodeInserted", function niLstnr(e) {
                 _onNodesAdded([e.target]);
             });
-            window.document.addEventListener('DOMNodeRemoved', function nrLstnr(e) {
+            window.document.addEventListener("DOMNodeRemoved", function nrLstnr(e) {
                 _onNodesRemoved([e.target]);
             });
         }

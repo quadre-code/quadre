@@ -850,8 +850,8 @@ define(function (require, exports, module) {
      * Switch between panes
      */
     function switchPaneFocus() {
-        var $firstPane = $('#first-pane'), $secondPane = $('#second-pane');
-        if($firstPane.hasClass('active-pane')) {
+        var $firstPane = $("#first-pane"), $secondPane = $("#second-pane");
+        if($firstPane.hasClass("active-pane")) {
             $secondPane.click();
         } else {
             $firstPane.click();
@@ -1637,7 +1637,7 @@ define(function (require, exports, module) {
 
         // Listen to key Alt-W to toggle between panes
         CommandManager.register(Strings.CMD_SWITCH_PANE_FOCUS, Commands.CMD_SWITCH_PANE_FOCUS, switchPaneFocus);
-        KeyBindingManager.addBinding(Commands.CMD_SWITCH_PANE_FOCUS, {key: 'Alt-W'});
+        KeyBindingManager.addBinding(Commands.CMD_SWITCH_PANE_FOCUS, {key: "Alt-W"});
     }
 
     /**

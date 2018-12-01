@@ -496,7 +496,7 @@ define(function (require, exports, module) {
             if ($activeTab.length) { // If there's already a tab selected, show it
                 $activeTab.parent().removeClass("active"); // workaround for bootstrap-tab
                 $activeTab.tab("show");
-            } else if ($("#toolbar-extension-manager").hasClass('updatesAvailable')) {
+            } else if ($("#toolbar-extension-manager").hasClass("updatesAvailable")) {
                 // Open dialog to Installed tab if extension updates are available
                 $dlg.find(".nav-tabs a.installed").tab("show");
             } else { // Otherwise show the first tab
@@ -506,7 +506,7 @@ define(function (require, exports, module) {
             // then check for the selection
             // Or if there was an update available since activeTab.length would be 0,
             // then check for updatesAvailable class in toolbar-extension-manager
-            if (($activeTab.length && $activeTab.hasClass("installed")) || (!$activeTab.length && $("#toolbar-extension-manager").hasClass('updatesAvailable'))) {
+            if (($activeTab.length && $activeTab.hasClass("installed")) || (!$activeTab.length && $("#toolbar-extension-manager").hasClass("updatesAvailable"))) {
                 $(".ext-sort-group").hide();
             } else {
                 $(".ext-sort-group").show();

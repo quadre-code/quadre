@@ -296,10 +296,10 @@ function extractAndValidateFiles(zipPath, extractDir, options, callback) {
                     errors.push([Errors.MISSING_MAIN, zipPath, mainJS]);
                 }
 
-                var npmOptions = ['--production'];
+                var npmOptions = ["--production"];
 
                 if (options.proxy) {
-                    npmOptions.push('--proxy ' + options.proxy);
+                    npmOptions.push("--proxy " + options.proxy);
                 }
 
                 npmOptions.push("--disturl=https://atom.io/download/electron");

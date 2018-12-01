@@ -23,7 +23,7 @@
  */
 
 define(function (require, exports, module) {
-    'use strict';
+    "use strict";
 
     // Load dependent modules
     var CommandManager,      // loaded from brackets.test

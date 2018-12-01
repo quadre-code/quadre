@@ -63,7 +63,7 @@ module.exports = function (grunt) {
         build.getGitInfo(process.cwd()).then(function (gitInfo) {
             distConfig.repository.SHA = gitInfo.sha;
             distConfig.repository.branch = gitInfo.branch;
-            distConfig.config.build_timestamp = new Date().toString().split('(')[0].trim();
+            distConfig.config.build_timestamp = new Date().toString().split("(")[0].trim();
             common.writeJSON(grunt, "dist/www/config.json", distConfig);
             done();
         }, function (err) {

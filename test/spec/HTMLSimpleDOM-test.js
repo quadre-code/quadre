@@ -89,8 +89,8 @@ define(function (require, exports, module) {
             it("should return null for an unclosed non-void/non-implied-close tag", function () {
                 var errors = [{
                     token : {
-                        type : 'closetag',
-                        contents : 'p',
+                        type : "closetag",
+                        contents : "p",
                         start : 37,
                         end : 38,
                         startPos : { line : 0, ch : 37 },
@@ -106,8 +106,8 @@ define(function (require, exports, module) {
             it("should adjust for offsets when logging errors", function () {
                 var errors = [{
                     token : {
-                        type : 'closetag',
-                        contents : 'p',
+                        type : "closetag",
+                        contents : "p",
                         start : 38,
                         end : 39,
                         startPos : { line : 1, ch : 22 },
@@ -123,8 +123,8 @@ define(function (require, exports, module) {
             it("should return null for an extra close tag", function () {
                 var errors = [{
                     token : {
-                        type : 'closetag',
-                        contents : 'b',
+                        type : "closetag",
+                        contents : "b",
                         start : 30,
                         end : 31,
                         startPos : { line : 0, ch : 30 },
@@ -150,8 +150,8 @@ define(function (require, exports, module) {
             it("should return null if there is a tokenization failure", function () {
                 var errors = [{
                     token : {
-                        type : 'error',
-                        contents : '',
+                        type : "error",
+                        contents : "",
                         start : -1,
                         end : 4,
                         startPos : null,

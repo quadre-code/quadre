@@ -163,11 +163,11 @@ define(function (require, exports, module) {
                 return;
             }
 
-            $hintObj.addClass('brackets-js-hints-with-type-details');
+            $hintObj.addClass("brackets-js-hints-with-type-details");
 
             (function _appendLink() {
                 if (token.url) {
-                    $('<a></a>').appendTo($hintObj).addClass("jshint-link").attr('href', token.url).on("click", function (event) {
+                    $("<a></a>").appendTo($hintObj).addClass("jshint-link").attr("href", token.url).on("click", function (event) {
                         event.stopImmediatePropagation();
                         event.stopPropagation();
                     });
@@ -175,21 +175,21 @@ define(function (require, exports, module) {
             }());
 
             if (token.type) {
-                if (token.type.trim() !== '?') {
+                if (token.type.trim() !== "?") {
                     if (token.type.length < 30) {
-                        $('<span>' + token.type.split('->').join(':').toString().trim() + '</span>').appendTo($hintObj).addClass("brackets-js-hints-type-details");
+                        $("<span>" + token.type.split("->").join(":").toString().trim() + "</span>").appendTo($hintObj).addClass("brackets-js-hints-type-details");
                     }
-                    $('<span>' + token.type.split('->').join(':').toString().trim() + '</span>').appendTo($hintObj).addClass("jshint-description");
+                    $("<span>" + token.type.split("->").join(":").toString().trim() + "</span>").appendTo($hintObj).addClass("jshint-description");
                 }
             } else {
                 if (token.keyword) {
-                    $('<span>keyword</span>').appendTo($hintObj).addClass("brackets-js-hints-keyword");
+                    $("<span>keyword</span>").appendTo($hintObj).addClass("brackets-js-hints-keyword");
                 }
             }
 
             if (token.doc) {
-                $hintObj.attr('title', token.doc);
-                $('<span></span>').text(token.doc.trim()).appendTo($hintObj).addClass("jshint-jsdoc");
+                $hintObj.attr("title", token.doc);
+                $("<span></span>").text(token.doc.trim()).appendTo($hintObj).addClass("jshint-jsdoc");
             }
         }
 

@@ -22,7 +22,7 @@
  */
 
 define(function (require, exports, module) {
-    'use strict';
+    "use strict";
 
     var QuickSearchField    = require("search/QuickSearchField").QuickSearchField,
         KeyEvent            = require("utils/KeyEvent"),

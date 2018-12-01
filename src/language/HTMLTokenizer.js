@@ -126,7 +126,7 @@ define(function (require, exports, module) {
      * @return {boolean} true if c is legal in an HTML attribute name
      */
     function isLegalInAttributeName(c) {
-        return c !== '"' && c !== "'" && c !== "<" && c !== "=";
+        return c !== `"` && c !== "'" && c !== "<" && c !== "=";
     }
 
     /**

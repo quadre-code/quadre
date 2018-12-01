@@ -104,7 +104,7 @@ define(function (require, exports, module) {
 
             runs(function () {
                 var fileI = 0;
-                spyOn(FileSystem, 'showSaveDialog').andCallFake(function (dialogTitle, initialPath, proposedNewName, callback) {
+                spyOn(FileSystem, "showSaveDialog").andCallFake(function (dialogTitle, initialPath, proposedNewName, callback) {
                     callback(undefined, getFilename(fileI));
                     fileI++;
                 });

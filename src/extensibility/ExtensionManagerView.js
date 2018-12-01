@@ -43,7 +43,7 @@ define(function (require, exports, module) {
     /**
      * Create a detached link element, so that we can use it later to extract url details like 'protocol'
      */
-    var _tmpLink = window.document.createElement('a');
+    var _tmpLink = window.document.createElement("a");
 
     /**
      * Creates a view enabling the user to install and manage extensions. Must be initialized
@@ -356,7 +356,7 @@ define(function (require, exports, module) {
 
             // Check if the homepage refers to a local resource
             if (_tmpLink.protocol === "file:") {
-                var language = LanguageManager.getLanguageForExtension(parsed.filenameExtension.replace(/^\./, ''));
+                var language = LanguageManager.getLanguageForExtension(parsed.filenameExtension.replace(/^\./, ""));
                 // If identified language for the local resource is binary, don't list it
                 if (language && language.isBinary()) {
                     delete context.metadata.homepage;

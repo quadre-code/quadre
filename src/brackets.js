@@ -113,7 +113,7 @@ define(function (require, exports, module) {
 
     Object.defineProperty(window, "CodeMirror", {
         get: function () {
-            DeprecationWarning.deprecationWarning('Use brackets.getModule("thirdparty/CodeMirror/lib/codemirror") instead of global CodeMirror.', true);
+            DeprecationWarning.deprecationWarning(`Use brackets.getModule("thirdparty/CodeMirror/lib/codemirror") instead of global CodeMirror.`, true);
             return CodeMirror;
         }
     });
@@ -125,7 +125,7 @@ define(function (require, exports, module) {
 
     Object.defineProperty(window, "Mustache", {
         get: function () {
-            DeprecationWarning.deprecationWarning('Use brackets.getModule("thirdparty/mustache/mustache") instead of global Mustache.', true);
+            DeprecationWarning.deprecationWarning(`Use brackets.getModule("thirdparty/mustache/mustache") instead of global Mustache.`, true);
             return Mustache;
         }
     });
@@ -137,7 +137,7 @@ define(function (require, exports, module) {
 
     Object.defineProperty(window, "PathUtils", {
         get: function () {
-            DeprecationWarning.deprecationWarning('Use brackets.getModule("thirdparty/path-utils/path-utils") instead of global PathUtils.', true);
+            DeprecationWarning.deprecationWarning(`Use brackets.getModule("thirdparty/path-utils/path-utils") instead of global PathUtils.`, true);
             return PathUtils;
         }
     });

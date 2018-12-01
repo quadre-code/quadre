@@ -37,7 +37,7 @@ module.exports = function (grunt) {
 
     function runNpmShrinkwrap(callback) {
         grunt.log.writeln("running npm shrinkwrap");
-        exec('npm shrinkwrap', { cwd: '.' }, function (err, stdout, stderr) {
+        exec("npm shrinkwrap", { cwd: "." }, function (err, stdout, stderr) {
             if (err) {
                 grunt.log.error(stderr);
             } else {

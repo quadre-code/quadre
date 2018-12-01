@@ -7,7 +7,7 @@ module.exports = function (grunt) {
     const build     = require("./build")(grunt);
     const fs        = require("fs");
     const path      = require("path");
-    const _         = require('lodash');
+    const _         = require("lodash");
 
     // sync-tsconfigs
     grunt.registerTask("sync-tsconfigs", "Sync the root tsconfig.json into app and src folders", function () {
@@ -18,7 +18,7 @@ module.exports = function (grunt) {
             compilerOptions: {
                 outDir: `../dist`
             },
-            include: ['./**/*']
+            include: ["./**/*"]
         }, tsconfigJSON));
 
         common.writeJSON(grunt, "src/tsconfig.json", _.defaultsDeep({
@@ -37,9 +37,9 @@ module.exports = function (grunt) {
                 }
             },
             include: [
-                './**/*',
-                '../node_modules/@types/**/*',
-                '../node_modules/electron/electron.d.ts'
+                "./**/*",
+                "../node_modules/@types/**/*",
+                "../node_modules/electron/electron.d.ts"
             ]
         }, tsconfigJSON));
 

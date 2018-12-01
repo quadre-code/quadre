@@ -215,7 +215,7 @@ function getFileContentsForFile(filePath) {
     }
     try {
         if (getFilesizeInBytes(filePath) <= MAX_FILE_SIZE_TO_INDEX) {
-            projectCache[filePath] = fs.readFileSync(filePath, 'utf8');
+            projectCache[filePath] = fs.readFileSync(filePath, "utf8");
         } else {
             projectCache[filePath] = "";
         }
@@ -280,7 +280,7 @@ function doSearchInOneFile(filepath, text, queryExpr, maxResultsToReturn) {
 function doSearchInFiles(fileList, queryExpr, startFileIndex, maxResultsToReturn) {
     var i;
     if (fileList.length === 0) {
-        console.log('no files found');
+        console.log("no files found");
         return;
 
     } else {

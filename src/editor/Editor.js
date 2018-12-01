@@ -885,7 +885,7 @@ define(function (require, exports, module) {
             var change, newText, i;
             for (i = 0; i < changeList.length; i++) {
                 change = changeList[i];
-                newText = change.text.join('\n');
+                newText = change.text.join("\n");
                 if (!change.from || !change.to) {
                     if (change.from || change.to) {
                         console.error("Change record received with only one end undefined--replacing entire text");
@@ -1156,7 +1156,7 @@ define(function (require, exports, module) {
             i;
 
         for (i = 0; i < line.length; i++) {
-            if (line[i] === '\t') {
+            if (line[i] === "\t") {
                 if (tabSize === null) {
                     tabSize = Editor.getTabSize();
                 }
@@ -1184,7 +1184,7 @@ define(function (require, exports, module) {
             i;
 
         for (i = 0; iCol < column; i++) {
-            if (line[i] === '\t') {
+            if (line[i] === "\t") {
                 if (tabSize === null) {
                     tabSize = Editor.getTabSize();
                 }
@@ -2221,12 +2221,12 @@ define(function (require, exports, module) {
             // value context. This has to be done as CodeMirror doesn't yet think this as 'css'
             // This magic is executed only when user is having a cursor and not selection
             // We will enable selection handling one we figure a way out to handle mixed scope selection
-            if (outerMode.name === 'htmlmixed' && primarySel.start.line === primarySel.end.line && primarySel.start.ch === primarySel.end.ch) {
+            if (outerMode.name === "htmlmixed" && primarySel.start.line === primarySel.end.line && primarySel.start.ch === primarySel.end.ch) {
                 var tagInfo = HTMLUtils.getTagInfo(this, primarySel.start, true),
                     tokenType = tagInfo.position.tokenType;
 
-                if (tokenType === HTMLUtils.ATTR_VALUE && tagInfo.attr.name.toLowerCase() === 'style') {
-                    return 'css';
+                if (tokenType === HTMLUtils.ATTR_VALUE && tagInfo.attr.name.toLowerCase() === "style") {
+                    return "css";
                 }
             }
             // Shortcut the first check to avoid getModeAt(), which can be expensive

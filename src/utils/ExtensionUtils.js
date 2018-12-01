@@ -63,7 +63,7 @@ define(function (require, exports, module) {
         var $link = $("<link/>").attr(attributes);
 
         if (deferred) {
-            $link.on('load', deferred.resolve).on('error', deferred.reject);
+            $link.on("load", deferred.resolve).on("error", deferred.reject);
         }
 
         $link.appendTo("head");

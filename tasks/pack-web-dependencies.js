@@ -33,13 +33,13 @@ module.exports = function (grunt) {
             var wp = spawn(webpackPath, args, {
                 cwd: path.resolve(__dirname, "..")
             });
-            wp.stdout.on('data', function (data) {
+            wp.stdout.on("data", function (data) {
                 console.log("webpack-stdout: " + data.toString());
             });
-            wp.stderr.on('data', function (data) {
+            wp.stderr.on("data", function (data) {
                 console.log("webpack-stderr: " + data.toString());
             });
-            wp.on('close', function (code) {
+            wp.on("close", function (code) {
                 console.log("webpack-exit code " + code.toString());
                 return code === 0 ? doneWithWebpackTask() : done(false);
             });

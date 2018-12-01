@@ -559,7 +559,7 @@ define(function (require, exports, module) {
 
             it("should find attribute selectors", function () {
                 var selector = CSSUtils.findSelectorAtDocumentPos(editor, {line: 83, ch: 0});
-                expect(selector).toEqual('input[type="search"]');
+                expect(selector).toEqual(`input[type="search"]`);
             });
 
             it("should find structural pseudo-classes", function () {
@@ -596,7 +596,7 @@ define(function (require, exports, module) {
 
             it("should find selector when pos is in the middle of selector name", function () {
                 var selector = CSSUtils.findSelectorAtDocumentPos(editor, {line: 12, ch: 3});
-                expect(selector).toEqual('h3, h2, h1');
+                expect(selector).toEqual("h3, h2, h1");
             });
 
             it("should find selector when pos is at the end of a selector name", function () {
@@ -708,8 +708,8 @@ define(function (require, exports, module) {
                 expect(result).toEqual(".test { content: ; background-image: url(); padding: 0; }");
             });
             it("should remove css string with double quotes", function () {
-                var result = CSSUtils.reduceStyleSheetForRegExParsing('.test-content { border: 0; background-image: url("bg.svg"); content: ">"; }');
-                expect(result).toEqual('.test-content { border: 0; background-image: url(); content: ; }');
+                var result = CSSUtils.reduceStyleSheetForRegExParsing(`.test-content { border: 0; background-image: url("bg.svg"); content: ">"; }`);
+                expect(result).toEqual(".test-content { border: 0; background-image: url(); content: ; }");
             });
             it("should remove both comment and css content property", function () {
                 var result = CSSUtils.reduceStyleSheetForRegExParsing(".test { color: #123; /* unbalanced paren :-) */ margin: 0; content: ')'; padding: 0; }");
@@ -2313,7 +2313,7 @@ define(function (require, exports, module) {
                     context: CSSUtils.PROP_VALUE,
                     name: "font-family",
                     index: 0,
-                    values: ['"Helvetica Neue", ', 'Arial, ', 'sans-serif'],
+                    values: [`"Helvetica Neue", `, "Arial, ", "sans-serif"],
                     range: {start: { line: 15, ch: 17 }, end: { line: 15, ch: 52 }}
                 });
             });
@@ -2325,7 +2325,7 @@ define(function (require, exports, module) {
                     offset: 0,
                     isNewItem: true,
                     index: 1,
-                    values: ['"Helvetica Neue",', 'Arial, ', 'sans-serif'], // whitespace after cursor is deliberately lost
+                    values: [`"Helvetica Neue",`, "Arial, ", "sans-serif"], // whitespace after cursor is deliberately lost
                     range: {start: { line: 15, ch: 17 }, end: { line: 15, ch: 52 }}
                 });
             });
@@ -2334,7 +2334,7 @@ define(function (require, exports, module) {
                     context: CSSUtils.PROP_VALUE,
                     name: "font-family",
                     index: 1,
-                    values: ['"Helvetica Neue", ', 'Arial, ', 'sans-serif'],
+                    values: [`"Helvetica Neue", `, "Arial, ", "sans-serif"],
                     range: {start: { line: 15, ch: 17 }, end: { line: 15, ch: 52 }}
                 });
             });
@@ -2346,7 +2346,7 @@ define(function (require, exports, module) {
                     offset: 0,
                     isNewItem: true,
                     index: 2,
-                    values: ['"Helvetica Neue", ', 'Arial,', 'sans-serif'], // whitespace after cursor is deliberately lost
+                    values: [`"Helvetica Neue", `, "Arial,", "sans-serif"], // whitespace after cursor is deliberately lost
                     range: {start: { line: 15, ch: 17 }, end: { line: 15, ch: 52 }}
                 });
             });
@@ -2356,7 +2356,7 @@ define(function (require, exports, module) {
                     context: CSSUtils.PROP_VALUE,
                     name: "font-family",
                     index: 2,
-                    values: ['"Helvetica Neue", ', 'Arial, ', 'sans-serif'],
+                    values: [`"Helvetica Neue", `, "Arial, ", "sans-serif"],
                     range: {start: { line: 15, ch: 17 }, end: { line: 15, ch: 52 }}
                 });
             });
@@ -2367,7 +2367,7 @@ define(function (require, exports, module) {
                         context: CSSUtils.PROP_VALUE,
                         name: "font-family",
                         index: 0,
-                        values: ['"Helvetica Neue",', 'Arial,', 'sans-serif'],
+                        values: [`"Helvetica Neue",`, "Arial,", "sans-serif"],
                         range: {start: { line: 20, ch: 8 }, end: { line: 22, ch: 18 }}
                     });
                 });
@@ -2379,7 +2379,7 @@ define(function (require, exports, module) {
                         offset: 0,
                         isNewItem: true,
                         index: 1,
-                        values: ['"Helvetica Neue",', 'Arial,', 'sans-serif'], // whitespace after cursor is deliberately lost
+                        values: [`"Helvetica Neue",`, "Arial,", "sans-serif"], // whitespace after cursor is deliberately lost
                         range: {start: { line: 20, ch: 8 }, end: { line: 22, ch: 18 }}
                     });
                 });
@@ -2388,7 +2388,7 @@ define(function (require, exports, module) {
                         context: CSSUtils.PROP_VALUE,
                         name: "font-family",
                         index: 1,
-                        values: ['"Helvetica Neue",        ', 'Arial,', 'sans-serif'],
+                        values: [`"Helvetica Neue",        `, "Arial,", "sans-serif"],
                         range: {start: { line: 20, ch: 8 }, end: { line: 22, ch: 18 }}
                     });
                 });
@@ -2400,7 +2400,7 @@ define(function (require, exports, module) {
                         offset: 0,
                         isNewItem: true,
                         index: 2,
-                        values: ['"Helvetica Neue",        ', 'Arial,', 'sans-serif'], // whitespace after cursor is deliberately lost
+                        values: [`"Helvetica Neue",        `, "Arial,", "sans-serif"], // whitespace after cursor is deliberately lost
                         range: {start: { line: 20, ch: 8 }, end: { line: 22, ch: 18 }}
                     });
                 });
@@ -2410,7 +2410,7 @@ define(function (require, exports, module) {
                         context: CSSUtils.PROP_VALUE,
                         name: "font-family",
                         index: 2,
-                        values: ['"Helvetica Neue",        ', 'Arial,        ', 'sans-serif'],
+                        values: [`"Helvetica Neue",        `, "Arial,        ", "sans-serif"],
                         range: {start: { line: 20, ch: 8 }, end: { line: 22, ch: 18 }}
                     });
                 });
@@ -2423,7 +2423,7 @@ define(function (require, exports, module) {
                         offset: 0,
                         isNewItem: true,
                         index: 0,
-                        values: ['"Helvetica Neue",', 'Arial,', 'sans-serif'],
+                        values: [`"Helvetica Neue",`, "Arial,", "sans-serif"],
                         range: {start: { line: 20, ch: 8 }, end: { line: 22, ch: 18 }}
                     });
                 });
@@ -2437,7 +2437,7 @@ define(function (require, exports, module) {
                             offset: 0,
                             isNewItem: true,
                             index: i,
-                            values: ['"Helvetica Neue",', 'Arial,', 'sans-serif'],
+                            values: [`"Helvetica Neue",`, "Arial,", "sans-serif"],
                             range: {start: { line: 20, ch: 8 }, end: { line: 22, ch: 18 }}
                         });
                     }
@@ -2450,7 +2450,7 @@ define(function (require, exports, module) {
                         offset: 0,
                         isNewItem: true,
                         index: 2,
-                        values: ['"Helvetica Neue",        ', 'Arial,', 'sans-serif'],
+                        values: [`"Helvetica Neue",        `, "Arial,", "sans-serif"],
                         range: {start: { line: 20, ch: 8 }, end: { line: 22, ch: 18 }}
                     });
                 });
@@ -2464,7 +2464,7 @@ define(function (require, exports, module) {
                     offset: 0,
                     isNewItem: true,
                     index: 0,
-                    values: ['"Helvetica Neue", ', 'Arial, ', 'sans-serif'],
+                    values: [`"Helvetica Neue", `, "Arial, ", "sans-serif"],
                     range: {start: { line: 15, ch: 17 }, end: { line: 15, ch: 52 }}
                 });
             });
@@ -2607,7 +2607,7 @@ define(function (require, exports, module) {
                 });
             });
             it("should properly parse values with special characters", function () {
-                var values = ['"my:font"', '"my,font"', '"my, font"', '"my\'font"', "'my\"font'", '"my;font"', '"my{font"', '"my}font"'];
+                var values = [`"my:font"`, `"my,font"`, `"my, font"`, `"my\'font"`, `'my\"font'`, `"my;font"`, `"my{font"`, `"my}font"`];
                 for (i = 0; i < values.length; i++) {
                     result = CSSUtils.getInfoAtPos(testEditor, contextTest.offsets[i + 55]);
                     expect(result).toEqual({

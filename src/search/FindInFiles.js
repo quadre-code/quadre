@@ -551,7 +551,7 @@ define(function (require, exports, module) {
                         .done(function (rcvd_object) {
                             FindUtils.notifyNodeSearchFinished();
                             if (!rcvd_object || !rcvd_object.results) {
-                                console.log('no node falling back to brackets search');
+                                console.log("no node falling back to brackets search");
                                 FindUtils.setNodeSearchDisabled(true);
                                 searchDeferred.fail();
                                 clearSearch();
@@ -566,7 +566,7 @@ define(function (require, exports, module) {
                         })
                         .fail(function () {
                             FindUtils.notifyNodeSearchFinished();
-                            console.log('node fails');
+                            console.log("node fails");
                             FindUtils.setNodeSearchDisabled(true);
                             clearSearch();
                             searchDeferred.reject();
@@ -974,7 +974,7 @@ define(function (require, exports, module) {
             })
             .fail(function () {
                 FindUtils.notifyNodeSearchFinished();
-                console.log('node fails');
+                console.log("node fails");
                 FindUtils.setNodeSearchDisabled(true);
                 searchDeferred.reject();
             });
@@ -1000,7 +1000,7 @@ define(function (require, exports, module) {
             })
             .fail(function () {
                 FindUtils.notifyNodeSearchFinished();
-                console.log('node fails');
+                console.log("node fails");
                 FindUtils.setNodeSearchDisabled(true);
                 searchDeferred.reject();
             });

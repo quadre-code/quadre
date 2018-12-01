@@ -23,7 +23,7 @@
  */
 
 define(function (require, exports, module) {
-    'use strict';
+    "use strict";
 
     var EditorManager   = require("editor/EditorManager"),
         Editor          = require("editor/Editor").Editor,

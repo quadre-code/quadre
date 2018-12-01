@@ -23,7 +23,7 @@
  */
 
 define(function (require, exports, module) {
-    'use strict';
+    "use strict";
 
     var EditorManager    = require("editor/EditorManager"),
         ViewStateManager = require("view/ViewStateManager"),
@@ -44,8 +44,8 @@ define(function (require, exports, module) {
                                         .attr("id", "hidden-editors")
                                         .appendTo($fakeContentDiv);
 
-            pane = SpecRunnerUtils.createMockPane($fakeHolder, 'first-pane');
-            anotherPane = SpecRunnerUtils.createMockPane($fakeHolder, 'second-pane');
+            pane = SpecRunnerUtils.createMockPane($fakeHolder, "first-pane");
+            anotherPane = SpecRunnerUtils.createMockPane($fakeHolder, "second-pane");
             testDoc = SpecRunnerUtils.createMockDocument("");
         });
         afterEach(function () {

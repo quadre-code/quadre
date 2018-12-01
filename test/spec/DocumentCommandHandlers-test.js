@@ -23,7 +23,7 @@
  */
 
 define(function (require, exports, module) {
-    'use strict';
+    "use strict";
 
     // Load dependent modules
     var CommandManager,         // loaded from brackets.test
@@ -47,7 +47,7 @@ define(function (require, exports, module) {
             _$,
             promise;
 
-        var TEST_JS_CONTENT = 'var myContent="This is awesome!";';
+        var TEST_JS_CONTENT = `var myContent="This is awesome!";`;
         var TEST_JS_NEW_CONTENT = "hello world";
         var TEST_JS_SECOND_NEW_CONTENT = "hello world 2";
         var WINDOW_TITLE_DOT = brackets.platform === "mac" ? "\u2014" : "-";
@@ -207,7 +207,7 @@ define(function (require, exports, module) {
                 });
 
                 runs(function () {
-                    spyOn(FileSystem, 'showSaveDialog').andCallFake(function (dialogTitle, initialPath, proposedNewName, callback) {
+                    spyOn(FileSystem, "showSaveDialog").andCallFake(function (dialogTitle, initialPath, proposedNewName, callback) {
                         callback(undefined, newFilePath);
                     });
 
@@ -238,7 +238,7 @@ define(function (require, exports, module) {
                 });
 
                 runs(function () {
-                    spyOn(FileSystem, 'showSaveDialog').andCallFake(function (dialogTitle, initialPath, proposedNewName, callback) {
+                    spyOn(FileSystem, "showSaveDialog").andCallFake(function (dialogTitle, initialPath, proposedNewName, callback) {
                         callback(undefined, newFilePath);
                     });
 
@@ -273,7 +273,7 @@ define(function (require, exports, module) {
                 });
 
                 runs(function () {
-                    spyOn(FileSystem, 'showSaveDialog').andCallFake(function (dialogTitle, initialPath, proposedNewName, callback) {
+                    spyOn(FileSystem, "showSaveDialog").andCallFake(function (dialogTitle, initialPath, proposedNewName, callback) {
                         callback(undefined, newFilePath);
                     });
 
@@ -310,11 +310,11 @@ define(function (require, exports, module) {
                     var untitledDocument = DocumentManager.getCurrentDocument();
                     untitledDocument.setText(TEST_JS_NEW_CONTENT);
 
-                    spyOn(Dialogs, 'showModalDialog').andCallFake(function (dlgClass, title, message, buttons) {
+                    spyOn(Dialogs, "showModalDialog").andCallFake(function (dlgClass, title, message, buttons) {
                         return {done: function (callback) { callback(Dialogs.DIALOG_BTN_OK); } };
                     });
 
-                    spyOn(FileSystem, 'showSaveDialog').andCallFake(function (dialogTitle, initialPath, proposedNewName, callback) {
+                    spyOn(FileSystem, "showSaveDialog").andCallFake(function (dialogTitle, initialPath, proposedNewName, callback) {
                         callback(undefined, newFilePath);
                     });
 
@@ -343,7 +343,7 @@ define(function (require, exports, module) {
                     var untitledDocument = DocumentManager.getCurrentDocument();
                     untitledDocument.setText(TEST_JS_NEW_CONTENT);
 
-                    spyOn(Dialogs, 'showModalDialog').andCallFake(function (dlgClass, title, message, buttons) {
+                    spyOn(Dialogs, "showModalDialog").andCallFake(function (dlgClass, title, message, buttons) {
                         return {done: function (callback) { callback(Dialogs.DIALOG_BTN_CANCEL); } };
                     });
 
@@ -373,11 +373,11 @@ define(function (require, exports, module) {
                     var untitledDocument = DocumentManager.getCurrentDocument();
                     untitledDocument.setText(TEST_JS_NEW_CONTENT);
 
-                    spyOn(Dialogs, 'showModalDialog').andCallFake(function (dlgClass, title, message, buttons) {
+                    spyOn(Dialogs, "showModalDialog").andCallFake(function (dlgClass, title, message, buttons) {
                         return {done: function (callback) { callback(Dialogs.DIALOG_BTN_OK); } };
                     });
 
-                    spyOn(FileSystem, 'showSaveDialog').andCallFake(function (dialogTitle, initialPath, proposedNewName, callback) {
+                    spyOn(FileSystem, "showSaveDialog").andCallFake(function (dialogTitle, initialPath, proposedNewName, callback) {
                         callback(undefined, "");  // "" means cancel
                     });
 
@@ -407,7 +407,7 @@ define(function (require, exports, module) {
                     var untitledDocument = DocumentManager.getCurrentDocument();
                     untitledDocument.setText(TEST_JS_NEW_CONTENT);
 
-                    spyOn(Dialogs, 'showModalDialog').andCallFake(function (dlgClass, title, message, buttons) {
+                    spyOn(Dialogs, "showModalDialog").andCallFake(function (dlgClass, title, message, buttons) {
                         return {done: function (callback) { callback(Dialogs.DIALOG_BTN_DONTSAVE); } };
                     });
 
@@ -480,7 +480,7 @@ define(function (require, exports, module) {
 
                 runs(function () {
                     var fileI = 0;
-                    spyOn(FileSystem, 'showSaveDialog').andCallFake(function (dialogTitle, initialPath, proposedNewName, callback) {
+                    spyOn(FileSystem, "showSaveDialog").andCallFake(function (dialogTitle, initialPath, proposedNewName, callback) {
                         callback(undefined, getFilename(fileI));
                         fileI++;
                     });
@@ -515,12 +515,12 @@ define(function (require, exports, module) {
                 createUntitled(3);
 
                 runs(function () {
-                    spyOn(Dialogs, 'showModalDialog').andCallFake(function (dlgClass, title, message, buttons) {
+                    spyOn(Dialogs, "showModalDialog").andCallFake(function (dlgClass, title, message, buttons) {
                         return {done: function (callback) { callback(Dialogs.DIALOG_BTN_OK); } };
                     });
 
                     var fileI = 0;
-                    spyOn(FileSystem, 'showSaveDialog').andCallFake(function (dialogTitle, initialPath, proposedNewName, callback) {
+                    spyOn(FileSystem, "showSaveDialog").andCallFake(function (dialogTitle, initialPath, proposedNewName, callback) {
                         callback(undefined, getFilename(fileI));
                         fileI++;
                     });
@@ -548,7 +548,7 @@ define(function (require, exports, module) {
 
                 runs(function () {
                     var fileI = 0;
-                    spyOn(FileSystem, 'showSaveDialog').andCallFake(function (dialogTitle, initialPath, proposedNewName, callback) {
+                    spyOn(FileSystem, "showSaveDialog").andCallFake(function (dialogTitle, initialPath, proposedNewName, callback) {
                         if (fileI === 0) {
                             // save first file
                             callback(undefined, getFilename(fileI));
@@ -598,12 +598,12 @@ define(function (require, exports, module) {
                 createUntitled(3);
 
                 runs(function () {
-                    spyOn(Dialogs, 'showModalDialog').andCallFake(function (dlgClass, title, message, buttons) {
+                    spyOn(Dialogs, "showModalDialog").andCallFake(function (dlgClass, title, message, buttons) {
                         return {done: function (callback) { callback(Dialogs.DIALOG_BTN_OK); } };
                     });
 
                     var fileI = 0;
-                    spyOn(FileSystem, 'showSaveDialog').andCallFake(function (dialogTitle, initialPath, proposedNewName, callback) {
+                    spyOn(FileSystem, "showSaveDialog").andCallFake(function (dialogTitle, initialPath, proposedNewName, callback) {
                         if (fileI === 0) {
                             // save first file
                             callback(undefined, getFilename(fileI));
@@ -982,7 +982,7 @@ define(function (require, exports, module) {
                 });
 
                 runs(function () {
-                    spyOn(FileSystem, 'showSaveDialog').andCallFake(function (dialogTitle, initialPath, proposedNewName, callback) {
+                    spyOn(FileSystem, "showSaveDialog").andCallFake(function (dialogTitle, initialPath, proposedNewName, callback) {
                         callback(undefined, newFilePath);
                     });
 
@@ -1022,7 +1022,7 @@ define(function (require, exports, module) {
                 });
 
                 runs(function () {
-                    spyOn(FileSystem, 'showSaveDialog').andCallFake(function (dialogTitle, initialPath, proposedNewName, callback) {
+                    spyOn(FileSystem, "showSaveDialog").andCallFake(function (dialogTitle, initialPath, proposedNewName, callback) {
                         callback(undefined, newFilePath);
                     });
 
@@ -1058,7 +1058,7 @@ define(function (require, exports, module) {
                 });
 
                 runs(function () {
-                    spyOn(FileSystem, 'showSaveDialog').andCallFake(function (dialogTitle, initialPath, proposedNewName, callback) {
+                    spyOn(FileSystem, "showSaveDialog").andCallFake(function (dialogTitle, initialPath, proposedNewName, callback) {
                         callback("Error", undefined);
                     });
 
@@ -1102,7 +1102,7 @@ define(function (require, exports, module) {
                 runs(function () {
                     // save the file opened above to a different filename
                     MainViewManager._edit(MainViewManager.ACTIVE_PANE, targetDoc);
-                    spyOn(FileSystem, 'showSaveDialog').andCallFake(function (dialogTitle, initialPath, proposedNewName, callback) {
+                    spyOn(FileSystem, "showSaveDialog").andCallFake(function (dialogTitle, initialPath, proposedNewName, callback) {
                         callback(undefined, newFilePath);
                     });
 

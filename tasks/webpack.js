@@ -9,7 +9,7 @@ module.exports = function (grunt) {
         build   = require("./build")(grunt),
         glob    = require("glob"),
         path    = require("path"),
-        spawn   = require('cross-spawn');
+        spawn   = require("cross-spawn");
 
     grunt.registerTask("webpack-browser-dependencies", "Runs webpack on stuff we need to use from browser", function () {
         var done = this.async();
@@ -32,13 +32,13 @@ module.exports = function (grunt) {
             var wp =spawn(webpackPath, args, {
                 cwd: path.resolve(__dirname, "..")
             });
-            wp.stdout.on('data', (data) => {
+            wp.stdout.on("data", (data) => {
                 console.log(`webpack-stdout: ${data}`);
             });
-            wp.stderr.on('data', (data) => {
+            wp.stderr.on("data", (data) => {
                 console.log(`webpack-stderr: ${data}`);
             });
-            wp.on('close', (code) => {
+            wp.on("close", (code) => {
                 console.log(`webpack-exit code ${code}`);
                 return code === 0 ? doneWithWebpackTask() : done(false);
             });

@@ -118,7 +118,7 @@ define(function (require, exports, module) {
             expect(hintList.sort().toString()).toBe(values.sort().toString());
         }
 
-        var modesToTest = ['css', 'scss', 'less'],
+        var modesToTest = ["css", "scss", "less"],
             modeCounter;
 
         var selectMode = function () {
@@ -159,7 +159,7 @@ define(function (require, exports, module) {
                 },
                 testNoHints = function () {
                     testEditor.setCursorPos({ line: 0, ch: 10 });    // after {
-                    expect(CSSPseudoSelectorCodeHints.pseudoSelectorHints.hasHints(testEditor, 'a')).toBe(false);
+                    expect(CSSPseudoSelectorCodeHints.pseudoSelectorHints.hasHints(testEditor, "a")).toBe(false);
                 };
 
             for (modeCounter in modesToTest) {
@@ -202,7 +202,7 @@ define(function (require, exports, module) {
                 },
                 testNoHints = function () {
                     testEditor.setCursorPos({ line: 2, ch: 10 });    // after ::f
-                    expect(CSSPseudoSelectorCodeHints.pseudoSelectorHints.hasHints(testEditor, 'c')).toBe(false);
+                    expect(CSSPseudoSelectorCodeHints.pseudoSelectorHints.hasHints(testEditor, "c")).toBe(false);
                 };
 
             for (modeCounter in modesToTest) {

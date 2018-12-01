@@ -25,7 +25,7 @@
 /*global KeyboardEvent */
 
 define(function (require, exports, module) {
-    'use strict';
+    "use strict";
 
     var Commands            = require("command/Commands"),
         FileUtils           = require("file/FileUtils"),
@@ -484,7 +484,7 @@ define(function (require, exports, module) {
 
         return {
             $el: $el,
-            id: paneId || 'first-pane',
+            id: paneId || "first-pane",
             $content: $fakeContent,
             addView: function (editor) {
                 this.$content.append(editor.$el);
@@ -702,7 +702,7 @@ define(function (require, exports, module) {
                 charAt = text.substr(i, 1);
                 output.push(charAt);
 
-                if (charAt === '\n') {
+                if (charAt === "\n") {
                     line++;
                     ch = 0;
                 } else {
@@ -1024,7 +1024,7 @@ define(function (require, exports, module) {
     function simulateKeyEvent(key, event, element, options) {
         var doc = element.ownerDocument;
 
-        if(typeof options === 'undefined') {
+        if(typeof options === "undefined") {
             options = {
                 view: doc.defaultView,
                 bubbles: true,
@@ -1047,17 +1047,17 @@ define(function (require, exports, module) {
         // Chromium Hack: need to override the 'which' property.
         // Note: this code is not designed to work in IE, Safari,
         // or other browsers. Well, maybe with Firefox. YMMV.
-        Object.defineProperty(oEvent, 'keyCode', {
+        Object.defineProperty(oEvent, "keyCode", {
             get: function () {
                 return this.keyCodeVal;
             }
         });
-        Object.defineProperty(oEvent, 'which', {
+        Object.defineProperty(oEvent, "which", {
             get: function () {
                 return this.keyCodeVal;
             }
         });
-        Object.defineProperty(oEvent, 'charCode', {
+        Object.defineProperty(oEvent, "charCode", {
             get: function () {
                 return this.keyCodeVal;
             }
@@ -1092,8 +1092,8 @@ define(function (require, exports, module) {
 
         if (editor) {
             var jquery = editor.getRootElement().ownerDocument.defaultView.$,
-                $editorHolder = jquery('#editor-holder'),
-                $content = jquery('.content');
+                $editorHolder = jquery("#editor-holder"),
+                $content = jquery(".content");
 
             // preserve old size
             oldSize.width = $editorHolder.width();
@@ -1125,9 +1125,9 @@ define(function (require, exports, module) {
      */
     function getResultMessage(result) {
         var message;
-        if (result.type === 'log') {
+        if (result.type === "log") {
             message = result.toString();
-        } else if (result.type === 'expect' && result.passed && !result.passed()) {
+        } else if (result.type === "expect" && result.passed && !result.passed()) {
             message = result.message;
 
             if (result.trace.stack) {

@@ -126,7 +126,7 @@ define(function (require, exports, module) {
 
         //log health data
         togglePanelCount = HealthLogger.getHealthDataLog(HEALTH_TOGGLE_PANELS);
-        togglePanelCount = (typeof togglePanelCount === 'number') ? togglePanelCount + 1 : 0;
+        togglePanelCount = (typeof togglePanelCount === "number") ? togglePanelCount + 1 : 0;
         HealthLogger.setHealthDataLog(HEALTH_TOGGLE_PANELS, togglePanelCount);
     }
 

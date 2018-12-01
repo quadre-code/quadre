@@ -35,7 +35,7 @@
 var fs = require("fs");
 var fspath = require("path");
 var cp = require("child_process");
-var anymatch = require('anymatch');
+var anymatch = require("anymatch");
 var FileWatcherManager = require("./FileWatcherManager");
 
 function buildMatcher(ignored) {

@@ -94,7 +94,7 @@ define(function (require, exports, module) {
             settings.forEach(function (value, index) {
 
                 if (typeof value === "string") {
-                    var isRegExp = value[0] === '/' && value[value.length - 1] === '/';
+                    var isRegExp = value[0] === "/" && value[value.length - 1] === "/";
 
                     if (isRegExp) {
                         value = value.substring(1, value.length - 1);

@@ -24,19 +24,19 @@
 
 /*eslint-env node */
 /*jslint node: true */
-'use strict';
+"use strict";
 
 var pathLib = require("path");
 
 module.exports = function (grunt) {
     // load dependencies
-    require('load-grunt-tasks')(grunt, {
+    require("load-grunt-tasks")(grunt, {
         pattern: [
-            'grunt-*',
-            '!grunt-cli'
+            "grunt-*",
+            "!grunt-cli"
         ]
     });
-    grunt.loadTasks('tasks');
+    grunt.loadTasks("tasks");
 
     // Project configuration.
     grunt.initConfig({
@@ -46,9 +46,9 @@ module.exports = function (grunt) {
                 files: [{
                     dot: true,
                     src: [
-                        'dist',
-                        'src/.index.html',
-                        'src/styles/brackets.css'
+                        "dist",
+                        "src/.index.html",
+                        "src/styles/brackets.css"
                     ]
                 }]
             }
@@ -57,64 +57,64 @@ module.exports = function (grunt) {
             dist: {
                 files: [
                     {
-                        'dist/index.html': 'src/.index.html'
+                        "dist/index.html": "src/.index.html"
                     },
                     /* static files */
                     {
                         expand: true,
-                        dest: 'dist/',
-                        cwd: 'src/',
+                        dest: "dist/",
+                        cwd: "src/",
                         src: [
-                            'nls/{,*/}*.js',
-                            'xorigin.js',
-                            'dependencies.js',
-                            'LiveDevelopment/launch.html',
-                            'LiveDevelopment/transports/**',
-                            'LiveDevelopment/MultiBrowserImpl/transports/**',
-                            'LiveDevelopment/MultiBrowserImpl/launchers/**'
+                            "nls/{,*/}*.js",
+                            "xorigin.js",
+                            "dependencies.js",
+                            "LiveDevelopment/launch.html",
+                            "LiveDevelopment/transports/**",
+                            "LiveDevelopment/MultiBrowserImpl/transports/**",
+                            "LiveDevelopment/MultiBrowserImpl/launchers/**"
                         ]
                     },
                     /* node domains are not minified and must be copied to dist */
                     {
                         expand: true,
-                        dest: 'dist/',
-                        cwd: 'src/',
+                        dest: "dist/",
+                        cwd: "src/",
                         src: [
-                            'extensibility/node/**',
-                            '!extensibility/node/spec/**',
-                            '!extensibility/node/node_modules/**/{test,tst}/**/*',
-                            '!extensibility/node/node_modules/**/examples/**/*',
-                            'filesystem/impls/appshell/node/**',
-                            '!filesystem/impls/appshell/node/spec/**',
-                            'search/node/**'
+                            "extensibility/node/**",
+                            "!extensibility/node/spec/**",
+                            "!extensibility/node/node_modules/**/{test,tst}/**/*",
+                            "!extensibility/node/node_modules/**/examples/**/*",
+                            "filesystem/impls/appshell/node/**",
+                            "!filesystem/impls/appshell/node/spec/**",
+                            "search/node/**"
                         ]
                     },
                     /* extensions and CodeMirror modes */
                     {
                         expand: true,
-                        dest: 'dist/',
-                        cwd: 'src/',
+                        dest: "dist/",
+                        cwd: "src/",
                         src: [
-                            'extensions/default/**/*',
-                            '!extensions/default/*/unittest-files/**/*',
-                            '!extensions/default/*/unittests.js',
-                            '!extensions/default/{*/thirdparty,**/node_modules}/**/test/**/*',
-                            '!extensions/default/{*/thirdparty,**/node_modules}/**/doc/**/*',
-                            '!extensions/default/{*/thirdparty,**/node_modules}/**/examples/**/*',
-                            '!extensions/default/*/thirdparty/**/*.htm{,l}',
-                            'extensions/dev/*',
-                            'extensions/samples/**/*',
-                            'thirdparty/CodeMirror/**',
-                            'thirdparty/i18n/*.js',
-                            'thirdparty/text/*.js'
+                            "extensions/default/**/*",
+                            "!extensions/default/*/unittest-files/**/*",
+                            "!extensions/default/*/unittests.js",
+                            "!extensions/default/{*/thirdparty,**/node_modules}/**/test/**/*",
+                            "!extensions/default/{*/thirdparty,**/node_modules}/**/doc/**/*",
+                            "!extensions/default/{*/thirdparty,**/node_modules}/**/examples/**/*",
+                            "!extensions/default/*/thirdparty/**/*.htm{,l}",
+                            "extensions/dev/*",
+                            "extensions/samples/**/*",
+                            "thirdparty/CodeMirror/**",
+                            "thirdparty/i18n/*.js",
+                            "thirdparty/text/*.js"
                         ]
                     },
                     /* styles, fonts and images */
                     {
                         expand: true,
-                        dest: 'dist/styles',
-                        cwd: 'src/styles',
-                        src: ['jsTreeTheme.css', 'fonts/{,*/}*.*', 'images/*', 'brackets.min.css*']
+                        dest: "dist/styles",
+                        cwd: "src/styles",
+                        src: ["jsTreeTheme.css", "fonts/{,*/}*.*", "images/*", "brackets.min.css*"]
                     }
                 ]
             },
@@ -122,49 +122,49 @@ module.exports = function (grunt) {
                 files: [
                     {
                         expand: true,
-                        dest: 'dist/www/thirdparty/CodeMirror',
-                        cwd: 'dist/www/node_modules/codemirror',
+                        dest: "dist/www/thirdparty/CodeMirror",
+                        cwd: "dist/www/node_modules/codemirror",
                         src: [
-                            'addon/{,*/}*',
-                            'keymap/{,*/}*',
-                            'lib/{,*/}*',
-                            'mode/{,*/}*',
-                            'theme/{,*/}*'
+                            "addon/{,*/}*",
+                            "keymap/{,*/}*",
+                            "lib/{,*/}*",
+                            "mode/{,*/}*",
+                            "theme/{,*/}*"
                         ]
                     },
                     {
                         expand: true,
                         flatten: true,
-                        dest: 'dist/www/thirdparty',
-                        cwd: 'dist/www/node_modules',
+                        dest: "dist/www/thirdparty",
+                        cwd: "dist/www/node_modules",
                         src: [
-                            'less/dist/less.min.js'
+                            "less/dist/less.min.js"
                         ]
                     },
                     {
                         expand: true,
-                        dest: 'dist/www/thirdparty/acorn',
-                        cwd: 'dist/www/node_modules/acorn',
+                        dest: "dist/www/thirdparty/acorn",
+                        cwd: "dist/www/node_modules/acorn",
                         src: [
-                            'dist/{,*/}*'
-                        ]
-                    },
-                    {
-                        expand: true,
-                        flatten: true,
-                        dest: 'dist/www/thirdparty',
-                        cwd: 'dist/www/node_modules',
-                        src: [
-                            'immutable/dist/immutable.js'
+                            "dist/{,*/}*"
                         ]
                     },
                     {
                         expand: true,
                         flatten: true,
-                        dest: 'dist/www/thirdparty',
-                        cwd: 'dist/www/node_modules',
+                        dest: "dist/www/thirdparty",
+                        cwd: "dist/www/node_modules",
                         src: [
-                            'react/umd/react.development.js'
+                            "immutable/dist/immutable.js"
+                        ]
+                    },
+                    {
+                        expand: true,
+                        flatten: true,
+                        dest: "dist/www/thirdparty",
+                        cwd: "dist/www/node_modules",
+                        src: [
+                            "react/umd/react.development.js"
                         ],
                         rename: function (path, name) {
                             name = name.replace(".development", "");
@@ -174,11 +174,11 @@ module.exports = function (grunt) {
                     {
                         expand: true,
                         flatten: true,
-                        dest: 'dist/www/thirdparty',
-                        cwd: 'dist/www/node_modules',
+                        dest: "dist/www/thirdparty",
+                        cwd: "dist/www/node_modules",
                         src: [
-                            'react-dom/umd/react-dom.development.js',
-                            'react-dom/umd/react-dom-test-utils.development.js'
+                            "react-dom/umd/react-dom.development.js",
+                            "react-dom/umd/react-dom-test-utils.development.js"
                         ],
                         rename: function (path, name) {
                             name = name.replace(".development", "");
@@ -188,19 +188,19 @@ module.exports = function (grunt) {
                     {
                         expand: true,
                         flatten: true,
-                        dest: 'dist/www/thirdparty',
-                        cwd: 'dist/www/node_modules',
+                        dest: "dist/www/thirdparty",
+                        cwd: "dist/www/node_modules",
                         src: [
-                            'create-react-class/create-react-class.js'
+                            "create-react-class/create-react-class.js"
                         ]
                     },
                     {
                         expand: true,
-                        dest: 'dist/www/thirdparty/codemirror-addon-toggle-comment',
-                        cwd: 'dist/www/node_modules/codemirror-addon-toggle-comment/dist',
+                        dest: "dist/www/thirdparty/codemirror-addon-toggle-comment",
+                        cwd: "dist/www/node_modules/codemirror-addon-toggle-comment/dist",
                         src: [
-                            'toggle-comment-simple.min.js',
-                            'toggle-comment-simple.js.map'
+                            "toggle-comment-simple.min.js",
+                            "toggle-comment-simple.js.map"
                         ]
                     }
                 ]
@@ -211,7 +211,7 @@ module.exports = function (grunt) {
                 force: true,
                 files: false
             },
-            src: ['dist/**/*']
+            src: ["dist/**/*"]
         },
         less: {
             dist: {
@@ -221,10 +221,10 @@ module.exports = function (grunt) {
                 options: {
                     compress: true,
                     sourceMap: true,
-                    sourceMapFilename: 'src/styles/brackets.min.css.map',
+                    sourceMapFilename: "src/styles/brackets.min.css.map",
                     outputSourceFiles: true,
-                    sourceMapRootpath: '',
-                    sourceMapBasepath: 'src/styles'
+                    sourceMapRootpath: "",
+                    sourceMapBasepath: "src/styles"
                 }
             }
         },
@@ -233,8 +233,8 @@ module.exports = function (grunt) {
                 // Options: https://github.com/jrburke/r.js/blob/master/build/example.build.js
                 options: {
                     // `name` and `out` is set by grunt-usemin
-                    baseUrl: 'src',
-                    optimize: 'uglify2',
+                    baseUrl: "src",
+                    optimize: "uglify2",
                     // brackets.js should not be loaded until after polyfills defined in "utils/Compatibility"
                     // so explicitly include it in main.js
                     include: ["utils/Compatibility", "brackets"],
@@ -256,21 +256,21 @@ module.exports = function (grunt) {
         targethtml: {
             dist: {
                 files: {
-                    'src/.index.html': 'src/index.html'
+                    "src/.index.html": "src/index.html"
                 }
             }
         },
         useminPrepare: {
             options: {
-                dest: 'dist'
+                dest: "dist"
             },
-            html: 'src/.index.html'
+            html: "src/.index.html"
         },
         usemin: {
             options: {
-                dirs: ['dist']
+                dirs: ["dist"]
             },
-            html: ['dist/{,*/}*.html']
+            html: ["dist/{,*/}*.html"]
         },
         htmlmin: {
             dist: {
@@ -287,81 +287,81 @@ module.exports = function (grunt) {
                 },
                 files: [{
                     expand: true,
-                    cwd: 'src',
-                    src: '*.html',
-                    dest: 'dist'
+                    cwd: "src",
+                    src: "*.html",
+                    dest: "dist"
                 }]
             }
         },
         meta: {
             app: [
-                'app/**/*.js',
-                'app/**/*.ts'
+                "app/**/*.js",
+                "app/**/*.ts"
             ],
             src: [
-                'src/**/*.js',
-                'src/**/*.ts',
-                '!src/thirdparty/**',
-                '!src/widgets/bootstrap-*.js',
-                '!src/extensions/**/unittest-files/**/*.js',
-                '!src/extensions/**/thirdparty/**/*.js',
-                '!src/extensions/default/quadre-eslint/**',
-                '!src/extensions/dev/**',
-                '!src/extensions/disabled/**',
-                '!**/node_modules/**',
-                '!src/**/*-min.js',
-                '!src/**/*.min.js'
+                "src/**/*.js",
+                "src/**/*.ts",
+                "!src/thirdparty/**",
+                "!src/widgets/bootstrap-*.js",
+                "!src/extensions/**/unittest-files/**/*.js",
+                "!src/extensions/**/thirdparty/**/*.js",
+                "!src/extensions/default/quadre-eslint/**",
+                "!src/extensions/dev/**",
+                "!src/extensions/disabled/**",
+                "!**/node_modules/**",
+                "!src/**/*-min.js",
+                "!src/**/*.min.js"
             ],
             test: [
-                'test/**/*.js',
-                'test/**/*.ts',
-                '!test/perf/*-files/**/*.js',
-                '!test/spec/*-files/**/*.js',
-                '!test/spec/*-known-goods/**/*.js',
-                '!test/spec/FindReplace-test-files-*/**/*.js',
-                '!test/smokes/**',
-                '!test/temp/**',
-                '!test/thirdparty/**',
-                '!test/**/node_modules/**/*.js'
+                "test/**/*.js",
+                "test/**/*.ts",
+                "!test/perf/*-files/**/*.js",
+                "!test/spec/*-files/**/*.js",
+                "!test/spec/*-known-goods/**/*.js",
+                "!test/spec/FindReplace-test-files-*/**/*.js",
+                "!test/smokes/**",
+                "!test/temp/**",
+                "!test/thirdparty/**",
+                "!test/**/node_modules/**/*.js"
             ],
             build: [
-                '*.js',
-                'tasks/**/*.js',
-                'tasks/**/*.ts'
+                "*.js",
+                "tasks/**/*.js",
+                "tasks/**/*.ts"
             ],
             /* specs that can run in phantom.js */
             specs: [
-                'test/spec/CommandManager-test.js',
-                //'test/spec/LanguageManager-test.js',
-                //'test/spec/PreferencesManager-test.js',
-                'test/spec/ViewUtils-test.js'
+                "test/spec/CommandManager-test.js",
+                //"test/spec/LanguageManager-test.js",
+                //"test/spec/PreferencesManager-test.js",
+                "test/spec/ViewUtils-test.js"
             ]
         },
         watch: {
             build: {
-                files: ['<%= meta.build %>'],
-                tasks: ['eslint:build']
+                files: ["<%= meta.build %>"],
+                tasks: ["eslint:build"]
             },
             src: {
-                files: ['<%= meta.src %>'],
-                tasks: ['eslint:src']
+                files: ["<%= meta.src %>"],
+                tasks: ["eslint:src"]
             },
             test: {
-                files: ['<%= meta.test %>'],
-                tasks: ['eslint:test']
+                files: ["<%= meta.test %>"],
+                tasks: ["eslint:test"]
             },
             options: {
                 spawn: false
             }
         },
-        'jasmine_node': {
-            projectRoot: 'src/extensibility/node/spec/'
+        "jasmine_node": {
+            projectRoot: "src/extensibility/node/spec/"
         },
         eslint: {
-            build:  '<%= meta.build %>',
-            app:    '<%= meta.app %>',
-            src:    '<%= meta.src %>',
-            test:   '<%= meta.test %>',
+            build:  "<%= meta.build %>",
+            app:    "<%= meta.app %>",
+            src:    "<%= meta.src %>",
+            test:   "<%= meta.test %>",
             options: {
                 quiet: true
             }
@@ -375,53 +375,53 @@ module.exports = function (grunt) {
     });
 
     // task: install
-    grunt.registerTask('install', [
-        'write-config:dist',
-        'sync-tsconfigs',
-        'less',
-        'npm-download-default-extensions'
-        // 'npm-install-source',
-        // 'pack-web-dependencies'
+    grunt.registerTask("install", [
+        "write-config:dist",
+        "sync-tsconfigs",
+        "less",
+        "npm-download-default-extensions"
+        // "npm-install-source",
+        // "pack-web-dependencies"
     ]);
 
     // task: test
-    grunt.registerTask('test', ['eslint', 'nls-check']);
+    grunt.registerTask("test", ["eslint", "nls-check"]);
 
     // task: set-release
     // Update version number in package.json and rewrite src/config.json
-    grunt.registerTask('set-release', ['update-release-number', 'write-config:dev']);
+    grunt.registerTask("set-release", ["update-release-number", "write-config:dev"]);
 
     // task: dep-change - run when you modify dependencies in package.json
-    grunt.registerTask('dep-change', [
-        'npm-shrinkwrap'
+    grunt.registerTask("dep-change", [
+        "npm-shrinkwrap"
     ]);
 
     // task: build - build stuff into dist folder
-    grunt.registerTask('build', [
-        'npm-install-dist',
-        'npm-install-extensions-dist',
-        'copy:thirdparty',
-        'webpack-browser-dependencies'
+    grunt.registerTask("build", [
+        "npm-install-dist",
+        "npm-install-extensions-dist",
+        "copy:thirdparty",
+        "webpack-browser-dependencies"
     ]);
 
     // task: optimize - optimize contents of dist folder
-    grunt.registerTask('optimize', [
-        // 'eslint:src',
-        // 'clean',
-        // 'less',
-        // 'targethtml',
-        // 'useminPrepare',
-        // 'htmlmin',
-        // 'requirejs',
-        // 'concat',
-        // 'cssmin',
-        // 'uglify',
-        // 'copy:dist',
-        // 'cleanempty',
-        // 'usemin',
-        'build-config'
+    grunt.registerTask("optimize", [
+        // "eslint:src",
+        // "clean",
+        // "less",
+        // "targethtml",
+        // "useminPrepare",
+        // "htmlmin",
+        // "requirejs",
+        // "concat",
+        // "cssmin",
+        // "uglify",
+        // "copy:dist",
+        // "cleanempty",
+        // "usemin",
+        "build-config"
     ]);
 
     // Default task.
-    grunt.registerTask('default', ['test']);
+    grunt.registerTask("default", ["test"]);
 };

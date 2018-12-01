@@ -317,9 +317,9 @@ define(function (require, exports, module) {
             result.compatibleVersion = extVersion.version;
         } else {
             // Find out reason for incompatibility
-            if (requiredVersion.charAt(0) === '<') {
+            if (requiredVersion.charAt(0) === "<") {
                 result.requiresNewer = false;
-            } else if (requiredVersion.charAt(0) === '>') {
+            } else if (requiredVersion.charAt(0) === ">") {
                 result.requiresNewer = true;
             } else if (requiredVersion.charAt(0) === "~") {
                 var compareVersion = requiredVersion.slice(1);

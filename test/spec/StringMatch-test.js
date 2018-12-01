@@ -25,7 +25,7 @@
 /*unittests: StringMatch */
 
 define(function (require, exports, module) {
-    'use strict';
+    "use strict";
 
     var _ = require("thirdparty/lodash");
 

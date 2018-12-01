@@ -484,7 +484,7 @@ define(function (require, exports, module) {
         var parsed = PathUtils.parseUrl(tokenString);
         // If the URL has a protocol, check if it's one of the supported protocols
         var hasProtocol = parsed.protocol !== "" && validProtocols.indexOf(parsed.protocol.trim().toLowerCase()) !== -1;
-        var ext = parsed.filenameExtension.replace(/^\./, '');
+        var ext = parsed.filenameExtension.replace(/^\./, "");
         var language = LanguageManager.getLanguageForExtension(ext);
         var id = language && language.getId();
         var isImage = id === "image" || id === "svg";

@@ -23,7 +23,7 @@
  */
 
 define(function (require, exports, module) {
-    'use strict';
+    "use strict";
 
     // Load Brackets modules
     var InlineWidget        = brackets.getModule("editor/InlineWidget").InlineWidget;

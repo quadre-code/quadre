@@ -169,12 +169,12 @@ define(function (require, exports, module) {
             })
             // The link to go to the next page
             .on("click.searchResults", ".next-page:not(.disabled)", function () {
-                self.trigger('getNextPage');
+                self.trigger("getNextPage");
                 HealthLogger.searchDone(HealthLogger.SEARCH_NEXT_PAGE);
             })
             // The link to go to the last page
             .on("click.searchResults", ".last-page:not(.disabled)", function () {
-                self.trigger('getLastPage');
+                self.trigger("getLastPage");
                 HealthLogger.searchDone(HealthLogger.SEARCH_LAST_PAGE);
             })
 

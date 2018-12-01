@@ -23,7 +23,7 @@
  */
 
 define(function (require, exports, module) {
-    'use strict';
+    "use strict";
 
     var UrlParams = require("utils/UrlParams").UrlParams;
 

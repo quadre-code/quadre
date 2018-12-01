@@ -23,7 +23,7 @@
  */
 
 define(function (require, exports, module) {
-    'use strict';
+    "use strict";
 
     var CommandManager,          // loaded from brackets.test
         Commands,                // loaded from brackets.test
@@ -183,7 +183,7 @@ define(function (require, exports, module) {
             });
             it("should fail when operating on an invalid pane id", function () {
                 runs(function () {
-                    spyOn(Dialogs, 'showModalDialog').andCallFake(function (dlgClass, title, message, buttons) {
+                    spyOn(Dialogs, "showModalDialog").andCallFake(function (dlgClass, title, message, buttons) {
                         return {done: function (callback) { callback(Dialogs.DIALOG_BTN_OK); } };
                     });
                 });
@@ -571,12 +571,12 @@ define(function (require, exports, module) {
                     MainViewManager.setLayoutScheme(1, 2);
                 });
                 runs(function () {
-                    $('#first-pane').click();
+                    $("#first-pane").click();
                     CommandManager.execute(Commands.CMD_SWITCH_PANE_FOCUS);
                     expect(MainViewManager.getActivePaneId()).toEqual("second-pane");
                 });
                 runs(function () {
-                    $('#second-pane').click();
+                    $("#second-pane").click();
                     CommandManager.execute(Commands.CMD_SWITCH_PANE_FOCUS);
                     expect(MainViewManager.getActivePaneId()).toEqual("first-pane");
                 });
@@ -584,12 +584,12 @@ define(function (require, exports, module) {
                     MainViewManager.setLayoutScheme(2, 1);
                 });
                 runs(function () {
-                    $('#first-pane').click();
+                    $("#first-pane").click();
                     CommandManager.execute(Commands.CMD_SWITCH_PANE_FOCUS);
                     expect(MainViewManager.getActivePaneId()).toEqual("second-pane");
                 });
                 runs(function () {
-                    $('#second-pane').click();
+                    $("#second-pane").click();
                     CommandManager.execute(Commands.CMD_SWITCH_PANE_FOCUS);
                     expect(MainViewManager.getActivePaneId()).toEqual("first-pane");
                 });

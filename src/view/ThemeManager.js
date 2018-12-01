@@ -56,8 +56,8 @@ define(function (require, exports, module) {
      * @return {string} theme name properly formatted for display
      */
     function toDisplayName(name) {
-        var extIndex = name.lastIndexOf('.');
-        name = name.substring(0, extIndex !== -1 ? extIndex : undefined).replace(/-/g, ' ');
+        var extIndex = name.lastIndexOf(".");
+        name = name.substring(0, extIndex !== -1 ? extIndex : undefined).replace(/-/g, " ");
 
         return name.split(" ").map(function (part) {
             return part[0].toUpperCase() + part.substring(1);
@@ -93,7 +93,7 @@ define(function (require, exports, module) {
 
             // We do a bit of string treatment here to make sure we generate theme names that can be
             // used as a CSS class name by CodeMirror.
-            options.name = options.name.toLocaleLowerCase().replace(/[\W]/g, '-');
+            options.name = options.name.toLocaleLowerCase().replace(/[\W]/g, "-");
         }
 
         this.file           = file;

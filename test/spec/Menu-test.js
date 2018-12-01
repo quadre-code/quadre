@@ -331,7 +331,7 @@ define(function (require, exports, module) {
 
                     waitsForDone(promise, "FILE_NEW_UNTITLED");
 
-                    spyOn(FileSystem, 'showSaveDialog').andCallFake(function (dialogTitle, initialPath, proposedNewName, callback) {
+                    spyOn(FileSystem, "showSaveDialog").andCallFake(function (dialogTitle, initialPath, proposedNewName, callback) {
                         callback(undefined, newFilePath);
                     });
 

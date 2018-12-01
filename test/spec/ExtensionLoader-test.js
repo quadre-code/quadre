@@ -25,7 +25,7 @@
 /*jslint regexp: true */
 
 define(function (require, exports, module) {
-    'use strict';
+    "use strict";
 
     // Load dependent modules
     var ExtensionLoader = require("utils/ExtensionLoader"),

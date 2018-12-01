@@ -75,14 +75,14 @@ module.exports = function (grunt) {
             productionMode = true;
         }
 
-        var cmd = 'npm install';
+        var cmd = "npm install";
         if (productionMode) {
-            cmd += ' --production';
+            cmd += " --production";
         }
 
         grunt.log.writeln("running " + cmd + " in " + where);
 
-        exec(cmd, { cwd: './' + where }, function (err, stdout, stderr) {
+        exec(cmd, { cwd: "./" + where }, function (err, stdout, stderr) {
             if (err) {
                 grunt.log.error(stderr);
                 return callback(stderr);
@@ -96,16 +96,16 @@ module.exports = function (grunt) {
             }
             var npmRebuildPath = path.resolve(
                 __dirname,
-                '..',
-                'node_modules',
-                '.bin',
-                process.platform === 'win32' ? 'electron-rebuild.cmd' : 'electron-rebuild'
+                "..",
+                "node_modules",
+                ".bin",
+                process.platform === "win32" ? "electron-rebuild.cmd" : "electron-rebuild"
             );
             var args = [
-                "-m=" + path.resolve(__dirname, '..', where)
+                "-m=" + path.resolve(__dirname, "..", where)
             ];
             grunt.log.writeln("running electron-rebuild " + args.join(" "));
-            spawn(npmRebuildPath, args, { cwd: './' + where }, function (err, stdout, stderr) {
+            spawn(npmRebuildPath, args, { cwd: "./" + where }, function (err, stdout, stderr) {
                 if (err) {
                     if (stderr) {
                         grunt.log.error(stderr);
@@ -134,18 +134,18 @@ module.exports = function (grunt) {
 
         const packageJSON = grunt.file.readJSON("package.json");
         const appJson = _.pick(packageJSON, [
-            'name',
-            'productName',
-            'description',
-            'author',
-            'license',
-            'homepage',
-            'version',
-            'apiVersion',
-            'issues',
-            'repository',
-            'dependencies',
-            'optionalDependencies'
+            "name",
+            "productName",
+            "description",
+            "author",
+            "license",
+            "homepage",
+            "version",
+            "apiVersion",
+            "issues",
+            "repository",
+            "dependencies",
+            "optionalDependencies"
         ]);
 
         common.writeJSON(grunt, "dist/package.json", appJson);
@@ -231,7 +231,7 @@ module.exports = function (grunt) {
             var result = !results.some(x => x != null);
             doneWithTask(result);
         }).catch(function (err) {
-            grunt.log.error('err ' + err);
+            grunt.log.error("err " + err);
             doneWithTask(false);
         });
     });
@@ -276,12 +276,12 @@ module.exports = function (grunt) {
                 var extractStream = tar.Extract({ path: dirPath, strip: 0 });
                 unzipStream.pipe(extractStream);
 
-                extractStream.on('finish', function() {
+                extractStream.on("finish", function() {
                     grunt.log.writeln(url + " successfully downloaded");
                     resolve(path.resolve(dirPath, "package"));
                 });
 
-            }).on('error', function(err) {
+            }).on("error", function(err) {
                 reject(err);
             });
         });
@@ -317,7 +317,7 @@ module.exports = function (grunt) {
                 return downloadUrlToFolder(data.urlToDownload, data.tempDirPath);
             })
             .then(function (extensionPath) {
-                var target = path.resolve(__dirname, '..', 'src', 'extensions', 'default', extensionName);
+                var target = path.resolve(__dirname, "..", "src", "extensions", "default", extensionName);
                 return move(extensionPath, target);
             });
     }

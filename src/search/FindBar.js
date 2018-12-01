@@ -314,7 +314,7 @@ define(function (require, exports, module) {
                 var quickSearchContainer = $(".quick-search-container");
                 if (!self.searchField) {
                     self.showSearchHints();
-                } else if (quickSearchContainer.is(':visible')) {
+                } else if (quickSearchContainer.is(":visible")) {
                     quickSearchContainer.hide();
                 } else {
                     self.searchField.setText(self.$("#find-what").val());
@@ -381,7 +381,7 @@ define(function (require, exports, module) {
                     var quickSearchContainer = $(".quick-search-container");
                     if (!self.searchField) {
                         self.showSearchHints();
-                    } else if (!quickSearchContainer.is(':visible')) {
+                    } else if (!quickSearchContainer.is(":visible")) {
                         quickSearchContainer.show();
                     }
                 }

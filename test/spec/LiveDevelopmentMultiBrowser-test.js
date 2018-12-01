@@ -206,7 +206,7 @@ define(function (require, exports, module) {
 
                 runs(function () {
                     var curDoc =  DocumentManager.getCurrentDocument();
-                    curDoc.replaceRange('<link href="simple2.css" rel="stylesheet">\n', {line: 8, ch: 0});
+                    curDoc.replaceRange(`<link href="simple2.css" rel="stylesheet">\n`, {line: 8, ch: 0});
                 });
 
                 waitsFor(
@@ -223,7 +223,7 @@ define(function (require, exports, module) {
 
                 runs(function () {
                     var curDoc =  DocumentManager.getCurrentDocument();
-                    curDoc.replaceRange('', {line: 8, ch: 0}, {line: 8, ch: 50});
+                    curDoc.replaceRange("", {line: 8, ch: 0}, {line: 8, ch: 50});
                 });
 
                 waitsFor(

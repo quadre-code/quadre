@@ -23,7 +23,7 @@
  */
 
 define(function (require, exports, module) {
-    'use strict';
+    "use strict";
 
     var WorkspaceManager = require("view/WorkspaceManager"),
         MainViewManager  = require("view/MainViewManager"),

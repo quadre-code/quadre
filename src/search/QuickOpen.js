@@ -513,10 +513,10 @@ define(function (require, exports, module) {
         var displayName = "";
         if (item.scoreDebug) {
             var sd = item.scoreDebug;
-            displayName += '<span title="sp:' + sd.special + ', m:' + sd.match +
-                ', ls:' + sd.lastSegment + ', b:' + sd.beginning +
-                ', ld:' + sd.lengthDeduction + ', c:' + sd.consecutive + ', nsos: ' +
-                sd.notStartingOnSpecial + ', upper: ' + sd.upper + '">(' + item.matchGoodness + ') </span>';
+            displayName += `<span title="sp:` + sd.special + ", m:" + sd.match +
+                ", ls:" + sd.lastSegment + ", b:" + sd.beginning +
+                ", ld:" + sd.lengthDeduction + ", c:" + sd.consecutive + ", nsos: " +
+                sd.notStartingOnSpecial + ", upper: " + sd.upper + `">(` + item.matchGoodness + ") </span>";
         }
 
         // Put the path pieces together, highlighting the matched parts
@@ -546,7 +546,7 @@ define(function (require, exports, module) {
         // For main label, we just want filename: drop most of the string
         function fileNameFilter(includesLastSegment, rangeText) {
             if (includesLastSegment) {
-                var rightmostSlash = rangeText.lastIndexOf('/');
+                var rightmostSlash = rangeText.lastIndexOf("/");
                 return rangeText.substring(rightmostSlash + 1);  // safe even if rightmostSlash is -1
             } else {
                 return "";

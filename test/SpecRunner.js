@@ -48,7 +48,7 @@ require.config({
 });
 
 define(function (require, exports, module) {
-    'use strict';
+    "use strict";
 
     window.isSpecRunner = true;
 
@@ -245,7 +245,7 @@ define(function (require, exports, module) {
 
         jasmine.JUnitXmlReporter.prototype.reportRunnerResults = function (runner) {
             var suites = runner.suites(),
-                output = '<?xml version="1.0" encoding="UTF-8" ?>',
+                output = `<?xml version="1.0" encoding="UTF-8" ?>`,
                 i;
 
             output += "\n<testsuites>";
@@ -416,8 +416,8 @@ define(function (require, exports, module) {
                     // Failed to connect
                     console.error("[SpecRunner] Failed to connect to node", arguments);
 
-                    var container = $('<div class="container-fluid">');
-                    container.append('<div class="alert alert-error">Failed to connect to Node</div>');
+                    var container = $(`<div class="container-fluid">`);
+                    container.append(`<div class="alert alert-error">Failed to connect to Node</div>`);
 
                     $(window.document.body).append(container);
                 });

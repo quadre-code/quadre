@@ -532,7 +532,7 @@ define(function (require, exports, module) {
 
                 runs(function () {
                     testEditor.setCursorPos(pos1);
-                    testDocument.replaceRange('url("', pos1, pos1);
+                    testDocument.replaceRange(`url("`, pos1, pos1);
                     testEditor.setCursorPos(pos2);
                     hintsObj = null;
                     expectAsyncHints(UrlCodeHints.hintProvider);
@@ -549,7 +549,7 @@ define(function (require, exports, module) {
                     expect(UrlCodeHints.hintProvider.insertHint(hintsObj.hints[0])).toBe(true);
 
                     // Hint was added with closing double-quote and closing paren
-                    expect(testDocument.getRange(pos1, pos4)).toEqual('url("subfolder/")');
+                    expect(testDocument.getRange(pos1, pos4)).toEqual(`url("subfolder/")`);
 
                     // Cursor remains inside double-quote and closing paren
                     expect(fixPos(testEditor.getCursorPos())).toEqual(fixPos(pos3));
@@ -571,7 +571,7 @@ define(function (require, exports, module) {
                     expect(UrlCodeHints.hintProvider.insertHint(hintsObj.hints[0])).toBe(false);
 
                     // Hint was added
-                    expect(testDocument.getRange(pos1, pos5)).toEqual('url("subfolder/chevron.png")');
+                    expect(testDocument.getRange(pos1, pos5)).toEqual(`url("subfolder/chevron.png")`);
 
                     // Cursor was moved past closing double-quote and closing paren
                     expect(fixPos(testEditor.getCursorPos())).toEqual(fixPos(pos5));

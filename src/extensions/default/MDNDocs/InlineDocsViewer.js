@@ -26,7 +26,7 @@
  * Inline widget to display MDNDocs JSON data nicely formatted
  */
 define(function (require, exports, module) {
-    'use strict';
+    "use strict";
 
     // Load Brackets modules
     var Dialogs         = brackets.getModule("widgets/Dialogs"),

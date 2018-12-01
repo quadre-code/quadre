@@ -211,7 +211,7 @@ define(function (require, exports, module) {
                 expectNoHints(HTMLCodeHints.attrHintProvider);
             });
             it("should list hints to right of '=' sign with whitespace", function () {
-                testDocument.setText('<style type = "text/css">');
+                testDocument.setText(`<style type = "text/css">`);
                 testEditor.setCursorPos({ line: 0, ch: 13 });   // cursor between = and space
                 expectHints(HTMLCodeHints.attrHintProvider);
                 testEditor.setCursorPos({ line: 0, ch: 14 });   // cursor between space and "

@@ -685,7 +685,7 @@ define(function (require, exports, module) {
                 selectHint(JSCodeHints.jsHintProvider, hintObj, 13); // hint 13 is "hello\\\"world!"
                 runs(function () {
                     expect(testEditor.getCursorPos()).toEqual(end);
-                    expect(testDoc.getRange(start, end)).toEqual('"hello\\\\\\" world!"');
+                    expect(testDoc.getRange(start, end)).toEqual(`"hello\\\\\\" world!"`);
                 });
             });
 

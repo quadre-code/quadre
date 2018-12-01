@@ -25,7 +25,7 @@
 /*unittests: Preferences Base*/
 
 define(function (require, exports, module) {
-    'use strict';
+    "use strict";
 
     // Load dependent modules
     var PreferencesBase         = require("preferences/PreferencesBase"),

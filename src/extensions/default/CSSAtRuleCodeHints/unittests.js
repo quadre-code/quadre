@@ -112,7 +112,7 @@ define(function (require, exports, module) {
             expect(hintList.sort().toString()).toBe(values.sort().toString());
         }
 
-        var modesToTest = ['css', 'scss', 'less'],
+        var modesToTest = ["css", "scss", "less"],
             modeCounter;
 
         var selectMode = function () {
@@ -157,11 +157,11 @@ define(function (require, exports, module) {
                 },
                 testNoHintsOnSpace = function () {
                     testEditor.setCursorPos({ line: 3, ch: 3 });    // after {
-                    expect(CSSAtRuleCodeHints.restrictedBlockHints.hasHints(testEditor, '')).toBe(false);
+                    expect(CSSAtRuleCodeHints.restrictedBlockHints.hasHints(testEditor, "")).toBe(false);
                 },
                 testNoHints = function () {
                     testEditor.setCursorPos({ line: 0, ch: 0 });    // after {
-                    expect(CSSAtRuleCodeHints.restrictedBlockHints.hasHints(testEditor, 'c')).toBe(false);
+                    expect(CSSAtRuleCodeHints.restrictedBlockHints.hasHints(testEditor, "c")).toBe(false);
                 };
 
             for (modeCounter in modesToTest) {
@@ -197,7 +197,7 @@ define(function (require, exports, module) {
 
             it("should not list rule hints in less variable evaluation scope", function () {
                 testEditor.setCursorPos({ line: 3, ch: 3 });    // after {
-                expect(CSSAtRuleCodeHints.restrictedBlockHints.hasHints(testEditor, '')).toBe(false);
+                expect(CSSAtRuleCodeHints.restrictedBlockHints.hasHints(testEditor, "")).toBe(false);
             });
         });
 

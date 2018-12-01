@@ -23,7 +23,7 @@
  */
 
 define(function (require, exports, module) {
-    'use strict';
+    "use strict";
 
     var Editor              = require("editor/Editor").Editor,
         LanguageManager     = require("language/LanguageManager"),

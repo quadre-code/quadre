@@ -25,7 +25,7 @@
 /*global HTMLElement */
 
 define(function (require, exports, module) {
-    'use strict';
+    "use strict";
 
     var MultiRangeInlineEditor  = require("editor/MultiRangeInlineEditor").MultiRangeInlineEditor,
         InlineTextEditor        = require("editor/InlineTextEditor").InlineTextEditor,

@@ -25,7 +25,7 @@
 // TODO: Eventually we should have a brackets performance test suite that is separate from the unit tests
 
 define(function (require, exports, module) {
-    'use strict';
+    "use strict";
 
     // Load dependent modules
     var CommandManager,             // loaded from brackets.test

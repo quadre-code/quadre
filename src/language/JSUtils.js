@@ -96,7 +96,7 @@ define(function (require, exports, module) {
             FunctionDeclaration: function (node) {
                 // As acorn_loose marks identifier names with '✖' under erroneous declarations
                 // we should have a check to discard such 'FunctionDeclaration' nodes
-                if (node.id.name !== '✖') {
+                if (node.id.name !== "✖") {
                     _addResult(node);
                 }
             },

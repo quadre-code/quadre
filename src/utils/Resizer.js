@@ -137,11 +137,11 @@ define(function (require, exports, module) {
     }
 
     function _isPercentage(value) {
-        return !$.isNumeric(value) && value.indexOf('%') > -1;
+        return !$.isNumeric(value) && value.indexOf("%") > -1;
     }
 
     function _percentageToPixels(value, total) {
-        return parseFloat(value.replace('%', '')) * (total / 100);
+        return parseFloat(value.replace("%", "")) * (total / 100);
     }
 
     function _sideBarMaxSize() {
@@ -197,7 +197,7 @@ define(function (require, exports, module) {
      *                          FOR INTERNAL USE ONLY
      */
     function makeResizable(element, direction, position, minSize, collapsible, forceLeft, createdByWorkspaceManager, usePercentages, _attachToParent) {
-        var $resizer            = $('<div class="' + direction + '-resizer"></div>'),
+        var $resizer            = $(`<div class="` + direction + `-resizer"></div>`),
             $element            = $(element),
             $parent             = $element.parent(),
             $resizableElement   = $($element.find(".resizable-content:first")[0]),

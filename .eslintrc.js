@@ -63,6 +63,7 @@ module.exports = {
         "no-bitwise": "error",
         "no-new-object": "error",
         "no-trailing-spaces": "error",
+        "quotes": ["error", "double", { "allowTemplateLiterals": true }],
         "semi-spacing": "warn",
         "semi": "error"
     },

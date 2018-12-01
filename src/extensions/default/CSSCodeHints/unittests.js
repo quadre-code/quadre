@@ -239,7 +239,7 @@ define(function (require, exports, module) {
             });
             it("should NOT list prop-name hints in media type declaration", function () {
                 testEditor.setCursorPos({ line: 0, ch: 1 });
-                expect(CSSCodeHints.cssPropHintProvider.hasHints(testEditor, 'm')).toBe(false);
+                expect(CSSCodeHints.cssPropHintProvider.hasHints(testEditor, "m")).toBe(false);
             });
         });
 

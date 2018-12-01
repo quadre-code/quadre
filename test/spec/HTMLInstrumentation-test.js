@@ -1463,7 +1463,7 @@ define(function (require, exports, module) {
                     HTMLInstrumentation._markTextFromDOM(editor, previousDOM);
 
                     deleteAndExpect(editor, previousDOM, offsets[0], 1, [
-                        [{type: 'textDelete', parentID: pTagID, afterID: br1TagID, beforeID: br2TagID}]
+                        [{type: "textDelete", parentID: pTagID, afterID: br1TagID, beforeID: br2TagID}]
                     ]);
                 });
             });

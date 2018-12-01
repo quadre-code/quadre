@@ -165,10 +165,10 @@
             var i,
                 node;
 
-            var head = window.document.getElementsByTagName('head')[0];
+            var head = window.document.getElementsByTagName("head")[0];
             // create an style element to replace the one loaded with <link>
-            var s = window.document.createElement('style');
-            s.type = 'text/css';
+            var s = window.document.createElement("style");
+            s.type = "text/css";
             s.appendChild(window.document.createTextNode(msg.params.text));
 
             for (i = 0; i < window.document.styleSheets.length; i++) {
@@ -218,7 +218,7 @@
                     }
 
                     for (j = 0; j < rules.length; j++) {
-                        text += rules[j].cssText + '\n';
+                        text += rules[j].cssText + "\n";
                     }
                 }
             }
@@ -374,7 +374,7 @@
 
     ProtocolManager.setProtocolHandler(ProtocolHandler);
 
-    window.addEventListener('load', function () {
+    window.addEventListener("load", function () {
         ProtocolManager.enable();
     });
 
@@ -385,8 +385,8 @@
     */
     function onDocumentClick(event) {
         var element = event.target;
-        if (element && element.hasAttribute('data-brackets-id')) {
-            MessageBroker.send({"tagId": element.getAttribute('data-brackets-id')});
+        if (element && element.hasAttribute("data-brackets-id")) {
+            MessageBroker.send({"tagId": element.getAttribute("data-brackets-id")});
         }
     }
     window.document.addEventListener("click", onDocumentClick);

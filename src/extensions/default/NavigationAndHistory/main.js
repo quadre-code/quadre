@@ -289,7 +289,7 @@ define(function (require, exports, module) {
 
             if (isPaneLabelReqd && value.paneId) {
                 $newItem.addClass(value.paneId);
-                $newItem.css('top', ($('.' + value.paneId, $mrofList).length * 22) + 'px');
+                $newItem.css("top", ($("." + value.paneId, $mrofList).length * 22) + "px");
             }
 
             // Use the class providers(git e.t.c)
@@ -395,7 +395,7 @@ define(function (require, exports, module) {
         if (!refresh) {
             // Call hide first to make sure we are not creating duplicate lists
             _hideMROFList();
-            $mrofContainer = $(Mustache.render(htmlTemplate, {Strings: Strings})).appendTo('body');
+            $mrofContainer = $(Mustache.render(htmlTemplate, {Strings: Strings})).appendTo("body");
             $("#mrof-list-close").one("click", _hideMROFList);
             // Attach clear list handler to the 'Clear All' button
             $("#mrof-container .footer > div#clear-mrof-list").on("click", _purgeAllExceptWorkingSet);
@@ -414,7 +414,7 @@ define(function (require, exports, module) {
             $("#mrof-container #mrof-list > li.highlight").removeClass("highlight");
             $(event.target).parent().addClass("highlight");
             $mrofContainer.find("#recent-file-path").text($scope.data("path"));
-            $mrofContainer.find("#recent-file-path").attr('title', ($scope.data("path")));
+            $mrofContainer.find("#recent-file-path").attr("title", ($scope.data("path")));
             $currentContext = $scope;
         }
 

@@ -97,7 +97,7 @@ module.exports = function (grunt) {
 
                 var failures = checkForTestFailures(resultsPath);
                 if (failures) {
-                    var e = new Error(failures + ' test failure(s). Results are available from ' + resultsPath);
+                    var e = new Error(failures + " test failure(s). Results are available from " + resultsPath);
                     done(e);
                 } else {
                     done();

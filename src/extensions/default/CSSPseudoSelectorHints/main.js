@@ -35,7 +35,7 @@ define(function (require, exports, module) {
 
     var TOKEN_TYPE_PSEUDO_CLASS   = 0,
         TOKEN_TYPE_PSEUDO_ELEMENT = 1,
-        PUNCTUATION_CHAR          = ':';
+        PUNCTUATION_CHAR          = ":";
 
     function _getPseudoContext(token, cursorText, ctx) {
         var slicedToken,
