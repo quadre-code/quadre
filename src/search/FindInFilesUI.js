@@ -63,13 +63,6 @@ define(function (require, exports, module) {
     var _findBar = null;
 
     /**
-     * @private
-     * Forward declaration for JSLint.
-     * @type {Function}
-     */
-    var _finishReplaceBatch;
-
-    /**
      * Does a search in the given scope with the given filter. Shows the result list once the search is complete.
      * @param {{query: string, caseSensitive: boolean, isRegexp: boolean}} queryInfo Query info object
      * @param {?Entry} scope Project file/subfolder to search within; else searches whole project.

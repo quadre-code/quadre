@@ -176,8 +176,8 @@ define(function (require, exports, module) {
                     _mrofList[index] = null;
                     deferred.reject();
                 }
-		    });
-	    }
+            });
+        }
 
         return deferred.promise();
     }
@@ -768,7 +768,7 @@ define(function (require, exports, module) {
                 _initRecentFilesList();
             }
 
-	        _addToMROFList(newFile, newPaneId);
+            _addToMROFList(newFile, newPaneId);
         }
     }
 

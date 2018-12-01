@@ -90,14 +90,16 @@ module.exports = function (grunt) {
                 done(error);
             });
             cp.on("exit", function (code, signal) {
+                var e;
+
                 if (code !== 0) {
-                    var e = new Error("Process exited with code " + code);
+                    e = new Error("Process exited with code " + code);
                     return done(e);
                 }
 
                 var failures = checkForTestFailures(resultsPath);
                 if (failures) {
-                    var e = new Error(failures + " test failure(s). Results are available from " + resultsPath);
+                    e = new Error(failures + " test failure(s). Results are available from " + resultsPath);
                     done(e);
                 } else {
                     done();
