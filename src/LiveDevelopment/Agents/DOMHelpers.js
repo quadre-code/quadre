@@ -116,7 +116,7 @@ define(function DOMHelpersModule(require, exports, module) {
      */
     function _findTag(src, skip) {
         var from, to, inc;
-        from = _find(src, [/<[a-z!\/]/i, 2], skip);
+        from = _find(src, [/<[a-z!/]/i, 2], skip);
         if (from < 0) {
             return null;
         }

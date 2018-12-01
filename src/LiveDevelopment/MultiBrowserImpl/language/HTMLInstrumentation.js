@@ -244,7 +244,7 @@ define(function (require, exports, module) {
         function isDangerousEdit(text) {
             // We don't consider & dangerous since entities only affect text content, not
             // overall DOM structure.
-            return (/[<>\/=\"\']/).test(text);
+            return (/[<>/="']/).test(text);
         }
 
         // If there's more than one change, be conservative and assume we have to do a full reparse.

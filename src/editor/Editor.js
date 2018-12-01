@@ -605,7 +605,7 @@ define(function (require, exports, module) {
     Editor.prototype._handleKeypressEvents = function (event) {
         var keyStr = String.fromCharCode(event.which || event.keyCode);
 
-        if (/[\]\{\}\)]/.test(keyStr)) {
+        if (/[\]{})]/.test(keyStr)) {
             this._handleWhitespaceForElectricChars();
         }
     };

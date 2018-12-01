@@ -193,7 +193,7 @@ define(function (require, exports, module) {
                 }
             });
             spyOn(InstallExtensionDialog, "installUsingDialog").andCallFake(function (url) {
-                var id = url.match(/fake-repository\.com\/([^\/]+)/)[1];
+                var id = url.match(/fake-repository\.com\/([^/]+)/)[1];
                 mockLoadExtensions(["user/" + id]);
             });
         }

@@ -222,7 +222,7 @@ define(function (require, exports, module) {
             $el = $el.parents(".working-set-view");
         }
 
-        var id = $el.attr("id").match(/working\-set\-list\-([\w]+[\w\d\-\.\:\_]*)/).pop();
+        var id = $el.attr("id").match(/working-set-list-([\w]+[\w\d\-.:_]*)/).pop();
         return _views[id];
     }
 

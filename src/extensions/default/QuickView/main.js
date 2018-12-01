@@ -180,7 +180,7 @@ define(function (require, exports, module) {
 
         // Check for gradient. -webkit-gradient() can have parens in parameters
         // nested 2 levels. Other gradients can only nest 1 level.
-        var gradientRegEx = /-webkit-gradient\((?:[^\(]*?(?:\((?:[^\(]*?(?:\([^\)]*?\))*?)*?\))*?)*?\)|(?:(?:-moz-|-ms-|-o-|-webkit-|:|\s)((repeating-)?linear-gradient)|(?:-moz-|-ms-|-o-|-webkit-|:|\s)((repeating-)?radial-gradient))(\((?:[^\)]*?(?:\([^\)]*?\))*?)*?\))/gi,
+        var gradientRegEx = /-webkit-gradient\((?:[^(]*?(?:\((?:[^(]*?(?:\([^)]*?\))*?)*?\))*?)*?\)|(?:(?:-moz-|-ms-|-o-|-webkit-|:|\s)((repeating-)?linear-gradient)|(?:-moz-|-ms-|-o-|-webkit-|:|\s)((repeating-)?radial-gradient))(\((?:[^)]*?(?:\([^)]*?\))*?)*?\))/gi,
             colorRegEx    = new RegExp(ColorUtils.COLOR_REGEX),
             mode          = TokenUtils.getModeAt(editor._codeMirror, pos, false),
             isStyleSheet  = (styleLanguages.indexOf(mode) !== -1);
@@ -449,7 +449,7 @@ define(function (require, exports, module) {
         var cm = editor._codeMirror;
 
         // Check for image name
-        var urlRegEx = /url\(([^\)]*)\)/gi,
+        var urlRegEx = /url\(([^)]*)\)/gi,
             tokenString,
             urlMatch;
 

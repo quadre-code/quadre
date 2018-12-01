@@ -1101,7 +1101,7 @@ define(function (require, exports, module) {
      */
     function _getDisplayKey(key) {
         var displayKey = "",
-            match = key ? key.match(/(Up|Down|Left|Right|\-)$/i) : null;
+            match = key ? key.match(/(Up|Down|Left|Right|-)$/i) : null;
         if (match && !/Page(Up|Down)/.test(key)) {
             displayKey = key.substr(0, match.index) + _displayKeyMap[match[0].toLowerCase()];
         }

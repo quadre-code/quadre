@@ -117,7 +117,7 @@ define(function (require, exports, module) {
     function isLegalInTagName(c) {
         // We allow "-" in tag names since they're popular in Angular custom tag names
         // and will be legal in the web components spec.
-        return (/[A-Za-z0-9\-]/).test(c);
+        return (/[A-Za-z0-9-]/).test(c);
     }
 
     /**

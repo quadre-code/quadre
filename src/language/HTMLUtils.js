@@ -63,7 +63,7 @@ define(function (require, exports, module) {
             // another attribute and we're getting a false balanced string.
             // An example of this case is <link rel" href="foo"> where the
             // cursor is right after the first double quote.
-            foundEqualSign = (attrValue.match(/\=\s*['"]$/) !== null);
+            foundEqualSign = (attrValue.match(/=\s*['"]$/) !== null);
 
             if (!foundEqualSign) {
                 //strip the quotes and return;

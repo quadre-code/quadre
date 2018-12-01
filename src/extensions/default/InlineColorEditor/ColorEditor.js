@@ -348,7 +348,7 @@ define(function (require, exports, module) {
      * @return {string} an RGB color string in the normal format using non-percentage values
      */
     ColorEditor.prototype._convertToNormalRGB = function (color) {
-        var matches = color.match(/^rgb.*?([0-9]+)\%.*?([0-9]+)\%.*?([0-9]+)\%/i);
+        var matches = color.match(/^rgb.*?([0-9]+)%.*?([0-9]+)%.*?([0-9]+)%/i);
         if (matches) {
             var i, percentStr, value;
             for (i = 0; i < 3; i++) {

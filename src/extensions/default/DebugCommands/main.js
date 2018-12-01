@@ -270,7 +270,7 @@ define(function (require, exports, module) {
 
     function handleOpenBracketsSource() {
         // Brackets source dir w/o the trailing src/ folder
-        var dir = FileUtils.getNativeBracketsDirectoryPath().replace(/\/[^\/]+$/, "/");
+        var dir = FileUtils.getNativeBracketsDirectoryPath().replace(/\/[^/]+$/, "/");
         brackets.app.showOSFolder(dir);
     }
 

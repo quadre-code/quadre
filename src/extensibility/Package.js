@@ -213,7 +213,7 @@ define(function (require, exports, module) {
     function githubURLFilter(urlInfo) {
         if (urlInfo.parsed.hostname === "github.com" || urlInfo.parsed.hostname === "www.github.com") {
             // Is it a URL to the root of a repo? (/user/repo)
-            var match = /^\/[^\/?]+\/([^\/?]+)(\/?)$/.exec(urlInfo.parsed.pathname);
+            var match = /^\/[^/?]+\/([^/?]+)(\/?)$/.exec(urlInfo.parsed.pathname);
             if (match) {
                 if (!match[2]) {
                     urlInfo.url += "/";
@@ -223,7 +223,7 @@ define(function (require, exports, module) {
 
             } else {
                 // Is it a URL directly to the repo's 'master.zip'? (/user/repo/archive/master.zip)
-                match = /^\/[^\/?]+\/([^\/?]+)\/archive\/master.zip$/.exec(urlInfo.parsed.pathname);
+                match = /^\/[^/?]+\/([^/?]+)\/archive\/master.zip$/.exec(urlInfo.parsed.pathname);
                 if (match) {
                     urlInfo.filenameHint = match[1] + ".zip";
                 }
@@ -261,7 +261,7 @@ define(function (require, exports, module) {
 
             // Decide download destination
             var filename = urlInfo.filenameHint;
-            filename = filename.replace(/[^a-zA-Z0-9_\- \(\)\.]/g, "_"); // make sure it's a valid filename
+            filename = filename.replace(/[^a-zA-Z0-9_\- ().]/g, "_"); // make sure it's a valid filename
             if (!filename) {  // in case of URL ending in "/"
                 filename = "extension.zip";
             }

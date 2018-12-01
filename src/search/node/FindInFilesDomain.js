@@ -294,7 +294,7 @@ function doSearchInFiles(fileList, queryExpr, startFileIndex, maxResultsToReturn
 
 // Copied from StringUtils.js
 function regexEscape(str) {
-    return str.replace(/([.?*+\^$\[\]\\(){}|\-])/g, "\\$1");
+    return str.replace(/([.?*+^$[\]\\(){}|-])/g, "\\$1");
 }
 
 /**

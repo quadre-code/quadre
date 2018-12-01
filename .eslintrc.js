@@ -25,6 +25,7 @@ module.exports = {
         "no-new": "error",
         "no-proto": "error",
         "no-script-url": "error",
+        "no-useless-escape": "error",
         "wrap-iife": ["error", "outside"],
         // http://eslint.org/docs/rules/#strict-mode
         "strict": "error",

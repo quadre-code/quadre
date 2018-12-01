@@ -72,14 +72,14 @@ var ignoredFolders = [ "__MACOSX" ];
  * @return {boolean} true if the name is valid
  */
 function validateName(name) {
-    if (/^[a-z0-9][a-z0-9._\-]*$/.exec(name)) {
+    if (/^[a-z0-9][a-z0-9._-]*$/.exec(name)) {
         return true;
     }
     return false;
 }
 
 // Parses strings of the form "name <email> (url)" where email and url are optional
-var _personRegex = /^([^<\(]+)(?:\s+<([^>]+)>)?(?:\s+\(([^\)]+)\))?$/;
+var _personRegex = /^([^<(]+)(?:\s+<([^>]+)>)?(?:\s+\(([^)]+)\))?$/;
 
 /**
  * Normalizes person fields from package.json.

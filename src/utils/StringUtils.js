@@ -57,7 +57,7 @@ define(function (require, exports, module) {
     }
 
     function regexEscape(str) {
-        return str.replace(/([.?*+\^$\[\]\\(){}|\-])/g, "\\$1");
+        return str.replace(/([.?*+^$[\]\\(){}|-])/g, "\\$1");
     }
 
     // Periods (aka "dots") are allowed in HTML identifiers, but jQuery interprets

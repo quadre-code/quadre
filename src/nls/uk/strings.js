@@ -50,26 +50,26 @@ define({
     // Project error strings
     "ERROR_LOADING_PROJECT"                     : "Помилка завантаження проекту",
     "OPEN_DIALOG_ERROR"                         : "Під час показу діалогу відкриття файлу виникла помилка. (помилка {0})",
-    "REQUEST_NATIVE_FILE_SYSTEM_ERROR"          : "Виникла помилка під час спроби відкрити теку <span class=\'dialog-filename\'>{0}</span>. (помилка {1})",
-    "READ_DIRECTORY_ENTRIES_ERROR"              : "Виникла помилка під час спроби прочитати вміст теки <span class=\'dialog-filename\'>{0}</span>. (помилка {1})",
+    "REQUEST_NATIVE_FILE_SYSTEM_ERROR"          : "Виникла помилка під час спроби відкрити теку <span class='dialog-filename'>{0}</span>. (помилка {1})",
+    "READ_DIRECTORY_ENTRIES_ERROR"              : "Виникла помилка під час спроби прочитати вміст теки <span class='dialog-filename'>{0}</span>. (помилка {1})",
 
     // File open/save error string
     "ERROR_OPENING_FILE_TITLE"                  : "Помилка відкриття файлу",
-    "ERROR_OPENING_FILE"                        : "Виникла помилка під час спроби відкрити файл <span class=\'dialog-filename\'>{0}</span>. {1}",
+    "ERROR_OPENING_FILE"                        : "Виникла помилка під час спроби відкрити файл <span class='dialog-filename'>{0}</span>. {1}",
     "ERROR_OPENING_FILES"                       : "Під час відкриття наступних файлів виникли помилки:",
     "ERROR_RELOADING_FILE_TITLE"                : "Помилка перевантаження змін з диску",
-    "ERROR_RELOADING_FILE"                      : "Сталась помилка під час спроби перевантаження файлу <span class=\'dialog-filename\'>{0}</span>. {1}",
+    "ERROR_RELOADING_FILE"                      : "Сталась помилка під час спроби перевантаження файлу <span class='dialog-filename'>{0}</span>. {1}",
     "ERROR_SAVING_FILE_TITLE"                   : "Помилка збереження файлу",
-    "ERROR_SAVING_FILE"                         : "Сталась помилка під час спроби збереження файлу <span class=\'dialog-filename\'>{0}</span>. {1}",
+    "ERROR_SAVING_FILE"                         : "Сталась помилка під час спроби збереження файлу <span class='dialog-filename'>{0}</span>. {1}",
     "ERROR_RENAMING_FILE_TITLE"                 : "Помилка під час перейменування {0}",
-    "ERROR_RENAMING_FILE"                       : "Сталась помилка під час спроби перейменувати файл {2} <span class=\'dialog-filename\'>{0}</span>. {1}",
+    "ERROR_RENAMING_FILE"                       : "Сталась помилка під час спроби перейменувати файл {2} <span class='dialog-filename'>{0}</span>. {1}",
     "ERROR_DELETING_FILE_TITLE"                 : "Помилка видалення {0}",
-    "ERROR_DELETING_FILE"                       : "Сталась помилка під час проби видалити {2} <span class=\'dialog-filename\'>{0}</span>. {1}",
+    "ERROR_DELETING_FILE"                       : "Сталась помилка під час проби видалити {2} <span class='dialog-filename'>{0}</span>. {1}",
     "INVALID_FILENAME_TITLE"                    : "Невірна {0}",
-    "INVALID_FILENAME_MESSAGE"                  : "{0} не може містити зарезервованих слів, закінчуватись крапками (.) та використовувати наступні симовли: <code class=\'emphasized\'>{1}</code>",
-    "ENTRY_WITH_SAME_NAME_EXISTS"               : "Файл або тека з назвою <span class=\'dialog-filename\'>{0}</span> уже існує.",
+    "INVALID_FILENAME_MESSAGE"                  : "{0} не може містити зарезервованих слів, закінчуватись крапками (.) та використовувати наступні симовли: <code class='emphasized'>{1}</code>",
+    "ENTRY_WITH_SAME_NAME_EXISTS"               : "Файл або тека з назвою <span class='dialog-filename'>{0}</span> уже існує.",
     "ERROR_CREATING_FILE_TITLE"                 : "Помилка створення {0}",
-    "ERROR_CREATING_FILE"                       : "Сталась помилка під час спроби створити файл {0} <span class=\'dialog-filename\'>{1}</span>. {2}",
+    "ERROR_CREATING_FILE"                       : "Сталась помилка під час спроби створити файл {0} <span class='dialog-filename'>{1}</span>. {2}",
     "ERROR_MIXED_DRAGDROP"                      : "Не можна відкривати теку одночасно відкриваючи інші файли",
 
     // User key map error strings
@@ -93,7 +93,7 @@ define({
 
     // ProjectManager max files error string
     "ERROR_MAX_FILES_TITLE"                     : "Помилка індексації файлів",
-    "ERROR_MAX_FILES"                           : "Цей проект містить більше 30 000 файлів. Функції, що оперують кількома файлам можуть не працювати правильно або вимкнутись. <a href=\'https://github.com/adobe/brackets/wiki/Large-Projects\'>Дізнайтесь більше про роботу програми під час відкриття великих проектів</a>.",
+    "ERROR_MAX_FILES"                           : "Цей проект містить більше 30 000 файлів. Функції, що оперують кількома файлам можуть не працювати правильно або вимкнутись. <a href='https://github.com/adobe/brackets/wiki/Large-Projects'>Дізнайтесь більше про роботу програми під час відкриття великих проектів</a>.",
 
     // Live Preview error strings
     "ERROR_LAUNCHING_BROWSER_TITLE"             : "Помилка запуску браузера",
@@ -109,7 +109,7 @@ define({
     "LIVE_DEV_SERVER_NOT_READY_MESSAGE"         : "Помилка запуску HTTP-сервера для live preview. Будь ласка, спробуйте пізніше.",
     "LIVE_DEVELOPMENT_INFO_TITLE"               : "Вітаємо у Live Preview!",
     "LIVE_DEVELOPMENT_INFO_MESSAGE"             : "Live Preview підключає {APP_NAME} до вашого браузера та забезпечує попередній перегляд файлів HTML. Функція оновлює попередній перегляд одразу, як ви вносите зміни в код.<br /><br />У цій ранній збірці {APP_NAME}, Live Preview працює тільки з <strong>Google Chrome</strong> і оновлення в реальному часі відображається тільки для <strong>файлів CSS та HTML</strong>. Зміни до файлів JavaScript вносяться автоматично під час збереження.<br /><br />(Це повідомлення більше не турбуватиме вас.)",
-    "LIVE_DEVELOPMENT_TROUBLESHOOTING"          : "Для докладнішої інформації погляньте на <a href=\'{0}\' title=\'{0}\'>пошук та усунення помилок підключення Live Preview</a>.",
+    "LIVE_DEVELOPMENT_TROUBLESHOOTING"          : "Для докладнішої інформації погляньте на <a href='{0}' title='{0}'>пошук та усунення помилок підключення Live Preview</a>.",
 
     "LIVE_DEV_STATUS_TIP_NOT_CONNECTED"         : "Live Preview",
     "LIVE_DEV_STATUS_TIP_PROGRESS1"             : "Live Preview: Підключення\u2026",
@@ -124,15 +124,15 @@ define({
     "LIVE_DEV_CLOSED_UNKNOWN_REASON"            : "Live Preview скасовано з невідомих причин ({0})",
 
     "SAVE_CLOSE_TITLE"                          : "Зберегти зміни",
-    "SAVE_CLOSE_MESSAGE"                        : "Чи бажаєте ви зберегти зміни внесені у файл <span class=\'dialog-filename\'>{0}</span>?",
+    "SAVE_CLOSE_MESSAGE"                        : "Чи бажаєте ви зберегти зміни внесені у файл <span class='dialog-filename'>{0}</span>?",
     "SAVE_CLOSE_MULTI_MESSAGE"                  : "Чи бажаєте ви зберегти зміни до наступних файлів?",
     "EXT_MODIFIED_TITLE"                        : "Зовнішні зміни",
     "CONFIRM_DELETE_TITLE"                      : "Підтвердження видалення",
-    "CONFIRM_FOLDER_DELETE"                     : "Ви дійсно хочете видалити теку <span class=\'dialog-filename\'>{0}</span>?",
+    "CONFIRM_FOLDER_DELETE"                     : "Ви дійсно хочете видалити теку <span class='dialog-filename'>{0}</span>?",
     "FILE_DELETED_TITLE"                        : "Файл видалено",
-    "EXT_MODIFIED_WARNING"                      : "<span class=\'dialog-filename\'>{0}</span> змінено на диску.<br /><br />Чи ви хочете зберегти файл і перезаписати ці зміни?",
-    "EXT_MODIFIED_MESSAGE"                      : "<span class=\'dialog-filename\'>{0}</span> змінено на диску, проте існують також не збережені зміни у {APP_NAME}.<br /><br />Яку версію ви бажаєте лишити?",
-    "EXT_DELETED_MESSAGE"                       : "<span class=\'dialog-filename\'>{0}</span> видалено з диску, але {APP_NAME} містить не збережені в нього зміни.<br /><br />Чи бажаєте ви залишити їх?",
+    "EXT_MODIFIED_WARNING"                      : "<span class='dialog-filename'>{0}</span> змінено на диску.<br /><br />Чи ви хочете зберегти файл і перезаписати ці зміни?",
+    "EXT_MODIFIED_MESSAGE"                      : "<span class='dialog-filename'>{0}</span> змінено на диску, проте існують також не збережені зміни у {APP_NAME}.<br /><br />Яку версію ви бажаєте лишити?",
+    "EXT_DELETED_MESSAGE"                       : "<span class='dialog-filename'>{0}</span> видалено з диску, але {APP_NAME} містить не збережені в нього зміни.<br /><br />Чи бажаєте ви залишити їх?",
 
     // Generic dialog/button labels
     "DONE"                                      : "Готово",
@@ -180,7 +180,7 @@ define({
 
     // Find in Files
     "FIND_NUM_FILES"                            : "{0} {1}",
-    "FIND_IN_FILES_SCOPED"                      : "у <span class=\'dialog-filename\'>{0}</span>",
+    "FIND_IN_FILES_SCOPED"                      : "у <span class='dialog-filename'>{0}</span>",
     "FIND_IN_FILES_NO_SCOPE"                    : "у проекті",
     "FIND_IN_FILES_ZERO_FILES"                  : "Фільтр не включає всі файли {0}",
     "FIND_IN_FILES_FILE"                        : "файл",
@@ -189,7 +189,7 @@ define({
     "FIND_IN_FILES_MATCHES"                     : "збігів",
     "FIND_IN_FILES_MORE_THAN"                   : "Більше ",
     "FIND_IN_FILES_PAGING"                      : "{0}&mdash;{1}",
-    "FIND_IN_FILES_FILE_PATH"                   : "<span class=\'dialog-filename\'>{0}</span> {2} <span class=\'dialog-path\'>{1}</span>", // We should use normal dashes on Windows instead of em dash eventually
+    "FIND_IN_FILES_FILE_PATH"                   : "<span class='dialog-filename'>{0}</span> {2} <span class='dialog-path'>{1}</span>", // We should use normal dashes on Windows instead of em dash eventually
     "FIND_IN_FILES_EXPAND_COLLAPSE"             : "Ctrl/Cmd+клік згорнути/розгорнути все",
     "REPLACE_IN_FILES_ERRORS_TITLE"             : "Помилки під час заміни",
     "REPLACE_IN_FILES_ERRORS"                   : "Наступні файли не змінено, оскільки вони змінились після пошуку аби недоступні для запису.",
@@ -204,7 +204,7 @@ define({
     "EXCLUDE_FILE_FILTER"                       : "Не включати {0}",
     "EDIT_FILE_FILTER"                          : "Змінити\u2026",
     "FILE_FILTER_DIALOG"                        : "Змінити набір виключень",
-    "FILE_FILTER_INSTRUCTIONS"                  : "Всі файли та таки, що підпадають під ці рядки, підрядки або <a href=\'{0}\' title=\'{0}\'>шаблони</a> будуть виключені. Вказуйте кожне правило з нового рядка.",
+    "FILE_FILTER_INSTRUCTIONS"                  : "Всі файли та таки, що підпадають під ці рядки, підрядки або <a href='{0}' title='{0}'>шаблони</a> будуть виключені. Вказуйте кожне правило з нового рядка.",
     "FILTER_NAME_PLACEHOLDER"                   : "Назва набору виключень (не обов’язково)",
     "FILE_FILTER_CLIPPED_SUFFIX"                : "і ще {0}",
     "FILTER_COUNTING_FILES"                     : "Підрахунок файлів\u2026",
@@ -430,11 +430,11 @@ define({
     "CLOSE"                                     : "Закрити",
     "ABOUT_TEXT_LINE1"                          : "Версія {VERSION_MAJOR}.{VERSION_MINOR} {BUILD_TYPE} {VERSION}",
     "ABOUT_TEXT_BUILD_TIMESTAMP"                : "часова мітка збирання:",
-    "ABOUT_TEXT_LINE3"                          : "Зауважте, що правила та умови використання комерційного програмного забезпечення розміщенні на <a href=\'{ADOBE_THIRD_PARTY}\'>{ADOBE_THIRD_PARTY}</a> і наводяться тут в якості посилання.",
-    "ABOUT_TEXT_LINE4"                          : "Документація та сирці доступні на <a href=\'https://github.com/adobe/brackets/\'>https://github.com/adobe/brackets/</a>",
+    "ABOUT_TEXT_LINE3"                          : "Зауважте, що правила та умови використання комерційного програмного забезпечення розміщенні на <a href='{ADOBE_THIRD_PARTY}'>{ADOBE_THIRD_PARTY}</a> і наводяться тут в якості посилання.",
+    "ABOUT_TEXT_LINE4"                          : "Документація та сирці доступні на <a href='https://github.com/adobe/brackets/'>https://github.com/adobe/brackets/</a>",
     "ABOUT_TEXT_LINE5"                          : "Створено з \u2764 та JavaScript авторами:",
     "ABOUT_TEXT_LINE6"                          : "Значна кількість людей (але наразі існують проблеми із завантаженням даних про них).",
-    "ABOUT_TEXT_WEB_PLATFORM_DOCS"              : "Документація та логотип Web Platform Docs поширюється на умовах ліцензії Creative Commons Attribution, <a href=\'{WEB_PLATFORM_DOCS_LICENSE}\'>CC-BY 3.0 Unported</a>.",
+    "ABOUT_TEXT_WEB_PLATFORM_DOCS"              : "Документація та логотип Web Platform Docs поширюється на умовах ліцензії Creative Commons Attribution, <a href='{WEB_PLATFORM_DOCS_LICENSE}'>CC-BY 3.0 Unported</a>.",
     "UPDATE_NOTIFICATION_TOOLTIP"               : "Доступна нова збірка {APP_NAME}! Натисніть тут аби дізнатись деталі.",
     "UPDATE_AVAILABLE_TITLE"                    : "Доступне оновлення",
     "UPDATE_MESSAGE"                            : "Агов! Доступна нова збірка {APP_NAME}. Ось кілька функцій, що з’явилися:",
@@ -445,7 +445,7 @@ define({
     "BASEURL_ERROR_INVALID_PROTOCOL"            : "Протокол {0} не підтримується Preview&mdash;будь ласка, використовуйте http: або https: .",
     "BASEURL_ERROR_SEARCH_DISALLOWED"           : "Базова адреса не може містити параметри пошуку, кшталту \"{0}\".",
     "BASEURL_ERROR_HASH_DISALLOWED"             : "Базова адреса не може містити хеші кшталту \"{0}\".",
-    "BASEURL_ERROR_INVALID_CHAR"                : "Спеціальні символи, кшталту \'{0}\', мають бути з обох боків заключені у %.",
+    "BASEURL_ERROR_INVALID_CHAR"                : "Спеціальні символи, кшталту '{0}', мають бути з обох боків заключені у %.",
     "BASEURL_ERROR_UNKNOWN_ERROR"               : "Неочікувана помилка розбору базової адреси",
     "EMPTY_VIEW_HEADER"                         : "<em>Відкрийте файл, поки ця панель у фокусі</em>",
 
@@ -552,7 +552,7 @@ define({
 
     "INLINE_EDITOR_NO_MATCHES"                  : "Нічого не знайдено.",
     "INLINE_EDITOR_HIDDEN_MATCHES"              : "Всі збіги згорнуто. Розгортайте файли наведені справа, аби переглянути збіги.",
-    "CSS_QUICK_EDIT_NO_MATCHES"                 : "Жодне правило CSS, що відповідає виділенню.<br> Натисніть \'Нове правило\' для створення. ",
+    "CSS_QUICK_EDIT_NO_MATCHES"                 : "Жодне правило CSS, що відповідає виділенню.<br> Натисніть 'Нове правило' для створення. ",
     "CSS_QUICK_EDIT_NO_STYLESHEETS"             : "У вашому проекті відсутні таблиці стилів.<br>Створіть хоча б одну аби мати можливість додавати CSS-правила.",
 
     // Custom Viewers
@@ -589,8 +589,8 @@ define({
     // extensions/default/InlineTimingFunctionEditor
     "INLINE_TIMING_EDITOR_TIME"                 : "Час",
     "INLINE_TIMING_EDITOR_PROGRESSION"          : "Просування",
-    "BEZIER_EDITOR_INFO"                        : "<kbd>↑</kbd><kbd>↓</kbd><kbd>←</kbd><kbd>→</kbd> Переміщення обраної точки<br><kbd class=\'text\'>Shift</kbd> Переміщення на 10 одиниць<br><kbd class=\'text\'>Tab</kbd> Навігація точками",
-    "STEPS_EDITOR_INFO"                         : "<kbd>↑</kbd><kbd>↓</kbd> Збільшення та зменшення кроку<br><kbd>←</kbd><kbd>→</kbd> \'Початок\' та \'кінець\'",
+    "BEZIER_EDITOR_INFO"                        : "<kbd>↑</kbd><kbd>↓</kbd><kbd>←</kbd><kbd>→</kbd> Переміщення обраної точки<br><kbd class='text'>Shift</kbd> Переміщення на 10 одиниць<br><kbd class='text'>Tab</kbd> Навігація точками",
+    "STEPS_EDITOR_INFO"                         : "<kbd>↑</kbd><kbd>↓</kbd> Збільшення та зменшення кроку<br><kbd>←</kbd><kbd>→</kbd> 'Початок' та 'кінець'",
     "INLINE_TIMING_EDITOR_INVALID"              : "Старе значення <code>{0}</code> – невірне, тому функцію змінено на <code>{1}</code>. Документ буде оновлено після першого редагування.",
 
     // extensions/default/InlineColorEditor
@@ -607,7 +607,7 @@ define({
     "CMD_SHOW_PARAMETER_HINT"                   : "Показувати підсвічування параметрів функції",
     "NO_ARGUMENTS"                              : "<параметри відсутні>",
     "DETECTED_EXCLUSION_TITLE"                  : "Помилка виведення файлу JavaScript",
-    "DETECTED_EXCLUSION_INFO"                   : "Brackets зіткнувся з проблемою під час обробки <span class=\'dialog-filename\'>{0}</span>.<br><br>Для цього файлу більше не працюватиме аналіз, перехід до оголошень та швидке редагування. Аби повернути їх, відкрийте <code>.brackets.json</code> у теці свого проекту та відредагуйте параметр <code>jscodehints.detectedExclusions</code>. <br><br> Це схоже на ваду у Brackets. Якщо ви можете надати копію цього файлу, будь ласка, <a href=\'https://github.com/adobe/brackets/wiki/How-to-Report-an-Issue\'>сповістіть про ваду</a> та вкажіть посилання на нього.",
+    "DETECTED_EXCLUSION_INFO"                   : "Brackets зіткнувся з проблемою під час обробки <span class='dialog-filename'>{0}</span>.<br><br>Для цього файлу більше не працюватиме аналіз, перехід до оголошень та швидке редагування. Аби повернути їх, відкрийте <code>.brackets.json</code> у теці свого проекту та відредагуйте параметр <code>jscodehints.detectedExclusions</code>. <br><br> Це схоже на ваду у Brackets. Якщо ви можете надати копію цього файлу, будь ласка, <a href='https://github.com/adobe/brackets/wiki/How-to-Report-an-Issue'>сповістіть про ваду</a> та вкажіть посилання на нього.",
 
     // extensions/default/JSLint
     "JSLINT_NAME"                               : "JSLint",

@@ -2607,7 +2607,7 @@ define(function (require, exports, module) {
                 });
             });
             it("should properly parse values with special characters", function () {
-                var values = [`"my:font"`, `"my,font"`, `"my, font"`, `"my\'font"`, `'my\"font'`, `"my;font"`, `"my{font"`, `"my}font"`];
+                var values = [`"my:font"`, `"my,font"`, `"my, font"`, `"my'font"`, `'my"font'`, `"my;font"`, `"my{font"`, `"my}font"`];
                 for (i = 0; i < values.length; i++) {
                     result = CSSUtils.getInfoAtPos(testEditor, contextTest.offsets[i + 55]);
                     expect(result).toEqual({

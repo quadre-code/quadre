@@ -35,7 +35,7 @@ define(function (require, exports, module) {
     var valueTokenTypes = ["atom", "string", "number", "variable"];
 
     // Reg-ex to match colon, comma, opening bracket of an array and white-space.
-    var regexAllowedChars = /(?:^[:,\[]$)|(?:^\s+$)/;
+    var regexAllowedChars = /(?:^[:,[]$)|(?:^\s+$)/;
 
     /**
      * @private

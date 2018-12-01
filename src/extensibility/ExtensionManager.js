@@ -281,7 +281,7 @@ define(function (require, exports, module) {
         }
 
         function deduceMetadata() {
-            var match = path.match(/\/([^\/]+)$/),
+            var match = path.match(/\/([^/]+)$/),
                 name = (match && match[1]) || path,
                 metadata = { name: name, title: name };
             return metadata;

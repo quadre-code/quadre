@@ -122,7 +122,7 @@ define(function DOMAgent(require, exports, module) {
      * @param {string} URL
      */
     function _cleanURL(url) {
-        var index = url.search(/[#\?]/);
+        var index = url.search(/[#?]/);
         if (index >= 0) {
             url = url.substr(0, index);
         }

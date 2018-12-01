@@ -181,7 +181,7 @@ define(function (require, exports, module) {
 
         if (match) {
             if (match[0]) {
-                param = match[0].replace(/[\s\"']/g, ""); // replace possible trailing whitespace or leading quotes
+                param = match[0].replace(/[\s"']/g, ""); // replace possible trailing whitespace or leading quotes
                 param = _convertToNumber(param);
 
                 // Verify number_of_params is a number
@@ -203,7 +203,7 @@ define(function (require, exports, module) {
             }
             if (match[1]) {
                 // little autocorrect feature: leading s gets 'start', everything else gets 'end'
-                param = match[1].replace(/[\s\"']/g, ""); // replace possible trailing whitespace or leading quotes
+                param = match[1].replace(/[\s"']/g, ""); // replace possible trailing whitespace or leading quotes
                 param = param.substr(0, 1);
                 if (param === "s") {
                     params[1] = "start";

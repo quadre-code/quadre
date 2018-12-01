@@ -37,7 +37,7 @@ define(function NetworkAgent(require, exports, module) {
      * @param {string} URL
      */
     function _urlWithoutQueryString(url) {
-        var index = url.search(/[#\?]/);
+        var index = url.search(/[#?]/);
         if (index >= 0) {
             url = url.substr(0, index);
         }

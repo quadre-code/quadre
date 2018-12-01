@@ -824,7 +824,7 @@ define(function (require, exports, module) {
 
         function _isStartComment() {
             // Also check for line comments used in LESS and SASS.
-            return (/^\/[\/\*]/.test(token));
+            return (/^\/[/*]/.test(token));
         }
 
         function _parseComment() {
@@ -1570,7 +1570,7 @@ define(function (require, exports, module) {
             while (true) {
                 if (ctx.token.type !== "comment") {
                     // Stop once we've reached a {, }, or ;
-                    if (/[\{\}\;]/.test(ctx.token.string)) {
+                    if (/[{};]/.test(ctx.token.string)) {
                         break;
                     }
 
@@ -1706,10 +1706,10 @@ define(function (require, exports, module) {
     function _removeStrings(content) {
         // First remove escaped quotes so we can balance unescaped quotes
         // since JavaScript doesn't support negative lookbehind
-        var s = content.replace(/\\\"|\\\'/g, "");
+        var s = content.replace(/\\"|\\'/g, "");
 
         // Now remove strings
-        return s.replace(/\"(.*?)\"|\'(.*?)\'/g, "");
+        return s.replace(/"(.*?)"|'(.*?)'/g, "");
     }
 
     /**
@@ -1728,7 +1728,7 @@ define(function (require, exports, module) {
      * @return {Array.<string>} array of unique flow names found in the content (empty if none)
      */
     function extractAllNamedFlows(text) {
-        var namedFlowRegEx = /(?:flow\-(into|from)\:\s*)([\w\-]+)(?:\s*;)/gi,
+        var namedFlowRegEx = /(?:flow-(into|from):\s*)([\w-]+)(?:\s*;)/gi,
             result = [],
             names = {},
             thisMatch;
