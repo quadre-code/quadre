@@ -22,8 +22,6 @@
  *
  */
 
-/*global setInterval, clearInterval */
-
 (function (global) {
     "use strict";
 
@@ -139,12 +137,12 @@
                 //        http://stackoverflow.com/questions/11425209/are-dom-mutation-observers-slower-than-dom-mutation-events
                 //
                 // TODO: This is just a temporary 'cross-browser' solution, it needs optimization.
-                var loadInterval = setInterval(function () {
+                var loadInterval = window.setInterval(function () {
                     var i;
                     for (i = 0; i < window.document.styleSheets.length; i++) {
                         if (window.document.styleSheets[i].href === href) {
                             //clear interval
-                            clearInterval(loadInterval);
+                            window.clearInterval(loadInterval);
                             // notify stylesheets added
                             self.notifyStylesheetAdded(href);
                             break;

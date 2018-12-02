@@ -57,7 +57,7 @@ define(function (require, exports, module) {
 
     describe("ExtensionManager", function () {
         var mockId, mockSettings, origRegistryURL, origExtensionUrl, removedPath,
-            view, model, fakeLoadDeferred, modelDisposed, disabledFilePath;
+            view, model, fakeLoadDeferred, disabledFilePath;
 
         beforeEach(function () {
             // Use fake URLs for the registry (useful if the registry isn't actually currently
@@ -213,7 +213,6 @@ define(function (require, exports, module) {
             runs(function () {
                 view = new ExtensionManagerView();
                 model = new ModelClass();
-                modelDisposed = false;
                 waitsForDone(view.initialize(model), "view initializing");
                 view.$el.appendTo(window.document.body);
             });

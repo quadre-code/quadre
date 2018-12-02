@@ -466,6 +466,7 @@ define(function (require, exports, module) {
             context          = null,
             cursor           = this.getCursor(),
             token            = this.getToken(cursor),
+            // eslint-disable-next-line no-unused-vars
             lexical;
 
         if (token) {

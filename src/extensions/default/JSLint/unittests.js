@@ -22,8 +22,6 @@
  *
  */
 
-/*global describe, it, expect, beforeEach, afterEach, runs, waitsForDone, spyOn */
-
 define(function (require, exports, module) {
     "use strict";
 
@@ -34,8 +32,10 @@ define(function (require, exports, module) {
         var testFolder = FileUtils.getNativeModuleDirectoryPath(module) + "/unittest-files/",
             testWindow,
             $,
+            // eslint-disable-next-line no-unused-vars
             brackets,
             CodeInspection,
+            // eslint-disable-next-line no-unused-vars
             EditorManager;
 
         var toggleJSLintResults = function (visible) {

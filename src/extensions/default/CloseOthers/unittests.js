@@ -22,8 +22,6 @@
  *
  */
 
-/*global describe, it, expect, beforeEach, afterEach, runs, waitsForDone, spyOn */
-
 define(function (require, exports, module) {
     "use strict";
 
@@ -31,7 +29,9 @@ define(function (require, exports, module) {
         FileUtils		= brackets.getModule("file/FileUtils"),
         CommandManager,
         Commands,
+        // eslint-disable-next-line no-unused-vars
         Dialogs,
+        // eslint-disable-next-line no-unused-vars
         EditorManager,
         DocumentManager,
         MainViewManager,
@@ -41,9 +41,11 @@ define(function (require, exports, module) {
         var extensionPath = FileUtils.getNativeModuleDirectoryPath(module),
             testPath      = extensionPath + "/unittest-files/",
             testWindow,
+            // eslint-disable-next-line no-unused-vars
             $,
             docSelectIndex,
             cmdToRun,
+            // eslint-disable-next-line no-unused-vars
             brackets;
 
         function createUntitled(count) {

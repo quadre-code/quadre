@@ -30,7 +30,6 @@
 module.exports = function (grunt) {
 
     var _       = require("lodash"),
-        build   = require("./build")(grunt),
         common  = require("./lib/common")(grunt),
         exec    = require("child_process").exec,
         _spawn  = require("child_process").spawn,
@@ -173,7 +172,10 @@ module.exports = function (grunt) {
     grunt.registerTask("npm-install-src", "Install node_modules to the src folder", function () {
         var done = this.async();
         runNpmInstall("src", function (err) {
-
+            if (err) {
+                done(false);
+            }
+            done();
         });
     });
 

@@ -33,6 +33,7 @@ var open = require("opn");
  * The Brackets domain manager for registering node extensions.
  * @type {?DomainManager}
  */
+// eslint-disable-next-line no-unused-vars
 var _domainManager;
 
 /**

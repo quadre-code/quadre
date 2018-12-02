@@ -49,7 +49,7 @@ define(function (require, exports, module) {
 
     var buildInfo;
 
-
+    // eslint-disable-next-line no-unused-vars
     function _handleCheckForUpdates() {
         UpdateNotification.checkForUpdate(true);
     }

@@ -944,6 +944,7 @@ define(function (require, exports, module) {
                 var complete,
                     error,
                     index,
+                    // eslint-disable-next-line no-unused-vars
                     parent;
 
                 // set up test menu and menu items

@@ -4,9 +4,6 @@
 
 module.exports = function (grunt) {
     const common    = require("./lib/common")(grunt);
-    const build     = require("./build")(grunt);
-    const fs        = require("fs");
-    const path      = require("path");
     const _         = require("lodash");
 
     // sync-tsconfigs

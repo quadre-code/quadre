@@ -2549,7 +2549,6 @@ define(function (require, exports, module) {
      * @param {string} name The name of the gutter to be unregistered.
      */
     Editor.unregisterGutter = function (name) {
-        var i, gutter;
         registeredGutters = registeredGutters.filter(function (gutter) {
             return gutter.name !== name;
         });

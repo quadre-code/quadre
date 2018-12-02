@@ -22,8 +22,6 @@
  *
  */
 
-/*global describe, it, expect, beforeEach, afterEach, waits, runs, waitsForDone, spyOn */
-
 define(function (require, exports, module) {
     "use strict";
 
@@ -52,12 +50,6 @@ define(function (require, exports, module) {
             sel.reversed = false;
         }
         return sel;
-    }
-    function fixSels(sels) {
-        sels.forEach(function (sel) {
-            fixSel(sel);
-        });
-        return sels;
     }
 
     describe("Inline Color Editor - unit", function () {

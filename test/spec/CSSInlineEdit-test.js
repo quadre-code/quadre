@@ -42,6 +42,7 @@ define(function (require, exports, module) {
             DocumentManager,
             PreferencesManager,
             Commands,
+            // eslint-disable-next-line no-unused-vars
             FileSystem,
             Dialogs;
 

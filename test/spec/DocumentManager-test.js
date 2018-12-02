@@ -29,6 +29,7 @@ define(function (require, exports, module) {
     var CommandManager,          // loaded from brackets.test
         Commands,                // loaded from brackets.test
         DocumentManager,         // loaded from brackets.test
+        // eslint-disable-next-line no-unused-vars
         EditorManager,           // loaded from brackets.test
         SpecRunnerUtils          = require("spec/SpecRunnerUtils");
 
@@ -39,6 +40,7 @@ define(function (require, exports, module) {
         var testPath = SpecRunnerUtils.getTestPath("/spec/DocumentCommandHandlers-test-files"),
             testFile = testPath + "/test.js",
             testWindow,
+            // eslint-disable-next-line no-unused-vars
             _$,
             promise;
 

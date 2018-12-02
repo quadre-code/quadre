@@ -309,8 +309,7 @@ define(function (require, exports, module) {
                     })
                 };
                 var rendered = RTU.renderIntoDocument(FileTreeView._directoryNode(props));
-                var dirLI = ReactDOM.findDOMNode(rendered),
-                    dirA = $(dirLI).find("a")[0];
+                var dirLI = ReactDOM.findDOMNode(rendered);
 
                 expect(dirLI.children[1].textContent).toBe(" thedir");
                 expect(FileTreeView._fullPath(props)).toBe("/foo/thedir/");

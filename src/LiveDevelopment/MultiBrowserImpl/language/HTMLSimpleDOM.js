@@ -267,7 +267,11 @@ define(function (require, exports, module) {
      */
     Builder.prototype.build = function (strict, markCache) {
         var self = this;
-        var token, lastClosedTag, lastTextNode, lastIndex = 0;
+        var token,
+            lastClosedTag,
+            lastTextNode,
+            // eslint-disable-next-line no-unused-vars
+            lastIndex = 0;
         var stack = this.stack;
         var attributeName = null;
         var nodeMap = {};

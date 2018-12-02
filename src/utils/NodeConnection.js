@@ -554,7 +554,6 @@ define(function (require, exports, module) {
                 var domainSpec = spec[domainKey];
                 self.domains[domainKey] = {};
                 Object.keys(domainSpec.commands).forEach(function (commandKey) {
-                    var commandSpec = domainSpec.commands[commandKey];
                     self.domains[domainKey][commandKey] = makeCommandFunction(domainKey, commandKey);
                 });
                 self.domainEvents[domainKey] = {};

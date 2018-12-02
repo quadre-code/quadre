@@ -61,8 +61,7 @@ define(function (require, exports, module) {
             results = {},
             functionName,
             resultNode,
-            memberPrefix,
-            match;
+            memberPrefix;
 
         PerfUtils.markStart(PerfUtils.JSUTILS_REGEXP);
 

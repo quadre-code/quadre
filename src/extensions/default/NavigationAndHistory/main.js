@@ -31,12 +31,10 @@ define(function (require, exports, module) {
         Strings                 = brackets.getModule("strings"),
         MainViewManager         = brackets.getModule("view/MainViewManager"),
         DocumentManager         = brackets.getModule("document/DocumentManager"),
-        DocumentCommandHandlers = brackets.getModule("document/DocumentCommandHandlers"),
         EditorManager           = brackets.getModule("editor/EditorManager"),
         ProjectManager          = brackets.getModule("project/ProjectManager"),
         CommandManager          = brackets.getModule("command/CommandManager"),
         Commands                = brackets.getModule("command/Commands"),
-        Dialogs                 = brackets.getModule("widgets/Dialogs"),
         Menus                   = brackets.getModule("command/Menus"),
         FileSystem              = brackets.getModule("filesystem/FileSystem"),
         FileUtils               = brackets.getModule("file/FileUtils"),
@@ -378,7 +376,7 @@ define(function (require, exports, module) {
     function _createMROFDisplayList(refresh) {
         var $def = $.Deferred();
 
-        var $mrofList, $link, $newItem;
+        var $mrofList;
 
         /**
          * Clears the MROF list in memory and pop over but retains the working set entries
@@ -431,8 +429,6 @@ define(function (require, exports, module) {
                 hideOnOpenFile: true
             });
         }
-
-        var data, fileEntry;
 
         _syncWithFileSystem().always(function () {
             _mrofList = _mrofList.filter(function (e) {return e; });
@@ -559,8 +555,6 @@ define(function (require, exports, module) {
         var index = _.findIndex(_mrofList, function (record) {
             return (record.file === filePath && record.paneId === paneId);
         });
-
-        var entry;
 
         if (index !== -1) {
             _mrofList[index].cursor = cursorPos;

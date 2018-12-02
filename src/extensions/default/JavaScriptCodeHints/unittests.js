@@ -23,7 +23,6 @@
  */
 
 /*jslint regexp: true */
-/*global describe, it, xit, expect, beforeEach, afterEach, waitsFor, runs, waitsForDone, beforeFirst, afterLast */
 
 define(function (require, exports, module) {
     "use strict";

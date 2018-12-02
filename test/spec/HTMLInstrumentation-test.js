@@ -2072,6 +2072,7 @@ define(function (require, exports, module) {
             it("should represent simple new tag insert immediately after previous tag before text before tag", function () {
                 setupEditor(WellFormedDoc);
                 runs(function () {
+                    // eslint-disable-next-line no-unused-vars
                     var ed;
 
                     doFullAndIncrementalEditTest(

@@ -27,8 +27,7 @@
 define(function (require, exports, module) {
     "use strict";
 
-    var EditorManager       = brackets.getModule("editor/EditorManager"),
-        QuickOpen           = brackets.getModule("search/QuickOpen"),
+    var QuickOpen           = brackets.getModule("search/QuickOpen"),
         QuickOpenHelper     = brackets.getModule("search/QuickOpenHelper"),
         DocumentManager     = brackets.getModule("document/DocumentManager"),
         StringMatch         = brackets.getModule("utils/StringMatch");

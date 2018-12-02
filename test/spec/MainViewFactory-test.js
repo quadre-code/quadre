@@ -32,15 +32,20 @@ define(function (require, exports, module) {
 
         var CommandManager,          // loaded from brackets.test
             Commands,                // loaded from brackets.test
+            // eslint-disable-next-line no-unused-vars
             DocumentManager,         // loaded from brackets.test
+            // eslint-disable-next-line no-unused-vars
             EditorManager,           // loaded from brackets.test
             MainViewManager,         // loaded from brackets.test
+            // eslint-disable-next-line no-unused-vars
             ProjectManager,          // loaded from brackets.test
             FileSystem,              // loaded from brackets.test
+            // eslint-disable-next-line no-unused-vars
             Dialogs;                 // loaded from brackets.test
 
         var testPath = SpecRunnerUtils.getTestPath("/spec/MainViewFactory-test-files"),
             testWindow,
+            // eslint-disable-next-line no-unused-vars
             _$,
             promise;
 

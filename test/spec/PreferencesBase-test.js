@@ -1438,6 +1438,7 @@ define(function (require, exports, module) {
             var settingsFile      = FileSystem.getFileForPath(testPath + "/.brackets.json"),
                 newSettingsFile   = FileSystem.getFileForPath(testPath + "/new.prefs"),
                 emptySettingsFile = FileSystem.getFileForPath(testPath + "/empty.json"),
+                // eslint-disable-next-line no-unused-vars
                 filestorage,
                 originalText;
 

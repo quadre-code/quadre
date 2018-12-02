@@ -27,7 +27,6 @@
 
 "use strict";
 
-var os = require("os");
 var watcherManager = require("./FileWatcherManager");
 var watcherImpl;
 if (process.platform === "win32") {

@@ -55,6 +55,7 @@ define(function (require, exports, module) {
         intervalId = 0,
         lastQueriedText = "",
         lastTypedText = "",
+        // eslint-disable-next-line no-unused-vars
         lastKeyCode;
 
     /**
@@ -296,7 +297,6 @@ define(function (require, exports, module) {
         FindBar._addFindBar(this);
 
         var $root = this._modalBar.getRoot();
-        var historyIndex = 0;
         $root
             .on("input", "#find-what", function () {
                 self.trigger("queryChange");
@@ -376,7 +376,6 @@ define(function (require, exports, module) {
                         // if Shift is held down).
                         self.trigger("doFind", e.shiftKey);
                     }
-                    historyIndex = 0;
                 } else if (e.keyCode === KeyEvent.DOM_VK_DOWN || e.keyCode === KeyEvent.DOM_VK_UP) {
                     var quickSearchContainer = $(".quick-search-container");
                     if (!self.searchField) {

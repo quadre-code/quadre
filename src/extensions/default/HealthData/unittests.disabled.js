@@ -22,7 +22,6 @@
  *
  */
 
-/*global describe, runs, beforeEach, it, afterEach, expect, waitsForDone, waitsForFail */
 /*unittests: HealthData*/
 
 define(function (require, exports, module) {

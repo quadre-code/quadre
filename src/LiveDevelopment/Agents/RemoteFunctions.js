@@ -25,6 +25,7 @@
 /*jslint forin: true */
 /*global Node, MessageEvent */
 /*theseus instrument: false */
+/*exported RemoteFunctions*/
 
 /**
  * RemoteFunctions define the functions to be executed in the browser. This
@@ -384,8 +385,6 @@ function RemoteFunctions(config, remoteWSPort) {
                 }
             };
 
-            var mainBoxStyles = config.remoteHighlight.stylesToSet;
-
             var paddingVisualisations = [
               drawPaddingRect("top"),
               drawPaddingRect("right"),
@@ -430,8 +429,6 @@ function RemoteFunctions(config, remoteWSPort) {
             );
 
             highlight.className = HIGHLIGHT_CLASSNAME;
-
-            var offset = _screenOffset(element);
 
             var el = element,
             offsetLeft = 0,
@@ -557,6 +554,7 @@ function RemoteFunctions(config, remoteWSPort) {
         }
     };
 
+    // eslint-disable-next-line no-unused-vars
     var _currentEditor;
     function _toggleEditor(element) {
         _currentEditor = new Editor(element);
@@ -1031,9 +1029,7 @@ function RemoteFunctions(config, remoteWSPort) {
     var _ws = null;
 
     function onDocumentClick(event) {
-        var element = event.target,
-            currentDataId,
-            newDataId;
+        var element = event.target;
 
         if (_ws && element && element.hasAttribute("data-brackets-id")) {
             _ws.send(JSON.stringify({

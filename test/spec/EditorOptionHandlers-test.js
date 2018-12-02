@@ -29,6 +29,7 @@ define(function (require, exports, module) {
     var CommandManager,      // loaded from brackets.test
         Commands,            // loaded from brackets.test
         EditorManager,       // loaded from brackets.test
+        // eslint-disable-next-line no-unused-vars
         DocumentManager,     // loaded from brackets.test
         FileViewController,
         SpecRunnerUtils     = require("spec/SpecRunnerUtils");

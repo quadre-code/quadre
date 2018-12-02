@@ -238,6 +238,7 @@ define(function (require, exports, module) {
 
         var testPath = SpecRunnerUtils.getTestPath("/spec/Document-test-files"),
             testWindow,
+            // eslint-disable-next-line no-unused-vars
             $;
 
         beforeFirst(function () {
@@ -545,6 +546,7 @@ define(function (require, exports, module) {
             it("should clean up (later) a master Editor auto-created by calling read-only Document API, if Editor not used by UI", function () {
                 var promise,
                     cssDoc,
+                    // eslint-disable-next-line no-unused-vars
                     cssMasterEditor;
 
                 runs(function () {

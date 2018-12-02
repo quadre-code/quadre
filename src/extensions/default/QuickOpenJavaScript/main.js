@@ -25,8 +25,7 @@
 define(function (require, exports, module) {
     "use strict";
 
-    var EditorManager       = brackets.getModule("editor/EditorManager"),
-        QuickOpen           = brackets.getModule("search/QuickOpen"),
+    var QuickOpen           = brackets.getModule("search/QuickOpen"),
         QuickOpenHelper     = brackets.getModule("search/QuickOpenHelper"),
         JSUtils             = brackets.getModule("language/JSUtils"),
         DocumentManager     = brackets.getModule("document/DocumentManager"),
@@ -63,7 +62,6 @@ define(function (require, exports, module) {
 
         var functionList = [];
         var docText = doc.getText();
-        var lines = docText.split("\n");
         var functions = JSUtils.findAllMatchingFunctionsInText(docText, "*");
         functions.forEach(function (funcEntry) {
             functionList.push(new FileLocation(null, funcEntry.nameLineStart, funcEntry.columnStart, funcEntry.columnEnd, funcEntry.label || funcEntry.name));

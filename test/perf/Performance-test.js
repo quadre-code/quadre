@@ -30,9 +30,11 @@ define(function (require, exports, module) {
     // Load dependent modules
     var CommandManager,             // loaded from brackets.test
         Commands,                   // loaded from brackets.test
+        /* eslint-disable no-unused-vars */
         DocumentCommandHandlers,    // loaded from brackets.test
         PerfUtils,                  // loaded from brackets.test
         DocumentManager,            // loaded from brackets.test
+        /* eslint-enable no-unused-vars */
         SpecRunnerUtils             = require("spec/SpecRunnerUtils"),
         UnitTestReporter            = require("test/UnitTestReporter");
 

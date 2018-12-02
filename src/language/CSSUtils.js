@@ -734,7 +734,11 @@ define(function (require, exports, module) {
      */
     function extractAllSelectors(text, documentMode) {
         var state, lines, lineCount,
-            token, style, stream, line,
+            token,
+            // eslint-disable-next-line no-unused-vars
+            style,
+            stream,
+            line,
             selectors              = [],
             mode                   = CodeMirror.getMode({indentUnit: 2}, documentMode || "css"),
             currentSelector        = "",

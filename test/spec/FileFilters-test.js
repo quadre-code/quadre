@@ -494,6 +494,7 @@ define(function (require, exports, module) {
                 FileSystem,
                 FindInFiles,
                 FindInFilesUI,
+                // eslint-disable-next-line no-unused-vars
                 CommandManager,
                 $;
 

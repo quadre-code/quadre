@@ -42,6 +42,7 @@ define(function (require, exports, module) {
 
     var testPath            = SpecRunnerUtils.getTestPath("/spec/KeyBindingManager-test-files");
 
+    // eslint-disable-next-line no-unused-vars
     var executed,
         testCommandFn       = function () { executed = true; };
 

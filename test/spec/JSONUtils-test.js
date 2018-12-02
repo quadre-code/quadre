@@ -29,7 +29,7 @@ define(function (require, exports, module) {
         JSONUtils            = require("language/JSONUtils");
 
     describe("JSONUtils", function () {
-        var mockEditor, testContent, testDocument, testEditor, ctxInfo;
+        var mockEditor, testContent, testEditor, ctxInfo;
 
         // A sample preferences file to run tests against.
         testContent =   "{\n" +
@@ -68,11 +68,9 @@ define(function (require, exports, module) {
                 endLine: 30
             });
             testEditor = mockEditor.editor;
-            testDocument = mockEditor.doc;
         });
         afterEach(function () {
             testEditor.destroy();
-            testDocument = null;
             ctxInfo = null;
         });
 

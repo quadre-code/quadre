@@ -247,8 +247,7 @@ define(function (require, exports, module) {
         hintList         = null,
         deferredHints    = null,
         keyDownEditor    = null,
-        codeHintsEnabled = true,
-        codeHintOpened   = false;
+        codeHintsEnabled = true;
 
 
     PreferencesManager.definePreference("showCodeHints", "boolean", true, {
@@ -378,7 +377,6 @@ define(function (require, exports, module) {
         }
         hintList.close();
         hintList = null;
-        codeHintOpened = false;
         keyDownEditor = null;
         sessionProvider = null;
         sessionEditor = null;

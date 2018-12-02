@@ -446,7 +446,6 @@ define(function (require, exports, module) {
                 executeSearch("foo5");
 
                 runs(function () {
-                    var searchHistory = PreferencesManager.getViewState("searchHistory");
                     var $searchField = $("#find-what");
 
                     $("#find-what").val("");
@@ -467,7 +466,6 @@ define(function (require, exports, module) {
                 executeSearch("foo5");
 
                 runs(function () {
-                    var searchHistory = PreferencesManager.getViewState("searchHistory");
                     var $searchField = $("#find-what");
 
                     $("#find-what").val("");

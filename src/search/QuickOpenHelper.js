@@ -25,10 +25,7 @@
 define(function (require, exports, module) {
     "use strict";
 
-    var EditorManager       = require("editor/EditorManager"),
-        QuickOpen           = require("search/QuickOpen"),
-        DocumentManager     = require("document/DocumentManager"),
-        StringMatch         = require("utils/StringMatch");
+    var EditorManager       = require("editor/EditorManager");
 
     /**
      * @param {string} query what the user is searching for

@@ -30,7 +30,7 @@ define(function (require, exports, module) {
         SpecRunnerUtils  = require("spec/SpecRunnerUtils");
 
     describe("EditorManager", function () {
-        var pane, anotherPane, testEditor, testDoc, $fakeContentDiv, $fakeHolder;
+        var pane, anotherPane, testDoc, $fakeContentDiv, $fakeHolder;
         beforeEach(function () {
             // Normally the editor holder would be created inside a "content" div, which is
             // used in the available height calculation. We create a fake content div just to
@@ -56,7 +56,6 @@ define(function (require, exports, module) {
             $fakeContentDiv = null;
 
             SpecRunnerUtils.destroyMockEditor(testDoc);
-            testEditor = null;
             testDoc = null;
             pane = null;
             ViewStateManager.reset();
@@ -101,7 +100,11 @@ define(function (require, exports, module) {
         });
     });
     describe("ViewStateManager", function () {
-        var pane, testEditor, testDoc, $fakeContentDiv, $fakeHolder;
+        // eslint-disable-next-line no-unused-vars
+        var pane,
+            testDoc,
+            $fakeContentDiv,
+            $fakeHolder;
         beforeEach(function () {
             // Normally the editor holder would be created inside a "content" div, which is
             // used in the available height calculation. We create a fake content div just to
@@ -126,7 +129,6 @@ define(function (require, exports, module) {
             $fakeContentDiv = null;
 
             SpecRunnerUtils.destroyMockEditor(testDoc);
-            testEditor = null;
             testDoc = null;
             pane = null;
             ViewStateManager.reset();

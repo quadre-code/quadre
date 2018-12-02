@@ -137,12 +137,10 @@ define(function (require, exports, module) {
 
 
         describe("New Untitled File", function () {
-            var filePath,
-                newFilename,
+            var newFilename,
                 newFilePath;
 
             beforeEach(function () {
-                filePath    = testPath + "/test.js";
                 newFilename = "testname.js";
                 newFilePath = testPath + "/" + newFilename;
             });

@@ -63,8 +63,7 @@ define(function (require, exports, module) {
         ViewUtils               = require("utils/ViewUtils"),
         PreferencesManager      = require("preferences/PreferencesManager");
 
-    var $mainView,
-        $sideBar;
+    var $sideBar;
 
     var isResizing = false,
         isWindowResizing = false;
@@ -524,8 +523,7 @@ define(function (require, exports, module) {
 
     function updateResizeLimits() {
         var sideBarMaxSize = _sideBarMaxSize(),
-            maxSize = $sideBar.data("maxsize"),
-            width = false;
+            maxSize = $sideBar.data("maxsize");
 
         if (maxSize !== undefined && _isPercentage(maxSize)) {
             sideBarMaxSize = _percentageToPixels(maxSize, sideBarMaxSize);
@@ -566,7 +564,6 @@ define(function (require, exports, module) {
     AppInit.htmlReady(function () {
         var minSize = DEFAULT_MIN_SIZE;
 
-        $mainView = $(".main-view");
         $sideBar = $("#sidebar");
 
         $(".vert-resizable").each(function (index, element) {

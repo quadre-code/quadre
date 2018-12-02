@@ -35,6 +35,7 @@ define(function (require, exports, module) {
             brackets,
             DocumentManager,
             LiveDevelopment,
+            // eslint-disable-next-line no-unused-vars
             LiveDevProtocol;
 
         var testFolder = SpecRunnerUtils.getTestPath("/spec/LiveDevelopment-MultiBrowser-test-files"),

@@ -728,6 +728,7 @@ define(function (require, exports, module) {
 
         var lastCssCode,
             match,
+            // eslint-disable-next-line no-unused-vars
             expectParseError;
 
         function _findMatchingRules(cssCode, tagInfo, mode) {

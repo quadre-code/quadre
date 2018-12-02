@@ -385,7 +385,6 @@ define(function (require, exports, module) {
             var model = new ProjectModel.ProjectModel(),
                 vm = model._viewModel,
                 changesFired,
-                selectionsMade,
                 creationErrors,
                 focusEvents,
                 selectionEvents;
@@ -417,7 +416,6 @@ define(function (require, exports, module) {
                 changesFired = 0;
                 focusEvents = 0;
                 creationErrors = [];
-                selectionsMade = [];
                 selectionEvents = [];
                 vm._treeData = Immutable.fromJS({
                     subdir1: {

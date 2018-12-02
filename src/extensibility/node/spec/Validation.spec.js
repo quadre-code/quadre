@@ -24,7 +24,6 @@
 
 /*eslint-env node */
 /*jslint node: true */
-/*global expect, describe, it, afterEach */
 
 "use strict";
 

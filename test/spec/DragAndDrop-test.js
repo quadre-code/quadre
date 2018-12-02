@@ -26,6 +26,7 @@ define(function (require, exports, module) {
     "use strict";
 
     // Load dependent modules
+    // eslint-disable-next-line no-unused-vars
     var DocumentManager,      // loaded from brackets.test
         DragAndDrop,          // loaded from brackets.test
         EditorManager,        // loaded from brackets.test

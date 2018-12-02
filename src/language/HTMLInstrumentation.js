@@ -91,7 +91,6 @@ define(function (require, exports, module) {
 
     function getPositionFromTagId(editor, tagId) {
         var marks = editor._codeMirror.getAllMarks(),
-            i,
             markFound;
 
         markFound = _.find(marks, function (mark) {

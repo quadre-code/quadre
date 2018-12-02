@@ -24,7 +24,6 @@
 
 /*eslint-env node */
 /*jslint node: true */
-/*global setImmediate */
 "use strict";
 
 var fs = require("fs"),

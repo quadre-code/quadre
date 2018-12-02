@@ -335,6 +335,7 @@ define(function (require, exports, module) {
                     gTop,
                     gHeight,
                     gBottom,
+                    // eslint-disable-next-line no-unused-vars
                     deltaY,
                     containerOffset,
                     scrollerTopArea,

@@ -375,7 +375,6 @@ define(function (require, exports, module) {
                     rootFolderName  = tempDir + "/toDelete1/",
                     rootFolderEntry = FileSystem.getDirectoryForPath(rootFolderName),
                     error,
-                    stat,
                     promise;
 
                 // Delete the root folder and all files/folders in it.
@@ -390,7 +389,6 @@ define(function (require, exports, module) {
                     complete = false;
                     rootFolder.stat(function (err, _stat) {
                         error = err;
-                        stat = _stat;
                         complete = true;
                     });
                 });

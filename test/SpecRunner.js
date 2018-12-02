@@ -107,6 +107,7 @@ define(function (require, exports, module) {
     var selectedSuites,
         params          = new UrlParams(),
         reporter,
+        // eslint-disable-next-line no-unused-vars
         reporterView,
         _writeResults   = new $.Deferred(),
         resultsPath;

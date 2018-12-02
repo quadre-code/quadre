@@ -42,11 +42,13 @@ define(function (require, exports, module) {
     var CommandManager,
         Commands,
         Dialogs,
+        // eslint-disable-next-line no-unused-vars
         NativeApp,
         LiveDevelopment,
         Inspector,
         DOMAgent,
         DocumentManager,
+        // eslint-disable-next-line no-unused-vars
         ProjectManager;
 
     // Used as mocks
@@ -272,6 +274,7 @@ define(function (require, exports, module) {
 
             var testDocument,
                 testEditor,
+                // eslint-disable-next-line no-unused-vars
                 testCSSDoc,
                 liveDevelopmentConfig,
                 inspectorConfig;
@@ -356,6 +359,7 @@ define(function (require, exports, module) {
 
             var testDocument,
                 testEditor,
+                // eslint-disable-next-line no-unused-vars
                 testCSSDoc,
                 liveDevelopmentConfig,
                 inspectorConfig,
@@ -456,6 +460,7 @@ define(function (require, exports, module) {
 
             var testDocument,
                 testEditor,
+                // eslint-disable-next-line no-unused-vars
                 testCSSDoc,
                 liveDevelopmentConfig,
                 inspectorConfig,

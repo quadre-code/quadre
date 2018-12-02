@@ -657,6 +657,7 @@ define(function (require, exports, module) {
 
         describe("createPlaceholder", function () {
             var vm = new FileTreeViewModel.FileTreeViewModel(),
+                // eslint-disable-next-line no-unused-vars
                 changesFired;
 
             vm.on(FileTreeViewModel.EVENT_CHANGE, function () {

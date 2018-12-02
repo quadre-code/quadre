@@ -341,6 +341,7 @@ define(function (require, exports, module) {
       * @param {!Object} to the ch and line position that designates the end of the region
       */
     function onFold(cm, from, to) {
+        // eslint-disable-next-line no-unused-vars
         var state = cm.state.foldGutter;
         updateFoldInfo(cm, from.line, from.line + 1);
     }
@@ -352,6 +353,7 @@ define(function (require, exports, module) {
       * @param {!{line:number, ch:number}} to the ch and line position that designates the end of the region
       */
     function onUnFold(cm, from, to) {
+        // eslint-disable-next-line no-unused-vars
         var state = cm.state.foldGutter;
         var vp = cm.getViewport();
         delete cm._lineFolds[from.line];

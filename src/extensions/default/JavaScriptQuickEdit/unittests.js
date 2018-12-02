@@ -22,14 +22,14 @@
  *
  */
 
-/*global describe, it, xit, expect, beforeEach, afterEach, waitsFor, runs, waitsForDone */
-
 define(function (require, exports, module) {
     "use strict";
 
+    // eslint-disable-next-line no-unused-vars
     var CommandManager,         // loaded from brackets.test
         EditorManager,          // loaded from brackets.test
         PerfUtils,              // loaded from brackets.test
+        // eslint-disable-next-line no-unused-vars
         JSUtils,                // loaded from brackets.test
 
         FileUtils           = brackets.getModule("file/FileUtils"),

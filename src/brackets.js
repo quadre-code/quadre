@@ -76,6 +76,7 @@ define(function (require, exports, module) {
         DefaultDialogs      = require("widgets/DefaultDialogs"),
         ExtensionLoader     = require("utils/ExtensionLoader"),
         Async               = require("utils/Async"),
+        // eslint-disable-next-line no-unused-vars
         UpdateNotification  = require("utils/UpdateNotification"),
         UrlParams           = require("utils/UrlParams").UrlParams,
         PreferencesManager  = require("preferences/PreferencesManager"),

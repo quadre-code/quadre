@@ -22,7 +22,6 @@
  *
  */
 
-/*global define, console */
 /*unittests: Preferences Manager */
 
 /**

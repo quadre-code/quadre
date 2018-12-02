@@ -604,6 +604,7 @@ define(function (require, exports, module) {
                 var listSelector = "#menuitem-unittest1 > ul";
 
                 // Add new menu to END of menuSectionCmd0
+                // eslint-disable-next-line no-unused-vars
                 var menuItem = menu.addMenuItem("Menu-test.command14", null, Menus.LAST_IN_SECTION, menuSectionCmd0);
                 var $listItems = testWindow.$(listSelector).children();
                 expect($listItems.length).toBe(6);
@@ -796,6 +797,7 @@ define(function (require, exports, module) {
                     expect(Object.keys(command._eventHandlers).length).toBe(1);
                     expect(command._eventHandlers.nameChange.length).toBe(1);
 
+                    // eslint-disable-next-line no-unused-vars
                     var menuItem = menu.addMenuItem(commandId);
                     expect(Object.keys(command._eventHandlers).length).toBe(5);
                     expect(command._eventHandlers.nameChange.length).toBe(2);

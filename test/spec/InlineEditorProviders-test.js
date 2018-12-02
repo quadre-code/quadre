@@ -31,6 +31,7 @@ define(function (require, exports, module) {
         FileSyncManager,    // loaded from brackets.test
         DocumentManager,    // loaded from brackets.test
         MainViewManager,    // loaded from brackets.test
+        // eslint-disable-next-line no-unused-vars
         FileViewController, // loaded from brackets.test
         InlineWidget     = require("editor/InlineWidget").InlineWidget,
         Dialogs          = require("widgets/Dialogs"),
@@ -507,8 +508,7 @@ define(function (require, exports, module) {
                 initInlineTest("test1.html", 0);
 
                 runs(function () {
-                    var hostEditor = EditorManager.getCurrentFullEditor(),
-                        inlineWidget = hostEditor.getInlineWidgets()[0];
+                    var hostEditor = EditorManager.getCurrentFullEditor();
 
                     // verify inline widget
                     expect(hostEditor.getInlineWidgets().length).toBe(1);
@@ -522,7 +522,7 @@ define(function (require, exports, module) {
                     // verify no inline widgets
                     expect(hostEditor.getInlineWidgets().length).toBe(0);
 
-                    doc = hostEditor = inlineWidget = null;
+                    doc = hostEditor = null;
                 });
             });
 
@@ -796,6 +796,7 @@ define(function (require, exports, module) {
             it("should save changes in the inline editor", function () {
                 initInlineTest("test1.html", 1);
 
+                // eslint-disable-next-line no-unused-vars
                 var err = false,
                     hostEditor,
                     inlineEditor,
@@ -865,6 +866,7 @@ define(function (require, exports, module) {
             it("should not save changes in the host editor", function () {
                 initInlineTest("test1.html", 1);
 
+                // eslint-disable-next-line no-unused-vars
                 var err = false,
                     hostEditor,
                     inlineEditor,
@@ -1054,11 +1056,10 @@ define(function (require, exports, module) {
                 it("should add dirty documents to the working set", function () {
                     initInlineTest("test1.html", 1);
 
-                    var inlineEditor, widgetHeight;
+                    var inlineEditor;
 
                     runs(function () {
                         inlineEditor = EditorManager.getCurrentFullEditor().getInlineWidgets()[0].editor;
-                        widgetHeight = inlineEditor.totalHeight();
 
                         // change inline editor content
                         var newLines = ".bar {\ncolor: #f00;\n}\n.cat {\ncolor: #f00;\n}";

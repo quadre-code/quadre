@@ -28,11 +28,7 @@
 
 module.exports = function (grunt) {
 
-    var _       = require("lodash"),
-        common  = require("./lib/common")(grunt),
-        build   = require("./build")(grunt),
-        glob    = require("glob"),
-        path    = require("path"),
+    var common  = require("./lib/common")(grunt),
         exec    = require("child_process").exec;
 
     function runNpmShrinkwrap(callback) {

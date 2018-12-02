@@ -714,15 +714,12 @@ define(function (require, exports, module) {
         });
 
         describe("rename", function () {
-            var complete;
 
             it("should rename a file", function () {
                 var oldName     = baseDir + "/file_one.txt",
                     newName     = baseDir + "/file_one_renamed.txt",
                     renameCB    = errSpy(),
                     statCB      = statSpy();
-
-                complete = false;
 
                 runs(function () {
                     brackets.fs.rename(oldName, newName, renameCB);
@@ -775,8 +772,6 @@ define(function (require, exports, module) {
                     renameCB    = errSpy(),
                     statCB      = statSpy();
 
-                complete = false;
-
                 runs(function () {
                     brackets.fs.rename(oldName, newName, renameCB);
                 });
@@ -826,8 +821,6 @@ define(function (require, exports, module) {
                     newName = baseDir + "/file_two.txt",
                     cb      = errSpy();
 
-                complete = false;
-
                 runs(function () {
                     brackets.fs.rename(oldName, newName, cb);
                 });
@@ -844,8 +837,6 @@ define(function (require, exports, module) {
                         newName = baseDir + "/cant_write_here/readme_renamed.txt",
                         cb      = errSpy();
 
-                    complete = false;
-
                     runs(function () {
                         brackets.fs.rename(oldName, newName, cb);
                     });
@@ -861,7 +852,6 @@ define(function (require, exports, module) {
         });
 
         describe("copyFile", function () {
-            var complete;
 
             it("should copy a file", function () {
                 var fileName     = baseDir + "/file_one.txt",
@@ -869,8 +859,6 @@ define(function (require, exports, module) {
                     copyCB       = errSpy(),
                     unlinkCB     = errSpy(),
                     statCB       = statSpy();
-
-                complete = false;
 
                 // Verify new file does not exist
                 runs(function () {

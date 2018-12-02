@@ -63,7 +63,7 @@ module.exports = {
         "no-shadow-restricted-names": "error",
         "no-shadow": "warn",
         "no-undef": "error",
-        "no-unused-vars": ["warn", {"vars": "all", "args": "none"}],
+        "no-unused-vars": ["error", {"vars": "all", "args": "none"}],
         "no-use-before-define": "off",
         // http://eslint.org/docs/rules/#nodejs-and-commonjs
         "no-new-require": "error",
@@ -174,6 +174,9 @@ module.exports = {
         {
             "files": [
                 "test/**",
+                "src/extensions/default/**/unittests.js",
+                "src/extensions/default/**/unittests.disabled.js",
+                "src/extensibility/node/spec/*.js"
             ],
             "env": {
                 "jasmine": true,

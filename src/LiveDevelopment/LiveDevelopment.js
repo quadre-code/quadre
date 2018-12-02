@@ -22,8 +22,6 @@
  *
  */
 
-/*global open */
-
 /**
  * LiveDevelopment manages the Inspector, all Agents, and the active LiveDocument
  *
