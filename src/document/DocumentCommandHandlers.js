@@ -487,9 +487,13 @@ define(function (require, exports, module) {
                     }
 
                     // setCursorPos expects line/column numbers as 0-origin, so we subtract 1
-                    EditorManager.getCurrentFullEditor().setCursorPos(fileInfo.line - 1,
-                                                                      fileInfo.column - 1,
-                                                                      true);
+                    EditorManager
+                        .getCurrentFullEditor()
+                        .setCursorPos(
+                            fileInfo.line - 1,
+                            fileInfo.column - 1,
+                            true
+                        );
                 }
 
                 result.resolve(file);
@@ -609,8 +613,9 @@ define(function (require, exports, module) {
             deferred.reject();
         } else {
             var path = dir.fullPath + suggestedName,
-                entry = isFolder ? FileSystem.getDirectoryForPath(path)
-                                 : FileSystem.getFileForPath(path);
+                entry = isFolder
+                    ? FileSystem.getDirectoryForPath(path)
+                    : FileSystem.getFileForPath(path);
 
             entry.exists(function (err, exists) {
                 if (err || exists) {
@@ -1359,8 +1364,11 @@ define(function (require, exports, module) {
      * @return {$.Promise} a promise that is resolved when all files are closed
      */
     function handleFileCloseAll(commandData) {
-        return _closeList(MainViewManager.getAllOpenFiles(),
-                                    (commandData && commandData.promptOnly), (commandData && commandData._forceClose));
+        return _closeList(
+            MainViewManager.getAllOpenFiles(),
+            (commandData && commandData.promptOnly),
+            (commandData && commandData._forceClose)
+        );
     }
 
 
@@ -1526,8 +1534,10 @@ define(function (require, exports, module) {
                 paneId = result.paneId;
 
             MainViewManager.beginTraversal();
-            CommandManager.execute(Commands.FILE_OPEN, {fullPath: file.fullPath,
-                                                        paneId: paneId });
+            CommandManager.execute(Commands.FILE_OPEN, {
+                fullPath: file.fullPath,
+                paneId: paneId
+            });
 
             // Listen for ending of Ctrl+Tab sequence
             if (!_addedNavKeyHandler) {

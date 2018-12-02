@@ -97,25 +97,25 @@ define(function (require, exports, module) {
      * http://www.w3.org/html/wg/drafts/html/master/syntax.html#optional-tags
      */
     var optionalClose = {
-      html: true,
-      body: true,
-      li: true,
-      dd: true,
-      dt: true, // This is not actually correct, but showing a syntax error is not helpful
-      p: true,
-      rb: true,
-      rt: true,
-      rtc: true,
-      rp: true,
-      optgroup: true,
-      option: true,
-      colgroup: true,
-      caption: true,
-      tbody: true,
-      tfoot: true,
-      tr: true,
-      td: true,
-      th: true
+        html: true,
+        body: true,
+        li: true,
+        dd: true,
+        dt: true, // This is not actually correct, but showing a syntax error is not helpful
+        p: true,
+        rb: true,
+        rt: true,
+        rtc: true,
+        rp: true,
+        optgroup: true,
+        option: true,
+        colgroup: true,
+        caption: true,
+        tbody: true,
+        tfoot: true,
+        tr: true,
+        td: true,
+        th: true
     };
 
     // TODO: handle optional start tags

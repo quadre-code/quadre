@@ -1108,11 +1108,11 @@ define(function (require, exports, module) {
         PerfUtils.addMeasurement(perfTimerName);
     };
 
-   /**
-    * Gets the file associated with this editor
-    * This is a required Pane-View interface method
-    * @return {!File} the file associated with this editor
-    */
+    /**
+     * Gets the file associated with this editor
+     * This is a required Pane-View interface method
+     * @return {!File} the file associated with this editor
+     */
     Editor.prototype.getFile = function () {
         return this.document.file;
     };
@@ -1668,7 +1668,7 @@ define(function (require, exports, module) {
             }
 
             inlineWidget.info = self._codeMirror.addLineWidget(pos.line, inlineWidget.htmlContent,
-                                                               { coverGutter: true, noHScroll: true });
+                { coverGutter: true, noHScroll: true });
             CodeMirror.on(inlineWidget.info.line, "delete", function () {
                 self._removeInlineWidgetInternal(inlineWidget);
             });
@@ -1809,7 +1809,7 @@ define(function (require, exports, module) {
         return this._inlineWidgets;
     };
 
-      /**
+    /**
      * Returns the currently focused inline widget, if any.
      * @return {?InlineWidget}
      */
@@ -1894,8 +1894,9 @@ define(function (require, exports, module) {
         }
 
         // Estimate where to position popover.
-        top = (arrowBelow) ? cursorCoord.top - this._$messagePopover.height() - POPOVER_MARGIN
-                           : cursorCoord.bottom + POPOVER_MARGIN;
+        top = (arrowBelow)
+            ? cursorCoord.top - this._$messagePopover.height() - POPOVER_MARGIN
+            : cursorCoord.bottom + POPOVER_MARGIN;
         left = cursorCoord.left - (this._$messagePopover.width() / 2);
 
         popoverRect = {
@@ -1923,7 +1924,7 @@ define(function (require, exports, module) {
 
         // ... but don't let it slide off text box
         arrowCenter = Math.min(popoverRect.width - POPOVER_ARROW_HALF_BASE,
-                               Math.max(arrowCenter, POPOVER_ARROW_HALF_BASE));
+            Math.max(arrowCenter, POPOVER_ARROW_HALF_BASE));
 
         arrowLeft = arrowCenter - POPOVER_ARROW_HALF_WIDTH;
         if (arrowBelow) {
@@ -2366,10 +2367,12 @@ define(function (require, exports, module) {
 
             if (prefName === USE_TAB_CHAR) {
                 this._codeMirror.setOption(cmOptions[prefName], newValue);
-                this._codeMirror.setOption("indentUnit", newValue === true ?
-                                           this._currentOptions[TAB_SIZE] :
-                                           this._currentOptions[SPACE_UNITS]
-                                          );
+                this._codeMirror.setOption(
+                    "indentUnit",
+                    newValue === true
+                        ? this._currentOptions[TAB_SIZE]
+                        : this._currentOptions[SPACE_UNITS]
+                );
             } else if (prefName === STYLE_ACTIVE_LINE) {
                 this._updateStyleActiveLine();
             } else if (prefName === SCROLL_PAST_END && this._visibleRange) {

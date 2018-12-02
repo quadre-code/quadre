@@ -622,8 +622,12 @@ define(function (require, exports, module) {
 
             // Insert menu item
             var $relativeElement = this._getRelativeMenuItem(relativeID, position);
-            _insertInList($("li#" + StringUtils.jQueryIdEscape(this.id) + " > ul.dropdown-menu"),
-                          $menuItem, position, $relativeElement);
+            _insertInList(
+                $("li#" + StringUtils.jQueryIdEscape(this.id) + " > ul.dropdown-menu"),
+                $menuItem,
+                position,
+                $relativeElement
+            );
         } else {
             var bindings = KeyBindingManager.getKeyBindings(commandID),
                 binding,
@@ -1105,8 +1109,9 @@ define(function (require, exports, module) {
         }
 
         // open the context menu at final location
-        $menuAnchor.addClass("open")
-                   .css({"left": posLeft, "top": posTop});
+        $menuAnchor
+            .addClass("open")
+            .css({"left": posLeft, "top": posTop});
     };
 
 

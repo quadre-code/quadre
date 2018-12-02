@@ -60,7 +60,7 @@ define(function (require, exports, module) {
             runs(function () {
                 expect(PreferencesManager.get("spaceUnits")).toBe(9);
                 waitsForDone(FileViewController.openAndSelectDocument(nonProjectFile,
-                             FileViewController.WORKING_SET_VIEW));
+                    FileViewController.WORKING_SET_VIEW));
 
             });
 

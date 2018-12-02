@@ -22,14 +22,14 @@
  *
  */
 
- /**
-  * Manages global application commands that can be called from menu items, key bindings, or subparts
-  * of the application.
-  *
-  * This module dispatches these event(s):
-  *    - commandRegistered  -- when a new command is registered
-  *    - beforeExecuteCommand -- before dispatching a command
-  */
+/**
+ * Manages global application commands that can be called from menu items, key bindings, or subparts
+ * of the application.
+ *
+ * This module dispatches these event(s):
+ *    - commandRegistered  -- when a new command is registered
+ *    - beforeExecuteCommand -- before dispatching a command
+ */
 define(function (require, exports, module) {
     "use strict";
 

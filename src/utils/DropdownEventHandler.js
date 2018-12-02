@@ -1,4 +1,4 @@
- /*
+/*
  * Copyright (c) 2013 - 2017 Adobe Systems Incorporated. All rights reserved.
  * Copyright (c) 2018 - present The quadre code authors. All rights reserved.
  *

@@ -527,7 +527,7 @@ define(function (require, exports, module) {
                     .append("<div class='img-size'>" +
                                 this.naturalWidth + " &times; " + this.naturalHeight + " " + Strings.UNIT_PIXELS +
                             "</div>"
-                        );
+                    );
                 $previewContainer.show();
                 positionPreview(editor, popoverState.xpos, popoverState.ytop, popoverState.ybot);
             }).on("error", function (e) {

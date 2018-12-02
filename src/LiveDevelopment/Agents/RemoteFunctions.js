@@ -292,10 +292,10 @@ function RemoteFunctions(config, remoteWSPort) {
             }
 
             var realElBorder = {
-              right: elementStyling.getPropertyValue("border-right-width"),
-              left: elementStyling.getPropertyValue("border-left-width"),
-              top: elementStyling.getPropertyValue("border-top-width"),
-              bottom: elementStyling.getPropertyValue("border-bottom-width")
+                right: elementStyling.getPropertyValue("border-right-width"),
+                left: elementStyling.getPropertyValue("border-left-width"),
+                top: elementStyling.getPropertyValue("border-top-width"),
+                bottom: elementStyling.getPropertyValue("border-bottom-width")
             };
 
             var borderBox = elementStyling.boxSizing === "border-box";
@@ -320,58 +320,58 @@ function RemoteFunctions(config, remoteWSPort) {
             };
 
             var drawPaddingRect = function(side) {
-              var elStyling = {};
+                var elStyling = {};
 
-              if (visualisations.horizontal.indexOf(side) >= 0) {
-                elStyling["width"] =  elementStyling.getPropertyValue("padding-" + side);
-                elStyling["height"] = innerHeight + "px";
-                elStyling["top"] = 0;
+                if (visualisations.horizontal.indexOf(side) >= 0) {
+                    elStyling["width"] =  elementStyling.getPropertyValue("padding-" + side);
+                    elStyling["height"] = innerHeight + "px";
+                    elStyling["top"] = 0;
 
-                  if (borderBox) {
-                    elStyling["height"] = innerHeight - parseFloat(realElBorder.top) - parseFloat(realElBorder.bottom) + "px";
-                  }
+                    if (borderBox) {
+                        elStyling["height"] = innerHeight - parseFloat(realElBorder.top) - parseFloat(realElBorder.bottom) + "px";
+                    }
 
-              } else {
-                elStyling["height"] = elementStyling.getPropertyValue("padding-" + side);
-                elStyling["width"] = innerWidth + "px";
-                elStyling["left"] = 0;
+                } else {
+                    elStyling["height"] = elementStyling.getPropertyValue("padding-" + side);
+                    elStyling["width"] = innerWidth + "px";
+                    elStyling["left"] = 0;
 
-                  if (borderBox) {
-                    elStyling["width"] = innerWidth - parseFloat(realElBorder.left) - parseFloat(realElBorder.right) + "px";
-                  }
-              }
+                    if (borderBox) {
+                        elStyling["width"] = innerWidth - parseFloat(realElBorder.left) - parseFloat(realElBorder.right) + "px";
+                    }
+                }
 
-              elStyling[side] = 0;
-              elStyling["position"] = "absolute";
+                elStyling[side] = 0;
+                elStyling["position"] = "absolute";
 
-              return elStyling;
+                return elStyling;
             };
 
-          var drawMarginRect = function(side) {
-            var elStyling = {};
+            var drawMarginRect = function(side) {
+                var elStyling = {};
 
-            var margin = [];
-            margin["right"] = parseFloat(elementStyling.getPropertyValue("margin-right"));
-            margin["top"] = parseFloat(elementStyling.getPropertyValue("margin-top"));
-            margin["bottom"] = parseFloat(elementStyling.getPropertyValue("margin-bottom"));
-            margin["left"] = parseFloat(elementStyling.getPropertyValue("margin-left"));
+                var margin = [];
+                margin["right"] = parseFloat(elementStyling.getPropertyValue("margin-right"));
+                margin["top"] = parseFloat(elementStyling.getPropertyValue("margin-top"));
+                margin["bottom"] = parseFloat(elementStyling.getPropertyValue("margin-bottom"));
+                margin["left"] = parseFloat(elementStyling.getPropertyValue("margin-left"));
 
-            if(visualisations["horizontal"].indexOf(side) >= 0) {
+                if(visualisations["horizontal"].indexOf(side) >= 0) {
 
-              elStyling["width"] = elementStyling.getPropertyValue("margin-" + side);
-              elStyling["height"] = outerHeight + margin["top"] + margin["bottom"] + "px";
-              elStyling["top"] = "-" + (margin["top"] + parseFloat(realElBorder.top))  + "px";
-            } else {
-              elStyling["height"] = elementStyling.getPropertyValue("margin-" + side);
-              elStyling["width"] = outerWidth + "px";
-              elStyling["left"] = "-" + realElBorder.left;
-            }
+                    elStyling["width"] = elementStyling.getPropertyValue("margin-" + side);
+                    elStyling["height"] = outerHeight + margin["top"] + margin["bottom"] + "px";
+                    elStyling["top"] = "-" + (margin["top"] + parseFloat(realElBorder.top))  + "px";
+                } else {
+                    elStyling["height"] = elementStyling.getPropertyValue("margin-" + side);
+                    elStyling["width"] = outerWidth + "px";
+                    elStyling["left"] = "-" + realElBorder.left;
+                }
 
-            elStyling[side] = "-" + (margin[side] + parseFloat(realElBorder[side])) + "px";
-            elStyling["position"] = "absolute";
+                elStyling[side] = "-" + (margin[side] + parseFloat(realElBorder[side])) + "px";
+                elStyling["position"] = "absolute";
 
-            return elStyling;
-          };
+                return elStyling;
+            };
 
             var setVisibility = function (el) {
                 if (
@@ -386,17 +386,17 @@ function RemoteFunctions(config, remoteWSPort) {
             };
 
             var paddingVisualisations = [
-              drawPaddingRect("top"),
-              drawPaddingRect("right"),
-              drawPaddingRect("bottom"),
-              drawPaddingRect("left")
+                drawPaddingRect("top"),
+                drawPaddingRect("right"),
+                drawPaddingRect("bottom"),
+                drawPaddingRect("left")
             ];
 
             var marginVisualisations = [
-              drawMarginRect("top"),
-              drawMarginRect("right"),
-              drawMarginRect("bottom"),
-              drawMarginRect("left")
+                drawMarginRect("top"),
+                drawMarginRect("right"),
+                drawMarginRect("bottom"),
+                drawMarginRect("left")
             ];
 
             var setupVisualisations = function (arr, config) {
@@ -408,10 +408,10 @@ function RemoteFunctions(config, remoteWSPort) {
                     arr[i]["transform"] = "none";
                     var el = window.document.createElement("div"),
                         styles = Object.assign(
-                        {},
-                        config,
-                        arr[i]
-                    );
+                            {},
+                            config,
+                            arr[i]
+                        );
 
                     _setStyleValues(styles, el.style);
 
@@ -431,14 +431,14 @@ function RemoteFunctions(config, remoteWSPort) {
             highlight.className = HIGHLIGHT_CLASSNAME;
 
             var el = element,
-            offsetLeft = 0,
-            offsetTop  = 0;
+                offsetLeft = 0,
+                offsetTop  = 0;
 
             // Probably the easiest way to get elements position without including transform
             do {
-               offsetLeft += el.offsetLeft;
-               offsetTop  += el.offsetTop;
-               el = el.offsetParent;
+                offsetLeft += el.offsetLeft;
+                offsetTop  += el.offsetTop;
+                el = el.offsetParent;
             } while(el);
 
             var stylesToSet = {

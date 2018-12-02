@@ -72,12 +72,12 @@ define(function (require, exports, module) {
             menu = Menus.addMenu(Strings.APP_NAME, Menus.AppMenuBar.APP_MENU);
             menu.addMenuItem(Commands.HELP_ABOUT);
             menu.addMenuDivider();
-//            menu.addMenuItem(Commands.Services);
+            // menu.addMenuItem(Commands.Services);
             menu.addMenuDivider();
-//            menu.addMenuItem(Commands.APPMENU_HIDE);
-//            menu.addMenuItem(Commands.APPMENU_HIDE_OTHERS);
-//            menu.addMenuItem(Commands.APPMENU_SHOW_ALL);
-//            menu.addMenuDivider();
+            // menu.addMenuItem(Commands.APPMENU_HIDE);
+            // menu.addMenuItem(Commands.APPMENU_HIDE_OTHERS);
+            // menu.addMenuItem(Commands.APPMENU_SHOW_ALL);
+            // menu.addMenuDivider();
             menu.addMenuItem(Commands.FILE_QUIT);
         }
 
@@ -332,13 +332,13 @@ define(function (require, exports, module) {
                     inlineWidget = EditorManager.getFocusedInlineWidget();
 
                 if (editor) {
-                    //if (!editor.hasSelection()) {
-                        // Prevent menu from overlapping text by moving it down a little
-                        // Temporarily backout this change for now to help mitigate issue #1111,
-                        // which only happens if mouse is not over context menu. Better fix
-                        // requires change to bootstrap, which is too risky for now.
-                        //e.pageY += 6;
-                    //}
+                    // if (!editor.hasSelection()) {
+                    //     // Prevent menu from overlapping text by moving it down a little
+                    //     // Temporarily backout this change for now to help mitigate issue #1111,
+                    //     // which only happens if mouse is not over context menu. Better fix
+                    //     // requires change to bootstrap, which is too risky for now.
+                    //     e.pageY += 6;
+                    // }
 
                     // Inline text editors have a different context menu (safe to assume it's not some other
                     // type of inline widget since we already know an Editor has focus)

@@ -360,7 +360,7 @@ define({
     "CMD_TOGGLE_CLOSE_BRACKETS"         : "Chiudi le parentesi automaticamente",
     "CMD_SHOW_CODE_HINTS"               : "Mostra suggerimenti",
 
-     // Search menu commands
+    // Search menu commands
     "FIND_MENU"                           : "Cerca",
     "CMD_FIND"                            : "Cerca",
     "CMD_FIND_NEXT"                       : "Cerca il successivo",
@@ -663,7 +663,7 @@ define({
     // extensions/default/MDNDocs
     "DOCS_MORE_LINK"                            : "Leggi tutto",
 
-     // extensions/default/CodeFolding
+    // extensions/default/CodeFolding
     "COLLAPSE_ALL"                  : "Comprimi tutto",
     "EXPAND_ALL"                    : "Espandi tutto",
     "COLLAPSE_CURRENT"              : "Comprimi attuale",

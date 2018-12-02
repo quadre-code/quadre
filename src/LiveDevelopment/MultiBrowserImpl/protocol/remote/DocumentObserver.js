@@ -107,123 +107,123 @@
      */
     var CSS = {
 
-            /**
-            * Maintains a map of stylesheets loaded thorugh @import rules and their parents.
-            * Populated by extractImports, consumed by notifyImportsAdded / notifyImportsRemoved.
-            * @type {
-            */
-            stylesheets : {},
+        /**
+        * Maintains a map of stylesheets loaded thorugh @import rules and their parents.
+        * Populated by extractImports, consumed by notifyImportsAdded / notifyImportsRemoved.
+        * @type {
+        */
+        stylesheets : {},
 
-            /**
-             * Check the stylesheet that was just added be really loaded
-             * to be able to extract potential import-ed stylesheets.
-             * It invokes notifyStylesheetAdded once the sheet is loaded.
-             * @param  {string} href Absolute URL of the stylesheet.
-             */
-            checkForStylesheetLoaded : function (href) {
-                var self = this;
+        /**
+         * Check the stylesheet that was just added be really loaded
+         * to be able to extract potential import-ed stylesheets.
+         * It invokes notifyStylesheetAdded once the sheet is loaded.
+         * @param  {string} href Absolute URL of the stylesheet.
+         */
+        checkForStylesheetLoaded : function (href) {
+            var self = this;
 
 
-                // Inspect CSSRules for @imports:
-                // styleSheet obejct is required to scan CSSImportRules but
-                // browsers differ on the implementation of MutationObserver interface.
-                // Webkit triggers notifications before stylesheets are loaded,
-                // Firefox does it after loading.
-                // There are also differences on when 'load' event is triggered for
-                // the 'link' nodes. Webkit triggers it before stylesheet is loaded.
-                // Some references to check:
-                //      http://www.phpied.com/when-is-a-stylesheet-really-loaded/
-                //      http://stackoverflow.com/questions/17747616/webkit-dynamically-created-stylesheet-when-does-it-really-load
-                //        http://stackoverflow.com/questions/11425209/are-dom-mutation-observers-slower-than-dom-mutation-events
-                //
-                // TODO: This is just a temporary 'cross-browser' solution, it needs optimization.
-                var loadInterval = window.setInterval(function () {
-                    var i;
-                    for (i = 0; i < window.document.styleSheets.length; i++) {
-                        if (window.document.styleSheets[i].href === href) {
-                            //clear interval
-                            window.clearInterval(loadInterval);
-                            // notify stylesheets added
-                            self.notifyStylesheetAdded(href);
-                            break;
-                        }
+            // Inspect CSSRules for @imports:
+            // styleSheet obejct is required to scan CSSImportRules but
+            // browsers differ on the implementation of MutationObserver interface.
+            // Webkit triggers notifications before stylesheets are loaded,
+            // Firefox does it after loading.
+            // There are also differences on when 'load' event is triggered for
+            // the 'link' nodes. Webkit triggers it before stylesheet is loaded.
+            // Some references to check:
+            //      http://www.phpied.com/when-is-a-stylesheet-really-loaded/
+            //      http://stackoverflow.com/questions/17747616/webkit-dynamically-created-stylesheet-when-does-it-really-load
+            //        http://stackoverflow.com/questions/11425209/are-dom-mutation-observers-slower-than-dom-mutation-events
+            //
+            // TODO: This is just a temporary 'cross-browser' solution, it needs optimization.
+            var loadInterval = window.setInterval(function () {
+                var i;
+                for (i = 0; i < window.document.styleSheets.length; i++) {
+                    if (window.document.styleSheets[i].href === href) {
+                        //clear interval
+                        window.clearInterval(loadInterval);
+                        // notify stylesheets added
+                        self.notifyStylesheetAdded(href);
+                        break;
                     }
-                }, 50);
-            },
-
-            onStylesheetRemoved : function (url) {
-                // get style node created when setting new text for stylesheet.
-                var s = window.document.getElementById(url);
-                // remove
-                if (s && s.parentNode && s.parentNode.removeChild) {
-                    s.parentNode.removeChild(s);
                 }
-            },
+            }, 50);
+        },
 
-            /**
-             * Send a notification for the stylesheet added and
-             * its import-ed styleshets based on document.stylesheets diff
-             * from previous status. It also updates stylesheets status.
-             */
-            notifyStylesheetAdded : function () {
-                var added = {},
-                    current,
-                    newStatus;
-
-                current = this.stylesheets;
-                newStatus = related().stylesheets;
-
-                Object.keys(newStatus).forEach(function (v, i) {
-                    if (!current[v]) {
-                        added[v] = newStatus[v];
-                    }
-                });
-
-                Object.keys(added).forEach(function (v, i) {
-                    _transport.send(JSON.stringify({
-                        method: "StylesheetAdded",
-                        href: v,
-                        roots: [added[v]]
-                    }));
-                });
-
-                this.stylesheets = newStatus;
-            },
-
-            /**
-             * Send a notification for the removed stylesheet and
-             * its import-ed styleshets based on document.stylesheets diff
-             * from previous status. It also updates stylesheets status.
-             */
-            notifyStylesheetRemoved : function () {
-
-                var self = this;
-                var removed = {},
-                    newStatus,
-                    current;
-
-                current = self.stylesheets;
-                newStatus = related().stylesheets;
-
-                Object.keys(current).forEach(function (v, i) {
-                    if (!newStatus[v]) {
-                        removed[v] = current[v];
-                        // remove node created by setStylesheetText if any
-                        self.onStylesheetRemoved(current[v]);
-                    }
-                });
-
-                Object.keys(removed).forEach(function (v, i) {
-                    _transport.send(JSON.stringify({
-                        method: "StylesheetRemoved",
-                        href: v,
-                        roots: [removed[v]]
-                    }));
-                });
-
-                self.stylesheets = newStatus;
+        onStylesheetRemoved : function (url) {
+            // get style node created when setting new text for stylesheet.
+            var s = window.document.getElementById(url);
+            // remove
+            if (s && s.parentNode && s.parentNode.removeChild) {
+                s.parentNode.removeChild(s);
             }
-        };
+        },
+
+        /**
+         * Send a notification for the stylesheet added and
+         * its import-ed styleshets based on document.stylesheets diff
+         * from previous status. It also updates stylesheets status.
+         */
+        notifyStylesheetAdded : function () {
+            var added = {},
+                current,
+                newStatus;
+
+            current = this.stylesheets;
+            newStatus = related().stylesheets;
+
+            Object.keys(newStatus).forEach(function (v, i) {
+                if (!current[v]) {
+                    added[v] = newStatus[v];
+                }
+            });
+
+            Object.keys(added).forEach(function (v, i) {
+                _transport.send(JSON.stringify({
+                    method: "StylesheetAdded",
+                    href: v,
+                    roots: [added[v]]
+                }));
+            });
+
+            this.stylesheets = newStatus;
+        },
+
+        /**
+         * Send a notification for the removed stylesheet and
+         * its import-ed styleshets based on document.stylesheets diff
+         * from previous status. It also updates stylesheets status.
+         */
+        notifyStylesheetRemoved : function () {
+
+            var self = this;
+            var removed = {},
+                newStatus,
+                current;
+
+            current = self.stylesheets;
+            newStatus = related().stylesheets;
+
+            Object.keys(current).forEach(function (v, i) {
+                if (!newStatus[v]) {
+                    removed[v] = current[v];
+                    // remove node created by setStylesheetText if any
+                    self.onStylesheetRemoved(current[v]);
+                }
+            });
+
+            Object.keys(removed).forEach(function (v, i) {
+                _transport.send(JSON.stringify({
+                    method: "StylesheetRemoved",
+                    href: v,
+                    roots: [removed[v]]
+                }));
+            });
+
+            self.stylesheets = newStatus;
+        }
+    };
 
 
     /* process related docs added */

@@ -85,7 +85,7 @@ define(function (require, exports, module) {
         return token || cm.getTokenAt(pos, precise); // fall back to CMs getTokenAt, for example in an empty line
     }
 
-   /**
+    /**
      * Creates a context object for the given editor and position, suitable for passing to the
      * move functions.
      * @param {!CodeMirror} cm
@@ -170,7 +170,7 @@ define(function (require, exports, module) {
         return (ctx.pos.ch >= eol || ctx.token.end >= eol) && (ctx.pos.line >= ctx.editor.lineCount() - 1);
     }
 
-   /**
+    /**
      * Moves the given context in the given direction, skipping any whitespace it hits.
      * @param {function} moveFxn the function to move the context
      * @param {!{editor:!CodeMirror, pos:!{ch:number, line:number}, token:Object}} ctx
@@ -217,8 +217,7 @@ define(function (require, exports, module) {
             modeData = CodeMirror.innerMode(modeData, getTokenAt(cm, pos, precise).state).mode;
         }
 
-        name = (modeData.name === "xml") ?
-                modeData.configuration : modeData.name;
+        name = (modeData.name === "xml") ? modeData.configuration : modeData.name;
 
         return {mode: modeData, name: name};
     }

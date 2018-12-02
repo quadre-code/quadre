@@ -324,27 +324,30 @@ module.exports = function (grunt) {
             });
     }
 
-    grunt.registerTask("npm-download-default-extensions",
-                       "Downloads extensions from npm and puts them to the src/extensions/default folder",
-                       function () {
+    grunt.registerTask(
+        "npm-download-default-extensions",
+        "Downloads extensions from npm and puts them to the src/extensions/default folder",
+        function () {
+            var packageJSON = grunt.file.readJSON("package.json");
+            var extensionsToDownload = Object
+                .keys(packageJSON.defaultExtensions)
+                .map(function (name) {
+                    return {
+                        name: name,
+                        version: packageJSON.defaultExtensions[name]
+                    };
+                });
 
-        var packageJSON = grunt.file.readJSON("package.json");
-        var extensionsToDownload = Object.keys(packageJSON.defaultExtensions).map(function (name) {
-            return {
-                name: name,
-                version: packageJSON.defaultExtensions[name]
-            };
-        });
-
-        var done = this.async();
-        Promise.all(extensionsToDownload.map(function (extension) {
-            return downloadAndInstallExtensionFromNpm(extension);
-        })).then(function () {
-            return done();
-        }).catch(function (err) {
-            grunt.log.error(err);
-            return done(false);
-        });
-    });
+            var done = this.async();
+            Promise.all(extensionsToDownload.map(function (extension) {
+                return downloadAndInstallExtensionFromNpm(extension);
+            })).then(function () {
+                return done();
+            }).catch(function (err) {
+                grunt.log.error(err);
+                return done(false);
+            });
+        }
+    );
 
 };

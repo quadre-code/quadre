@@ -254,8 +254,9 @@ define(function (require, exports, module) {
         }
 
         function updateFileAndHeaderCheckboxes($clickedRow, isChecked) {
-            var $firstMatch = ($clickedRow.data("item-index") === 0) ? $clickedRow :
-                    $clickedRow.prevUntil(".file-section").last(),
+            var $firstMatch = ($clickedRow.data("item-index") === 0)
+                    ? $clickedRow
+                    : $clickedRow.prevUntil(".file-section").last(),
                 $fileRow = $firstMatch.prev(),
                 $siblingRows = $fileRow.nextUntil(".file-section"),
                 $fileCheckbox = $fileRow.find(".check-one-file"),
@@ -264,8 +265,8 @@ define(function (require, exports, module) {
             if (isChecked) {
                 if (!$fileCheckbox.is(":checked")) {
                     var $checkedSibilings = $siblingRows.filter(function (index) {
-                            return $(this).find(".check-one").is(":checked");
-                        });
+                        return $(this).find(".check-one").is(":checked");
+                    });
                     if ($checkedSibilings.length === $siblingRows.length) {
                         $fileCheckbox.prop("checked", true);
                         if (!$checkAll.is(":checked")) {

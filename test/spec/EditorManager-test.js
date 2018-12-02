@@ -40,9 +40,9 @@ define(function (require, exports, module) {
                 .appendTo(window.document.body);
 
             $fakeHolder = SpecRunnerUtils.createMockElement()
-                                        .css("width", "1000px")
-                                        .attr("id", "hidden-editors")
-                                        .appendTo($fakeContentDiv);
+                .css("width", "1000px")
+                .attr("id", "hidden-editors")
+                .appendTo($fakeContentDiv);
 
             pane = SpecRunnerUtils.createMockPane($fakeHolder, "first-pane");
             anotherPane = SpecRunnerUtils.createMockPane($fakeHolder, "second-pane");
@@ -114,9 +114,9 @@ define(function (require, exports, module) {
                 .appendTo(window.document.body);
 
             $fakeHolder = SpecRunnerUtils.createMockElement()
-                                        .css("width", "1000px")
-                                        .attr("id", "hidden-editors")
-                                        .appendTo($fakeContentDiv);
+                .css("width", "1000px")
+                .attr("id", "hidden-editors")
+                .appendTo($fakeContentDiv);
 
             pane = SpecRunnerUtils.createMockPane($fakeHolder);
             testDoc = SpecRunnerUtils.createMockDocument("");

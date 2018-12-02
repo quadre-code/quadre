@@ -396,9 +396,9 @@ define(function (require, exports, module) {
 
             exports.trigger("activePaneChange", newPaneId, oldPaneId);
             exports.trigger("currentFileChange", _getPane(ACTIVE_PANE).getCurrentlyViewedFile(),
-                                                            newPaneId,
-                                                            oldPane.getCurrentlyViewedFile(),
-                                                            oldPaneId);
+                newPaneId,
+                oldPane.getCurrentlyViewedFile(),
+                oldPaneId);
 
             _makePaneMostRecent(_activePaneId);
             focusActivePane();
@@ -1056,24 +1056,24 @@ define(function (require, exports, module) {
             if (pane.id === FIRST_PANE) {
                 if (_orientation === VERTICAL) {
                     pane.$el.css({height: "100%",
-                                  width: size + "%",
-                                  float: "left"
-                                 });
+                        width: size + "%",
+                        float: "left"
+                    });
                 } else {
                     pane.$el.css({ height: size + "%",
-                                   width: "100%"
-                                 });
+                        width: "100%"
+                    });
                 }
             } else {
                 if (_orientation === VERTICAL) {
                     pane.$el.css({  height: "100%",
-                                    width: "auto",
-                                    float: "none"
-                                 });
+                        width: "auto",
+                        float: "none"
+                    });
                 } else {
                     pane.$el.css({ width: "100%",
-                                   height: "50%"
-                                 });
+                        height: "50%"
+                    });
                 }
             }
 
@@ -1118,9 +1118,9 @@ define(function (require, exports, module) {
                 _updatePaneHeaders();
                 if (_activePaneId === newPane.id) {
                     exports.trigger("currentFileChange",
-                                               newView && newView.getFile(),
-                                               newPane.id, oldView && oldView.getFile(),
-                                               newPane.id);
+                        newView && newView.getFile(),
+                        newPane.id, oldView && oldView.getFile(),
+                        newPane.id);
                 }
             });
             newPane.on("viewDestroy.mainView", function (e, view) {
@@ -1138,9 +1138,9 @@ define(function (require, exports, module) {
     function _makeFirstPaneResizable() {
         var firstPane = _panes[FIRST_PANE];
         Resizer.makeResizable(firstPane.$el,
-                              _orientation === HORIZONTAL ? Resizer.DIRECTION_VERTICAL : Resizer.DIRECTION_HORIZONTAL,
-                              _orientation === HORIZONTAL ? Resizer.POSITION_BOTTOM : Resizer.POSITION_RIGHT,
-                              MIN_PANE_SIZE, false, false, false, true, true);
+            _orientation === HORIZONTAL ? Resizer.DIRECTION_VERTICAL : Resizer.DIRECTION_HORIZONTAL,
+            _orientation === HORIZONTAL ? Resizer.POSITION_BOTTOM : Resizer.POSITION_RIGHT,
+            MIN_PANE_SIZE, false, false, false, true, true);
 
         firstPane.$el.on("panelResizeUpdate", function () {
             _updateLayout();
@@ -1452,12 +1452,12 @@ define(function (require, exports, module) {
         var panes,
             promises = [],
             context = { location : { scope: "user",
-                                     layer: "project" } },
+                layer: "project" } },
             state = PreferencesManager.getViewState(PREFS_NAME, context);
 
         function convertViewState() {
             var context = { location : { scope: "user",
-                                         layer: "project" } },
+                    layer: "project" } },
                 files = PreferencesManager.getViewState(OLD_PREFS_NAME, context);
 
             if (!files) {
@@ -1590,8 +1590,8 @@ define(function (require, exports, module) {
 
         var projectRoot     = ProjectManager.getProjectRoot(),
             context         = { location : { scope: "user",
-                                         layer: "project",
-                                         layerID: projectRoot ? projectRoot.fullPath : null } },
+                layer: "project",
+                layerID: projectRoot ? projectRoot.fullPath : null } },
 
             state = {
                 orientation: _orientation,

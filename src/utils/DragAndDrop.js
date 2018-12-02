@@ -1,4 +1,4 @@
- /*
+/*
  * Copyright (c) 2013 - 2017 Adobe Systems Incorporated. All rights reserved.
  * Copyright (c) 2018 - present The quadre code authors. All rights reserved.
  *
@@ -117,7 +117,7 @@ define(function (require, exports, module) {
                     }
 
                     CommandManager.execute(Commands.CMD_ADD_TO_WORKINGSET_AND_OPEN,
-                                           {fullPath: path, silent: true})
+                        {fullPath: path, silent: true})
                         .done(function () {
                             result.resolve();
                         })

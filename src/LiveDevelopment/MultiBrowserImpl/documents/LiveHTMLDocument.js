@@ -275,7 +275,7 @@ define(function (require, exports, module) {
         return;
     };
 
-     /**
+    /**
      * @private
      * Handles message Script.Removed from the browser.
      * @param {$.Event} event
@@ -286,7 +286,7 @@ define(function (require, exports, module) {
         return;
     };
 
-     /**
+    /**
      * For the given path, check if the document is related to the live HTML document.
      * Related means that is an external Javascript or CSS file that is included as part of the DOM.
      * @param {String} fullPath.

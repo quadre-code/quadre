@@ -54,10 +54,10 @@
          */
         handlers: {},
 
-         /**
-          * Dispatch messages to handlers according to msg.method value.
-          * @param {Object} msg Message to be dispatched.
-          */
+        /**
+         * Dispatch messages to handlers according to msg.method value.
+         * @param {Object} msg Message to be dispatched.
+         */
         trigger: function (msg) {
             var msgHandlers;
             if (!msg.method) {

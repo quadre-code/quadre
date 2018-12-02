@@ -209,10 +209,10 @@ define(function (require, exports, module) {
                 var hintList = expectHints(CSSCodeHints.cssPropHintProvider);
                 verifyAttrHints(hintList, "border-color");  // filtered on "border-color"
                 verifyListsAreIdentical(hintList, ["border-color",
-                                                   "border-left-color",
-                                                   "border-top-color",
-                                                   "border-bottom-color",
-                                                   "border-right-color"]);
+                    "border-left-color",
+                    "border-top-color",
+                    "border-bottom-color",
+                    "border-right-color"]);
             });
 
             it("should list prop-name hints at end of property-value finished by ;", function () {
@@ -517,10 +517,10 @@ define(function (require, exports, module) {
                 var hintList = expectHints(CSSCodeHints.cssPropHintProvider);
                 verifyAttrHints(hintList, "border-color");  // filtered on "border-color"
                 verifyListsAreIdentical(hintList, ["border-color",
-                                                   "border-left-color",
-                                                   "border-top-color",
-                                                   "border-bottom-color",
-                                                   "border-right-color"]);
+                    "border-left-color",
+                    "border-top-color",
+                    "border-bottom-color",
+                    "border-right-color"]);
             });
 
             it("should list prop-name hints at end of property-value finished by ; for style value context", function () {

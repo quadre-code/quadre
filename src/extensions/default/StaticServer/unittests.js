@@ -108,7 +108,7 @@ define(function (require, exports, module) {
                     expect(Number(serverInfo.port)).toBeGreaterThan(0);
 
                     waitsForDone(nodeConnection.domains.staticServer.closeServer(path),
-                                 "waiting for static server to close");
+                        "waiting for static server to close");
                 });
             });
 
@@ -128,7 +128,7 @@ define(function (require, exports, module) {
                     expect(serverInfo.port).toBe(54321);
 
                     waitsForDone(nodeConnection.domains.staticServer.closeServer(path),
-                                 "waiting for static server to close");
+                        "waiting for static server to close");
                 });
             });
 
@@ -155,9 +155,9 @@ define(function (require, exports, module) {
                     expect(serverInfo2.port).toBeGreaterThan(0);
 
                     waitsForDone(nodeConnection.domains.staticServer.closeServer(path1),
-                                 "waiting for static server 1 to close");
+                        "waiting for static server 1 to close");
                     waitsForDone(nodeConnection.domains.staticServer.closeServer(path2),
-                                 "waiting for static server 2 to close");
+                        "waiting for static server 2 to close");
                 });
             });
 
@@ -184,7 +184,7 @@ define(function (require, exports, module) {
                     expect(text).toBe("This is a file in folder 1.");
 
                     waitsForDone(nodeConnection.domains.staticServer.closeServer(path),
-                                 "waiting for static server to close");
+                        "waiting for static server to close");
                 });
             });
 
@@ -208,9 +208,9 @@ define(function (require, exports, module) {
                     expect(serverInfo1.port).not.toBe(serverInfo2.port);
 
                     waitsForDone(nodeConnection.domains.staticServer.closeServer(path1),
-                                 "waiting for static server 1 to close");
+                        "waiting for static server 1 to close");
                     waitsForDone(nodeConnection.domains.staticServer.closeServer(path2),
-                                 "waiting for static server 2 to close");
+                        "waiting for static server 2 to close");
                 });
             });
 
@@ -247,9 +247,9 @@ define(function (require, exports, module) {
                     expect(text2).toBe("This is a file in folder 2.");
 
                     waitsForDone(nodeConnection.domains.staticServer.closeServer(path1),
-                                 "waiting for static server 1 to close");
+                        "waiting for static server 1 to close");
                     waitsForDone(nodeConnection.domains.staticServer.closeServer(path2),
-                                 "waiting for static server 2 to close");
+                        "waiting for static server 2 to close");
                 });
             });
 
@@ -307,7 +307,7 @@ define(function (require, exports, module) {
                     expect(elapsed).toBeGreaterThan(timeout);
 
                     waitsForDone(nodeConnection.domains.staticServer.closeServer(path),
-                                 "waiting for static server to close");
+                        "waiting for static server to close");
                 });
             });
 
@@ -357,7 +357,7 @@ define(function (require, exports, module) {
                     expect(text).toBe("This is a file in folder 1.");
 
                     waitsForDone(nodeConnection.domains.staticServer.closeServer(path),
-                                 "waiting for static server to close");
+                        "waiting for static server to close");
                 });
             });
 
@@ -404,7 +404,7 @@ define(function (require, exports, module) {
                     expect(text).toBe("custom response");
 
                     waitsForDone(nodeConnection.domains.staticServer.closeServer(path),
-                                 "waiting for static server to close");
+                        "waiting for static server to close");
                 });
             });
 
@@ -461,7 +461,7 @@ define(function (require, exports, module) {
 
                     // cleanup
                     waitsForDone(nodeConnection.domains.staticServer.closeServer(path),
-                                 "waiting for static server to close");
+                        "waiting for static server to close");
                 });
             });
 
@@ -520,7 +520,7 @@ define(function (require, exports, module) {
 
                     // cleanup
                     waitsForDone(nodeConnection.domains.staticServer.closeServer(path),
-                                 "waiting for static server to close");
+                        "waiting for static server to close");
                 });
             });
 
@@ -577,7 +577,7 @@ define(function (require, exports, module) {
                     expect(requestId).toBe(-1);
 
                     waitsForDone(nodeConnection.domains.staticServer.closeServer(path),
-                                 "waiting for static server to close");
+                        "waiting for static server to close");
                 });
             });
         });

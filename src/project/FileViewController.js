@@ -184,7 +184,7 @@ define(function (require, exports, module) {
             result = (new $.Deferred()).resolve().promise();
         } else {
             result = CommandManager.execute(Commands.FILE_OPEN, {fullPath: fullPath,
-                                                                 paneId: paneId});
+                paneId: paneId});
         }
 
         // clear after notification is done
@@ -205,7 +205,7 @@ define(function (require, exports, module) {
     function openFileAndAddToWorkingSet(fullPath, paneId) {
         var result = new $.Deferred(),
             promise = CommandManager.execute(Commands.CMD_ADD_TO_WORKINGSET_AND_OPEN, {fullPath: fullPath,
-                                                                                  paneId: paneId});
+                paneId: paneId});
 
         // This properly handles sending the right nofications in cases where the document
         // is already the current one. In that case we will want to notify with

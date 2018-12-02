@@ -201,7 +201,7 @@ define(function DOMAgent(require, exports, module) {
         }
     }
 
-     // WebInspector Event: DOM.documentUpdated
+    // WebInspector Event: DOM.documentUpdated
     function _onDocumentUpdated(event, res) {
         // res = {}
     }

@@ -50,7 +50,7 @@ define(function (require, exports, module) {
     function ImageView(file, $container) {
         this.file = file;
         this.$el = $(Mustache.render(ImageViewTemplate, {fullPath: FileUtils.encodeFilePath(file.fullPath),
-                                                         now: new Date().valueOf()}));
+            now: new Date().valueOf()}));
 
         $container.append(this.$el);
 
@@ -132,9 +132,9 @@ define(function (require, exports, module) {
                 }
                 var dimensionAndSize = dimensionString + sizeString;
                 self.$imageData.html(dimensionAndSize)
-                        .attr("title", dimensionAndSize
-                                    .replace("&times;", "x")
-                                    .replace("&mdash;", "-"));
+                    .attr("title", dimensionAndSize
+                        .replace("&times;", "x")
+                        .replace("&mdash;", "-"));
             }
         });
 
@@ -145,7 +145,7 @@ define(function (require, exports, module) {
         this.$imageGuides.hide();
 
         this.$image.on("mousemove.ImageView", ".image-preview", _.bind(this._showImageTip, this))
-                   .on("mouseleave.ImageView", ".image-preview", _.bind(this._hideImageTip, this));
+            .on("mouseleave.ImageView", ".image-preview", _.bind(this._hideImageTip, this));
 
         this._updateScale();
     };
@@ -334,9 +334,9 @@ define(function (require, exports, module) {
                     offsetY < (imagePos.top + imgHeight)) {
                 // Remember image scale div coordinates before hiding it.
                 this._scaleDivInfo = {left: scaleDivPos.left,
-                                 top: scaleDivPos.top,
-                                 right: scaleDivRight,
-                                 bottom: scaleDivBottom};
+                    top: scaleDivPos.top,
+                    right: scaleDivRight,
+                    bottom: scaleDivBottom};
                 this.$imageScale.hide();
             }
         }
@@ -371,9 +371,9 @@ define(function (require, exports, module) {
         // $view is "position:absolute" so
         //  we have to update the height, width and position
         this.$el.css({top: pos.top + ((oHeight - iHeight) / 2),
-                        left: pos.left + ((oWidth - iWidth) / 2),
-                        width: iWidth,
-                        height: iHeight});
+            left: pos.left + ((oWidth - iWidth) / 2),
+            width: iWidth,
+            height: iHeight});
         this._updateScale();
     };
 

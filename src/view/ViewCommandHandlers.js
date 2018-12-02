@@ -323,14 +323,14 @@ define(function (require, exports, module) {
      * @param {number} adjustment  Negative number to make the font smaller; positive number to make it bigger
      * @return {boolean} true if adjustment occurred, false if it did not occur
      */
-     function _adjustFontSize(adjustment) {
+    function _adjustFontSize(adjustment) {
         var fsStyle    = prefs.get("fontSize");
         var validFontSizeRegExp = new RegExp(validFontSizeRegExpStr);
 
         // Make sure that the font size is expressed in terms we can
         // handle (px or em). If not, simply bail.
 
-         if (fsStyle.search(validFontSizeRegExp) === -1) {
+        if (fsStyle.search(validFontSizeRegExp) === -1) {
             return false;
         }
 

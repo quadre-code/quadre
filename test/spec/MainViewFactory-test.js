@@ -128,22 +128,22 @@ define(function (require, exports, module) {
                 runs(function () {
                     MainViewManager.setLayoutScheme(1, 2);
                     promise = CommandManager.execute(Commands.CMD_ADD_TO_WORKINGSET_AND_OPEN,  { fullPath: testPath + "/images/events.jpg",
-                                                                                            paneId: "first-pane"});
+                        paneId: "first-pane"});
                     waitsForDone(promise, Commands.CMD_ADD_TO_WORKINGSET_AND_OPEN);
                 });
                 runs(function () {
                     promise = CommandManager.execute(Commands.CMD_ADD_TO_WORKINGSET_AND_OPEN,  { fullPath: testPath + "/images/lrg_logo.png",
-                                                                                            paneId: "second-pane"});
+                        paneId: "second-pane"});
                     waitsForDone(promise, Commands.CMD_ADD_TO_WORKINGSET_AND_OPEN);
                 });
                 runs(function () {
                     promise = CommandManager.execute(Commands.CMD_ADD_TO_WORKINGSET_AND_OPEN,  { fullPath: testPath + "/images/specials.jpg",
-                                                                                            paneId: "second-pane"});
+                        paneId: "second-pane"});
                     waitsForDone(promise, Commands.CMD_ADD_TO_WORKINGSET_AND_OPEN);
                 });
                 runs(function () {
                     promise = CommandManager.execute(Commands.CMD_ADD_TO_WORKINGSET_AND_OPEN,  { fullPath: testPath + "/images/lrg_hero.jpg",
-                                                                                            paneId: "second-pane"});
+                        paneId: "second-pane"});
                     waitsForDone(promise, Commands.CMD_ADD_TO_WORKINGSET_AND_OPEN);
                 });
                 runs(function () {

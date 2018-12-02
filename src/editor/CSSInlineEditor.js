@@ -296,9 +296,11 @@ define(function (require, exports, module) {
         CSSUtils.findMatchingRules(selectorName, hostEditor.document)
             .done(function (rules) {
                 var inlineEditorDeferred = new $.Deferred();
-                cssInlineEditor = new MultiRangeInlineEditor.MultiRangeInlineEditor(CSSUtils.consolidateRules(rules),
-                                                                                    _getNoRulesMsg, CSSUtils.getRangeSelectors,
-                                                                                    _fileComparator);
+                cssInlineEditor = new MultiRangeInlineEditor.MultiRangeInlineEditor(
+                    CSSUtils.consolidateRules(rules),
+                    _getNoRulesMsg, CSSUtils.getRangeSelectors,
+                    _fileComparator
+                );
                 cssInlineEditor.load(hostEditor);
                 cssInlineEditor.$htmlContent
                     .on("focusin", _updateCommands)

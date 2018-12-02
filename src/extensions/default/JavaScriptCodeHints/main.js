@@ -881,7 +881,7 @@ define(function (require, exports, module) {
 
         // uninstall/install change listener as the active editor changes
         EditorManager.on(HintUtils.eventName("activeEditorChange"),
-                handleActiveEditorChange);
+            handleActiveEditorChange);
 
         ProjectManager.on("beforeProjectClose", function () {
             ScopeManager.handleProjectClose();

@@ -99,10 +99,10 @@ define(function (require, exports, module) {
                     console.log(JSON.stringify(hintList));
                     verifyFirstEntry(hintList, "not(selectors)");  // filtered on "n"
                     verifyListsAreIdentical(hintList, ["not(selectors)",
-                                                       "nth-child(n)",
-                                                       "nth-last-child(n)",
-                                                       "nth-last-of-type(n)",
-                                                       "nth-of-type(n)"]);
+                        "nth-child(n)",
+                        "nth-last-child(n)",
+                        "nth-last-of-type(n)",
+                        "nth-of-type(n)"]);
                 },
                 testNoHints = function () {
                     testEditor.setCursorPos({ line: 0, ch: 10 });    // after {
@@ -145,7 +145,7 @@ define(function (require, exports, module) {
                     console.log(JSON.stringify(hintList));
                     verifyFirstEntry(hintList, "first-letter");  // filtered on "f"
                     verifyListsAreIdentical(hintList, ["first-letter",
-                                                       "first-line"]);
+                        "first-line"]);
                 },
                 testNoHints = function () {
                     testEditor.setCursorPos({ line: 2, ch: 10 });    // after ::f

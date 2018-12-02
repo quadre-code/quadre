@@ -550,9 +550,12 @@ define(function (require, exports, module) {
             var params = new UrlParams();
 
             // setup extension loading in the test window
-            params.put("extensions", _doLoadExtensions ?
-                        "default,dev," + ExtensionLoader.getUserExtensionPath() :
-                        "default");
+            params.put(
+                "extensions",
+                _doLoadExtensions
+                    ? "default,dev," + ExtensionLoader.getUserExtensionPath()
+                    : "default"
+            );
 
             // disable update check in test windows
             params.put("skipUpdateCheck", true);

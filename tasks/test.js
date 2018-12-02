@@ -76,39 +76,39 @@ module.exports = function (grunt) {
         grunt.log.writeln(cmd);
 
         fs.ensureDir(resultsDir)
-        .then(() => {
-            var cp = childProcess.exec(cmd, opts, function (err, stdout, stderr) {
-                if (err) {
-                    grunt.log.writeln(err);
-                    return done(err);
-                }
-                grunt.log.writeln(`stdout: ${stdout}`);
-                grunt.log.writeln(`stderr: ${stderr}`);
-            });
-            cp.on("error", function (error) {
-                grunt.log.writeln(error);
-                done(error);
-            });
-            cp.on("exit", function (code, signal) {
-                var e;
+            .then(() => {
+                var cp = childProcess.exec(cmd, opts, function (err, stdout, stderr) {
+                    if (err) {
+                        grunt.log.writeln(err);
+                        return done(err);
+                    }
+                    grunt.log.writeln(`stdout: ${stdout}`);
+                    grunt.log.writeln(`stderr: ${stderr}`);
+                });
+                cp.on("error", function (error) {
+                    grunt.log.writeln(error);
+                    done(error);
+                });
+                cp.on("exit", function (code, signal) {
+                    var e;
 
-                if (code !== 0) {
-                    e = new Error("Process exited with code " + code);
-                    return done(e);
-                }
+                    if (code !== 0) {
+                        e = new Error("Process exited with code " + code);
+                        return done(e);
+                    }
 
-                var failures = checkForTestFailures(resultsPath);
-                if (failures) {
-                    e = new Error(failures + " test failure(s). Results are available from " + resultsPath);
-                    done(e);
-                } else {
-                    done();
-                }
+                    var failures = checkForTestFailures(resultsPath);
+                    if (failures) {
+                        e = new Error(failures + " test failure(s). Results are available from " + resultsPath);
+                        done(e);
+                    } else {
+                        done();
+                    }
+                });
+            })
+            .catch((err) => {
+                grunt.log.writeln(err);
+                done(err);
             });
-        })
-        .catch((err) => {
-            grunt.log.writeln(err);
-            done(err);
-        });
     });
 };

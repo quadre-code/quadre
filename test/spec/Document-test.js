@@ -67,7 +67,7 @@ define(function (require, exports, module) {
 
             it("should do a single edit, tracking a beforeEdit selection and preserving reversed flag", function () {
                 var result = myDocument.doMultipleEdits([{edit: {text: "new content", start: {line: 2, ch: 0}, end: {line: 2, ch: 14}},
-                                                        selection: {start: {line: 2, ch: 4}, end: {line: 2, ch: 4}, reversed: true, isBeforeEdit: true}}]);
+                    selection: {start: {line: 2, ch: 4}, end: {line: 2, ch: 4}, reversed: true, isBeforeEdit: true}}]);
                 initialContentLines[2] = "new content";
                 expect(myDocument.getText()).toEqual(initialContentLines.join("\n"));
                 expect(result.length).toBe(1);
@@ -80,7 +80,7 @@ define(function (require, exports, module) {
 
             it("should do a single edit, leaving a non-beforeEdit selection untouched and preserving reversed flag", function () {
                 var result = myDocument.doMultipleEdits([{edit: {text: "new content", start: {line: 2, ch: 0}, end: {line: 2, ch: 14}},
-                                                        selection: {start: {line: 2, ch: 4}, end: {line: 2, ch: 4}, reversed: true}}]);
+                    selection: {start: {line: 2, ch: 4}, end: {line: 2, ch: 4}, reversed: true}}]);
                 initialContentLines[2] = "new content";
                 expect(myDocument.getText()).toEqual(initialContentLines.join("\n"));
                 expect(result.length).toBe(1);
@@ -94,9 +94,9 @@ define(function (require, exports, module) {
             it("should do multiple edits, fixing up isBeforeEdit selections with respect to both edits and preserving other selection attributes", function () {
                 var result = myDocument.doMultipleEdits([
                     {edit: {text: "modified line 2\n", start: {line: 2, ch: 0}, end: {line: 2, ch: 14}},
-                         selection: {start: {line: 2, ch: 4}, end: {line: 2, ch: 4}, isBeforeEdit: true, primary: true}},
+                        selection: {start: {line: 2, ch: 4}, end: {line: 2, ch: 4}, isBeforeEdit: true, primary: true}},
                     {edit: {text: "modified line 4\n", start: {line: 4, ch: 0}, end: {line: 4, ch: 14}},
-                         selection: {start: {line: 4, ch: 4}, end: {line: 4, ch: 4}, isBeforeEdit: true, reversed: true}}
+                        selection: {start: {line: 4, ch: 4}, end: {line: 4, ch: 4}, isBeforeEdit: true, reversed: true}}
                 ]);
                 initialContentLines[2] = "modified line 2";
                 initialContentLines[4] = "modified line 4";
@@ -119,9 +119,9 @@ define(function (require, exports, module) {
             it("should do multiple edits, fixing up non-isBeforeEdit selections only with respect to other edits", function () {
                 var result = myDocument.doMultipleEdits([
                     {edit: {text: "modified line 2\n", start: {line: 2, ch: 0}, end: {line: 2, ch: 14}},
-                         selection: {start: {line: 2, ch: 4}, end: {line: 2, ch: 4}, primary: true}},
+                        selection: {start: {line: 2, ch: 4}, end: {line: 2, ch: 4}, primary: true}},
                     {edit: {text: "modified line 4\n", start: {line: 4, ch: 0}, end: {line: 4, ch: 14}},
-                         selection: {start: {line: 4, ch: 4}, end: {line: 4, ch: 4}, reversed: true}}
+                        selection: {start: {line: 4, ch: 4}, end: {line: 4, ch: 4}, reversed: true}}
                 ]);
                 initialContentLines[2] = "modified line 2";
                 initialContentLines[4] = "modified line 4";
@@ -144,11 +144,11 @@ define(function (require, exports, module) {
             it("should perform multiple changes/track multiple selections within a single edit, selections specified as isBeforeEdit", function () {
                 var result = myDocument.doMultipleEdits([
                     {edit: [{text: "modified line 1", start: {line: 1, ch: 0}, end: {line: 1, ch: 14}},
-                            {text: "modified line 2\n", start: {line: 2, ch: 0}, end: {line: 2, ch: 14}}],
-                         selection: [{start: {line: 1, ch: 4}, end: {line: 1, ch: 4}, isBeforeEdit: true},
-                                     {start: {line: 2, ch: 4}, end: {line: 2, ch: 4}, isBeforeEdit: true, primary: true}]},
+                        {text: "modified line 2\n", start: {line: 2, ch: 0}, end: {line: 2, ch: 14}}],
+                    selection: [{start: {line: 1, ch: 4}, end: {line: 1, ch: 4}, isBeforeEdit: true},
+                        {start: {line: 2, ch: 4}, end: {line: 2, ch: 4}, isBeforeEdit: true, primary: true}]},
                     {edit: {text: "modified line 4\n", start: {line: 4, ch: 0}, end: {line: 4, ch: 14}},
-                         selection: {start: {line: 4, ch: 4}, end: {line: 4, ch: 4}, isBeforeEdit: true, reversed: true}}
+                        selection: {start: {line: 4, ch: 4}, end: {line: 4, ch: 4}, isBeforeEdit: true, reversed: true}}
                 ]);
                 initialContentLines[1] = "modified line 1"; // no extra newline inserted here
                 initialContentLines[2] = "modified line 2";
@@ -177,11 +177,11 @@ define(function (require, exports, module) {
             it("should perform multiple changes/track multiple selections within a single edit, selections not specified as isBeforeEdit", function () {
                 var result = myDocument.doMultipleEdits([
                     {edit: [{text: "modified line 1", start: {line: 1, ch: 0}, end: {line: 1, ch: 14}},
-                            {text: "modified line 2\n", start: {line: 2, ch: 0}, end: {line: 2, ch: 14}}],
-                         selection: [{start: {line: 1, ch: 4}, end: {line: 1, ch: 4}},
-                                     {start: {line: 2, ch: 4}, end: {line: 2, ch: 4}, primary: true}]},
+                        {text: "modified line 2\n", start: {line: 2, ch: 0}, end: {line: 2, ch: 14}}],
+                    selection: [{start: {line: 1, ch: 4}, end: {line: 1, ch: 4}},
+                        {start: {line: 2, ch: 4}, end: {line: 2, ch: 4}, primary: true}]},
                     {edit: {text: "modified line 4\n", start: {line: 4, ch: 0}, end: {line: 4, ch: 14}},
-                         selection: {start: {line: 4, ch: 4}, end: {line: 4, ch: 4}, reversed: true}}
+                        selection: {start: {line: 4, ch: 4}, end: {line: 4, ch: 4}, reversed: true}}
                 ]);
                 initialContentLines[1] = "modified line 1"; // no extra newline inserted here
                 initialContentLines[2] = "modified line 2";
@@ -222,7 +222,7 @@ define(function (require, exports, module) {
                 function shouldDie() {
                     myDocument.doMultipleEdits([
                         {edit: [{text: "modified line 2", start: {line: 2, ch: 0}, end: {line: 2, ch: 0}},
-                                {text: "modified line 4", start: {line: 4, ch: 0}, end: {line: 4, ch: 0}}]},
+                            {text: "modified line 4", start: {line: 4, ch: 0}, end: {line: 4, ch: 0}}]},
                         {edit: {text: "modified line 3", start: {line: 3, ch: 0}, end: {line: 3, ch: 0}}}
                     ]);
                 }

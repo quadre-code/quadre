@@ -32,14 +32,16 @@ var ExtensionsDomain = require("../ExtensionManagerDomain"),
     async            = require("async"),
     path             = require("path");
 
-var testFilesDirectory = path.join(path.dirname(module.filename),
-                                    "..",   // node
-                                    "..",   // extensibility
-                                    "..",   // src
-                                    "..",   // brackets
-                                    "test",
-                                    "spec",
-                                    "extension-test-files"),
+var testFilesDirectory = path.join(
+        path.dirname(module.filename),
+        "..",   // node
+        "..",   // extensibility
+        "..",   // src
+        "..",   // brackets
+        "test",
+        "spec",
+        "extension-test-files"
+    ),
     installParent      = path.join(path.dirname(module.filename), "extensions"),
     installDirectory   = path.join(installParent, "good"),
     disabledDirectory  = path.join(installParent, "disabled"),
@@ -180,8 +182,9 @@ describe("Package Installation", function () {
     // But, I wanted to be sure that the install function doesn't try to
     // do anything with the file before validation.
     it("should fail for missing package", function (done) {
-        ExtensionsDomain._cmdInstall(path.join(testFilesDirectory, "NOT A PACKAGE"),
-                                     installDirectory, standardOptions, function (err, result) {
+        ExtensionsDomain._cmdInstall(
+            path.join(testFilesDirectory, "NOT A PACKAGE"),
+            installDirectory, standardOptions, function (err, result) {
                 expect(err).toBeNull();
                 var errors = result.errors;
                 expect(errors.length).toEqual(1);

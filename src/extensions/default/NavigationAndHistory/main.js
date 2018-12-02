@@ -112,10 +112,10 @@ define(function (require, exports, module) {
 
         return CommandManager
             .execute(Commands.FILE_OPEN,
-                    {   fullPath: contextData.path,
-                        paneId: targetPaneId
-                    }
-                )
+                {   fullPath: contextData.path,
+                    paneId: targetPaneId
+                }
+            )
             .done(function () {
                 if (contextData.cursor) {
                     activeEditor = EditorManager.getActiveEditor();
@@ -262,8 +262,8 @@ define(function (require, exports, module) {
             var indxInWS = MainViewManager.findInWorkingSet(value.paneId, value.file);
 
             data = {fullPath: value.file,
-                    name: FileUtils.getBaseName(value.file),
-                    isFile: true};
+                name: FileUtils.getBaseName(value.file),
+                isFile: true};
 
             fileEntry = FileSystem.getFileForPath(value.file);
 
@@ -613,8 +613,8 @@ define(function (require, exports, module) {
     function _handleWorkingSetMove(event, file, sourcePaneId, destinationPaneId) {
         // Check existing list for this doc path and source pane entry
         var index = _.findIndex(_mrofList, function (record) {
-            return (record.file === file.fullPath && record.paneId === sourcePaneId);
-        }), tIndex;
+                return (record.file === file.fullPath && record.paneId === sourcePaneId);
+            }), tIndex;
         // If an entry is found update the pane info
         if (index >= 0) {
             // But an entry with the target pane Id should not exist

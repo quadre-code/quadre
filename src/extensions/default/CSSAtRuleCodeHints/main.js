@@ -54,8 +54,8 @@ define(function (require, exports, module) {
         }
 
         // Check if we are at '@' rule 'def' context
-        if ((token.type === "def" && cmState.context.type === "at")
-                || (token.type === "variable-2" && (cmState.context.type === "top" || cmState.context.type === "block"))) {
+        if ((token.type === "def" && cmState.context.type === "at") ||
+            (token.type === "variable-2" && (cmState.context.type === "top" || cmState.context.type === "block"))) {
             this.filter = token.string;
             return true;
         }

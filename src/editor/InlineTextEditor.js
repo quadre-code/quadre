@@ -89,7 +89,7 @@ define(function (require, exports, module) {
     InlineTextEditor.prototype.$header = null;
     InlineTextEditor.prototype.$filename = null;
 
-   /**
+    /**
      * Given a host editor and its inline editors, find the widest gutter and make all the others match
      * @param {!Editor} hostEditor Host editor containing all the inline editors to sync
      * @private

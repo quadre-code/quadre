@@ -190,7 +190,7 @@ define(function (require, exports, module) {
             runs(function () {
                 // Open another document and bring it to the front
                 waitsForDone(FileViewController.openAndSelectDocument(fullpath, FileViewController.PROJECT_MANAGER),
-                             "FILE_OPEN on file timeout", 1000);
+                    "FILE_OPEN on file timeout", 1000);
             });
         }
 

@@ -238,10 +238,10 @@ define(function (require, exports, module) {
 
                 // Mode for multiple cursors/selections
                 myEditor.setSelections([{start: {line: 0, ch: 0}, end: {line: 0, ch: 0}},
-                                        {start: {line: 0, ch: 5}, end: {line: 0, ch: 5}}]);
+                    {start: {line: 0, ch: 5}, end: {line: 0, ch: 5}}]);
                 expectModeAndLang(myEditor, langNames.javascript);
                 myEditor.setSelections([{start: {line: 0, ch: 0}, end: {line: 0, ch: 3}},
-                                        {start: {line: 0, ch: 5}, end: {line: 0, ch: 7}}]);
+                    {start: {line: 0, ch: 5}, end: {line: 0, ch: 7}}]);
                 expectModeAndLang(myEditor, langNames.javascript);
             });
 
@@ -271,18 +271,18 @@ define(function (require, exports, module) {
 
                 // Mode for multiple cursors/selections - homogeneous mode
                 myEditor.setSelections([{start: {line: 2, ch: 0}, end: {line: 2, ch: 0}},
-                                        {start: {line: 2, ch: 4}, end: {line: 2, ch: 4}}]);
+                    {start: {line: 2, ch: 4}, end: {line: 2, ch: 4}}]);
                 expectModeAndLang(myEditor, langNames.javascript);
                 myEditor.setSelections([{start: {line: 2, ch: 0}, end: {line: 2, ch: 2}},
-                                        {start: {line: 2, ch: 4}, end: {line: 2, ch: 6}}]);
+                    {start: {line: 2, ch: 4}, end: {line: 2, ch: 6}}]);
                 expectModeAndLang(myEditor, langNames.javascript);
                 myEditor.setSelections([{start: {line: 0, ch: 0}, end: {line: 0, ch: 0}},
-                                        {start: {line: 5, ch: 7}, end: {line: 5, ch: 7}},
-                                        {start: {line: 6, ch: 14}, end: {line: 6, ch: 14}}]);
+                    {start: {line: 5, ch: 7}, end: {line: 5, ch: 7}},
+                    {start: {line: 6, ch: 14}, end: {line: 6, ch: 14}}]);
                 expectModeAndLang(myEditor, langNames.html);
                 myEditor.setSelections([{start: {line: 0, ch: 0}, end: {line: 0, ch: 2}},
-                                        {start: {line: 5, ch: 7}, end: {line: 5, ch: 9}},
-                                        {start: {line: 6, ch: 12}, end: {line: 6, ch: 14}}]);
+                    {start: {line: 5, ch: 7}, end: {line: 5, ch: 9}},
+                    {start: {line: 6, ch: 12}, end: {line: 6, ch: 14}}]);
                 expectModeAndLang(myEditor, langNames.html);
 
                 // Mode for range - mix of modes
@@ -291,20 +291,20 @@ define(function (require, exports, module) {
 
                 // Mode for multiple cursors/selections - mix of modes
                 myEditor.setSelections([{start: {line: 0, ch: 0}, end: {line: 0, ch: 0}},
-                                        {start: {line: 2, ch: 4}, end: {line: 2, ch: 4}},
-                                        {start: {line: 6, ch: 14}, end: {line: 6, ch: 14}}]);
+                    {start: {line: 2, ch: 4}, end: {line: 2, ch: 4}},
+                    {start: {line: 6, ch: 14}, end: {line: 6, ch: 14}}]);
                 expectModeAndLang(myEditor, langNames.unknown);
                 myEditor.setSelections([{start: {line: 0, ch: 0}, end: {line: 0, ch: 2}},
-                                        {start: {line: 2, ch: 4}, end: {line: 2, ch: 7}},
-                                        {start: {line: 6, ch: 12}, end: {line: 6, ch: 14}}]);
+                    {start: {line: 2, ch: 4}, end: {line: 2, ch: 7}},
+                    {start: {line: 6, ch: 12}, end: {line: 6, ch: 14}}]);
                 expectModeAndLang(myEditor, langNames.unknown);
                 myEditor.setSelections([{start: {line: 0, ch: 0}, end: {line: 2, ch: 0}},
-                                        {start: {line: 2, ch: 4}, end: {line: 2, ch: 7}},
-                                        {start: {line: 6, ch: 12}, end: {line: 6, ch: 14}}]);
+                    {start: {line: 2, ch: 4}, end: {line: 2, ch: 7}},
+                    {start: {line: 6, ch: 12}, end: {line: 6, ch: 14}}]);
                 expectModeAndLang(myEditor, langNames.unknown);
                 myEditor.setSelections([{start: {line: 0, ch: 0}, end: {line: 0, ch: 2}},
-                                        {start: {line: 2, ch: 4}, end: {line: 5, ch: 3}},
-                                        {start: {line: 6, ch: 12}, end: {line: 6, ch: 14}}]);
+                    {start: {line: 2, ch: 4}, end: {line: 5, ch: 3}},
+                    {start: {line: 6, ch: 12}, end: {line: 6, ch: 14}}]);
                 expectModeAndLang(myEditor, langNames.unknown);
 
                 // Mode for range - mix of modes where start & endpoints are same mode
@@ -396,25 +396,25 @@ define(function (require, exports, module) {
 
                 it("should return false for multiple cursors", function () {
                     myEditor._codeMirror.setSelections([{anchor: {line: 0, ch: 1}, head: {line: 0, ch: 1}},
-                                                        {anchor: {line: 1, ch: 1}, head: {line: 1, ch: 1}},
-                                                        {anchor: {line: 2, ch: 1}, head: {line: 2, ch: 1}}
-                                                       ], 2);
+                        {anchor: {line: 1, ch: 1}, head: {line: 1, ch: 1}},
+                        {anchor: {line: 2, ch: 1}, head: {line: 2, ch: 1}}
+                    ], 2);
                     expect(myEditor.hasSelection()).toBe(false);
                 });
 
                 it("should return true for multiple selections", function () {
                     myEditor._codeMirror.setSelections([{anchor: {line: 0, ch: 1}, head: {line: 0, ch: 4}},
-                                                        {anchor: {line: 1, ch: 1}, head: {line: 1, ch: 4}},
-                                                        {anchor: {line: 2, ch: 1}, head: {line: 2, ch: 4}}
-                                                       ], 2);
+                        {anchor: {line: 1, ch: 1}, head: {line: 1, ch: 4}},
+                        {anchor: {line: 2, ch: 1}, head: {line: 2, ch: 4}}
+                    ], 2);
                     expect(myEditor.hasSelection()).toBe(true);
                 });
 
                 it("should return true for mixed cursors and selections", function () {
                     myEditor._codeMirror.setSelections([{anchor: {line: 0, ch: 1}, head: {line: 0, ch: 1}},
-                                                        {anchor: {line: 1, ch: 1}, head: {line: 1, ch: 4}},
-                                                        {anchor: {line: 2, ch: 1}, head: {line: 2, ch: 1}}
-                                                       ], 2);
+                        {anchor: {line: 1, ch: 1}, head: {line: 1, ch: 4}},
+                        {anchor: {line: 2, ch: 1}, head: {line: 2, ch: 1}}
+                    ], 2);
                     expect(myEditor.hasSelection()).toBe(true);
                 });
             });
@@ -450,9 +450,9 @@ define(function (require, exports, module) {
 
                 it("should return the default primary cursor in a multiple cursor selection", function () {
                     myEditor._codeMirror.setSelections([{anchor: {line: 0, ch: 1}, head: {line: 0, ch: 1}},
-                                                        {anchor: {line: 1, ch: 1}, head: {line: 1, ch: 1}},
-                                                        {anchor: {line: 2, ch: 1}, head: {line: 2, ch: 1}}
-                                                       ], 2);
+                        {anchor: {line: 1, ch: 1}, head: {line: 1, ch: 1}},
+                        {anchor: {line: 2, ch: 1}, head: {line: 2, ch: 1}}
+                    ], 2);
                     expect(myEditor.getCursorPos().line).toEqual(2);
                     expect(myEditor.getCursorPos().ch).toEqual(1);
                     expect(myEditor.getCursorPos(false, "start").line).toEqual(2);
@@ -467,9 +467,9 @@ define(function (require, exports, module) {
 
                 it("should return the specific primary cursor in a multiple cursor selection", function () {
                     myEditor._codeMirror.setSelections([{anchor: {line: 0, ch: 1}, head: {line: 0, ch: 1}},
-                                                        {anchor: {line: 1, ch: 1}, head: {line: 1, ch: 1}},
-                                                        {anchor: {line: 2, ch: 1}, head: {line: 2, ch: 1}}
-                                                       ], 1);
+                        {anchor: {line: 1, ch: 1}, head: {line: 1, ch: 1}},
+                        {anchor: {line: 2, ch: 1}, head: {line: 2, ch: 1}}
+                    ], 1);
                     expect(myEditor.getCursorPos().line).toEqual(1);
                     expect(myEditor.getCursorPos().ch).toEqual(1);
                     expect(myEditor.getCursorPos(false, "start").line).toEqual(1);
@@ -484,9 +484,9 @@ define(function (require, exports, module) {
 
                 it("should return the correct ends of the default primary selection in a multiple selection", function () {
                     myEditor._codeMirror.setSelections([{anchor: {line: 0, ch: 1}, head: {line: 0, ch: 4}},
-                                                        {anchor: {line: 1, ch: 1}, head: {line: 1, ch: 4}},
-                                                        {anchor: {line: 2, ch: 1}, head: {line: 2, ch: 4}}
-                                                       ], 2);
+                        {anchor: {line: 1, ch: 1}, head: {line: 1, ch: 4}},
+                        {anchor: {line: 2, ch: 1}, head: {line: 2, ch: 4}}
+                    ], 2);
                     expect(myEditor.getCursorPos().line).toEqual(2);
                     expect(myEditor.getCursorPos().ch).toEqual(4);
                     expect(myEditor.getCursorPos(false, "start").line).toEqual(2);
@@ -501,9 +501,9 @@ define(function (require, exports, module) {
 
                 it("should return the correct ends of a specific primary selection in a multiple selection", function () {
                     myEditor._codeMirror.setSelections([{anchor: {line: 0, ch: 1}, head: {line: 0, ch: 4}},
-                                                        {anchor: {line: 1, ch: 1}, head: {line: 1, ch: 4}},
-                                                        {anchor: {line: 2, ch: 1}, head: {line: 2, ch: 4}}
-                                                       ], 1);
+                        {anchor: {line: 1, ch: 1}, head: {line: 1, ch: 4}},
+                        {anchor: {line: 2, ch: 1}, head: {line: 2, ch: 4}}
+                    ], 1);
                     expect(myEditor.getCursorPos().line).toEqual(1);
                     expect(myEditor.getCursorPos().ch).toEqual(4);
                     expect(myEditor.getCursorPos(false, "start").line).toEqual(1);
@@ -534,9 +534,9 @@ define(function (require, exports, module) {
 
                 it("should replace existing multiple cursors", function () {
                     myEditor._codeMirror.setSelections([{anchor: {line: 0, ch: 1}, head: {line: 0, ch: 1}},
-                                                        {anchor: {line: 1, ch: 1}, head: {line: 1, ch: 1}},
-                                                        {anchor: {line: 2, ch: 1}, head: {line: 2, ch: 1}}
-                                                       ], 2);
+                        {anchor: {line: 1, ch: 1}, head: {line: 1, ch: 1}},
+                        {anchor: {line: 2, ch: 1}, head: {line: 2, ch: 1}}
+                    ], 2);
                     myEditor.setCursorPos(1, 3);
                     expect(myEditor.getCursorPos().line).toEqual(1);
                     expect(myEditor.getCursorPos().ch).toEqual(3);
@@ -544,9 +544,9 @@ define(function (require, exports, module) {
 
                 it("should replace existing multiple selections", function () {
                     myEditor._codeMirror.setSelections([{anchor: {line: 0, ch: 1}, head: {line: 0, ch: 4}},
-                                                        {anchor: {line: 1, ch: 1}, head: {line: 1, ch: 4}},
-                                                        {anchor: {line: 2, ch: 1}, head: {line: 2, ch: 4}}
-                                                       ], 2);
+                        {anchor: {line: 1, ch: 1}, head: {line: 1, ch: 4}},
+                        {anchor: {line: 2, ch: 1}, head: {line: 2, ch: 4}}
+                    ], 2);
                     myEditor.setCursorPos(1, 3);
                     expect(myEditor.getCursorPos().line).toEqual(1);
                     expect(myEditor.getCursorPos().ch).toEqual(3);
@@ -581,49 +581,49 @@ define(function (require, exports, module) {
 
                 it("should return the default primary cursor in a multiple cursor selection", function () {
                     myEditor._codeMirror.setSelections([{anchor: {line: 0, ch: 1}, head: {line: 0, ch: 1}},
-                                                        {anchor: {line: 1, ch: 1}, head: {line: 1, ch: 1}},
-                                                        {anchor: {line: 2, ch: 1}, head: {line: 2, ch: 1}}
-                                                       ], 2);
+                        {anchor: {line: 1, ch: 1}, head: {line: 1, ch: 1}},
+                        {anchor: {line: 2, ch: 1}, head: {line: 2, ch: 1}}
+                    ], 2);
                     expectSelection({start: {line: 2, ch: 1}, end: {line: 2, ch: 1}, reversed: false});
                 });
 
                 it("should return the specific primary cursor in a multiple cursor selection", function () {
                     myEditor._codeMirror.setSelections([{anchor: {line: 0, ch: 1}, head: {line: 0, ch: 1}},
-                                                        {anchor: {line: 1, ch: 1}, head: {line: 1, ch: 1}},
-                                                        {anchor: {line: 2, ch: 1}, head: {line: 2, ch: 1}}
-                                                       ], 1);
+                        {anchor: {line: 1, ch: 1}, head: {line: 1, ch: 1}},
+                        {anchor: {line: 2, ch: 1}, head: {line: 2, ch: 1}}
+                    ], 1);
                     expectSelection({start: {line: 1, ch: 1}, end: {line: 1, ch: 1}, reversed: false});
                 });
 
                 it("should return the default primary selection in a multiple selection", function () {
                     myEditor._codeMirror.setSelections([{anchor: {line: 0, ch: 1}, head: {line: 0, ch: 4}},
-                                                        {anchor: {line: 1, ch: 1}, head: {line: 1, ch: 4}},
-                                                        {anchor: {line: 2, ch: 1}, head: {line: 2, ch: 4}}
-                                                       ], 2);
+                        {anchor: {line: 1, ch: 1}, head: {line: 1, ch: 4}},
+                        {anchor: {line: 2, ch: 1}, head: {line: 2, ch: 4}}
+                    ], 2);
                     expectSelection({start: {line: 2, ch: 1}, end: {line: 2, ch: 4}, reversed: false});
                 });
 
                 it("should return the default primary selection in the proper order when reversed", function () {
                     myEditor._codeMirror.setSelections([{anchor: {line: 0, ch: 1}, head: {line: 0, ch: 4}},
-                                                        {anchor: {line: 1, ch: 1}, head: {line: 1, ch: 4}},
-                                                        {anchor: {line: 2, ch: 4}, head: {line: 2, ch: 1}}
-                                                       ], 2);
+                        {anchor: {line: 1, ch: 1}, head: {line: 1, ch: 4}},
+                        {anchor: {line: 2, ch: 4}, head: {line: 2, ch: 1}}
+                    ], 2);
                     expectSelection({start: {line: 2, ch: 1}, end: {line: 2, ch: 4}, reversed: true});
                 });
 
                 it("should return the specific primary selection in a multiple selection", function () {
                     myEditor._codeMirror.setSelections([{anchor: {line: 0, ch: 1}, head: {line: 0, ch: 4}},
-                                                        {anchor: {line: 1, ch: 1}, head: {line: 1, ch: 4}},
-                                                        {anchor: {line: 2, ch: 1}, head: {line: 2, ch: 4}}
-                                                       ], 1);
+                        {anchor: {line: 1, ch: 1}, head: {line: 1, ch: 4}},
+                        {anchor: {line: 2, ch: 1}, head: {line: 2, ch: 4}}
+                    ], 1);
                     expectSelection({start: {line: 1, ch: 1}, end: {line: 1, ch: 4}, reversed: false});
                 });
 
                 it("should return the specific primary selection in the proper order when reversed", function () {
                     myEditor._codeMirror.setSelections([{anchor: {line: 0, ch: 1}, head: {line: 0, ch: 4}},
-                                                        {anchor: {line: 1, ch: 4}, head: {line: 1, ch: 1}},
-                                                        {anchor: {line: 2, ch: 1}, head: {line: 2, ch: 4}}
-                                                       ], 1);
+                        {anchor: {line: 1, ch: 4}, head: {line: 1, ch: 1}},
+                        {anchor: {line: 2, ch: 1}, head: {line: 2, ch: 4}}
+                    ], 1);
                     expectSelection({start: {line: 1, ch: 1}, end: {line: 1, ch: 4}, reversed: true});
                 });
 
@@ -647,44 +647,44 @@ define(function (require, exports, module) {
 
                 it("should return multiple cursors", function () {
                     myEditor._codeMirror.setSelections([{anchor: {line: 0, ch: 1}, head: {line: 0, ch: 1}},
-                                                        {anchor: {line: 1, ch: 1}, head: {line: 1, ch: 1}},
-                                                        {anchor: {line: 2, ch: 1}, head: {line: 2, ch: 1}}
-                                                       ], 2);
+                        {anchor: {line: 1, ch: 1}, head: {line: 1, ch: 1}},
+                        {anchor: {line: 2, ch: 1}, head: {line: 2, ch: 1}}
+                    ], 2);
                     expectSelections([{start: {line: 0, ch: 1}, end: {line: 0, ch: 1}, reversed: false, primary: false},
-                                                        {start: {line: 1, ch: 1}, end: {line: 1, ch: 1}, reversed: false, primary: false},
-                                                        {start: {line: 2, ch: 1}, end: {line: 2, ch: 1}, reversed: false, primary: true}
-                                                       ]);
+                        {start: {line: 1, ch: 1}, end: {line: 1, ch: 1}, reversed: false, primary: false},
+                        {start: {line: 2, ch: 1}, end: {line: 2, ch: 1}, reversed: false, primary: true}
+                    ]);
                 });
 
                 it("should return a multiple selection", function () {
                     myEditor._codeMirror.setSelections([{anchor: {line: 0, ch: 1}, head: {line: 0, ch: 4}},
-                                                        {anchor: {line: 1, ch: 1}, head: {line: 1, ch: 4}},
-                                                        {anchor: {line: 2, ch: 1}, head: {line: 2, ch: 4}}
-                                                       ], 2);
+                        {anchor: {line: 1, ch: 1}, head: {line: 1, ch: 4}},
+                        {anchor: {line: 2, ch: 1}, head: {line: 2, ch: 4}}
+                    ], 2);
                     expectSelections([{start: {line: 0, ch: 1}, end: {line: 0, ch: 4}, reversed: false, primary: false},
-                                                        {start: {line: 1, ch: 1}, end: {line: 1, ch: 4}, reversed: false, primary: false},
-                                                        {start: {line: 2, ch: 1}, end: {line: 2, ch: 4}, reversed: false, primary: true}
-                                                       ]);
+                        {start: {line: 1, ch: 1}, end: {line: 1, ch: 4}, reversed: false, primary: false},
+                        {start: {line: 2, ch: 1}, end: {line: 2, ch: 4}, reversed: false, primary: true}
+                    ]);
                 });
 
                 it("should properly reverse selections whose heads are before their anchors in a multiple selection", function () {
                     myEditor._codeMirror.setSelections([{anchor: {line: 0, ch: 4}, head: {line: 0, ch: 1}},
-                                                        {anchor: {line: 1, ch: 1}, head: {line: 1, ch: 4}},
-                                                        {anchor: {line: 2, ch: 4}, head: {line: 2, ch: 1}}
-                                                       ], 2);
+                        {anchor: {line: 1, ch: 1}, head: {line: 1, ch: 4}},
+                        {anchor: {line: 2, ch: 4}, head: {line: 2, ch: 1}}
+                    ], 2);
                     expectSelections([{start: {line: 0, ch: 1}, end: {line: 0, ch: 4}, reversed: true, primary: false},
-                                                        {start: {line: 1, ch: 1}, end: {line: 1, ch: 4}, reversed: false, primary: false},
-                                                        {start: {line: 2, ch: 1}, end: {line: 2, ch: 4}, reversed: true, primary: true}
-                                                       ]);
+                        {start: {line: 1, ch: 1}, end: {line: 1, ch: 4}, reversed: false, primary: false},
+                        {start: {line: 2, ch: 1}, end: {line: 2, ch: 4}, reversed: true, primary: true}
+                    ]);
                 });
 
                 it("should properly reverse multiline selections whose heads are before their anchors in a multiple selection", function () {
                     myEditor._codeMirror.setSelections([{anchor: {line: 1, ch: 3}, head: {line: 0, ch: 5}},
-                                                        {anchor: {line: 4, ch: 4}, head: {line: 3, ch: 1}}
-                                                       ], 1);
+                        {anchor: {line: 4, ch: 4}, head: {line: 3, ch: 1}}
+                    ], 1);
                     expectSelections([{start: {line: 0, ch: 5}, end: {line: 1, ch: 3}, reversed: true, primary: false},
-                                                        {start: {line: 3, ch: 1}, end: {line: 4, ch: 4}, reversed: true, primary: true}
-                                                       ]);
+                        {start: {line: 3, ch: 1}, end: {line: 4, ch: 4}, reversed: true, primary: true}
+                    ]);
                 });
             });
 
@@ -703,27 +703,27 @@ define(function (require, exports, module) {
 
                 it("should return the primary selection by default, but concatenate contents if allSelections is true", function () {
                     myEditor._codeMirror.setSelections([{anchor: {line: 0, ch: 8}, head: {line: 0, ch: 14}},
-                                                        {anchor: {line: 1, ch: 8}, head: {line: 1, ch: 14}},
-                                                        {anchor: {line: 2, ch: 8}, head: {line: 2, ch: 14}}
-                                                       ], 2);
+                        {anchor: {line: 1, ch: 8}, head: {line: 1, ch: 14}},
+                        {anchor: {line: 2, ch: 8}, head: {line: 2, ch: 14}}
+                    ], 2);
                     expect(myEditor.getSelectedText()).toEqual("line 2");
                     expect(myEditor.getSelectedText(true)).toEqual("line 0\nline 1\nline 2");
                 });
 
                 it("should return a primary selection other than the last", function () {
                     myEditor._codeMirror.setSelections([{anchor: {line: 0, ch: 8}, head: {line: 0, ch: 14}},
-                                                        {anchor: {line: 1, ch: 8}, head: {line: 1, ch: 14}},
-                                                        {anchor: {line: 2, ch: 8}, head: {line: 2, ch: 14}}
-                                                       ], 1);
+                        {anchor: {line: 1, ch: 8}, head: {line: 1, ch: 14}},
+                        {anchor: {line: 2, ch: 8}, head: {line: 2, ch: 14}}
+                    ], 1);
                     expect(myEditor.getSelectedText()).toEqual("line 1");
                     expect(myEditor.getSelectedText(true)).toEqual("line 0\nline 1\nline 2");
                 });
 
                 it("should return the contents of a multiple selection when some selections are reversed", function () {
                     myEditor._codeMirror.setSelections([{anchor: {line: 0, ch: 14}, head: {line: 0, ch: 8}},
-                                                        {anchor: {line: 1, ch: 8}, head: {line: 1, ch: 14}},
-                                                        {anchor: {line: 2, ch: 14}, head: {line: 2, ch: 8}}
-                                                       ], 2);
+                        {anchor: {line: 1, ch: 8}, head: {line: 1, ch: 14}},
+                        {anchor: {line: 2, ch: 14}, head: {line: 2, ch: 8}}
+                    ], 2);
                     expect(myEditor.getSelectedText()).toEqual("line 2");
                     expect(myEditor.getSelectedText(true)).toEqual("line 0\nline 1\nline 2");
                 });
@@ -749,18 +749,18 @@ define(function (require, exports, module) {
 
                 it("should replace existing multiple cursors", function () {
                     myEditor._codeMirror.setSelections([{anchor: {line: 0, ch: 1}, head: {line: 0, ch: 1}},
-                                                        {anchor: {line: 1, ch: 1}, head: {line: 1, ch: 1}},
-                                                        {anchor: {line: 2, ch: 1}, head: {line: 2, ch: 1}}
-                                                       ], 2);
+                        {anchor: {line: 1, ch: 1}, head: {line: 1, ch: 1}},
+                        {anchor: {line: 2, ch: 1}, head: {line: 2, ch: 1}}
+                    ], 2);
                     myEditor.setSelection({line: 1, ch: 3}, {line: 2, ch: 5});
                     expectSelection({start: {line: 1, ch: 3}, end: {line: 2, ch: 5}, reversed: false});
                 });
 
                 it("should replace existing multiple selections", function () {
                     myEditor._codeMirror.setSelections([{anchor: {line: 0, ch: 1}, head: {line: 0, ch: 4}},
-                                                        {anchor: {line: 1, ch: 1}, head: {line: 1, ch: 4}},
-                                                        {anchor: {line: 2, ch: 1}, head: {line: 2, ch: 4}}
-                                                       ], 2);
+                        {anchor: {line: 1, ch: 1}, head: {line: 1, ch: 4}},
+                        {anchor: {line: 2, ch: 1}, head: {line: 2, ch: 4}}
+                    ], 2);
                     myEditor.setSelection({line: 1, ch: 3}, {line: 2, ch: 5});
                     expectSelection({start: {line: 1, ch: 3}, end: {line: 2, ch: 5}, reversed: false});
                 });
@@ -770,67 +770,67 @@ define(function (require, exports, module) {
                 it("should replace an existing single cursor", function () {
                     myEditor._codeMirror.setCursor(0, 2);
                     myEditor.setSelections([{start: {line: 0, ch: 1}, end: {line: 1, ch: 3}},
-                                            {start: {line: 1, ch: 8}, end: {line: 2, ch: 5}}]);
+                        {start: {line: 1, ch: 8}, end: {line: 2, ch: 5}}]);
                     expectSelections([{start: {line: 0, ch: 1}, end: {line: 1, ch: 3}, reversed: false, primary: false},
-                                            {start: {line: 1, ch: 8}, end: {line: 2, ch: 5}, reversed: false, primary: true}]);
+                        {start: {line: 1, ch: 8}, end: {line: 2, ch: 5}, reversed: false, primary: true}]);
                     expectSelection({start: {line: 1, ch: 8}, end: {line: 2, ch: 5}, reversed: false});
                 });
 
                 it("should replace an existing single selection", function () {
                     myEditor._codeMirror.setSelection({line: 0, ch: 1}, {line: 0, ch: 5});
                     myEditor.setSelections([{start: {line: 0, ch: 1}, end: {line: 1, ch: 3}},
-                                            {start: {line: 1, ch: 8}, end: {line: 2, ch: 5}}]);
+                        {start: {line: 1, ch: 8}, end: {line: 2, ch: 5}}]);
                     expectSelections([{start: {line: 0, ch: 1}, end: {line: 1, ch: 3}, reversed: false, primary: false},
-                                            {start: {line: 1, ch: 8}, end: {line: 2, ch: 5}, reversed: false, primary: true}]);
+                        {start: {line: 1, ch: 8}, end: {line: 2, ch: 5}, reversed: false, primary: true}]);
                     expectSelection({start: {line: 1, ch: 8}, end: {line: 2, ch: 5}, reversed: false});
                 });
 
                 it("should replace existing multiple cursors", function () {
                     myEditor._codeMirror.setSelections([{anchor: {line: 0, ch: 1}, head: {line: 0, ch: 1}},
-                                                        {anchor: {line: 1, ch: 1}, head: {line: 1, ch: 1}},
-                                                        {anchor: {line: 2, ch: 1}, head: {line: 2, ch: 1}}
-                                                       ], 2);
+                        {anchor: {line: 1, ch: 1}, head: {line: 1, ch: 1}},
+                        {anchor: {line: 2, ch: 1}, head: {line: 2, ch: 1}}
+                    ], 2);
                     myEditor.setSelections([{start: {line: 0, ch: 1}, end: {line: 1, ch: 3}},
-                                            {start: {line: 1, ch: 8}, end: {line: 2, ch: 5}}]);
+                        {start: {line: 1, ch: 8}, end: {line: 2, ch: 5}}]);
                     expectSelections([{start: {line: 0, ch: 1}, end: {line: 1, ch: 3}, reversed: false, primary: false},
-                                            {start: {line: 1, ch: 8}, end: {line: 2, ch: 5}, reversed: false, primary: true}]);
+                        {start: {line: 1, ch: 8}, end: {line: 2, ch: 5}, reversed: false, primary: true}]);
                     expectSelection({start: {line: 1, ch: 8}, end: {line: 2, ch: 5}, reversed: false});
                 });
 
                 it("should replace existing multiple selections", function () {
                     myEditor._codeMirror.setSelections([{anchor: {line: 0, ch: 1}, head: {line: 0, ch: 4}},
-                                                        {anchor: {line: 1, ch: 1}, head: {line: 1, ch: 4}},
-                                                        {anchor: {line: 2, ch: 1}, head: {line: 2, ch: 4}}
-                                                       ], 2);
+                        {anchor: {line: 1, ch: 1}, head: {line: 1, ch: 4}},
+                        {anchor: {line: 2, ch: 1}, head: {line: 2, ch: 4}}
+                    ], 2);
                     myEditor.setSelections([{start: {line: 0, ch: 1}, end: {line: 1, ch: 3}},
-                                            {start: {line: 1, ch: 8}, end: {line: 2, ch: 5}}]);
+                        {start: {line: 1, ch: 8}, end: {line: 2, ch: 5}}]);
                     expectSelections([{start: {line: 0, ch: 1}, end: {line: 1, ch: 3}, reversed: false, primary: false},
-                                            {start: {line: 1, ch: 8}, end: {line: 2, ch: 5}, reversed: false, primary: true}]);
+                        {start: {line: 1, ch: 8}, end: {line: 2, ch: 5}, reversed: false, primary: true}]);
                     expectSelection({start: {line: 1, ch: 8}, end: {line: 2, ch: 5}, reversed: false});
                 });
 
                 it("should specify non-default primary selection", function () {
                     myEditor.setSelections([{start: {line: 0, ch: 1}, end: {line: 1, ch: 3}, primary: true},
-                                            {start: {line: 1, ch: 8}, end: {line: 2, ch: 5}}]);
+                        {start: {line: 1, ch: 8}, end: {line: 2, ch: 5}}]);
                     expectSelections([{start: {line: 0, ch: 1}, end: {line: 1, ch: 3}, reversed: false, primary: true},
-                                            {start: {line: 1, ch: 8}, end: {line: 2, ch: 5}, reversed: false, primary: false}]);
+                        {start: {line: 1, ch: 8}, end: {line: 2, ch: 5}, reversed: false, primary: false}]);
                     expectSelection({start: {line: 0, ch: 1}, end: {line: 1, ch: 3}, reversed: false});
                 });
 
                 it("should sort and merge overlapping selections", function () {
                     myEditor.setSelections([{start: {line: 2, ch: 4}, end: {line: 3, ch: 0}},
-                                            {start: {line: 2, ch: 3}, end: {line: 2, ch: 6}},
-                                            {start: {line: 1, ch: 1}, end: {line: 1, ch: 4}}]);
+                        {start: {line: 2, ch: 3}, end: {line: 2, ch: 6}},
+                        {start: {line: 1, ch: 1}, end: {line: 1, ch: 4}}]);
                     expectSelections([{start: {line: 1, ch: 1}, end: {line: 1, ch: 4}, reversed: false, primary: true},
-                                            {start: {line: 2, ch: 3}, end: {line: 3, ch: 0}, reversed: false, primary: false}]);
+                        {start: {line: 2, ch: 3}, end: {line: 3, ch: 0}, reversed: false, primary: false}]);
                     expectSelection({start: {line: 1, ch: 1}, end: {line: 1, ch: 4}, reversed: false});
                 });
 
                 it("should properly set reversed selections", function () {
                     myEditor.setSelections([{start: {line: 0, ch: 1}, end: {line: 1, ch: 3}, reversed: true},
-                                            {start: {line: 1, ch: 8}, end: {line: 2, ch: 5}}]);
+                        {start: {line: 1, ch: 8}, end: {line: 2, ch: 5}}]);
                     expectSelections([{start: {line: 0, ch: 1}, end: {line: 1, ch: 3}, reversed: true, primary: false},
-                                            {start: {line: 1, ch: 8}, end: {line: 2, ch: 5}, reversed: false, primary: true}]);
+                        {start: {line: 1, ch: 8}, end: {line: 2, ch: 5}, reversed: false, primary: true}]);
 
                 });
             });
@@ -910,9 +910,9 @@ define(function (require, exports, module) {
 
                 it("should process a discontiguous mix of cursor, range, and line selections separately, preserving the primary tracked selection", function () {
                     var origSelections = [{start: {line: 0, ch: 4}, end: {line: 0, ch: 4}},
-                                          {start: {line: 2, ch: 4}, end: {line: 2, ch: 8}, primary: true},
-                                          {start: {line: 4, ch: 4}, end: {line: 5, ch: 8}},
-                                          {start: {line: 7, ch: 0}, end: {line: 8, ch: 0}}],
+                            {start: {line: 2, ch: 4}, end: {line: 2, ch: 8}, primary: true},
+                            {start: {line: 4, ch: 4}, end: {line: 5, ch: 8}},
+                            {start: {line: 7, ch: 0}, end: {line: 8, ch: 0}}],
                         result = myEditor.convertToLineSelections(origSelections);
                     expect(result.length).toBe(4);
                     expect(result[0].selectionForEdit.start.line).toEqual(0);
@@ -943,8 +943,8 @@ define(function (require, exports, module) {
 
                 it("should merge selections on same line, preserving primary/reversed info on subsumed selections", function () {
                     var origSelections = [{start: {line: 0, ch: 4}, end: {line: 0, ch: 4}},
-                                          {start: {line: 0, ch: 8}, end: {line: 1, ch: 8}, primary: true, reversed: true},
-                                          {start: {line: 4, ch: 0}, end: {line: 5, ch: 0}}],
+                            {start: {line: 0, ch: 8}, end: {line: 1, ch: 8}, primary: true, reversed: true},
+                            {start: {line: 4, ch: 0}, end: {line: 5, ch: 0}}],
                         result = myEditor.convertToLineSelections(origSelections);
                     expect(result.length).toBe(2);
                     expect(result[0].selectionForEdit.start.line).toEqual(0);
@@ -964,8 +964,8 @@ define(function (require, exports, module) {
 
                 it("should merge selections on adjacent lines by default", function () {
                     var origSelections = [{start: {line: 0, ch: 4}, end: {line: 0, ch: 4}},
-                                          {start: {line: 1, ch: 4}, end: {line: 1, ch: 4}, primary: true},
-                                          {start: {line: 4, ch: 0}, end: {line: 5, ch: 0}}],
+                            {start: {line: 1, ch: 4}, end: {line: 1, ch: 4}, primary: true},
+                            {start: {line: 4, ch: 0}, end: {line: 5, ch: 0}}],
                         result = myEditor.convertToLineSelections(origSelections);
                     expect(result.length).toBe(2);
                     expect(result[0].selectionForEdit.start.line).toEqual(0);
@@ -985,7 +985,7 @@ define(function (require, exports, module) {
 
                 it("should merge adjacent multiline selections where the first selection ends on the same line where the second selection starts", function () {
                     var origSelections = [{start: {line: 0, ch: 4}, end: {line: 1, ch: 4}, primary: true},
-                                          {start: {line: 1, ch: 8}, end: {line: 2, ch: 8}}],
+                            {start: {line: 1, ch: 8}, end: {line: 2, ch: 8}}],
                         result = myEditor.convertToLineSelections(origSelections);
                     expect(result.length).toBe(1);
                     expect(result[0].selectionForEdit.start.line).toEqual(0);
@@ -999,8 +999,8 @@ define(function (require, exports, module) {
 
                 it("should not merge selections on adjacent lines if mergeAdjacent is false", function () {
                     var origSelections = [{start: {line: 0, ch: 4}, end: {line: 0, ch: 4}},
-                                          {start: {line: 1, ch: 4}, end: {line: 1, ch: 4}, primary: true},
-                                          {start: {line: 4, ch: 0}, end: {line: 5, ch: 0}}],
+                            {start: {line: 1, ch: 4}, end: {line: 1, ch: 4}, primary: true},
+                            {start: {line: 4, ch: 0}, end: {line: 5, ch: 0}}],
                         result = myEditor.convertToLineSelections(origSelections, {mergeAdjacent: false});
                     expect(result.length).toBe(3);
                     expect(result[0].selectionForEdit.start.line).toEqual(0);
@@ -1025,7 +1025,7 @@ define(function (require, exports, module) {
 
                 it("should merge line selections separated by a one-line gap by default if expandEndAtStartOfLine is true", function () {
                     var origSelections = [{start: {line: 0, ch: 0}, end: {line: 1, ch: 0}, primary: true},
-                                          {start: {line: 2, ch: 0}, end: {line: 3, ch: 0}}],
+                            {start: {line: 2, ch: 0}, end: {line: 3, ch: 0}}],
                         result = myEditor.convertToLineSelections(origSelections, {expandEndAtStartOfLine: true});
                     expect(result.length).toBe(1);
                     expect(result[0].selectionForEdit.start.line).toEqual(0);
@@ -1041,7 +1041,7 @@ define(function (require, exports, module) {
                     // Note that in this case, if you were to actually set this as a multiple selection, CodeMirror would
                     // merge the adjacent selections at that point. But while processing an edit you might not want that.
                     var origSelections = [{start: {line: 0, ch: 0}, end: {line: 1, ch: 0}, primary: true},
-                                          {start: {line: 2, ch: 0}, end: {line: 3, ch: 0}}],
+                            {start: {line: 2, ch: 0}, end: {line: 3, ch: 0}}],
                         result = myEditor.convertToLineSelections(origSelections, {expandEndAtStartOfLine: true, mergeAdjacent: false});
                     expect(result.length).toBe(2);
                     expect(result[0].selectionForEdit.start.line).toEqual(0);
@@ -1060,8 +1060,8 @@ define(function (require, exports, module) {
 
                 it("should merge multiple adjacent/overlapping selections together", function () {
                     var origSelections = [{start: {line: 0, ch: 4}, end: {line: 0, ch: 4}},
-                                          {start: {line: 1, ch: 4}, end: {line: 2, ch: 4}, primary: true, reversed: true},
-                                          {start: {line: 2, ch: 8}, end: {line: 5, ch: 0}}],
+                            {start: {line: 1, ch: 4}, end: {line: 2, ch: 4}, primary: true, reversed: true},
+                            {start: {line: 2, ch: 8}, end: {line: 5, ch: 0}}],
                         result = myEditor.convertToLineSelections(origSelections);
                     expect(result.length).toBe(1);
                     expect(result[0].selectionForEdit.start.line).toEqual(0);
@@ -1240,235 +1240,235 @@ define(function (require, exports, module) {
                 it("should move left over a soft tab from multiple aligned cursors", function () {
                     myEditor.document.setText("    one\n    two\n    three\n");
                     checkSoftTab([{start: {line: 0, ch: 4}, end: {line: 0, ch: 4}},
-                                  {start: {line: 1, ch: 4}, end: {line: 1, ch: 4}},
-                                  {start: {line: 2, ch: 4}, end: {line: 2, ch: 4}}],
-                                 -1, "moveH",
-                                 [{start: {line: 0, ch: 0}, end: {line: 0, ch: 0}, primary: false, reversed: false},
-                                  {start: {line: 1, ch: 0}, end: {line: 1, ch: 0}, primary: false, reversed: false},
-                                  {start: {line: 2, ch: 0}, end: {line: 2, ch: 0}, primary: true, reversed: false}]);
+                        {start: {line: 1, ch: 4}, end: {line: 1, ch: 4}},
+                        {start: {line: 2, ch: 4}, end: {line: 2, ch: 4}}],
+                    -1, "moveH",
+                    [{start: {line: 0, ch: 0}, end: {line: 0, ch: 0}, primary: false, reversed: false},
+                        {start: {line: 1, ch: 0}, end: {line: 1, ch: 0}, primary: false, reversed: false},
+                        {start: {line: 2, ch: 0}, end: {line: 2, ch: 0}, primary: true, reversed: false}]);
                 });
 
                 it("should move right over a soft tab from multiple aligned cursors", function () {
                     myEditor.document.setText("    one\n    two\n    three\n");
                     checkSoftTab([{start: {line: 0, ch: 0}, end: {line: 0, ch: 0}},
-                                  {start: {line: 1, ch: 0}, end: {line: 1, ch: 0}},
-                                  {start: {line: 2, ch: 0}, end: {line: 2, ch: 0}}],
-                                 1, "moveH",
-                                 [{start: {line: 0, ch: 4}, end: {line: 0, ch: 4}, primary: false, reversed: false},
-                                  {start: {line: 1, ch: 4}, end: {line: 1, ch: 4}, primary: false, reversed: false},
-                                  {start: {line: 2, ch: 4}, end: {line: 2, ch: 4}, primary: true, reversed: false}]);
+                        {start: {line: 1, ch: 0}, end: {line: 1, ch: 0}},
+                        {start: {line: 2, ch: 0}, end: {line: 2, ch: 0}}],
+                    1, "moveH",
+                    [{start: {line: 0, ch: 4}, end: {line: 0, ch: 4}, primary: false, reversed: false},
+                        {start: {line: 1, ch: 4}, end: {line: 1, ch: 4}, primary: false, reversed: false},
+                        {start: {line: 2, ch: 4}, end: {line: 2, ch: 4}, primary: true, reversed: false}]);
                 });
 
                 it("should backspace over a soft tab from multiple aligned cursors", function () {
                     myEditor.document.setText("    one\n    two\n    three\n");
                     checkSoftTab([{start: {line: 0, ch: 4}, end: {line: 0, ch: 4}},
-                                  {start: {line: 1, ch: 4}, end: {line: 1, ch: 4}},
-                                  {start: {line: 2, ch: 4}, end: {line: 2, ch: 4}}],
-                                 -1, "deleteH",
-                                 [{start: {line: 0, ch: 0}, end: {line: 0, ch: 0}, primary: false, reversed: false},
-                                  {start: {line: 1, ch: 0}, end: {line: 1, ch: 0}, primary: false, reversed: false},
-                                  {start: {line: 2, ch: 0}, end: {line: 2, ch: 0}, primary: true, reversed: false}],
-                                "one\ntwo\nthree\n");
+                        {start: {line: 1, ch: 4}, end: {line: 1, ch: 4}},
+                        {start: {line: 2, ch: 4}, end: {line: 2, ch: 4}}],
+                    -1, "deleteH",
+                    [{start: {line: 0, ch: 0}, end: {line: 0, ch: 0}, primary: false, reversed: false},
+                        {start: {line: 1, ch: 0}, end: {line: 1, ch: 0}, primary: false, reversed: false},
+                        {start: {line: 2, ch: 0}, end: {line: 2, ch: 0}, primary: true, reversed: false}],
+                    "one\ntwo\nthree\n");
                 });
 
                 it("should delete right over a soft tab from multiple aligned cursors", function () {
                     myEditor.document.setText("    one\n    two\n    three\n");
                     checkSoftTab([{start: {line: 0, ch: 0}, end: {line: 0, ch: 0}},
-                                  {start: {line: 1, ch: 0}, end: {line: 1, ch: 0}},
-                                  {start: {line: 2, ch: 0}, end: {line: 2, ch: 0}}],
-                                 1, "deleteH",
-                                 [{start: {line: 0, ch: 0}, end: {line: 0, ch: 0}, primary: false, reversed: false},
-                                  {start: {line: 1, ch: 0}, end: {line: 1, ch: 0}, primary: false, reversed: false},
-                                  {start: {line: 2, ch: 0}, end: {line: 2, ch: 0}, primary: true, reversed: false}],
-                                "one\ntwo\nthree\n");
+                        {start: {line: 1, ch: 0}, end: {line: 1, ch: 0}},
+                        {start: {line: 2, ch: 0}, end: {line: 2, ch: 0}}],
+                    1, "deleteH",
+                    [{start: {line: 0, ch: 0}, end: {line: 0, ch: 0}, primary: false, reversed: false},
+                        {start: {line: 1, ch: 0}, end: {line: 1, ch: 0}, primary: false, reversed: false},
+                        {start: {line: 2, ch: 0}, end: {line: 2, ch: 0}, primary: true, reversed: false}],
+                    "one\ntwo\nthree\n");
                 });
 
                 it("should move left to next soft tab from multiple cursors at same distance from tab stops", function () {
                     myEditor.document.setText("        one\n        two\n            three\n");
                     checkSoftTab([{start: {line: 0, ch: 6}, end: {line: 0, ch: 6}},
-                                  {start: {line: 1, ch: 2}, end: {line: 1, ch: 2}},
-                                  {start: {line: 2, ch: 10}, end: {line: 2, ch: 10}}],
-                                 -1, "moveH",
-                                 [{start: {line: 0, ch: 4}, end: {line: 0, ch: 4}, primary: false, reversed: false},
-                                  {start: {line: 1, ch: 0}, end: {line: 1, ch: 0}, primary: false, reversed: false},
-                                  {start: {line: 2, ch: 8}, end: {line: 2, ch: 8}, primary: true, reversed: false}]);
+                        {start: {line: 1, ch: 2}, end: {line: 1, ch: 2}},
+                        {start: {line: 2, ch: 10}, end: {line: 2, ch: 10}}],
+                    -1, "moveH",
+                    [{start: {line: 0, ch: 4}, end: {line: 0, ch: 4}, primary: false, reversed: false},
+                        {start: {line: 1, ch: 0}, end: {line: 1, ch: 0}, primary: false, reversed: false},
+                        {start: {line: 2, ch: 8}, end: {line: 2, ch: 8}, primary: true, reversed: false}]);
                 });
 
                 it("should move right to next soft tab from multiple cursors at same distance from tab stops", function () {
                     myEditor.document.setText("        one\n        two\n            three\n");
                     checkSoftTab([{start: {line: 0, ch: 5}, end: {line: 0, ch: 5}},
-                                  {start: {line: 1, ch: 1}, end: {line: 1, ch: 1}},
-                                  {start: {line: 2, ch: 9}, end: {line: 2, ch: 9}}],
-                                 1, "moveH",
-                                 [{start: {line: 0, ch: 8}, end: {line: 0, ch: 8}, primary: false, reversed: false},
-                                  {start: {line: 1, ch: 4}, end: {line: 1, ch: 4}, primary: false, reversed: false},
-                                  {start: {line: 2, ch: 12}, end: {line: 2, ch: 12}, primary: true, reversed: false}]);
+                        {start: {line: 1, ch: 1}, end: {line: 1, ch: 1}},
+                        {start: {line: 2, ch: 9}, end: {line: 2, ch: 9}}],
+                    1, "moveH",
+                    [{start: {line: 0, ch: 8}, end: {line: 0, ch: 8}, primary: false, reversed: false},
+                        {start: {line: 1, ch: 4}, end: {line: 1, ch: 4}, primary: false, reversed: false},
+                        {start: {line: 2, ch: 12}, end: {line: 2, ch: 12}, primary: true, reversed: false}]);
                 });
 
                 it("should backspace to next soft tab from multiple cursors at same distance from tab stops", function () {
                     myEditor.document.setText("        one\n        two\n            three\n");
                     checkSoftTab([{start: {line: 0, ch: 6}, end: {line: 0, ch: 6}},
-                                  {start: {line: 1, ch: 2}, end: {line: 1, ch: 2}},
-                                  {start: {line: 2, ch: 10}, end: {line: 2, ch: 10}}],
-                                 -1, "deleteH",
-                                 [{start: {line: 0, ch: 4}, end: {line: 0, ch: 4}, primary: false, reversed: false},
-                                  {start: {line: 1, ch: 0}, end: {line: 1, ch: 0}, primary: false, reversed: false},
-                                  {start: {line: 2, ch: 8}, end: {line: 2, ch: 8}, primary: true, reversed: false}],
-                                 "      one\n      two\n          three\n");
+                        {start: {line: 1, ch: 2}, end: {line: 1, ch: 2}},
+                        {start: {line: 2, ch: 10}, end: {line: 2, ch: 10}}],
+                    -1, "deleteH",
+                    [{start: {line: 0, ch: 4}, end: {line: 0, ch: 4}, primary: false, reversed: false},
+                        {start: {line: 1, ch: 0}, end: {line: 1, ch: 0}, primary: false, reversed: false},
+                        {start: {line: 2, ch: 8}, end: {line: 2, ch: 8}, primary: true, reversed: false}],
+                    "      one\n      two\n          three\n");
                 });
 
                 it("should delete right to next soft tab from multiple cursors at same distance from tab stops", function () {
                     myEditor.document.setText("        one\n        two\n            three\n");
                     checkSoftTab([{start: {line: 0, ch: 5}, end: {line: 0, ch: 5}},
-                                  {start: {line: 1, ch: 1}, end: {line: 1, ch: 1}},
-                                  {start: {line: 2, ch: 9}, end: {line: 2, ch: 9}}],
-                                 1, "deleteH",
-                                 [{start: {line: 0, ch: 5}, end: {line: 0, ch: 5}, primary: false, reversed: false},
-                                  {start: {line: 1, ch: 1}, end: {line: 1, ch: 1}, primary: false, reversed: false},
-                                  {start: {line: 2, ch: 9}, end: {line: 2, ch: 9}, primary: true, reversed: false}],
-                                 "     one\n     two\n         three\n"
-                                );
+                        {start: {line: 1, ch: 1}, end: {line: 1, ch: 1}},
+                        {start: {line: 2, ch: 9}, end: {line: 2, ch: 9}}],
+                    1, "deleteH",
+                    [{start: {line: 0, ch: 5}, end: {line: 0, ch: 5}, primary: false, reversed: false},
+                        {start: {line: 1, ch: 1}, end: {line: 1, ch: 1}, primary: false, reversed: false},
+                        {start: {line: 2, ch: 9}, end: {line: 2, ch: 9}, primary: true, reversed: false}],
+                    "     one\n     two\n         three\n"
+                    );
                 });
 
                 it("should do default move left from multiple cursors at different distances from tab stops", function () {
                     myEditor.document.setText("        one\n        two\n            three\n");
                     checkSoftTab([{start: {line: 0, ch: 6}, end: {line: 0, ch: 6}},
-                                  {start: {line: 1, ch: 1}, end: {line: 1, ch: 1}},
-                                  {start: {line: 2, ch: 10}, end: {line: 2, ch: 10}}],
-                                 -1, "moveH",
-                                 [{start: {line: 0, ch: 5}, end: {line: 0, ch: 5}, primary: false, reversed: false},
-                                  {start: {line: 1, ch: 0}, end: {line: 1, ch: 0}, primary: false, reversed: false},
-                                  {start: {line: 2, ch: 9}, end: {line: 2, ch: 9}, primary: true, reversed: false}]);
+                        {start: {line: 1, ch: 1}, end: {line: 1, ch: 1}},
+                        {start: {line: 2, ch: 10}, end: {line: 2, ch: 10}}],
+                    -1, "moveH",
+                    [{start: {line: 0, ch: 5}, end: {line: 0, ch: 5}, primary: false, reversed: false},
+                        {start: {line: 1, ch: 0}, end: {line: 1, ch: 0}, primary: false, reversed: false},
+                        {start: {line: 2, ch: 9}, end: {line: 2, ch: 9}, primary: true, reversed: false}]);
                 });
 
                 it("should do default move right from multiple cursors at different distances from tab stops", function () {
                     myEditor.document.setText("        one\n        two\n            three\n");
                     checkSoftTab([{start: {line: 0, ch: 5}, end: {line: 0, ch: 5}},
-                                  {start: {line: 1, ch: 1}, end: {line: 1, ch: 1}},
-                                  {start: {line: 2, ch: 10}, end: {line: 2, ch: 10}}],
-                                 1, "moveH",
-                                 [{start: {line: 0, ch: 6}, end: {line: 0, ch: 6}, primary: false, reversed: false},
-                                  {start: {line: 1, ch: 2}, end: {line: 1, ch: 2}, primary: false, reversed: false},
-                                  {start: {line: 2, ch: 11}, end: {line: 2, ch: 11}, primary: true, reversed: false}]);
+                        {start: {line: 1, ch: 1}, end: {line: 1, ch: 1}},
+                        {start: {line: 2, ch: 10}, end: {line: 2, ch: 10}}],
+                    1, "moveH",
+                    [{start: {line: 0, ch: 6}, end: {line: 0, ch: 6}, primary: false, reversed: false},
+                        {start: {line: 1, ch: 2}, end: {line: 1, ch: 2}, primary: false, reversed: false},
+                        {start: {line: 2, ch: 11}, end: {line: 2, ch: 11}, primary: true, reversed: false}]);
                 });
 
                 it("should do default backspace from multiple cursors at different distances from tab stops", function () {
                     myEditor.document.setText("        one\n        two\n            three\n");
                     checkSoftTab([{start: {line: 0, ch: 5}, end: {line: 0, ch: 5}},
-                                  {start: {line: 1, ch: 2}, end: {line: 1, ch: 2}},
-                                  {start: {line: 2, ch: 10}, end: {line: 2, ch: 10}}],
-                                 -1, "deleteH",
-                                 [{start: {line: 0, ch: 4}, end: {line: 0, ch: 4}, primary: false, reversed: false},
-                                  {start: {line: 1, ch: 1}, end: {line: 1, ch: 1}, primary: false, reversed: false},
-                                  {start: {line: 2, ch: 9}, end: {line: 2, ch: 9}, primary: true, reversed: false}],
-                                 "       one\n       two\n           three\n");
+                        {start: {line: 1, ch: 2}, end: {line: 1, ch: 2}},
+                        {start: {line: 2, ch: 10}, end: {line: 2, ch: 10}}],
+                    -1, "deleteH",
+                    [{start: {line: 0, ch: 4}, end: {line: 0, ch: 4}, primary: false, reversed: false},
+                        {start: {line: 1, ch: 1}, end: {line: 1, ch: 1}, primary: false, reversed: false},
+                        {start: {line: 2, ch: 9}, end: {line: 2, ch: 9}, primary: true, reversed: false}],
+                    "       one\n       two\n           three\n");
                 });
 
                 it("should do default delete right from multiple cursors at different distances from tab stops", function () {
                     myEditor.document.setText("        one\n        two\n            three\n");
                     checkSoftTab([{start: {line: 0, ch: 5}, end: {line: 0, ch: 5}},
-                                  {start: {line: 1, ch: 1}, end: {line: 1, ch: 1}},
-                                  {start: {line: 2, ch: 8}, end: {line: 2, ch: 8}}],
-                                 1, "deleteH",
-                                 [{start: {line: 0, ch: 5}, end: {line: 0, ch: 5}, primary: false, reversed: false},
-                                  {start: {line: 1, ch: 1}, end: {line: 1, ch: 1}, primary: false, reversed: false},
-                                  {start: {line: 2, ch: 8}, end: {line: 2, ch: 8}, primary: true, reversed: false}],
-                                 "       one\n       two\n           three\n"
-                                );
+                        {start: {line: 1, ch: 1}, end: {line: 1, ch: 1}},
+                        {start: {line: 2, ch: 8}, end: {line: 2, ch: 8}}],
+                    1, "deleteH",
+                    [{start: {line: 0, ch: 5}, end: {line: 0, ch: 5}, primary: false, reversed: false},
+                        {start: {line: 1, ch: 1}, end: {line: 1, ch: 1}, primary: false, reversed: false},
+                        {start: {line: 2, ch: 8}, end: {line: 2, ch: 8}, primary: true, reversed: false}],
+                    "       one\n       two\n           three\n"
+                    );
                 });
 
                 it("should do default move left from multiple cursors if one is inside content", function () {
                     myEditor.document.setText("        one\n        two\n            three\n");
                     checkSoftTab([{start: {line: 0, ch: 6}, end: {line: 0, ch: 6}},
-                                  {start: {line: 1, ch: 9}, end: {line: 1, ch: 9}},
-                                  {start: {line: 2, ch: 10}, end: {line: 2, ch: 10}}],
-                                 -1, "moveH",
-                                 [{start: {line: 0, ch: 5}, end: {line: 0, ch: 5}, primary: false, reversed: false},
-                                  {start: {line: 1, ch: 8}, end: {line: 1, ch: 8}, primary: false, reversed: false},
-                                  {start: {line: 2, ch: 9}, end: {line: 2, ch: 9}, primary: true, reversed: false}]);
+                        {start: {line: 1, ch: 9}, end: {line: 1, ch: 9}},
+                        {start: {line: 2, ch: 10}, end: {line: 2, ch: 10}}],
+                    -1, "moveH",
+                    [{start: {line: 0, ch: 5}, end: {line: 0, ch: 5}, primary: false, reversed: false},
+                        {start: {line: 1, ch: 8}, end: {line: 1, ch: 8}, primary: false, reversed: false},
+                        {start: {line: 2, ch: 9}, end: {line: 2, ch: 9}, primary: true, reversed: false}]);
                 });
 
                 it("should do default move right from multiple cursors if one is inside content", function () {
                     myEditor.document.setText("        one\n        two\n            three\n");
                     checkSoftTab([{start: {line: 0, ch: 5}, end: {line: 0, ch: 5}},
-                                  {start: {line: 1, ch: 1}, end: {line: 1, ch: 1}},
-                                  {start: {line: 2, ch: 14}, end: {line: 2, ch: 14}}],
-                                 1, "moveH",
-                                 [{start: {line: 0, ch: 6}, end: {line: 0, ch: 6}, primary: false, reversed: false},
-                                  {start: {line: 1, ch: 2}, end: {line: 1, ch: 2}, primary: false, reversed: false},
-                                  {start: {line: 2, ch: 15}, end: {line: 2, ch: 15}, primary: true, reversed: false}]);
+                        {start: {line: 1, ch: 1}, end: {line: 1, ch: 1}},
+                        {start: {line: 2, ch: 14}, end: {line: 2, ch: 14}}],
+                    1, "moveH",
+                    [{start: {line: 0, ch: 6}, end: {line: 0, ch: 6}, primary: false, reversed: false},
+                        {start: {line: 1, ch: 2}, end: {line: 1, ch: 2}, primary: false, reversed: false},
+                        {start: {line: 2, ch: 15}, end: {line: 2, ch: 15}, primary: true, reversed: false}]);
                 });
 
                 it("should do default backspace from multiple cursors if one is inside content", function () {
                     myEditor.document.setText("        one\n        two\n            three\n");
                     checkSoftTab([{start: {line: 0, ch: 10}, end: {line: 0, ch: 10}},
-                                  {start: {line: 1, ch: 2}, end: {line: 1, ch: 2}},
-                                  {start: {line: 2, ch: 10}, end: {line: 2, ch: 10}}],
-                                 -1, "deleteH",
-                                 [{start: {line: 0, ch: 9}, end: {line: 0, ch: 9}, primary: false, reversed: false},
-                                  {start: {line: 1, ch: 1}, end: {line: 1, ch: 1}, primary: false, reversed: false},
-                                  {start: {line: 2, ch: 9}, end: {line: 2, ch: 9}, primary: true, reversed: false}],
-                                 "        oe\n       two\n           three\n");
+                        {start: {line: 1, ch: 2}, end: {line: 1, ch: 2}},
+                        {start: {line: 2, ch: 10}, end: {line: 2, ch: 10}}],
+                    -1, "deleteH",
+                    [{start: {line: 0, ch: 9}, end: {line: 0, ch: 9}, primary: false, reversed: false},
+                        {start: {line: 1, ch: 1}, end: {line: 1, ch: 1}, primary: false, reversed: false},
+                        {start: {line: 2, ch: 9}, end: {line: 2, ch: 9}, primary: true, reversed: false}],
+                    "        oe\n       two\n           three\n");
                 });
 
                 it("should do default delete right from multiple cursors if one is inside content", function () {
                     myEditor.document.setText("        one\n        two\n            three\n");
                     checkSoftTab([{start: {line: 0, ch: 5}, end: {line: 0, ch: 5}},
-                                  {start: {line: 1, ch: 1}, end: {line: 1, ch: 1}},
-                                  {start: {line: 2, ch: 15}, end: {line: 2, ch: 15}}],
-                                 1, "deleteH",
-                                 [{start: {line: 0, ch: 5}, end: {line: 0, ch: 5}, primary: false, reversed: false},
-                                  {start: {line: 1, ch: 1}, end: {line: 1, ch: 1}, primary: false, reversed: false},
-                                  {start: {line: 2, ch: 15}, end: {line: 2, ch: 15}, primary: true, reversed: false}],
-                                 "       one\n       two\n            thre\n"
-                                );
+                        {start: {line: 1, ch: 1}, end: {line: 1, ch: 1}},
+                        {start: {line: 2, ch: 15}, end: {line: 2, ch: 15}}],
+                    1, "deleteH",
+                    [{start: {line: 0, ch: 5}, end: {line: 0, ch: 5}, primary: false, reversed: false},
+                        {start: {line: 1, ch: 1}, end: {line: 1, ch: 1}, primary: false, reversed: false},
+                        {start: {line: 2, ch: 15}, end: {line: 2, ch: 15}, primary: true, reversed: false}],
+                    "       one\n       two\n            thre\n"
+                    );
                 });
 
                 it("should collapse ranges and handle other consistent soft tabs when moving left", function () {
                     myEditor.document.setText("        one\n        two\n            three\n");
                     checkSoftTab([{start: {line: 0, ch: 6}, end: {line: 0, ch: 6}},
-                                  {start: {line: 1, ch: 2}, end: {line: 1, ch: 6}},
-                                  {start: {line: 2, ch: 10}, end: {line: 2, ch: 10}}],
-                                 -1, "moveH",
-                                 [{start: {line: 0, ch: 4}, end: {line: 0, ch: 4}, primary: false, reversed: false},
-                                  {start: {line: 1, ch: 2}, end: {line: 1, ch: 2}, primary: false, reversed: false},
-                                  {start: {line: 2, ch: 8}, end: {line: 2, ch: 8}, primary: true, reversed: false}]);
+                        {start: {line: 1, ch: 2}, end: {line: 1, ch: 6}},
+                        {start: {line: 2, ch: 10}, end: {line: 2, ch: 10}}],
+                    -1, "moveH",
+                    [{start: {line: 0, ch: 4}, end: {line: 0, ch: 4}, primary: false, reversed: false},
+                        {start: {line: 1, ch: 2}, end: {line: 1, ch: 2}, primary: false, reversed: false},
+                        {start: {line: 2, ch: 8}, end: {line: 2, ch: 8}, primary: true, reversed: false}]);
                 });
 
                 it("should collapse ranges and handle other consistent soft tabs when moving right", function () {
                     myEditor.document.setText("        one\n        two\n            three\n");
                     checkSoftTab([{start: {line: 0, ch: 5}, end: {line: 0, ch: 9}},
-                                  {start: {line: 1, ch: 1}, end: {line: 1, ch: 1}},
-                                  {start: {line: 2, ch: 9}, end: {line: 2, ch: 9}}],
-                                 1, "moveH",
-                                 [{start: {line: 0, ch: 9}, end: {line: 0, ch: 9}, primary: false, reversed: false},
-                                  {start: {line: 1, ch: 4}, end: {line: 1, ch: 4}, primary: false, reversed: false},
-                                  {start: {line: 2, ch: 12}, end: {line: 2, ch: 12}, primary: true, reversed: false}]);
+                        {start: {line: 1, ch: 1}, end: {line: 1, ch: 1}},
+                        {start: {line: 2, ch: 9}, end: {line: 2, ch: 9}}],
+                    1, "moveH",
+                    [{start: {line: 0, ch: 9}, end: {line: 0, ch: 9}, primary: false, reversed: false},
+                        {start: {line: 1, ch: 4}, end: {line: 1, ch: 4}, primary: false, reversed: false},
+                        {start: {line: 2, ch: 12}, end: {line: 2, ch: 12}, primary: true, reversed: false}]);
                 });
 
                 it("should delete ranges and do nothing with cursors when backspacing", function () {
                     myEditor.document.setText("        one\n        two\n            three\n");
                     checkSoftTab([{start: {line: 0, ch: 6}, end: {line: 0, ch: 6}},
-                                  {start: {line: 1, ch: 8}, end: {line: 1, ch: 10}},
-                                  {start: {line: 2, ch: 10}, end: {line: 2, ch: 10}}],
-                                 -1, "deleteH",
-                                 [{start: {line: 0, ch: 6}, end: {line: 0, ch: 6}, primary: false, reversed: false},
-                                  {start: {line: 1, ch: 8}, end: {line: 1, ch: 8}, primary: false, reversed: false},
-                                  {start: {line: 2, ch: 10}, end: {line: 2, ch: 10}, primary: true, reversed: false}],
-                                 "        one\n        o\n            three\n");
+                        {start: {line: 1, ch: 8}, end: {line: 1, ch: 10}},
+                        {start: {line: 2, ch: 10}, end: {line: 2, ch: 10}}],
+                    -1, "deleteH",
+                    [{start: {line: 0, ch: 6}, end: {line: 0, ch: 6}, primary: false, reversed: false},
+                        {start: {line: 1, ch: 8}, end: {line: 1, ch: 8}, primary: false, reversed: false},
+                        {start: {line: 2, ch: 10}, end: {line: 2, ch: 10}, primary: true, reversed: false}],
+                    "        one\n        o\n            three\n");
                 });
 
                 it("should delete ranges and do nothing with cursors when deleting right", function () {
                     myEditor.document.setText("        one\n        two\n            three\n");
                     checkSoftTab([{start: {line: 0, ch: 5}, end: {line: 0, ch: 5}},
-                                  {start: {line: 1, ch: 1}, end: {line: 1, ch: 1}},
-                                  {start: {line: 2, ch: 14}, end: {line: 2, ch: 16}}],
-                                 1, "deleteH",
-                                 [{start: {line: 0, ch: 5}, end: {line: 0, ch: 5}, primary: false, reversed: false},
-                                  {start: {line: 1, ch: 1}, end: {line: 1, ch: 1}, primary: false, reversed: false},
-                                  {start: {line: 2, ch: 14}, end: {line: 2, ch: 14}, primary: true, reversed: false}],
-                                 "        one\n        two\n            the\n"
-                                );
+                        {start: {line: 1, ch: 1}, end: {line: 1, ch: 1}},
+                        {start: {line: 2, ch: 14}, end: {line: 2, ch: 16}}],
+                    1, "deleteH",
+                    [{start: {line: 0, ch: 5}, end: {line: 0, ch: 5}, primary: false, reversed: false},
+                        {start: {line: 1, ch: 1}, end: {line: 1, ch: 1}, primary: false, reversed: false},
+                        {start: {line: 2, ch: 14}, end: {line: 2, ch: 14}, primary: true, reversed: false}],
+                    "        one\n        two\n            the\n"
+                    );
                 });
 
             });
@@ -1816,10 +1816,10 @@ define(function (require, exports, module) {
                         "}";
                     makeEditor(content);
                     myEditor.setSelections([{start: {line: 0, ch: 9}, end: {line: 0, ch: 9}, primary: true},
-                                            {start: {line: 2, ch: 6}, end: {line: 3, ch: 3}}]);
+                        {start: {line: 2, ch: 6}, end: {line: 3, ch: 3}}]);
                     myEditor._handleTabKey();
                     expectSelections([{start: {line: 0, ch: 13}, end: {line: 0, ch: 13}, primary: true, reversed: false},
-                                                              {start: {line: 2, ch: 10}, end: {line: 3, ch: 8}, primary: false, reversed: false}]);
+                        {start: {line: 2, ch: 10}, end: {line: 3, ch: 8}, primary: false, reversed: false}]);
 
                     var lines = content.split("\n");
                     lines[0] = "    " + lines[0];
@@ -1836,10 +1836,10 @@ define(function (require, exports, module) {
                         "}";
                     makeEditor(content, true);
                     myEditor.setSelections([{start: {line: 0, ch: 6}, end: {line: 0, ch: 6}, primary: true},
-                                            {start: {line: 2, ch: 3}, end: {line: 3, ch: 1}}]);
+                        {start: {line: 2, ch: 3}, end: {line: 3, ch: 1}}]);
                     myEditor._handleTabKey();
                     expectSelections([{start: {line: 0, ch: 7}, end: {line: 0, ch: 7}, primary: true, reversed: false},
-                                                              {start: {line: 2, ch: 4}, end: {line: 3, ch: 2}, primary: false, reversed: false}]);
+                        {start: {line: 2, ch: 4}, end: {line: 3, ch: 2}, primary: false, reversed: false}]);
 
                     var lines = content.split("\n");
                     lines[0] = "\t" + lines[0];
@@ -1856,12 +1856,12 @@ define(function (require, exports, module) {
                         "}";
                     makeEditor(content);
                     myEditor.setSelections([{start: {line: 0, ch: 3}, end: {line: 0, ch: 3}},
-                                            {start: {line: 2, ch: 6}, end: {line: 2, ch: 6}},
-                                            {start: {line: 3, ch: 2}, end: {line: 3, ch: 2}}]);
+                        {start: {line: 2, ch: 6}, end: {line: 2, ch: 6}},
+                        {start: {line: 3, ch: 2}, end: {line: 3, ch: 2}}]);
                     myEditor._handleTabKey();
                     expectSelections([{start: {line: 0, ch: 4}, end: {line: 0, ch: 4}, primary: false, reversed: false},
-                                                              {start: {line: 2, ch: 8}, end: {line: 2, ch: 8}, primary: false, reversed: false},
-                                                              {start: {line: 3, ch: 4}, end: {line: 3, ch: 4}, primary: true, reversed: false}]);
+                        {start: {line: 2, ch: 8}, end: {line: 2, ch: 8}, primary: false, reversed: false},
+                        {start: {line: 3, ch: 4}, end: {line: 3, ch: 4}, primary: true, reversed: false}]);
 
                     var lines = content.split("\n");
                     lines[0] = "fun ction foo() {";
@@ -1878,12 +1878,12 @@ define(function (require, exports, module) {
                         "}";
                     makeEditor(content, true);
                     myEditor.setSelections([{start: {line: 0, ch: 3}, end: {line: 0, ch: 3}},
-                                            {start: {line: 2, ch: 6}, end: {line: 2, ch: 6}},
-                                            {start: {line: 3, ch: 1}, end: {line: 3, ch: 1}}]);
+                        {start: {line: 2, ch: 6}, end: {line: 2, ch: 6}},
+                        {start: {line: 3, ch: 1}, end: {line: 3, ch: 1}}]);
                     myEditor._handleTabKey();
                     expectSelections([{start: {line: 0, ch: 4}, end: {line: 0, ch: 4}, primary: false, reversed: false},
-                                                              {start: {line: 2, ch: 7}, end: {line: 2, ch: 7}, primary: false, reversed: false},
-                                                              {start: {line: 3, ch: 2}, end: {line: 3, ch: 2}, primary: true, reversed: false}]);
+                        {start: {line: 2, ch: 7}, end: {line: 2, ch: 7}, primary: false, reversed: false},
+                        {start: {line: 3, ch: 2}, end: {line: 3, ch: 2}, primary: true, reversed: false}]);
 
                     var lines = content.split("\n");
                     lines[0] = "fun\tction foo() {";
@@ -1900,12 +1900,12 @@ define(function (require, exports, module) {
                         "}";
                     makeEditor(content);
                     myEditor.setSelections([{start: {line: 0, ch: 3}, end: {line: 0, ch: 6}},
-                                            {start: {line: 2, ch: 6}, end: {line: 2, ch: 9}},
-                                            {start: {line: 3, ch: 2}, end: {line: 3, ch: 4}}]);
+                        {start: {line: 2, ch: 6}, end: {line: 2, ch: 9}},
+                        {start: {line: 3, ch: 2}, end: {line: 3, ch: 4}}]);
                     myEditor._handleTabKey();
                     expectSelections([{start: {line: 0, ch: 4}, end: {line: 0, ch: 7}, primary: false, reversed: false},
-                                                              {start: {line: 2, ch: 8}, end: {line: 2, ch: 11}, primary: false, reversed: false},
-                                                              {start: {line: 3, ch: 4}, end: {line: 3, ch: 6}, primary: true, reversed: false}]);
+                        {start: {line: 2, ch: 8}, end: {line: 2, ch: 11}, primary: false, reversed: false},
+                        {start: {line: 3, ch: 4}, end: {line: 3, ch: 6}, primary: true, reversed: false}]);
 
                     var lines = content.split("\n");
                     lines[0] = "fun ction foo() {";
@@ -1922,12 +1922,12 @@ define(function (require, exports, module) {
                         "}";
                     makeEditor(content, true);
                     myEditor.setSelections([{start: {line: 0, ch: 3}, end: {line: 0, ch: 6}},
-                                            {start: {line: 2, ch: 6}, end: {line: 2, ch: 9}},
-                                            {start: {line: 3, ch: 1}, end: {line: 3, ch: 2}}]);
+                        {start: {line: 2, ch: 6}, end: {line: 2, ch: 9}},
+                        {start: {line: 3, ch: 1}, end: {line: 3, ch: 2}}]);
                     myEditor._handleTabKey();
                     expectSelections([{start: {line: 0, ch: 4}, end: {line: 0, ch: 7}, primary: false, reversed: false},
-                                                              {start: {line: 2, ch: 7}, end: {line: 2, ch: 10}, primary: false, reversed: false},
-                                                              {start: {line: 3, ch: 2}, end: {line: 3, ch: 3}, primary: true, reversed: false}]);
+                        {start: {line: 2, ch: 7}, end: {line: 2, ch: 10}, primary: false, reversed: false},
+                        {start: {line: 3, ch: 2}, end: {line: 3, ch: 3}, primary: true, reversed: false}]);
 
                     var lines = content.split("\n");
                     lines[0] = "fun\tction foo() {";
@@ -1944,10 +1944,10 @@ define(function (require, exports, module) {
                         "}";
                     makeEditor(content);
                     myEditor.setSelections([{start: {line: 1, ch: 4}, end: {line: 1, ch: 4}, primary: true}, // should not move
-                                            {start: {line: 2, ch: 4}, end: {line: 2, ch: 4}}]); // should get indented and move
+                        {start: {line: 2, ch: 4}, end: {line: 2, ch: 4}}]); // should get indented and move
                     myEditor._handleTabKey();
                     expectSelections([{start: {line: 1, ch: 8}, end: {line: 1, ch: 8}, primary: true, reversed: false},
-                                                              {start: {line: 2, ch: 8}, end: {line: 2, ch: 8}, primary: false, reversed: false}]);
+                        {start: {line: 2, ch: 8}, end: {line: 2, ch: 8}, primary: false, reversed: false}]);
 
                     var lines = content.split("\n");
                     lines[1] = "        if (bar) {";
@@ -1963,10 +1963,10 @@ define(function (require, exports, module) {
                         "}";
                     makeEditor(content, true);
                     myEditor.setSelections([{start: {line: 1, ch: 1}, end: {line: 1, ch: 1}, primary: true}, // should not move
-                                            {start: {line: 2, ch: 1}, end: {line: 2, ch: 1}}]); // should get indented and move
+                        {start: {line: 2, ch: 1}, end: {line: 2, ch: 1}}]); // should get indented and move
                     myEditor._handleTabKey();
                     expectSelections([{start: {line: 1, ch: 2}, end: {line: 1, ch: 2}, primary: true, reversed: false},
-                                                              {start: {line: 2, ch: 2}, end: {line: 2, ch: 2}, primary: false, reversed: false}]);
+                        {start: {line: 2, ch: 2}, end: {line: 2, ch: 2}, primary: false, reversed: false}]);
 
                     var lines = content.split("\n");
                     lines[1] = "\t\tif (bar) {";
@@ -1982,10 +1982,10 @@ define(function (require, exports, module) {
                         "}";
                     makeEditor(content);
                     myEditor.setSelections([{start: {line: 1, ch: 2}, end: {line: 1, ch: 2}, primary: true}, // should not move
-                                            {start: {line: 2, ch: 2}, end: {line: 2, ch: 2}}]); // should get indented and move
+                        {start: {line: 2, ch: 2}, end: {line: 2, ch: 2}}]); // should get indented and move
                     myEditor._handleTabKey();
                     expectSelections([{start: {line: 1, ch: 4}, end: {line: 1, ch: 4}, primary: true, reversed: false},
-                                                              {start: {line: 2, ch: 8}, end: {line: 2, ch: 8}, primary: false, reversed: false}]);
+                        {start: {line: 2, ch: 8}, end: {line: 2, ch: 8}, primary: false, reversed: false}]);
 
                     var lines = content.split("\n");
                     lines[2] = "        indentme();";
@@ -2000,10 +2000,10 @@ define(function (require, exports, module) {
                         "}";
                     makeEditor(content, true);
                     myEditor.setSelections([{start: {line: 1, ch: 0}, end: {line: 1, ch: 0}, primary: true}, // should not move
-                                            {start: {line: 2, ch: 0}, end: {line: 2, ch: 0}}]); // should get indented and move
+                        {start: {line: 2, ch: 0}, end: {line: 2, ch: 0}}]); // should get indented and move
                     myEditor._handleTabKey();
                     expectSelections([{start: {line: 1, ch: 1}, end: {line: 1, ch: 1}, primary: true, reversed: false},
-                                                              {start: {line: 2, ch: 2}, end: {line: 2, ch: 2}, primary: false, reversed: false}]);
+                        {start: {line: 2, ch: 2}, end: {line: 2, ch: 2}, primary: false, reversed: false}]);
 
                     var lines = content.split("\n");
                     lines[2] = "\t\tindentme();";
@@ -2018,10 +2018,10 @@ define(function (require, exports, module) {
                         "}";
                     makeEditor(content);
                     myEditor.setSelections([{start: {line: 1, ch: 4}, end: {line: 1, ch: 4}},
-                                            {start: {line: 2, ch: 8}, end: {line: 2, ch: 8}}]);
+                        {start: {line: 2, ch: 8}, end: {line: 2, ch: 8}}]);
                     myEditor._handleTabKey();
                     expectSelections([{start: {line: 1, ch: 8}, end: {line: 1, ch: 8}, primary: false, reversed: false},
-                                                              {start: {line: 2, ch: 12}, end: {line: 2, ch: 12}, primary: true, reversed: false}]);
+                        {start: {line: 2, ch: 12}, end: {line: 2, ch: 12}, primary: true, reversed: false}]);
 
                     var lines = content.split("\n");
                     lines[1] = "        if (bar) {";
@@ -2037,10 +2037,10 @@ define(function (require, exports, module) {
                         "}";
                     makeEditor(content, true);
                     myEditor.setSelections([{start: {line: 1, ch: 1}, end: {line: 1, ch: 1}},
-                                            {start: {line: 2, ch: 2}, end: {line: 2, ch: 2}}]);
+                        {start: {line: 2, ch: 2}, end: {line: 2, ch: 2}}]);
                     myEditor._handleTabKey();
                     expectSelections([{start: {line: 1, ch: 2}, end: {line: 1, ch: 2}, primary: false, reversed: false},
-                                                              {start: {line: 2, ch: 3}, end: {line: 2, ch: 3}, primary: true, reversed: false}]);
+                        {start: {line: 2, ch: 3}, end: {line: 2, ch: 3}, primary: true, reversed: false}]);
 
                     var lines = content.split("\n");
                     lines[1] = "\t\tif (bar) {";

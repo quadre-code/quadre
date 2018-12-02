@@ -440,12 +440,12 @@ define(function DOMNodeModule(require, exports, module) {
     };
 
 
-   /** Node Info ***********************************************************/
+    /** Node Info ***********************************************************/
 
-   /** Test if the given location is inside this node
-    * @param {integer} location
-    * @param {boolean} also include children
-    */
+    /** Test if the given location is inside this node
+     * @param {integer} location
+     * @param {boolean} also include children
+     */
     DOMNode.prototype.isAtLocation = function isAtLocation(location, includeChildren) {
         if (includeChildren === undefined) {
             includeChildren = true;

@@ -79,15 +79,15 @@ define(function (require, exports, module) {
 
             it("can tell you if a file is in a project", function () {
                 var file = {
-                        fullPath: "/foo/bar/project/README.md"
-                    };
+                    fullPath: "/foo/bar/project/README.md"
+                };
                 expect(pm.isWithinProject(file)).toBe(true);
             });
 
             it("can tell you if a file is not in a project", function () {
                 var file = {
-                        fullPath: "/some/other/project/README.md"
-                    };
+                    fullPath: "/some/other/project/README.md"
+                };
                 expect(pm.isWithinProject(file)).toBe(false);
             });
 
@@ -298,12 +298,12 @@ define(function (require, exports, module) {
 
             it("matches on previous welcome projects", function () {
                 expect(ProjectModel._isWelcomeProjectPath("/Brackets/GettingStarted/", "/Brackets/NewStart/",
-                                                          ["/Brackets/GettingStarted"])).toBe(true);
+                    ["/Brackets/GettingStarted"])).toBe(true);
             });
 
             it("returns false when there's no match", function () {
                 expect(ProjectModel._isWelcomeProjectPath("/Brackets/Unknown/", "/Brackets/NewStart/",
-                                                          ["/Brackets/GettingStarted"])).toBe(false);
+                    ["/Brackets/GettingStarted"])).toBe(false);
             });
 
             it("returns false when the project doesn't match and there are no known projects", function () {
@@ -328,10 +328,10 @@ define(function (require, exports, module) {
 
         describe("setProjectRoot", function () {
             var subdir = {
-                fullPath: "/path/to/project/subdir/",
-                name: "subdir",
-                isFile: false
-            },
+                    fullPath: "/path/to/project/subdir/",
+                    name: "subdir",
+                    isFile: false
+                },
                 contents = [
                     {
                         fullPath: "/path/to/project/README.md",
@@ -861,10 +861,10 @@ define(function (require, exports, module) {
                     // The selectionEvent now comes from createAtPath which we have mocked out.
                     // We can restore this check once we have chosen a way to hook into RequireJS
                     // loading.
-//                    expect(selectionEvents).toEqual([{
-//                        path: "/foo/subdir1/newfile.js",
-//                        add: true
-//                    }]);
+                    //                    expect(selectionEvents).toEqual([{
+                    //                        path: "/foo/subdir1/newfile.js",
+                    //                        add: true
+                    //                    }]);
                 });
 
                 it("should create a directory but not open it", function () {

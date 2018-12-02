@@ -337,7 +337,7 @@ define(function (require, exports, module) {
         return {valid: true, queryExpr: queryExpr};
     }
 
-     /**
+    /**
      * Prioritizes the open file and then the working set files to the starting of the list of files
      * @param {Array.<*>} files An array of file paths or file objects to sort
      * @param {?string} firstFile If specified, the path to the file that should be sorted to the top.

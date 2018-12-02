@@ -781,7 +781,7 @@ define(function (require, exports, module) {
         var currentContext = this._selections.context;
         this._selections.context = path;
         this._viewModel.moveMarker("context", this.makeProjectRelativeIfPossible(currentContext),
-                                   this.makeProjectRelativeIfPossible(path));
+            this.makeProjectRelativeIfPossible(path));
     };
 
     /**
@@ -849,7 +849,7 @@ define(function (require, exports, module) {
         }
 
         this._viewModel.moveMarker("rename", null,
-                                   projectRelativePath);
+            projectRelativePath);
         this._selections.rename = {
             deferred: d,
             type: FILE_RENAMING,

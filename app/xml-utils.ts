@@ -3,9 +3,9 @@
 const xml2js = require("xml2js");
 
 const xmlParser = new xml2js.Parser({
-  trim: true,
-  emptyTag: null,
-  explicitArray: false
+    trim: true,
+    emptyTag: null,
+    explicitArray: false
 });
 
 export function parseXml(xmlString: string) {

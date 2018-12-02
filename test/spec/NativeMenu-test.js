@@ -1331,7 +1331,7 @@ define(function (require, exports, module) {
 
                 runs(function () {
                     expect(error).toBe(null);
-//                    expect(enabled).toBe(true);
+                    //                    expect(enabled).toBe(true);
                 });
 
                 // Enable it
@@ -1416,7 +1416,7 @@ define(function (require, exports, module) {
 
                 runs(function () {
                     expect(error).toBe(null);
-//                    expect(checked).toBe(true);
+                    //                    expect(checked).toBe(true);
                 });
             });
             it("should return an error if invalid parameters are passed", function () {

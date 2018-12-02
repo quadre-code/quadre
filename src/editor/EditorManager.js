@@ -707,7 +707,7 @@ define(function (require, exports, module) {
     }
 
 
-  /**
+    /**
      * Asynchronously asks providers to handle jump-to-definition.
      * @return {!Promise} Resolved when the provider signals that it's done; rejected if no
      *      provider responded or the provider that responded failed.

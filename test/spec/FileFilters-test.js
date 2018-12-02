@@ -434,7 +434,7 @@ define(function (require, exports, module) {
 
             it("should select the newly added filter set as the active one", function () {
                 var existingFilters = [{name: "Node Modules", patterns: "node_module"},
-                                       {name: "Mark Down Files", patterns: "*.md"}],
+                        {name: "Mark Down Files", patterns: "*.md"}],
                     newFilterSet    = {name: "CSS Files", patterns: "*.css, *.less"};
 
                 // Create two filter sets and make the first one active.
@@ -450,7 +450,7 @@ define(function (require, exports, module) {
 
             it("should select the just edited filter set as the active one", function () {
                 var existingFilters = [{name: "Node Modules", patterns: "node_module"},
-                                       {name: "Mark Down Files", patterns: "*.md"}],
+                        {name: "Mark Down Files", patterns: "*.md"}],
                     newFilterSet    = {name: "CSS Files", patterns: "*.css, *.less"};
 
                 // Create two filter sets and make the first one active.
@@ -468,7 +468,7 @@ define(function (require, exports, module) {
 
             it("should not have an active filter set after removing the current active one", function () {
                 var existingFilters = [{name: "Node Modules", patterns: "node_module"},
-                                       {name: "Mark Down Files", patterns: "*.md"}];
+                    {name: "Mark Down Files", patterns: "*.md"}];
 
                 // Create two filter sets and make the second one active.
                 PreferencesManager.set("fileFilters", existingFilters);
@@ -898,8 +898,8 @@ define(function (require, exports, module) {
                 it("should remove selected filter from filter sets preferences without changing picker button label", function () {
                     var $dropdown,
                         filters = [{name: "Node Modules", patterns: ["node_module"]},
-                                   {name: "Mark Down Files", patterns: ["*.md"]},
-                                   {name: "CSS Files", patterns: ["*.css", "*.less"]}];
+                            {name: "Mark Down Files", patterns: ["*.md"]},
+                            {name: "CSS Files", patterns: ["*.css", "*.less"]}];
 
                     // Create three filter sets and make the last one active.
                     runs(function () {

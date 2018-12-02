@@ -161,8 +161,7 @@ define(function (require, exports, module) {
                 runs(function () {
                     expectRuleRanges(this, this.fileContent, "html", [ {start: 0, end: 2}, {start: 4, end: 6 }]);
                     expectRuleRanges(this, this.fileContent, ".firstGrade", [ {start: 8, end: 10} ]);
-                    expectRuleRanges(this, this.fileContent, "#brack3ts",
-                        [ {start: 16, end: 18} ]);
+                    expectRuleRanges(this, this.fileContent, "#brack3ts", [ {start: 16, end: 18} ]);
                 });
             });
 
@@ -2275,8 +2274,9 @@ define(function (require, exports, module) {
 
             it("should return PROP_VALUE with 'new value' flag set immediately after colon", function () {
                 [9, 85].forEach(function (offset) {
-                    var range = (offset === 9) ? {start: { line: 1, ch: 11 }, end: { line: 1, ch: 15 }}
-                                               : {start: { line: 25, ch: 20 }, end: { line: 25, ch: 24 }};
+                    var range = (offset === 9)
+                        ? {start: { line: 1, ch: 11 }, end: { line: 1, ch: 15 }}
+                        : {start: { line: 25, ch: 20 }, end: { line: 25, ch: 24 }};
                     result = CSSUtils.getInfoAtPos(testEditor, contextTest.offsets[offset]);
                     expect(result).toEqual({
                         context: CSSUtils.PROP_VALUE,
@@ -2508,8 +2508,10 @@ define(function (require, exports, module) {
                         isNewItem: true,
                         index: 0,
                         values: [],
-                        range: {start: { line: lineArray[i - 70], ch: columnArray[i - 70] },
-                                end: { line: lineArray[i - 70], ch: columnArray[i - 70] }}
+                        range: {
+                            start: { line: lineArray[i - 70], ch: columnArray[i - 70] },
+                            end: { line: lineArray[i - 70], ch: columnArray[i - 70] }
+                        }
                     });
                 }
             });

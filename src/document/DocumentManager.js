@@ -636,12 +636,14 @@ define(function (require, exports, module) {
         // Listens for the given event on MainViewManager, and triggers a copy of the event
         // on DocumentManager whenever it occurs
         function _proxyDeprecatedEvent(eventName) {
-            DeprecationWarning.deprecateEvent(exports,
-                                              MainViewManager,
-                                              eventName,
-                                              eventName,
-                                              "DocumentManager." + eventName,
-                                              "MainViewManager." + eventName);
+            DeprecationWarning.deprecateEvent(
+                exports,
+                MainViewManager,
+                eventName,
+                eventName,
+                "DocumentManager." + eventName,
+                "MainViewManager." + eventName
+            );
         }
         _proxyDeprecatedEvent("workingSetAdd");
         _proxyDeprecatedEvent("workingSetAddList");

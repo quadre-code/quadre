@@ -1676,8 +1676,8 @@ define(function (require, exports, module) {
 
             it("should return true for valid identifier, false for invalid one", function () {
                 var identifierList = ["ᾩ", "ĦĔĽĻŎ", "〱〱〱〱", "जावास्क्रि",
-                                      "KingGeorgeⅦ", "π", "ಠ_ಠ",
-                                      "price_9̶9̶_89", "$_3423", "TRUE", "FALSE", "IV"];
+                    "KingGeorgeⅦ", "π", "ಠ_ಠ",
+                    "price_9̶9̶_89", "$_3423", "TRUE", "FALSE", "IV"];
                 var invalidIdentifierList = [" break", "\tif", "\ntrade"];
 
                 invalidIdentifierList.forEach(function (element) {
@@ -1799,7 +1799,7 @@ define(function (require, exports, module) {
 
             it("should format parameters with one required, one optional param", function () {
                 var params = [{name: "param1", type: "String"},
-                              {name: "param2", type: "String", isOptional: true}];
+                    {name: "param2", type: "String", isOptional: true}];
 
                 expect(HintUtils2.formatParameterHint(params)).toBe("String param1, [String param2]");
             });

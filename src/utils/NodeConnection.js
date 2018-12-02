@@ -474,8 +474,9 @@ define(function (require, exports, module) {
                 }
 
                 // Event type "domain:event"
-                EventDispatcher.triggerWithArray(this, m.message.domain + ":" + m.message.event,
-                                                 m.message.parameters);
+                EventDispatcher.triggerWithArray(
+                    this, m.message.domain + ":" + m.message.event,
+                    m.message.parameters);
                 break;
             case "commandResponse":
                 responseDeferred = this._pendingCommandDeferreds[m.message.id];

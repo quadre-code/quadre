@@ -77,9 +77,20 @@ module.exports = {
         "computed-property-spacing": "error",
         "eol-last": "error",
         "func-call-spacing": "error",
-        "indent": ["warn", 4, { "SwitchCase": 1 }],
+        "indent": ["error", 4, {
+            "SwitchCase": 1,
+            "VariableDeclarator": 1,
+            "FunctionDeclaration": { "parameters": "first", body: 1 },
+            "FunctionExpression": { "parameters": "first", body: 1 },
+            "CallExpression": { "arguments": 1 },
+            "ArrayExpression": 1,
+            "ObjectExpression": 1,
+            "ImportDeclaration": 1,
+            "flatTernaryExpressions": false
+        }],
         "key-spacing": ["off", { beforeColon: false, afterColon: true }],
         "max-len": ["off", 120],
+        "multiline-ternary": ["error", "always-multiline"],
         "new-cap": ["off", {
             "capIsNewExceptions": [
                 "$.Deferred",
@@ -95,6 +106,12 @@ module.exports = {
         "no-mixed-spaces-and-tabs": "error",
         "no-new-object": "error",
         "no-trailing-spaces": "error",
+        "operator-linebreak": ["error", "after", {
+            "overrides": {
+                "?": "before",
+                ":": "before"
+            }
+        }],
         "quotes": ["error", "double", { "allowTemplateLiterals": true }],
         "semi-spacing": "error",
         "semi": "error",

@@ -189,7 +189,7 @@ define(function (require, exports, module) {
      */
     function moveRange(range, numLines) {
         return {from: CodeMirror.Pos(range.from.line + numLines, range.from.ch),
-                to: CodeMirror.Pos(range.to.line + numLines, range.to.ch)};
+            to: CodeMirror.Pos(range.to.line + numLines, range.to.ch)};
     }
 
     /**

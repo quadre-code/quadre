@@ -167,17 +167,17 @@ define(function (require, exports, module) {
                         }
 
                         // FIXME implicit open tag
-//                        if (edit.type.match(/textDelete|elementDelete/)) {
-//                            // childNodes count delete
-//                            if (target.childNodes.length !== parentClone.childNodes.length - 1) {
-//                                msgArray.push("Expected childNodes to decrement by 1");
-//                            }
-//                        } else if (edit.type.match(/elementInsert|textInsert/)) {
-//                            // childNodes count insert
-//                            if (target.childNodes.length !== parentClone.childNodes.length + 1) {
-//                                msgArray.push("Expected childNodes to increment by 1");
-//                            }
-//                        }
+                        //                        if (edit.type.match(/textDelete|elementDelete/)) {
+                        //                            // childNodes count delete
+                        //                            if (target.childNodes.length !== parentClone.childNodes.length - 1) {
+                        //                                msgArray.push("Expected childNodes to decrement by 1");
+                        //                            }
+                        //                        } else if (edit.type.match(/elementInsert|textInsert/)) {
+                        //                            // childNodes count insert
+                        //                            if (target.childNodes.length !== parentClone.childNodes.length + 1) {
+                        //                                msgArray.push("Expected childNodes to increment by 1");
+                        //                            }
+                        //                        }
 
                         if (edit.type.match(/elementInsert|textInsert|textReplace/)) {
                             // child position

@@ -218,12 +218,12 @@ var config = {};
                         }
 
                         var response = {type: MessageIds.TERN_JUMPTODEF_MSG,
-                                              file: _getNormalizedFilename(fileInfo.name),
-                                              resultFile: data.file,
-                                              offset: offset,
-                                              start: data.start,
-                                              end: data.end
-                                             };
+                            file: _getNormalizedFilename(fileInfo.name),
+                            resultFile: data.file,
+                            offset: offset,
+                            start: data.start,
+                            end: data.end
+                        };
 
                         request = buildRequest(fileInfo, "type", offset);
                         // See if we can tell if the reference is to a Function type
@@ -274,10 +274,10 @@ var config = {};
 
                         // Post a message back to the main thread with the completions
                         self.postMessage({type: type,
-                                          file: _getNormalizedFilename(fileInfo.name),
-                                          offset: offset,
-                                          properties: properties
-                            });
+                            file: _getNormalizedFilename(fileInfo.name),
+                            offset: offset,
+                            properties: properties
+                        });
                     });
                 } catch (e) {
                     _reportError(e, fileInfo.name);
@@ -323,7 +323,7 @@ var config = {};
                                 file: _getNormalizedFilename(fileInfo.name),
                                 offset: offset,
                                 completions: completions
-                                });
+                            });
                         } else {
                             // if there are no completions, then get all the properties
                             getTernProperties(fileInfo, offset, MessageIds.TERN_COMPLETIONS_MSG);
@@ -558,7 +558,7 @@ var config = {};
                     offset: offset,
                     fnType: fnType,
                     error: error
-                    });
+                });
             }
 
             /**
@@ -585,7 +585,7 @@ var config = {};
 
                 self.postMessage({type: MessageIds.TERN_UPDATE_FILE_MSG,
                     path: path
-                    });
+                });
 
                 // reset to get the best hints with the updated file.
                 ternServer.reset();
@@ -612,7 +612,7 @@ var config = {};
                         // Post a message back to the main thread
                         self.postMessage({type: MessageIds.TERN_PRIME_PUMP_MSG,
                             path: _getNormalizedFilename(path)
-                            });
+                        });
                     });
                 } catch (e) {
                     _reportError(e, path);

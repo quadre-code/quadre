@@ -22,7 +22,7 @@
  *
  */
 
- /**
+/**
   * Pane objects host views of files, editors, etc... Clients cannot access
   * Pane objects directly. Instead the implementation is protected by the
   * MainViewManager -- however View Factories are given a Pane object which
@@ -265,7 +265,7 @@ define(function (require, exports, module) {
             // If the same doc view is present in the destination, show the file instead of flipping it
             if (sameDocInOtherView) {
                 CommandManager.execute(Commands.FILE_OPEN, {fullPath: currentFile.fullPath,
-                                                            paneId: otherPaneId}).always(function () {
+                    paneId: otherPaneId}).always(function () {
                     _ensurePaneIsFocused(otherPaneId);
                 });
                 return;
@@ -278,7 +278,7 @@ define(function (require, exports, module) {
 
             MainViewManager._moveView(self.id, otherPaneId, currentFile).always(function () {
                 CommandManager.execute(Commands.FILE_OPEN, {fullPath: currentFile.fullPath,
-                                                            paneId: otherPaneId}).always(function () {
+                    paneId: otherPaneId}).always(function () {
                     // Trigger view list changes for both panes
                     self.trigger("viewListChange");
                     otherPane.trigger("viewListChange");
@@ -512,7 +512,7 @@ define(function (require, exports, module) {
         this.showInterstitial(true);
     };
 
-   /**
+    /**
      * Creates a pane event namespaced to this pane
      * (pass an empty string to generate just the namespace key to pass to jQuery to turn off all events handled by this pane)
      * @private
@@ -523,7 +523,7 @@ define(function (require, exports, module) {
         return name + ".pane-" + this.id;
     };
 
-   /**
+    /**
      * Reparents a view to this pane
      * @private
      * @param {!View} view - the view to reparent
@@ -707,7 +707,7 @@ define(function (require, exports, module) {
         this.$el.remove();
     };
 
-   /**
+    /**
      * Returns a copy of the view file list
      * @return {!Array.<File>}
      */
@@ -745,7 +745,7 @@ define(function (require, exports, module) {
         });
     };
 
-   /**
+    /**
      * Returns the order in which the item was last used
      * @param {!string} fullPath the full path of the item to look for
      * @return {number} order of the item or -1 if not found.
@@ -1040,7 +1040,7 @@ define(function (require, exports, module) {
         }
 
         this.$headerFlipViewBtn.removeClass(ICON_CLASSES.join(" "))
-                      .addClass(ICON_CLASSES[directionIndex]);
+            .addClass(ICON_CLASSES[directionIndex]);
 
         this.$headerFlipViewBtn.attr("title", StringUtils.format(Strings.FLIPVIEW_BTN_TOOLTIP,  DIRECTION_STRINGS[directionIndex].toLowerCase()));
     };

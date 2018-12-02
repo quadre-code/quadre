@@ -325,9 +325,9 @@ define(function (require, exports, module) {
         var lastFocus = window.document.activeElement;
 
         var templateVars = {
-                instruction: StringUtils.format(Strings.FILE_FILTER_INSTRUCTIONS, brackets.config.glob_help_url),
-                Strings: Strings
-            };
+            instruction: StringUtils.format(Strings.FILE_FILTER_INSTRUCTIONS, brackets.config.glob_help_url),
+            Strings: Strings
+        };
         var dialog = Dialogs.showModalDialogUsingTemplate(Mustache.render(EditFilterTemplate, templateVars)),
             $nameField = dialog.getElement().find(".exclusions-name"),
             $editField = dialog.getElement().find(".exclusions-editor"),

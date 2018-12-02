@@ -177,7 +177,7 @@ define(function (require, exports, module) {
 
             it("should expand two cursors without adding a new selection", function () {
                 editor.setSelections([{start: {line: 2, ch: 26}, end: {line: 2, ch: 26}},
-                                      {start: {line: 3, ch: 16}, end: {line: 3, ch: 16}}]);
+                    {start: {line: 3, ch: 16}, end: {line: 3, ch: 16}}]);
                 FindReplace._expandWordAndAddNextToSelection(editor);
                 expect(editor.getSelections()).toEqual(fixSels([
                     {start: {line: 2, ch: 23}, end: {line: 2, ch: 30}, primary: false, reversed: false},
@@ -187,7 +187,7 @@ define(function (require, exports, module) {
 
             it("should, when one cursor and one range are selected, expand the cursor and add the next match for the range to the selection", function () {
                 editor.setSelections([{start: {line: 2, ch: 26}, end: {line: 2, ch: 26}},
-                                      {start: {line: 3, ch: 14}, end: {line: 3, ch: 21}}]); // "require"
+                    {start: {line: 3, ch: 14}, end: {line: 3, ch: 21}}]); // "require"
                 FindReplace._expandWordAndAddNextToSelection(editor);
                 expect(editor.getSelections()).toEqual(fixSels([
                     {start: {line: 2, ch: 23}, end: {line: 2, ch: 30}, primary: false, reversed: false},
@@ -208,8 +208,8 @@ define(function (require, exports, module) {
             it("should skip over matches that are already in the selection", function () {
                 // select all instances of "require" except the second one
                 editor.setSelections([{start: {line: 1, ch: 17}, end: {line: 1, ch: 24}},
-                                      {start: {line: 3, ch: 14}, end: {line: 3, ch: 21}},
-                                      {start: {line: 4, ch: 14}, end: {line: 4, ch: 21}}]);
+                    {start: {line: 3, ch: 14}, end: {line: 3, ch: 21}},
+                    {start: {line: 4, ch: 14}, end: {line: 4, ch: 21}}]);
                 FindReplace._expandWordAndAddNextToSelection(editor);
                 expect(editor.getSelections()).toEqual(fixSels([
                     {start: {line: 1, ch: 17}, end: {line: 1, ch: 24}, primary: false, reversed: false},
@@ -221,9 +221,9 @@ define(function (require, exports, module) {
 
             it("should do nothing if all instances are already selected", function () {
                 editor.setSelections([{start: {line: 1, ch: 17}, end: {line: 1, ch: 24}},
-                                      {start: {line: 2, ch: 14}, end: {line: 2, ch: 21}},
-                                      {start: {line: 3, ch: 14}, end: {line: 3, ch: 21}},
-                                      {start: {line: 4, ch: 14}, end: {line: 4, ch: 21}}]);
+                    {start: {line: 2, ch: 14}, end: {line: 2, ch: 21}},
+                    {start: {line: 3, ch: 14}, end: {line: 3, ch: 21}},
+                    {start: {line: 4, ch: 14}, end: {line: 4, ch: 21}}]);
                 FindReplace._expandWordAndAddNextToSelection(editor);
                 expect(editor.getSelections()).toEqual(fixSels([
                     {start: {line: 1, ch: 17}, end: {line: 1, ch: 24}, primary: false, reversed: false},
@@ -253,7 +253,7 @@ define(function (require, exports, module) {
 
             it("should, when one cursor and one range are selected, expand the cursor and change the range selection to its next match", function () {
                 editor.setSelections([{start: {line: 2, ch: 26}, end: {line: 2, ch: 26}},
-                                      {start: {line: 3, ch: 14}, end: {line: 3, ch: 21}}]); // "require"
+                    {start: {line: 3, ch: 14}, end: {line: 3, ch: 21}}]); // "require"
                 FindReplace._expandWordAndAddNextToSelection(editor, true);
                 expect(editor.getSelections()).toEqual(fixSels([
                     {start: {line: 2, ch: 23}, end: {line: 2, ch: 30}, primary: false, reversed: false},
@@ -272,8 +272,8 @@ define(function (require, exports, module) {
             it("should skip over matches that are already in the selection (but still remove the current one)", function () {
                 // select all instances of "require" except the second one
                 editor.setSelections([{start: {line: 1, ch: 17}, end: {line: 1, ch: 24}},
-                                      {start: {line: 3, ch: 14}, end: {line: 3, ch: 21}},
-                                      {start: {line: 4, ch: 14}, end: {line: 4, ch: 21}}]);
+                    {start: {line: 3, ch: 14}, end: {line: 3, ch: 21}},
+                    {start: {line: 4, ch: 14}, end: {line: 4, ch: 21}}]);
                 FindReplace._expandWordAndAddNextToSelection(editor, true);
                 expect(editor.getSelections()).toEqual(fixSels([
                     {start: {line: 1, ch: 17}, end: {line: 1, ch: 24}, primary: false, reversed: false},
@@ -284,9 +284,9 @@ define(function (require, exports, module) {
 
             it("should just remove the primary selection if all instances are already selected", function () {
                 editor.setSelections([{start: {line: 1, ch: 17}, end: {line: 1, ch: 24}},
-                                      {start: {line: 2, ch: 14}, end: {line: 2, ch: 21}},
-                                      {start: {line: 3, ch: 14}, end: {line: 3, ch: 21}},
-                                      {start: {line: 4, ch: 14}, end: {line: 4, ch: 21}}]);
+                    {start: {line: 2, ch: 14}, end: {line: 2, ch: 21}},
+                    {start: {line: 3, ch: 14}, end: {line: 3, ch: 21}},
+                    {start: {line: 4, ch: 14}, end: {line: 4, ch: 21}}]);
                 FindReplace._expandWordAndAddNextToSelection(editor, true);
                 expect(editor.getSelections()).toEqual(fixSels([
                     {start: {line: 1, ch: 17}, end: {line: 1, ch: 24}, primary: false, reversed: false},
@@ -321,7 +321,7 @@ define(function (require, exports, module) {
 
             it("should throw away selections other than the primary selection", function () {
                 editor.setSelections([{start: {line: 3, ch: 14}, end: {line: 3, ch: 21}, primary: true},
-                                      {start: {line: 6, ch: 4}, end: {line: 6, ch: 6}}]);
+                    {start: {line: 6, ch: 4}, end: {line: 6, ch: 6}}]);
                 FindReplace._findAllAndSelect(editor);
                 expect(editor.getSelections()).toEqual(fixSels([
                     {start: {line: 1, ch: 17}, end: {line: 1, ch: 24}, primary: false, reversed: false},
@@ -355,7 +355,7 @@ define(function (require, exports, module) {
 
             it("should not change the selection if the primary selection is a cursor inside a non-word", function () {
                 editor.setSelections([{start: {line: 1, ch: 4}, end: {line: 1, ch: 10}},
-                                      {start: {line: 8, ch: 0}, end: {line: 8, ch: 0}}]);
+                    {start: {line: 8, ch: 0}, end: {line: 8, ch: 0}}]);
                 FindReplace._findAllAndSelect(editor);
                 expect(editor.getSelections()).toEqual(fixSels([
                     {start: {line: 1, ch: 4}, end: {line: 1, ch: 10}, primary: false, reversed: false},
@@ -978,7 +978,7 @@ define(function (require, exports, module) {
 
                 runs(function () {
                     myEditor.setSelections([{start: {line: LINE_FIRST_REQUIRE, ch: CH_REQUIRE_START}, end: {line: LINE_FIRST_REQUIRE, ch: CH_REQUIRE_START}, primary: true},
-                                            {start: {line: 1, ch: 0}, end: {line: 1, ch: 0}}]);
+                        {start: {line: 1, ch: 0}, end: {line: 1, ch: 0}}]);
                     twCommandManager.execute(Commands.CMD_FIND);
                     expect(getSearchField().val()).toEqual("");
                 });
@@ -986,14 +986,14 @@ define(function (require, exports, module) {
 
             it("should get single selection as initial query", function () {
                 myEditor.setSelection({line: LINE_FIRST_REQUIRE, ch: CH_REQUIRE_START},
-                                      {line: LINE_FIRST_REQUIRE, ch: CH_REQUIRE_PAREN});
+                    {line: LINE_FIRST_REQUIRE, ch: CH_REQUIRE_PAREN});
                 twCommandManager.execute(Commands.CMD_FIND);
                 expect(getSearchField().val()).toEqual("require");
             });
 
             it("should get primary selection as initial query", function () {
                 myEditor.setSelections([{start: {line: LINE_FIRST_REQUIRE, ch: CH_REQUIRE_START}, end: {line: LINE_FIRST_REQUIRE, ch: CH_REQUIRE_PAREN}, primary: true},
-                                        {start: {line: 1, ch: 0}, end: {line: 1, ch: 1}}]);
+                    {start: {line: 1, ch: 0}, end: {line: 1, ch: 1}}]);
                 twCommandManager.execute(Commands.CMD_FIND);
                 expect(getSearchField().val()).toEqual("require");
             });

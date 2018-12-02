@@ -25,7 +25,7 @@
 /*jslint forin: true */
 /*global FileError */
 
- /**
+/**
  * Inspector manages the connection to Chrome/Chromium's remote debugger.
  * See inspector.html for the documentation of the remote debugger.
  *

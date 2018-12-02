@@ -290,7 +290,7 @@ define(function (require, exports, module) {
      */
     function registerHintProvider(providerInfo, languageIds, priority) {
         var providerObj = { provider: providerInfo,
-                            priority: priority || 0 };
+            priority: priority || 0 };
 
         if (languageIds.indexOf("all") !== -1) {
             // Ignore anything else in languageIds and just register for every language. This includes
@@ -559,7 +559,7 @@ define(function (require, exports, module) {
     function _handleKeyupEvent(jqEvent, editor, event) {
         keyDownEditor = editor;
         if (_inSession(editor)) {
-          if (event.keyCode === KeyEvent.DOM_VK_HOME ||
+            if (event.keyCode === KeyEvent.DOM_VK_HOME ||
                   event.keyCode === KeyEvent.DOM_VK_END) {
                 _endSession();
             } else if (event.keyCode === KeyEvent.DOM_VK_LEFT ||

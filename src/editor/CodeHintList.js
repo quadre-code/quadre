@@ -118,7 +118,7 @@ define(function (require, exports, module) {
         this.$hintMenu =
             $("<li class='dropdown codehint-menu'></li>")
                 .append($("<a href='#' class='dropdown-toggle' data-toggle='dropdown'></a>")
-                        .hide())
+                    .hide())
                 .append("<ul class='dropdown-menu'></ul>");
 
         this._keydownHook = this._keydownHook.bind(this);
@@ -513,7 +513,7 @@ define(function (require, exports, module) {
         if (this.hints.length) {
             var hintPos = this._calcHintListLocation();
             this.$hintMenu.css({"left": hintPos.left, "top": hintPos.top,
-                                "width": hintPos.width + "px"});
+                "width": hintPos.width + "px"});
         }
     };
     /**

@@ -140,9 +140,9 @@ define(function (require, exports, module) {
             // Don't push the change back into the host editor if it came from the host editor.
             if (!this._isHostChange) {
                 var endPos = {
-                        line: range.start.line,
-                        ch: range.start.ch + colorString.length
-                    };
+                    line: range.start.line,
+                    ch: range.start.ch + colorString.length
+                };
                 this._isOwnChange = true;
                 this.hostEditor.document.batchOperation(function () {
                     // Replace old color in code with the picker's color, and select it

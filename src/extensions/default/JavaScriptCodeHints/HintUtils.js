@@ -177,20 +177,20 @@ define(function (require, exports, module) {
     }
 
     var KEYWORD_NAMES   = [
-        "break", "case", "catch", "class", "const", "continue", "debugger",
-        "default", "delete", "do", "else", "export", "extends", "finally",
-        "for", "function", "if", "import", "in", "instanceof", "let", "new",
-        "return", "super", "switch", "this", "throw", "try", "typeof", "var",
-        "void", "while", "with", "yield"
-    ],
+            "break", "case", "catch", "class", "const", "continue", "debugger",
+            "default", "delete", "do", "else", "export", "extends", "finally",
+            "for", "function", "if", "import", "in", "instanceof", "let", "new",
+            "return", "super", "switch", "this", "throw", "try", "typeof", "var",
+            "void", "while", "with", "yield"
+        ],
         KEYWORD_TOKENS  = KEYWORD_NAMES.map(function (t) {
             return makeToken(t, []);
         }),
         KEYWORDS        = annotateKeywords(KEYWORD_TOKENS);
 
     var LITERAL_NAMES   = [
-        "true", "false", "null"
-    ],
+            "true", "false", "null"
+        ],
         LITERAL_TOKENS  = LITERAL_NAMES.map(function (t) {
             return makeToken(t, []);
         }),

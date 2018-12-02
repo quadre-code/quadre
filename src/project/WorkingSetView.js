@@ -366,10 +366,10 @@ define(function (require, exports, module) {
 
                         // Compute "scrollMe" regions
                         scrollerTopArea = { top: containerOffset.top - 14,
-                                            bottom: containerOffset.top + 7};
+                            bottom: containerOffset.top + 7};
 
                         scrollerBottomArea = { top: containerOffset.top + $container.height() - 7,
-                                               bottom: containerOffset.top + $container.height() + 14};
+                            bottom: containerOffset.top + $container.height() + 14};
                     }
 
                     // If we hit ourself then look for another
@@ -764,7 +764,7 @@ define(function (require, exports, module) {
                         if (tryClosing || e.which === MIDDLE_BUTTON) {
                             CommandManager
                                 .execute(Commands.FILE_CLOSE, {file: sourceFile,
-                                                           paneId: sourceView.paneId})
+                                    paneId: sourceView.paneId})
                                 .always(function () {
                                     postDropCleanup();
                                 });
@@ -773,7 +773,7 @@ define(function (require, exports, module) {
                             FileViewController.setFileViewFocus(FileViewController.WORKING_SET_VIEW);
                             CommandManager
                                 .execute(Commands.FILE_OPEN, {fullPath: sourceFile.fullPath,
-                                                               paneId: currentView.paneId})
+                                    paneId: currentView.paneId})
                                 .always(function () {
                                     postDropCleanup();
                                 });
@@ -797,7 +797,7 @@ define(function (require, exports, module) {
                                 if (draggingCurrentFile) {
                                     CommandManager
                                         .execute(Commands.FILE_OPEN, {fullPath: sourceFile.fullPath,
-                                                                       paneId: currentView.paneId})
+                                            paneId: currentView.paneId})
                                         .always(function () {
                                             postDropCleanup();
                                         });
@@ -1109,8 +1109,8 @@ define(function (require, exports, module) {
                 var $li = $(this),
                     file = $li.data(_FILE_KEY),
                     data = {fullPath: file.fullPath,
-                            name: file.name,
-                            isFile: file.isFile};
+                        name: file.name,
+                        isFile: file.isFile};
                 $li.removeAttr("class");
                 _classProviders.forEach(function (provider) {
                     $li.addClass(provider(data));
@@ -1129,8 +1129,8 @@ define(function (require, exports, module) {
         var self = this,
             selectedFile = MainViewManager.getCurrentlyViewedFile(this.paneId),
             data = {fullPath: file.fullPath,
-                    name: file.name,
-                    isFile: file.isFile};
+                name: file.name,
+                isFile: file.isFile};
 
         // Create new list item with a link
         var $link = $("<a href='#'></a>").html(ViewUtils.getFileEntryDisplay(file));

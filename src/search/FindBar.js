@@ -685,8 +685,8 @@ define(function (require, exports, module) {
             replaceText = currentFindBar.getReplaceText();
         } else {
             var openedFindBar = FindBar._bars && _.find(FindBar._bars, function (bar) {
-                    return !bar.isClosed();
-                });
+                return !bar.isClosed();
+            });
 
             if (openedFindBar) {
                 query = openedFindBar.getQueryInfo().query;
