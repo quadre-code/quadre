@@ -236,7 +236,9 @@ define(function (require, exports, module) {
         if (ctx.token && ctx.token.type === "tag bracket" && ctx.token.string === "<") {
             // Returns tagInfo when an angle bracket is created.
             return _createTagInfo(ctx.token, TOKEN_TAG);
-        } else if (ctx.token && ctx.token.type === "tag") {
+        }
+
+        if (ctx.token && ctx.token.type === "tag") {
             // Return tagInfo when a tag is created.
             if (TokenUtils.movePrevToken(ctx)) {
                 if (ctx.token.type === "tag bracket" && ctx.token.string === "<") {

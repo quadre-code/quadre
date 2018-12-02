@@ -208,12 +208,12 @@ define(function (require, exports, module) {
             if (watchedRoot.status === WatchedRoot.ACTIVE ||
                     (relaxed && watchedRoot.status === WatchedRoot.STARTING)) {
                 return filterResult;
-            } else {
-                // We had a watched root, but it's no longer active, so it must now be invalid.
-                this._watchedRoot = undefined;
-                this._watchedRootFilterResult = false;
-                this._clearCachedData();
             }
+
+            // We had a watched root, but it's no longer active, so it must now be invalid.
+            this._watchedRoot = undefined;
+            this._watchedRootFilterResult = false;
+            this._clearCachedData();
         }
         return false;
     };

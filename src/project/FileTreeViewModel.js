@@ -173,7 +173,9 @@ define(function (require, exports, module) {
     function _filePathToObjectPath(treeData, path) {
         if (path === null) {
             return null;
-        } else if (path === "") {
+        }
+
+        if (path === "") {
             return [];
         }
 
@@ -224,7 +226,9 @@ define(function (require, exports, module) {
     function _isFilePathVisible(treeData, path) {
         if (path === null) {
             return null;
-        } else if (path === "") {
+        }
+
+        if (path === "") {
             return true;
         }
 
@@ -519,9 +523,9 @@ define(function (require, exports, module) {
         treeData = treeData.updateIn(objectPath, function (directory) {
             if (open) {
                 return directory.set("open", true);
-            } else {
-                return directory.delete("open");
             }
+
+            return directory.delete("open");
         });
 
         if (open && (directory.get("children") === null || directory.get("notFullyLoaded"))) {

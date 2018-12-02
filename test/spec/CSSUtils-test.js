@@ -744,11 +744,11 @@ define(function (require, exports, module) {
                     selector += "#" + tagInfo.id;
                 }
                 return CSSUtils._findAllMatchingSelectorsInText(cssCode, selector, mode);
-            } else {
-                // If !tagInfo, we don't care about results; only making sure parse/search doesn't crash
-                CSSUtils._findAllMatchingSelectorsInText(cssCode, "dummy", mode);
-                return null;
             }
+
+            // If !tagInfo, we don't care about results; only making sure parse/search doesn't crash
+            CSSUtils._findAllMatchingSelectorsInText(cssCode, "dummy", mode);
+            return null;
         }
 
         /**

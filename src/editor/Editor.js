@@ -713,7 +713,9 @@ define(function (require, exports, module) {
                 // Case 1 - we found a multiline selection. We can bail as soon as we find one of these.
                 selectionType = "indentAtBeginning";
                 return false;
-            } else if (sel.end.ch > 0 && sel.end.ch >= instance.getLine(sel.end.line).search(/\S/)) {
+            }
+
+            if (sel.end.ch > 0 && sel.end.ch >= instance.getLine(sel.end.line).search(/\S/)) {
                 // Case 2 - we found a selection that ends at or after the first non-whitespace
                 // character on the line. We need to keep looking in case we find a later multiline
                 // selection though.
@@ -1289,11 +1291,10 @@ define(function (require, exports, module) {
             if (endInclusive) {
                 return (start.line < pos.line || start.ch <= pos.ch) &&  // inclusive
                     (end.line > pos.line   || end.ch >= pos.ch);      // inclusive
-            } else {
-                return (start.line < pos.line || start.ch <= pos.ch) &&  // inclusive
-                    (end.line > pos.line   || end.ch > pos.ch);       // exclusive
             }
 
+            return (start.line < pos.line || start.ch <= pos.ch) &&  // inclusive
+                (end.line > pos.line   || end.ch > pos.ch);       // exclusive
         }
         return false;
     };
@@ -1316,9 +1317,9 @@ define(function (require, exports, module) {
     function _normalizeRange(anchorPos, headPos) {
         if (headPos.line < anchorPos.line || (headPos.line === anchorPos.line && headPos.ch < anchorPos.ch)) {
             return {start: _copyPos(headPos), end: _copyPos(anchorPos), reversed: true};
-        } else {
-            return {start: _copyPos(anchorPos), end: _copyPos(headPos), reversed: false};
         }
+
+        return {start: _copyPos(anchorPos), end: _copyPos(headPos), reversed: false};
     }
 
     /**
@@ -1422,10 +1423,10 @@ define(function (require, exports, module) {
     Editor.prototype.getSelectedText = function (allSelections) {
         if (allSelections) {
             return this._codeMirror.getSelection();
-        } else {
-            var sel = this.getSelection();
-            return this.document.getRange(sel.start, sel.end);
         }
+
+        var sel = this.getSelection();
+        return this.document.getRange(sel.start, sel.end);
     };
 
     /**
@@ -1760,14 +1761,14 @@ define(function (require, exports, module) {
                     inlineWidget = self._inlineWidgets[allWidgetInfos.indexOf(info)];
                     if (inlineWidget) {
                         return self.removeInlineWidget(inlineWidget);
-                    } else {
-                        return new $.Deferred().resolve().promise();
                     }
+
+                    return new $.Deferred().resolve().promise();
                 }
             );
-        } else {
-            return new $.Deferred().resolve().promise();
         }
+
+        return new $.Deferred().resolve().promise();
     };
 
     /**
@@ -2187,11 +2188,13 @@ define(function (require, exports, module) {
         if (!knownMixed && outerMode.name === startMode.name) {
             // Mode does not vary: just use the editor-wide mode name
             return this._codeMirror.getOption("mode");
-        } else if (!startMode || !endMode || startMode.name !== endMode.name) {
-            return null;
-        } else {
-            return startMode;
         }
+
+        if (!startMode || !endMode || startMode.name !== endMode.name) {
+            return null;
+        }
+
+        return startMode;
     };
 
     /**
@@ -2253,10 +2256,10 @@ define(function (require, exports, module) {
             }
 
             return startMode.name;
-        } else {
-            // Mode does not vary: just use the editor-wide mode
-            return this._codeMirror.getOption("mode");
         }
+
+        // Mode does not vary: just use the editor-wide mode
+        return this._codeMirror.getOption("mode");
     };
 
     /*

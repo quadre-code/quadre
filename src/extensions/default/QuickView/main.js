@@ -263,11 +263,11 @@ define(function (require, exports, module) {
                     beforeIndex = match.index - 1;
                     if (beforeIndex >= 0 && line[beforeIndex] === "-") {
                         return true;
-                    } else {
-                        afterIndex = match.index + match[0].length;
-                        if (afterIndex < line.length && line[afterIndex] === "-") {
-                            return true;
-                        }
+                    }
+
+                    afterIndex = match.index + match[0].length;
+                    if (afterIndex < line.length && line[afterIndex] === "-") {
+                        return true;
                     }
                 }
 
@@ -329,7 +329,7 @@ define(function (require, exports, module) {
 
         // Ensures that input is in usable hex format
         function ensureHexFormat(str) {
-            return (/^0x/).test(str) ? str.replace("0x","#") : str;
+            return (/^0x/).test(str) ? str.replace("0x", "#") : str;
         }
 
         // Normalizes px color stops to %

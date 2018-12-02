@@ -437,9 +437,11 @@ define(function (require, exports, module) {
         // by subtracting KeyEvent.DOM_VK_0 from keycode. ie. [48-57] --> [0-9]
         if (keycode >= KeyEvent.DOM_VK_0 && keycode <= KeyEvent.DOM_VK_9) {
             return String(keycode - KeyEvent.DOM_VK_0);
+        }
+
         // Do the same with the numpad numbers
         // by subtracting KeyEvent.DOM_VK_NUMPAD0 from keycode. ie. [96-105] --> [0-9]
-        } else if (keycode >= KeyEvent.DOM_VK_NUMPAD0 && keycode <= KeyEvent.DOM_VK_NUMPAD9) {
+        if (keycode >= KeyEvent.DOM_VK_NUMPAD0 && keycode <= KeyEvent.DOM_VK_NUMPAD9) {
             return String(keycode - KeyEvent.DOM_VK_NUMPAD0);
         }
 

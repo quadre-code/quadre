@@ -49,7 +49,7 @@ define(function (require, exports, module) {
      * @returns {string} - str in hex format
      */
     function ensureHexFormat(str) {
-        return (/^0x/).test(str) ? str.replace("0x","#") : str;
+        return (/^0x/).test(str) ? str.replace("0x", "#") : str;
     }
 
     /**

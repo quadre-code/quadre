@@ -144,9 +144,9 @@ define(function (require, exports, module) {
                 }
                 avg = Math.round(sum * 10 / entry.length) / 10; // tenth of a millisecond
                 return String(min) + "/" + String(avg) + "(" + entry.length + ")/" + String(max) + "/" + String(e);
-            } else {
-                return entry;
             }
+
+            return entry;
         };
 
         var perfData = PerfUtils.getData();
@@ -338,12 +338,11 @@ define(function (require, exports, module) {
     }
 
     function _isSupportedPrefType(prefType) {
-
         if (SUPPORTED_PREFERENCE_TYPES.indexOf(prefType) >= 0) {
             return true;
-        } else {
-            return false;
         }
+
+        return false;
     }
 
    /*
@@ -577,9 +576,9 @@ define(function (require, exports, module) {
         if (numKeys <= 0) {
             entireText += "}";
             return entireText;
-        } else {
-            entireText += "\n";
         }
+
+        entireText += "\n";
 
         // Now iterate through all the keys
         // and generate nested formatted objects.
@@ -726,20 +725,20 @@ define(function (require, exports, module) {
 
         if (!splitViewPrefOn) {
             return CommandManager.execute(Commands.FILE_OPEN_PREFERENCES);
-        } else {
-            file.exists(function (err, doesExist) {
-                if (doesExist) {
-                    _loadDefaultPrefs(fullPath, result);
-                } else {
-                    FileUtils.writeText(file, "", true)
-                        .done(function () {
-                            _loadDefaultPrefs(fullPath, result);
-                        }).fail(function () {
-                            result.reject();
-                        });
-                }
-            });
         }
+
+        file.exists(function (err, doesExist) {
+            if (doesExist) {
+                _loadDefaultPrefs(fullPath, result);
+            } else {
+                FileUtils.writeText(file, "", true)
+                    .done(function () {
+                        _loadDefaultPrefs(fullPath, result);
+                    }).fail(function () {
+                        result.reject();
+                    });
+            }
+        });
 
         return result.promise();
     }

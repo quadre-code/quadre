@@ -373,7 +373,9 @@ define(function (require, exports, module) {
                 return false;
             }
             return true;
-        } else if (ctxInfo.tokenType === JSONUtils.TOKEN_VALUE) {
+        }
+
+        if (ctxInfo.tokenType === JSONUtils.TOKEN_VALUE) {
             // In case the current token is a white-space, start and end will be same.
             if (JSONUtils.regexAllowedChars.test(ctxInfo.token.string)) {
                 start.ch = end.ch = pos.ch;

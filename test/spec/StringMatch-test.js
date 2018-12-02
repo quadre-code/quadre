@@ -802,14 +802,20 @@ define(function (require, exports, module) {
                     // alphabetical letters
                     if (aName[0] === "_" && bName[0] !== "_") {
                         return 1;
-                    } else if (bName[0] === "_" && aName[0] !== "_") {
+                    }
+
+                    if (bName[0] === "_" && aName[0] !== "_") {
                         return -1;
                     }
+
                     if (aName < bName) {
                         return -1;
-                    } else if (aName > bName) {
+                    }
+
+                    if (aName > bName) {
                         return 1;
                     }
+
                     return 0;
                 }]);
                 expect(result).toEqual([

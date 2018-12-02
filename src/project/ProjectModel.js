@@ -151,9 +151,12 @@ define(function (require, exports, module) {
     function _getFSObject(path) {
         if (!path) {
             return path;
-        } else if (_pathIsFile(path)) {
+        }
+
+        if (_pathIsFile(path)) {
             return FileSystem.getFileForPath(path);
         }
+
         return FileSystem.getDirectoryForPath(path);
     }
 
@@ -1107,22 +1110,22 @@ define(function (require, exports, module) {
         if (!nodesByDepth || nodesByDepth.length === 0) {
             // All paths are opened and fully rendered.
             return deferred.resolve().promise();
-        } else {
-            var self = this;
-            return Async.doSequentially(nodesByDepth, function (toOpenPaths) {
-                return Async.doInParallel(
-                    toOpenPaths,
-                    function (path) {
-                        return self._getDirectoryContents(path).then(function (contents) {
-                            var relative = self.makeProjectRelativeIfPossible(path);
-                            self._viewModel.setDirectoryContents(relative, contents);
-                            self._viewModel.setDirectoryOpen(relative, true);
-                        });
-                    },
-                    false
-                );
-            });
         }
+
+        var self = this;
+        return Async.doSequentially(nodesByDepth, function (toOpenPaths) {
+            return Async.doInParallel(
+                toOpenPaths,
+                function (path) {
+                    return self._getDirectoryContents(path).then(function (contents) {
+                        var relative = self.makeProjectRelativeIfPossible(path);
+                        self._viewModel.setDirectoryContents(relative, contents);
+                        self._viewModel.setDirectoryOpen(relative, true);
+                    });
+                },
+                false
+            );
+        });
     };
 
     /**

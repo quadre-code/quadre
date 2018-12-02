@@ -676,7 +676,9 @@ define(function (require, exports, module) {
                 completeSelectors += info.selector;
             }
             return completeSelectors;
-        } else if (useGroup && info.selectorGroup) {
+        }
+
+        if (useGroup && info.selectorGroup) {
             return info.selectorGroup;
         }
 
@@ -986,11 +988,13 @@ define(function (require, exports, module) {
                         unicodeChar = unicodeChar.substr(1);
                         if (unicodeChar.length === 1) {
                             return unicodeChar;
-                        } else {
-                            if (parseInt(unicodeChar, 16) < 0x10FFFF) {
-                                return String.fromCharCode(parseInt(unicodeChar, 16));
-                            } else { return String.fromCharCode(0xFFFD); }
                         }
+
+                        if (parseInt(unicodeChar, 16) < 0x10FFFF) {
+                            return String.fromCharCode(parseInt(unicodeChar, 16));
+                        }
+
+                        return String.fromCharCode(0xFFFD);
                     });
                 });
             }

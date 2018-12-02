@@ -734,9 +734,9 @@ define(function (require, exports, module) {
 
         if (Array.isArray(paths)) {
             return paths.map(prefixProjectPath);
-        } else {
-            return prefixProjectPath(paths);
         }
+
+        return prefixProjectPath(paths);
     }
 
     /**
@@ -759,9 +759,9 @@ define(function (require, exports, module) {
 
         if (Array.isArray(paths)) {
             return paths.map(removeProjectPath);
-        } else {
-            return removeProjectPath(paths);
         }
+
+        return removeProjectPath(paths);
     }
 
     function makeArray(arg) {
@@ -1156,20 +1156,22 @@ define(function (require, exports, module) {
         }
         if (!root) {
             return false;
-        } else if (!asLink && root.nodeType === 3) { // text node
+        }
+
+        if (!asLink && root.nodeType === 3) { // text node
             return root.textContent.indexOf(content) !== -1;
-        } else {
-            if (asLink && root.nodeType === 1 && root.tagName.toLowerCase() === "a" && root.getAttribute("href") === content) {
+        }
+
+        if (asLink && root.nodeType === 1 && root.tagName.toLowerCase() === "a" && root.getAttribute("href") === content) {
+            return true;
+        }
+        var children = root.childNodes;
+        for (i = 0; i < children.length; i++) {
+            if (findDOMText(children[i], content, asLink)) {
                 return true;
             }
-            var children = root.childNodes;
-            for (i = 0; i < children.length; i++) {
-                if (findDOMText(children[i], content, asLink)) {
-                    return true;
-                }
-            }
-            return false;
         }
+        return false;
     }
 
 
@@ -1376,9 +1378,9 @@ define(function (require, exports, module) {
                 // selection and the position. We just check the position in that case.
                 if (this.isNot) {
                     return positionsMatch;
-                } else {
-                    return !selectionMoreThanOneCharacter && positionsMatch;
                 }
+
+                return !selectionMoreThanOneCharacter && positionsMatch;
             }
         });
     });

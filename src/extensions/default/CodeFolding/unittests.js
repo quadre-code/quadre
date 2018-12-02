@@ -166,12 +166,16 @@ define(function (require, exports, module) {
             if (!lineInfo || !lineInfo.gutterMarkers) {
                 return;
             }
+
             var classes = lineInfo.gutterMarkers[gutterName].classList;
             if (classes && classes.contains(foldMarkerClosed)) {
                 return {line: lineInfo.line, type: folded};
-            } else if (classes && classes.contains(foldMarkerOpen)) {
+            }
+
+            if (classes && classes.contains(foldMarkerOpen)) {
                 return {line: lineInfo.line, type: open};
             }
+
             return;
         }
 

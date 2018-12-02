@@ -815,9 +815,9 @@ define(function (require, exports, module) {
                                 result = Number(result.substr(0, result.length - 1));
                             }
                             return result;
-                        } else {
-                            return tinycolor(colorEditor.getColor()).toHsv()[opts.param];
                         }
+
+                        return tinycolor(colorEditor.getColor()).toHsv()[opts.param];
                     }
 
                     makeUI(opts.color || "hsla(50, 25%, 50%, 0.5)");

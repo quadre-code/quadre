@@ -61,7 +61,9 @@ define(function (require, exports, module) {
                         string: seen
                     };
                     return range;
-                } else if (characterIndex >= line.length) {
+                }
+
+                if (characterIndex >= line.length) {
                     seen = seen.concat(cm.lineSeparator());
                     if (condition(seen)) {
                         range = {

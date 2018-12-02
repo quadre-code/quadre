@@ -279,7 +279,9 @@ define(function (require, exports, module) {
             end.ch = tagInfo.token.end;
             this.editor.document.replaceRange(completion, start, end);
             return false;
-        } else if (tagInfo.tokenType === XMLUtils.TOKEN_ATTR) {
+        }
+
+        if (tagInfo.tokenType === XMLUtils.TOKEN_ATTR) {
             if (!tagInfo.shouldReplace) {
                 completion += "=\"\"";
 
@@ -293,15 +295,17 @@ define(function (require, exports, module) {
                 this.editor.document.replaceRange(completion, start, end);
                 this.editor.setCursorPos(start.line, start.ch + completion.length - 1);
                 return true;
-            } else {
-                // We don't append ="" again, just replace the attribute token.
-                start.ch = tagInfo.token.start;
-                end.ch = tagInfo.token.end;
-                this.editor.document.replaceRange(completion, start, end);
-                this.editor.setCursorPos(start.line, start.ch + completion.length);
-                return false;
             }
-        } else if (tagInfo.tokenType === XMLUtils.TOKEN_VALUE) {
+
+            // We don't append ="" again, just replace the attribute token.
+            start.ch = tagInfo.token.start;
+            end.ch = tagInfo.token.end;
+            this.editor.document.replaceRange(completion, start, end);
+            this.editor.setCursorPos(start.line, start.ch + completion.length);
+            return false;
+        }
+
+        if (tagInfo.tokenType === XMLUtils.TOKEN_VALUE) {
             startChar = tagInfo.token.string.charAt(0);
             endChar = tagInfo.token.string.substr(-1, 1);
 

@@ -225,7 +225,9 @@ define(function (require, exports, module) {
             exclusionList = _getExclusionList(editor, pos);
 
             return _createContextInfo(ctx.token, TOKEN_KEY, offset, keyName, valueName, parentKeyName, null, exclusionList, shouldReplace);
-        } else if (ctx.token && (valueTokenTypes.indexOf(ctx.token.type) !== -1 ||
+        }
+
+        if (ctx.token && (valueTokenTypes.indexOf(ctx.token.type) !== -1 ||
                                 (ctx.token.type === null && regexAllowedChars.test(ctx.token.string)))) {
             // Boolean, String, Number and variable literal values.
 
@@ -272,9 +274,9 @@ define(function (require, exports, module) {
             // If we have a comma but no opening bracket, return null.
             if ((!keyName || !hasColon) || (hasComma && !hasBracket)) {
                 return null;
-            } else {
-                isArray = hasBracket;
             }
+
+            isArray = hasBracket;
 
             // Get parent key name.
             if (requireParent) {

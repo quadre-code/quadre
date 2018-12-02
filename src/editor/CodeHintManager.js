@@ -401,10 +401,10 @@ define(function (require, exports, module) {
                     (hintList.isOpen() ||
                      (deferredHints && deferredHints.state() === "pending"))) {
                 return true;
-            } else {
-                // the editor has changed
-                _endSession();
             }
+
+            // the editor has changed
+            _endSession();
         }
         return false;
     }

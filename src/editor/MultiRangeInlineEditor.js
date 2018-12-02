@@ -816,9 +816,9 @@ define(function (require, exports, module) {
         var focusedWidget = EditorManager.getFocusedInlineWidget();
         if (focusedWidget instanceof MultiRangeInlineEditor) {
             return focusedWidget;
-        } else {
-            return null;
         }
+
+        return null;
     }
 
     /**

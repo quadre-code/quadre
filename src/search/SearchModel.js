@@ -139,9 +139,9 @@ define(function (require, exports, module) {
             this.queryInfo = queryInfo;
             this.queryExpr = parsedQuery.queryExpr;
             return true;
-        } else {
-            return false;
         }
+
+        return false;
     };
 
     /**
@@ -224,9 +224,12 @@ define(function (require, exports, module) {
             return Object.keys(this.results).sort(function (key1, key2) {
                 if (firstFile === key1) {
                     return -1;
-                } else if (firstFile === key2) {
+                }
+
+                if (firstFile === key2) {
                     return 1;
                 }
+
                 return FileUtils.comparePaths(key1, key2);
             });
         }

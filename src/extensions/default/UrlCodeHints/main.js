@@ -260,7 +260,9 @@ define(function (require, exports, module) {
         var mode = editor.getModeForSelection();
         if (mode === "html") {
             return this.hasHtmlHints(editor, implicitChar);
-        } else if (styleModes.indexOf(mode) > -1) {
+        }
+
+        if (styleModes.indexOf(mode) > -1) {
             return this.hasCssHints(editor, implicitChar);
         }
 
@@ -491,8 +493,9 @@ define(function (require, exports, module) {
                 selectInitial: true,
                 handleWideResults: false
             };
+        }
 
-        } else if (hints instanceof Object && hints.hasOwnProperty("done")) {
+        if (hints instanceof Object && hints.hasOwnProperty("done")) {
             // Deferred hints were returned
             var deferred = $.Deferred();
             hints.done(function (asyncHints) {
@@ -535,7 +538,9 @@ define(function (require, exports, module) {
 
         if (mode === "html") {
             return this.insertHtmlHint(completion);
-        } else if (styleModes.indexOf(mode) > -1) {
+        }
+
+        if (styleModes.indexOf(mode) > -1) {
             return this.insertCssHint(completion);
         }
 
@@ -562,7 +567,9 @@ define(function (require, exports, module) {
 
         if (pos1.index === pos2.index) {
             return (pos2.offset >= pos1.offset) ? (pos2.offset - pos1.offset) : 0;
-        } else if (pos1.index < pos2.index) {
+        }
+
+        if (pos1.index < pos2.index) {
             if (pos1.index < 0 || pos1.index >= array.length || pos2.index < 0 || pos2.index >= array.length) {
                 return 0;
             }
@@ -700,13 +707,12 @@ define(function (require, exports, module) {
                 this.editor.setCursorPos(start.line, start.ch + completion.length + moveLen);
             }
             return false;
+        }
 
-        } else {
-            // If closing quote and/or paren are added, move the cursor to where it would have been
-            moveLen = ((this.info.openingQuote && !hasClosingQuote) ? 1 : 0) + (!hasClosingParen ? 1 : 0);
-            if (moveLen > 0) {
-                this.editor.setCursorPos(start.line, start.ch + completion.length);
-            }
+        // If closing quote and/or paren are added, move the cursor to where it would have been
+        moveLen = ((this.info.openingQuote && !hasClosingQuote) ? 1 : 0) + (!hasClosingParen ? 1 : 0);
+        if (moveLen > 0) {
+            this.editor.setCursorPos(start.line, start.ch + completion.length);
         }
 
         return true;

@@ -132,9 +132,9 @@ define(function (require, exports, module) {
 
         if (cursor) {
             return TokenUtils.getTokenAt(cm, cursor);
-        } else {
-            return TokenUtils.getTokenAt(cm, this.getCursor());
         }
+
+        return TokenUtils.getTokenAt(cm, this.getCursor());
     };
 
     /**
@@ -170,9 +170,9 @@ define(function (require, exports, module) {
                 ch  : cursor.ch + 1,
                 line: cursor.line
             };
-        } else {
-            return null;
         }
+
+        return null;
     };
 
     /**
@@ -287,17 +287,19 @@ define(function (require, exports, module) {
         if (token.string === ")") {
             this._getPreviousToken(cursor);
             return this.getContext(cursor, ++depth);
-        } else if (token.string === "(") {
+        }
+
+        if (token.string === "(") {
             this._getPreviousToken(cursor);
             return this.getContext(cursor, --depth);
-        } else {
-            if (depth > 0 || token.string === ".") {
-                this._getPreviousToken(cursor);
-                return this.getContext(cursor, depth);
-            } else {
-                return token.string;
-            }
         }
+
+        if (depth > 0 || token.string === ".") {
+            this._getPreviousToken(cursor);
+            return this.getContext(cursor, depth);
+        }
+
+        return token.string;
     };
 
     /**
@@ -311,14 +313,15 @@ define(function (require, exports, module) {
         // If the cursor is right after the dot, then the current token will be "."
         if (token && token.string === ".") {
             return cursor;
-        } else {
-            // If something has been typed like 'foo.b' then we have to look back 2 tokens
-            // to get past the 'b' token
-            token = this._getPreviousToken(cursor);
-            if (token && token.string === ".") {
-                return cursor;
-            }
         }
+
+        // If something has been typed like 'foo.b' then we have to look back 2 tokens
+        // to get past the 'b' token
+        token = this._getPreviousToken(cursor);
+        if (token && token.string === ".") {
+            return cursor;
+        }
+
         return undefined;
     };
 
@@ -331,7 +334,9 @@ define(function (require, exports, module) {
         if (token.state.lexical) {
             // in a javascript file this is just in the state field
             return token.state.lexical;
-        } else if (token.state.localState && token.state.localState.lexical) {
+        }
+
+        if (token.state.localState && token.state.localState.lexical) {
             // inline javascript in an html file will have this in
             // the localState field
             return token.state.localState.lexical;
@@ -500,14 +505,20 @@ define(function (require, exports, module) {
         // alphabetical letters
         if (aName[0] === "_" && bName[0] !== "_") {
             return 1;
-        } else if (bName[0] === "_" && aName[0] !== "_") {
+        }
+
+        if (bName[0] === "_" && aName[0] !== "_") {
             return -1;
         }
+
         if (aName < bName) {
             return -1;
-        } else if (aName > bName) {
+        }
+
+        if (aName > bName) {
             return 1;
         }
+
         return 0;
     }
 
@@ -785,10 +796,10 @@ define(function (require, exports, module) {
             });
 
             return text;
-        } else {
-            // Javascript file, just return the text
-            return this.editor.document.getText();
         }
+
+        // Javascript file, just return the text
+        return this.editor.document.getText();
     };
 
     /**

@@ -670,9 +670,9 @@ define(function (require, exports, module) {
     function updateWelcomeProjectPath(path) {
         if (isWelcomeProjectPath(path)) {
             return _getWelcomeProjectPath();
-        } else {
-            return path;
         }
+
+        return path;
     }
 
     /**
@@ -738,7 +738,9 @@ define(function (require, exports, module) {
                         FileViewController.openFileAndAddToWorkingSet(path);
                     });
                     return FileUtils.getDirectoryPath(path);
-                } else if (stats.isDirectory()) {
+                }
+
+                if (stats.isDirectory()) {
                     return path.endsWith("/") ? path : path + "/";
                 }
             } catch (err) {
@@ -1118,9 +1120,9 @@ define(function (require, exports, module) {
             var id = LanguageManager.getLanguageForPath(file.fullPath).getId();
             if (typeof languageId === "string") {
                 return (id === languageId);
-            } else {
-                return (languageId.indexOf(id) !== -1);
             }
+
+            return (languageId.indexOf(id) !== -1);
         };
     }
 

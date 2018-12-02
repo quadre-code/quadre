@@ -240,9 +240,9 @@ define(function (require, exports, module) {
         // current project or the full absolute path if it's not in the project.
         if (doc.isUntitled()) {
             return fullPath.substring(fullPath.lastIndexOf("/") + 1);
-        } else {
-            return ProjectManager.makeProjectRelativeIfPossible(fullPath);
         }
+
+        return ProjectManager.makeProjectRelativeIfPossible(fullPath);
     }
 
     /**
@@ -1028,9 +1028,9 @@ define(function (require, exports, module) {
                 }
 
                 return _doSaveAs(doc, settings);
-            } else {
-                return doSave(doc);
             }
+
+            return doSave(doc);
         }
 
         return $.Deferred().reject().promise();
@@ -1075,11 +1075,11 @@ define(function (require, exports, module) {
                             }
                         });
                     return savePromise;
-                } else {
-                    // workingset entry that was never actually opened - ignore
-                    filesAfterSave.push(file);
-                    return (new $.Deferred()).resolve().promise();
                 }
+
+                // workingset entry that was never actually opened - ignore
+                filesAfterSave.push(file);
+                return (new $.Deferred()).resolve().promise();
             },
             false  // if any save fails, continue trying to save other files anyway; then reject at end
         ).then(function () {

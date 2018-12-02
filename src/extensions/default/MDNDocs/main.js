@@ -161,10 +161,9 @@ define(function (require, exports, module) {
                 });
 
             return result.promise();
-
-        } else {
-            return null;
         }
+
+        return null;
     }
 
     // Register as inline docs provider

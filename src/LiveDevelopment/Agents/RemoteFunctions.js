@@ -69,10 +69,10 @@ function RemoteFunctions(config, remoteWSPort) {
         if (window.navigator.platform.substr(0, 3) === "Mac") {
             // Mac
             return event.metaKey;
-        } else {
-            // Windows
-            return event.ctrlKey;
         }
+
+        // Windows
+        return event.ctrlKey;
     }
 
     // determine the color for a type

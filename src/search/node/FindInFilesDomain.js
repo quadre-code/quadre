@@ -85,12 +85,12 @@ function offsetToLineNum(textOrLines, offset) {
         // if offset is NOT over the total then offset is in the last line
         if (offset <= total) {
             return line - 1;
-        } else {
-            return undefined;
         }
-    } else {
-        return textOrLines.substr(0, offset).split("\n").length - 1;
+
+        return undefined;
     }
+
+    return textOrLines.substr(0, offset).split("\n").length - 1;
 }
 
 /**
@@ -281,14 +281,13 @@ function doSearchInFiles(fileList, queryExpr, startFileIndex, maxResultsToReturn
     if (fileList.length === 0) {
         console.log("no files found");
         return;
-
-    } else {
-        startFileIndex = startFileIndex || 0;
-        for (i = startFileIndex; i < fileList.length && !foundMaximum; i++) {
-            doSearchInOneFile(fileList[i], getFileContentsForFile(fileList[i]), queryExpr, maxResultsToReturn);
-        }
-        lastSearchedIndex = i;
     }
+
+    startFileIndex = startFileIndex || 0;
+    for (i = startFileIndex; i < fileList.length && !foundMaximum; i++) {
+        doSearchInOneFile(fileList[i], getFileContentsForFile(fileList[i]), queryExpr, maxResultsToReturn);
+    }
+    lastSearchedIndex = i;
 }
 
 // Copied from StringUtils.js

@@ -58,10 +58,10 @@ define(function (require, exports, module) {
                 || (token.type === "variable-2" && (cmState.context.type === "top" || cmState.context.type === "block"))) {
             this.filter = token.string;
             return true;
-        } else {
-            this.filter = null;
-            return false;
         }
+
+        this.filter = null;
+        return false;
     };
 
     AtRuleHints.prototype.getHints = function (implicitChar) {

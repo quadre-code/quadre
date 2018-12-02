@@ -380,13 +380,13 @@ define(function (require, exports, module) {
             this._$table.css("display", "none");
 
             return true;
-        } else {
-            this._$emptyMessage.css("display", "none");
-            this._$infoMessage.css("display", this.model.infoMessage ? "block" : "none");
-            this._$table.css("display", "");
-
-            return false;
         }
+
+        this._$emptyMessage.css("display", "none");
+        this._$infoMessage.css("display", this.model.infoMessage ? "block" : "none");
+        this._$table.css("display", "");
+
+        return false;
     };
 
     /**

@@ -139,14 +139,14 @@ define(function (require, exports, module) {
         if (end.ch === undefined) {
             // We were unable to resync the end bookmark.
             return null;
-        } else {
-            return {
-                start: start,
-                end:   end,
-                match: matches,
-                originalLength: originalLength
-            };
         }
+
+        return {
+            start: start,
+            end:   end,
+            match: matches,
+            originalLength: originalLength
+        };
     };
 
     /**

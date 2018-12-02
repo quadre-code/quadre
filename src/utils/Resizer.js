@@ -213,31 +213,33 @@ define(function (require, exports, module) {
                     // calling the function as a getter
                     if (direction === DIRECTION_HORIZONTAL) {
                         return this.width();
-                    } else {
-                        return this.height();
                     }
-                } else if (!usePercentages) {
+
+                    return this.height();
+                }
+
+                if (!usePercentages) {
                     if (direction === DIRECTION_HORIZONTAL) {
                         return this.width(newSize);
-                    } else {
-                        return this.height(newSize);
                     }
-                } else {
-                    // calling the function as a setter
-                    var parentSize = parentSizeFunction.apply($parent),
-                        percentage,
-                        prop;
 
-                    if (direction === DIRECTION_HORIZONTAL) {
-                        prop = "width";
-                    } else {
-                        prop = "height";
-                    }
-                    percentage = newSize / parentSize;
-                    this.css(prop, (percentage * 100) + "%");
-
-                    return this; // chainable
+                    return this.height(newSize);
                 }
+
+                // calling the function as a setter
+                var parentSize = parentSizeFunction.apply($parent),
+                    percentage,
+                    prop;
+
+                if (direction === DIRECTION_HORIZONTAL) {
+                    prop = "width";
+                } else {
+                    prop = "height";
+                }
+                percentage = newSize / parentSize;
+                this.css(prop, (percentage * 100) + "%");
+
+                return this; // chainable
             },
 
             resizerCSSPosition  = direction === DIRECTION_HORIZONTAL ? "left" : "top",

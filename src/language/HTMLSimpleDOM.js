@@ -344,7 +344,9 @@ define(function (require, exports, module) {
                 PerfUtils.addMeasurement(timerBuildPart);       // use
                 this._logError(token);
                 return null;
-            } else if (token.type === "opentagname") {
+            }
+
+            if (token.type === "opentagname") {
                 var newTagName = token.contents.toLowerCase(),
                     newTag;
 

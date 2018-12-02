@@ -1575,17 +1575,17 @@ define(function (require, exports, module) {
                 // just short-circuit here and
                 //  return 100% to avoid any rounding issues
                 return 1;
-            } else {
-                if (_orientation === VERTICAL) {
-                    available = _$el.innerWidth();
-                    used = _panes[FIRST_PANE].$el.width();
-                } else {
-                    available = _$el.innerHeight();
-                    used = _panes[FIRST_PANE].$el.height();
-                }
-
-                return used / available;
             }
+
+            if (_orientation === VERTICAL) {
+                available = _$el.innerWidth();
+                used = _panes[FIRST_PANE].$el.width();
+            } else {
+                available = _$el.innerHeight();
+                used = _panes[FIRST_PANE].$el.height();
+            }
+
+            return used / available;
         }
 
         var projectRoot     = ProjectManager.getProjectRoot(),

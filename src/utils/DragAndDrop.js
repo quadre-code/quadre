@@ -52,7 +52,9 @@ define(function (require, exports, module) {
                 if (entry.isFile) {
                     // If any files are being dropped, this is a valid drop
                     return true;
-                } else if (len === 1) {
+                }
+
+                if (len === 1) {
                     // If exactly one folder is being dropped, this is a valid drop
                     return true;
                 }
@@ -145,9 +147,9 @@ define(function (require, exports, module) {
                 function errorToString(err) {
                     if (err === ERR_MULTIPLE_ITEMS_WITH_DIR) {
                         return Strings.ERROR_MIXED_DRAGDROP;
-                    } else {
-                        return FileUtils.getFileErrorString(err);
                     }
+
+                    return FileUtils.getFileErrorString(err);
                 }
 
                 if (errorFiles.length > 0) {

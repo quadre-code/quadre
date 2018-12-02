@@ -326,9 +326,9 @@ define(function (require, exports, module) {
                 // Dirs always have trailing slash, so we don't have to worry about being
                 // a substring of another dir name
                 return file.fullPath.indexOf(scope.fullPath) === 0;
-            } else {
-                return file.fullPath === scope.fullPath;
             }
+
+            return file.fullPath === scope.fullPath;
         }
         return true;
     }
@@ -358,9 +358,9 @@ define(function (require, exports, module) {
         // in-memory file might be an untitled document that doesn't show up in getAllFiles().
         if (scope && scope.isFile) {
             return new $.Deferred().resolve(filter(scope) ? [scope] : []).promise();
-        } else {
-            return ProjectManager.getAllFiles(filter, true, true);
         }
+
+        return ProjectManager.getAllFiles(filter, true, true);
     }
 
     /**
@@ -507,9 +507,9 @@ define(function (require, exports, module) {
                     if (fileListResult.length) {
                         searchModel.allResultsAvailable = true;
                         return Async.doInParallel(fileListResult, _doSearchInOneFile);
-                    } else {
-                        return ZERO_FILES_TO_SEARCH;
                     }
+
+                    return ZERO_FILES_TO_SEARCH;
                 }
 
                 var searchDeferred = new $.Deferred();
@@ -572,9 +572,9 @@ define(function (require, exports, module) {
                             searchDeferred.reject();
                         });
                     return searchDeferred.promise();
-                } else {
-                    return ZERO_FILES_TO_SEARCH;
                 }
+
+                return ZERO_FILES_TO_SEARCH;
             })
             .then(function (zeroFilesToken) {
                 exports._searchDone = true; // for unit tests
@@ -582,9 +582,9 @@ define(function (require, exports, module) {
 
                 if (zeroFilesToken === ZERO_FILES_TO_SEARCH) {
                     return zeroFilesToken;
-                } else {
-                    return searchModel.results;
                 }
+
+                return searchModel.results;
             }, function (err) {
                 console.log("find in files failed: ", err);
                 PerfUtils.finalizeMeasurement(perfTimer);

@@ -375,9 +375,9 @@ define(function (require, exports, module) {
         // same token and don't close the hints.
         if (token.string.length >= lastToken.string.length) {
             return token.string.indexOf(lastToken.string) !== 0;
-        } else {
-            return lastToken.string.indexOf(token.string) !== 0;
         }
+
+        return lastToken.string.indexOf(token.string) !== 0;
     };
 
     /**
@@ -462,15 +462,17 @@ define(function (require, exports, module) {
             });
 
             return $deferredHints;
-        } else if (hintsArePending($deferredHints)) {
+        }
+
+        if (hintsArePending($deferredHints)) {
             setCachedHintContext(hintResults.hints, cursor, type, token);
             var hintResponse    = getHintResponse(cachedHints, query, type);
             $deferredHints.resolveWith(null, [hintResponse]);
             return null;
-        } else {
-            setCachedHintContext(hintResults.hints, cursor, type, token);
-            return getHintResponse(cachedHints, query, type);
         }
+
+        setCachedHintContext(hintResults.hints, cursor, type, token);
+        return getHintResponse(cachedHints, query, type);
     }
 
     /**

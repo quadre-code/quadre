@@ -398,7 +398,9 @@ define(function (require, exports, module) {
                 this.handleClose();
 
                 return false;
-            } else if (event.shiftKey &&
+            }
+
+            if (event.shiftKey &&
                     (event.keyCode === KeyEvent.DOM_VK_UP ||
                      event.keyCode === KeyEvent.DOM_VK_DOWN ||
                      event.keyCode === KeyEvent.DOM_VK_PAGE_UP ||
@@ -406,7 +408,9 @@ define(function (require, exports, module) {
                 this.handleClose();
                 // Let the event bubble.
                 return false;
-            } else if (keyCode === KeyEvent.DOM_VK_UP) {
+            }
+
+            if (keyCode === KeyEvent.DOM_VK_UP) {
                 _rotateSelection.call(this, -1);
             } else if (keyCode === KeyEvent.DOM_VK_DOWN ||
                     (event.ctrlKey && keyCode === KeyEvent.DOM_VK_SPACE)) {

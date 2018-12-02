@@ -438,13 +438,13 @@ define(function (require, exports, module) {
 
         if (queryCounter === query.length || !matchList) {
             return null;
-        } else {
-            return {
-                remainder: remainder + query.substring(0, queryCounter),
-                originalRemainder: originalRemainder + originalQuery.substring(0, queryCounter),
-                matchList: matchList
-            };
         }
+
+        return {
+            remainder: remainder + query.substring(0, queryCounter),
+            originalRemainder: originalRemainder + originalQuery.substring(0, queryCounter),
+            matchList: matchList
+        };
     }
 
     /*
@@ -880,7 +880,9 @@ define(function (require, exports, module) {
 
                     if (valueA < valueB) {
                         return -1;
-                    } else if (valueA > valueB) {
+                    }
+
+                    if (valueA > valueB) {
                         return 1;
                     }
                 }

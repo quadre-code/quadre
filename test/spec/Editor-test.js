@@ -40,7 +40,9 @@ define(function (require, exports, module) {
     function compareMode(expected, actual) {
         if (typeof actual === "string") {
             return actual === expected;
-        } else if (actual === null) {
+        }
+
+        if (actual === null) {
             return expected === null;
         }
 

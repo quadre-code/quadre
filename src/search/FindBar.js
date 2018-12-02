@@ -188,9 +188,9 @@ define(function (require, exports, module) {
     FindBar.prototype.$ = function (selector) {
         if (this._modalBar) {
             return $(selector, this._modalBar.getRoot());
-        } else {
-            return $();
         }
+
+        return $();
     };
 
     // TODO: change IDs to classes

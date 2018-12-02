@@ -1362,13 +1362,13 @@ define(function (require, exports, module) {
                         });
                 }
                 return true;
-            } else {
-                // Nothing was removed so don't try to remove it again
-                return false;
             }
-        } else {
-            return this._doRemove(file, preventViewChange);
+
+            // Nothing was removed so don't try to remove it again
+            return false;
         }
+
+        return this._doRemove(file, preventViewChange);
     };
 
     /**

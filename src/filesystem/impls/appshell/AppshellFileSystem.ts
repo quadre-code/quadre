@@ -469,10 +469,10 @@ function writeFile(
                     _finishWrite(false);
                 });
                 return;
-            } else {
-                callback(FileSystemError.CONTENTS_MODIFIED);
-                return;
             }
+
+            callback(FileSystemError.CONTENTS_MODIFIED);
+            return;
         }
 
         _finishWrite(false);

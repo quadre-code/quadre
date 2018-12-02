@@ -287,7 +287,9 @@ define(function (require, exports, module) {
                     return cur.some(function (keyword) {
                         return keyword.toLowerCase().indexOf(query) !== -1;
                     });
-                } else if (fieldSpec[fieldSpec.length - 1] === "owner") {
+                }
+
+                if (fieldSpec[fieldSpec.length - 1] === "owner") {
                     // Special handling: ignore the authentication source when querying,
                     // since it's not useful to search on
                     var components = cur.split(":");
@@ -305,9 +307,9 @@ define(function (require, exports, module) {
             .filter(function (entry) {
                 if (!isTheme) {
                     return entry.registryInfo && !entry.registryInfo.metadata.theme;
-                } else {
-                    return entry.registryInfo && entry.registryInfo.metadata.theme;
                 }
+
+                return entry.registryInfo && entry.registryInfo.metadata.theme;
             })
             .map(function (entry) {
                 return entry.registryInfo.metadata.name;
@@ -441,7 +443,9 @@ define(function (require, exports, module) {
 
             if (ua1 && !ua2) {
                 return -1;
-            } else if (!ua1 && ua2) {
+            }
+
+            if (!ua1 && ua2) {
                 return 1;
             }
 

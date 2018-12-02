@@ -487,10 +487,13 @@ define(function (require, exports, module) {
             bezierEditor._commitTimingFunction();
             bezierEditor._updateCanvas();
             return true;
+        }
 
-        } else if (code === KeyEvent.DOM_VK_ESCAPE) {
+        if (code === KeyEvent.DOM_VK_ESCAPE) {
             return true;
-        } else if (code === KeyEvent.DOM_VK_TAB && !e.ctrlKey && !e.metaKey && !e.altKey) {
+        }
+
+        if (code === KeyEvent.DOM_VK_TAB && !e.ctrlKey && !e.metaKey && !e.altKey) {
             // Switch between the two points by tabbing
             if ($(e.target).hasClass("P1")) {
                 $(".P2").focus();
@@ -621,20 +624,20 @@ define(function (require, exports, module) {
         if (match[0].match(/^cubic-bezier/)) {
             // cubic-bezier()
             return match.slice(1, 5);
-        } else {
-            // handle special cases of cubic-bezier calls
-            switch (match[0]) {
-                case "linear":
-                    return [ "0", "0", "1", "1" ];
-                case "ease":
-                    return [ ".25", ".1", ".25", "1" ];
-                case "ease-in":
-                    return [ ".42", "0", "1", "1" ];
-                case "ease-out":
-                    return [ "0", "0", ".58", "1" ];
-                case "ease-in-out":
-                    return [ ".42", "0", ".58", "1" ];
-            }
+        }
+
+        // handle special cases of cubic-bezier calls
+        switch (match[0]) {
+            case "linear":
+                return [ "0", "0", "1", "1" ];
+            case "ease":
+                return [ ".25", ".1", ".25", "1" ];
+            case "ease-in":
+                return [ ".42", "0", "1", "1" ];
+            case "ease-out":
+                return [ "0", "0", ".58", "1" ];
+            case "ease-in-out":
+                return [ ".42", "0", ".58", "1" ];
         }
 
         window.console.log("brackets-cubic-bezier: getCubicBezierCoords() passed invalid RegExp match array");

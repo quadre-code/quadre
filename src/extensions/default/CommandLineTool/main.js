@@ -67,7 +67,9 @@ define(function (require, exports, module) {
         if (errorCode === appshell.app.ERR_CL_TOOLS_CANCELLED) {
             // The user has cancelled the authentication dialog.
             return;
-        } else if (errorCode == null) {
+        }
+
+        if (errorCode == null) {
             // flag success message here.
             dialog = Dialogs.showModalDialog(
                 DefaultDialogs.DIALOG_ID_INFO,

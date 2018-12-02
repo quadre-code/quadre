@@ -93,14 +93,14 @@ define(function (require, exports, module) {
 
         if (!context) {
             return null;
-        } else {
-            inlineColorEditor = new InlineColorEditor(context.color, context.marker);
-            inlineColorEditor.load(hostEditor);
-
-            result = new $.Deferred();
-            result.resolve(inlineColorEditor);
-            return result.promise();
         }
+
+        inlineColorEditor = new InlineColorEditor(context.color, context.marker);
+        inlineColorEditor.load(hostEditor);
+
+        result = new $.Deferred();
+        result.resolve(inlineColorEditor);
+        return result.promise();
     }
 
 

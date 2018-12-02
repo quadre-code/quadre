@@ -336,12 +336,12 @@ describe("Package Installation", function () {
             expect(fs.existsSync(path.join(result.installedTo, "node_modules", "lodash"))).toBe(true);
             expect(fs.existsSync(path.join(result.installedTo, "node_modules", "lodash", "package.json"))).toBe(true);
             var packageInfo = JSON.parse(fs.readFileSync(path.join(result.installedTo, "node_modules", "lodash", "package.json")));
-            expect(packageInfo.version.slice(0,2)).toBe("3.");
+            expect(packageInfo.version.slice(0, 2)).toBe("3.");
 
             expect(fs.existsSync(path.join(result.installedTo, "node_modules", "moment"))).toBe(true);
             expect(fs.existsSync(path.join(result.installedTo, "node_modules", "moment", "package.json"))).toBe(true);
             packageInfo = JSON.parse(fs.readFileSync(path.join(result.installedTo, "node_modules", "moment", "package.json")));
-            expect(packageInfo.version.slice(0,4)).toBe("2.5.");
+            expect(packageInfo.version.slice(0, 4)).toBe("2.5.");
 
             expect(fs.existsSync(path.join(result.installedTo, "node_modules", "underscore"))).toBe(true);
             expect(fs.existsSync(path.join(result.installedTo, "node_modules", "underscore", "package.json"))).toBe(true);

@@ -419,10 +419,9 @@ define(function (require, exports, module) {
                 asyncResult.resolve(_doSearchFileList(query, matcher));
             });
             return asyncResult.promise();
-
-        } else {
-            return _doSearchFileList(query, matcher);
         }
+
+        return _doSearchFileList(query, matcher);
     }
 
     /**
@@ -448,9 +447,9 @@ define(function (require, exports, module) {
                 EditorManager.getCurrentFullEditor().setSelection(from, to, true);
 
                 return { error: null };  // no error even though no results listed
-            } else {
-                return [];  // red error highlight: line number out of range, or no editor open
             }
+
+            return [];  // red error highlight: line number out of range, or no editor open
         }
         if (query === ":") {  // treat blank ":" query as valid, but no-op
             return { error: null };
@@ -548,9 +547,9 @@ define(function (require, exports, module) {
             if (includesLastSegment) {
                 var rightmostSlash = rangeText.lastIndexOf("/");
                 return rangeText.substring(rightmostSlash + 1);  // safe even if rightmostSlash is -1
-            } else {
-                return "";
             }
+
+            return "";
         }
         var displayName = highlightMatch(item, null, fileNameFilter);
         var displayPath = highlightMatch(item, "quicksearch-pathmatch");

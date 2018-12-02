@@ -361,20 +361,20 @@ define(function (require, exports, module) {
         if (latestInfo.isCompatible) {
             latestInfo.isLatestVersion = true;
             return latestInfo;
-        } else {
-            // Look at earlier versions (skipping very latest version since we already checked it)
-            for (i--; i >= 0; i--) {
-                var compatInfo = getCompatibilityInfoForVersion(entry.versions[i], apiVersion);
-                if (compatInfo.isCompatible) {
-                    compatInfo.isLatestVersion = false;
-                    compatInfo.requiresNewer = latestInfo.requiresNewer;
-                    return compatInfo;
-                }
-            }
-
-            // No version is compatible, so just return info for the latest version
-            return latestInfo;
         }
+
+        // Look at earlier versions (skipping very latest version since we already checked it)
+        for (i--; i >= 0; i--) {
+            var compatInfo = getCompatibilityInfoForVersion(entry.versions[i], apiVersion);
+            if (compatInfo.isCompatible) {
+                compatInfo.isLatestVersion = false;
+                compatInfo.requiresNewer = latestInfo.requiresNewer;
+                return compatInfo;
+            }
+        }
+
+        // No version is compatible, so just return info for the latest version
+        return latestInfo;
     }
 
     /**

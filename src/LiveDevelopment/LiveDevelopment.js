@@ -857,12 +857,12 @@ define(function LiveDevelopment(require, exports, module) {
         WebSocketTransport.closeWebSocketServer();
         if (_closeDeferred) {
             return _closeDeferred;
-        } else {
-            _closeDeferred = new $.Deferred();
-            _closeDeferred.always(function () {
-                _closeDeferred = null;
-            });
         }
+
+        _closeDeferred = new $.Deferred();
+        _closeDeferred.always(function () {
+            _closeDeferred = null;
+        });
 
         var promise = _closeDeferred.promise();
 
@@ -1338,12 +1338,12 @@ define(function LiveDevelopment(require, exports, module) {
             // Return existing promise if it is still pending
             if (_isPromisePending(_openDeferred)) {
                 return _openDeferred;
-            } else {
-                _openDeferred = new $.Deferred();
-                _openDeferred.always(function () {
-                    _openDeferred = null;
-                });
             }
+
+            _openDeferred = new $.Deferred();
+            _openDeferred.always(function () {
+                _openDeferred = null;
+            });
         }
 
         // Register user defined server provider and keep handlers for further clean-up

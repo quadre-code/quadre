@@ -96,9 +96,9 @@ define(function (require, exports, module) {
             // If command does not return a promise, assume that it handled the
             // command and return a resolved promise
             return (new $.Deferred()).resolve().promise();
-        } else {
-            return result;
         }
+
+        return result;
     };
 
     /**
@@ -286,9 +286,9 @@ define(function (require, exports, module) {
             }
 
             return command.execute.apply(command, Array.prototype.slice.call(arguments, 1));
-        } else {
-            return (new $.Deferred()).reject().promise();
         }
+
+        return (new $.Deferred()).reject().promise();
     }
 
     EventDispatcher.makeEventDispatcher(exports);

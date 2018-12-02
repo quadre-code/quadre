@@ -112,7 +112,9 @@ define(function (require, exports, module) {
             get: function () {
                 if (this.children) {
                     return Node.ELEMENT_NODE;
-                } else if (this.content) {
+                }
+
+                if (this.content) {
                     return Node.TEXT_NODE;
                 }
             }

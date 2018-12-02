@@ -332,9 +332,9 @@ define(function (require, exports, module) {
             });
             sd = Math.round(Math.sqrt(variationSum / entry.length));
             return min + "(" + avg + ")" + max + "[" + sd + "]";
-        } else {
-            return entry.join(", ");
         }
+
+        return entry.join(", ");
     }
 
     /**

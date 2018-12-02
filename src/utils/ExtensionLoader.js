@@ -264,9 +264,9 @@ define(function (require, exports, module) {
 
                 if (!metadata.disabled) {
                     return loadExtensionModule(name, config, entryPoint);
-                } else {
-                    return new $.Deferred().reject("disabled").promise();
                 }
+
+                return new $.Deferred().reject("disabled").promise();
             })
             .then(function () {
                 exports.trigger("load", config.baseUrl);

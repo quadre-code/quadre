@@ -41,9 +41,9 @@ function cmdLoadDomainModulesFromPaths(paths: string[]): boolean {
             _domainManager.emitEvent("base", "newDomains");
         }
         return success;
-    } else {
-        return false;
     }
+
+    return false;
 }
 
 /**

@@ -585,12 +585,12 @@ define(function (require, exports, module) {
             // TODO: should we consider ripping through the dom and fixing up other offsets?
             result.dom.fullBuild = false;
             return { edits: result.edits };
-        } else {
-            if (cachedValue) {
-                cachedValue.invalid = true;
-            }
-            return { errors: result.errors };
         }
+
+        if (cachedValue) {
+            cachedValue.invalid = true;
+        }
+        return { errors: result.errors };
     }
 
     /**
@@ -829,7 +829,9 @@ define(function (require, exports, module) {
         if (!dom) {
             console.error("Couldn't find the dom for " + editor.document.file.fullPath);
             return;
-        } else if (!dom.fullBuild) {
+        }
+
+        if (!dom.fullBuild) {
             console.error("Tried to mark text from a stale DOM for " + editor.document.file.fullPath);
             return;
         }

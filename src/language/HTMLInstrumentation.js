@@ -98,9 +98,9 @@ define(function (require, exports, module) {
         });
         if (markFound) {
             return markFound.find().from;
-        } else {
-            return null;
         }
+
+        return null;
     }
 
     /**
@@ -610,12 +610,12 @@ define(function (require, exports, module) {
                 dirty: false
             };
             return { edits: result.edits };
-        } else {
-            if (cachedValue) {
-                cachedValue.invalid = true;
-            }
-            return { errors: result.errors };
         }
+
+        if (cachedValue) {
+            cachedValue.invalid = true;
+        }
+        return { errors: result.errors };
     }
 
     /**

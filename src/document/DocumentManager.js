@@ -332,55 +332,55 @@ define(function (require, exports, module) {
         if (doc) {
             // use existing document
             return new $.Deferred().resolve(doc).promise();
-        } else {
-            var result = new $.Deferred(),
-                promise = result.promise();
-
-            // return null in case of untitled documents
-            if (fullPath.indexOf(_untitledDocumentPath) === 0) {
-                result.resolve(null);
-                return promise;
-            }
-
-            var file            = FileSystem.getFileForPath(fullPath),
-                pendingPromise  = getDocumentForPath._pendingDocumentPromises[file.id];
-
-            if (pendingPromise) {
-                // wait for the result of a previous request
-                return pendingPromise;
-            } else {
-                // log this document's Promise as pending
-                getDocumentForPath._pendingDocumentPromises[file.id] = promise;
-
-                // create a new document
-                var perfTimerName = PerfUtils.markStart("getDocumentForPath:\t" + fullPath);
-
-                result.done(function () {
-                    PerfUtils.addMeasurement(perfTimerName);
-                }).fail(function () {
-                    PerfUtils.finalizeMeasurement(perfTimerName);
-                });
-
-                FileUtils.readAsText(file)
-                    .always(function () {
-                        // document is no longer pending
-                        delete getDocumentForPath._pendingDocumentPromises[file.id];
-                    })
-                    .done(function (rawText, readTimestamp) {
-                        doc = new DocumentModule.Document(file, readTimestamp, rawText);
-
-                        // This is a good point to clean up any old dangling Documents
-                        _gcDocuments();
-
-                        result.resolve(doc);
-                    })
-                    .fail(function (fileError) {
-                        result.reject(fileError);
-                    });
-
-                return promise;
-            }
         }
+
+        var result = new $.Deferred(),
+            promise = result.promise();
+
+        // return null in case of untitled documents
+        if (fullPath.indexOf(_untitledDocumentPath) === 0) {
+            result.resolve(null);
+            return promise;
+        }
+
+        var file            = FileSystem.getFileForPath(fullPath),
+            pendingPromise  = getDocumentForPath._pendingDocumentPromises[file.id];
+
+        if (pendingPromise) {
+            // wait for the result of a previous request
+            return pendingPromise;
+        }
+
+        // log this document's Promise as pending
+        getDocumentForPath._pendingDocumentPromises[file.id] = promise;
+
+        // create a new document
+        var perfTimerName = PerfUtils.markStart("getDocumentForPath:\t" + fullPath);
+
+        result.done(function () {
+            PerfUtils.addMeasurement(perfTimerName);
+        }).fail(function () {
+            PerfUtils.finalizeMeasurement(perfTimerName);
+        });
+
+        FileUtils.readAsText(file)
+            .always(function () {
+                // document is no longer pending
+                delete getDocumentForPath._pendingDocumentPromises[file.id];
+            })
+            .done(function (rawText, readTimestamp) {
+                doc = new DocumentModule.Document(file, readTimestamp, rawText);
+
+                // This is a good point to clean up any old dangling Documents
+                _gcDocuments();
+
+                result.resolve(doc);
+            })
+            .fail(function (fileError) {
+                result.reject(fileError);
+            });
+
+        return promise;
     }
 
     /**

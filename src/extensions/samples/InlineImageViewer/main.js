@@ -65,20 +65,19 @@ define(function (require, exports, module) {
             }
 
             return string;
-        } else {
+        }
 
-            // Check for url(...);
-            var line = hostEditor._codeMirror.getLine(pos.line);
-            var match = /url\s*\(([^)]*)\)/.exec(line);
+        // Check for url(...);
+        var line = hostEditor._codeMirror.getLine(pos.line);
+        var match = /url\s*\(([^)]*)\)/.exec(line);
 
-            if (match && match[1]) {
-                // URLs are relative to the doc
-                var docPath = hostEditor.document.file.fullPath;
+        if (match && match[1]) {
+            // URLs are relative to the doc
+            var docPath = hostEditor.document.file.fullPath;
 
-                docPath = docPath.substr(0, docPath.lastIndexOf("/"));
+            docPath = docPath.substr(0, docPath.lastIndexOf("/"));
 
-                return docPath + "/" + match[1];
-            }
+            return docPath + "/" + match[1];
         }
 
         return "";

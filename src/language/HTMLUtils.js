@@ -384,7 +384,9 @@ define(function (require, exports, module) {
 
                 if (ctx.token.type === "comment") {
                     return createTagInfo();
-                } else if (!tagPrefixedRegExp.test(ctx.token.type) && ctx.token.string !== "=") {
+                }
+
+                if (!tagPrefixedRegExp.test(ctx.token.type) && ctx.token.string !== "=") {
                     // If it wasn't the tag name, assume it was an attr value
                     // Also we don't handle the "=" here.
                     tagInfo = _getTagInfoStartingFromAttrValue(ctx);

@@ -249,11 +249,13 @@ define(function (require, exports, module) {
                 bIsCSS = LanguageManager.getLanguageForPath(b.fullPath).getId() === "css";
             if (aIsCSS && !bIsCSS) {
                 return 1;
-            } else if (!aIsCSS && bIsCSS) {
-                return -1;
-            } else {
-                return FileUtils.comparePaths(a.fullPath, b.fullPath);
             }
+
+            if (!aIsCSS && bIsCSS) {
+                return -1;
+            }
+
+            return FileUtils.comparePaths(a.fullPath, b.fullPath);
         }
 
         /**

@@ -430,7 +430,9 @@ define(function (require, exports, module) {
 
             return $relativeElement;
 
-        } else if (position && position !== FIRST && position !== LAST) {
+        }
+
+        if (position && position !== FIRST && position !== LAST) {
             console.error("Bad Parameter in _getRelativeMenuItem(): relative position specified with no relativeID");
             return null;
         }

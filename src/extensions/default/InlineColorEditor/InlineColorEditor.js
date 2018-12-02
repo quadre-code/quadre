@@ -119,9 +119,9 @@ define(function (require, exports, module) {
         if (end.ch === undefined) {
             // We were unable to resync the marker.
             return null;
-        } else {
-            return {start: start, end: end};
         }
+
+        return {start: start, end: end};
     };
 
     /**

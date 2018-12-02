@@ -253,10 +253,10 @@ define(function (require, exports, module) {
                 // If found don't process this entry, as the document is already present in active pane
                 if (entryIndex >= 0) {
                     return true;
-                } else {
-                    // Process this for active pane id
-                    value.paneId = MainViewManager.getActivePaneId();
                 }
+
+                // Process this for active pane id
+                value.paneId = MainViewManager.getActivePaneId();
             }
 
             var indxInWS = MainViewManager.findInWorkingSet(value.paneId, value.file);

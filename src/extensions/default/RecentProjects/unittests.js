@@ -65,9 +65,9 @@ define(function (require, exports, module) {
                 if (prefId === "recentProjects") {
                     // return howManyProjects number of fake recent projects entries
                     return _.map(_.range(1, howManyProjects + 1), function (num) { return extensionPath + "/Test-Project-" + num; });
-                } else {
-                    return [];
                 }
+
+                return [];
             });
         }
 

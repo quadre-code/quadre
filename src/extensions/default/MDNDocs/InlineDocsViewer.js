@@ -101,7 +101,9 @@ define(function (require, exports, module) {
         if (scrollingUp && scroller.scrollTop === 0) {
             event.preventDefault();
             return true;
-        } else if (!scrollingUp && scroller.scrollTop + scroller.clientHeight >= scroller.scrollHeight) {
+        }
+
+        if (!scrollingUp && scroller.scrollTop + scroller.clientHeight >= scroller.scrollHeight) {
             event.preventDefault();
             return true;
         }

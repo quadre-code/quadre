@@ -276,8 +276,9 @@ define(function (require, exports, module) {
             stepEditor._commitTimingFunction();
             stepEditor._updateCanvas();
             return true;
+        }
 
-        } else if (code === KeyEvent.DOM_VK_ESCAPE) {
+        if (code === KeyEvent.DOM_VK_ESCAPE) {
             return true;
         }
 
@@ -376,14 +377,14 @@ define(function (require, exports, module) {
                 count:  parseInt(match[1], 10),
                 timing: match[2] || "end"
             };
-        } else {
-            // handle special cases of steps functions
-            switch (match[0]) {
-                case "step-start":
-                    return { count: 1, timing: "start" };
-                case "step-end":
-                    return { count: 1, timing: "end" };
-            }
+        }
+
+        // handle special cases of steps functions
+        switch (match[0]) {
+            case "step-start":
+                return { count: 1, timing: "start" };
+            case "step-end":
+                return { count: 1, timing: "end" };
         }
 
         window.console.log("step timing function: _getStepParams() passed invalid RegExp match array");

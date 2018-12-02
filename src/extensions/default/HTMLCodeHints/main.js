@@ -99,13 +99,14 @@ define(function (require, exports, module) {
                 }
             }
             return false;
-        } else {
-            if (implicitChar === "<") {
-                this.exclusion = this.tagInfo.tagName;
-                return true;
-            }
-            return false;
         }
+
+        if (implicitChar === "<") {
+            this.exclusion = this.tagInfo.tagName;
+            return true;
+        }
+
+        return false;
     };
 
     /**
@@ -353,16 +354,17 @@ define(function (require, exports, module) {
             }
 
             return query !== null;
-        } else {
-            if (implicitChar === " " || implicitChar === "'" ||
-                    implicitChar === "\"" || implicitChar === "=") {
-                if (tokenType === HTMLUtils.ATTR_NAME) {
-                    this.exclusion = this.tagInfo.attr.name;
-                }
-                return true;
-            }
-            return false;
         }
+
+        if (implicitChar === " " || implicitChar === "'" ||
+                implicitChar === "\"" || implicitChar === "=") {
+            if (tokenType === HTMLUtils.ATTR_NAME) {
+                this.exclusion = this.tagInfo.attr.name;
+            }
+            return true;
+        }
+
+        return false;
     };
 
     /**
@@ -445,7 +447,9 @@ define(function (require, exports, module) {
                     selectInitial: true,
                     handleWideResults: false
                 };
-            } else if (hints instanceof Object && hints.hasOwnProperty("done")) { // Deferred hints
+            }
+
+            if (hints instanceof Object && hints.hasOwnProperty("done")) { // Deferred hints
                 var deferred = $.Deferred();
                 hints.done(function (asyncHints) {
                     deferred.resolveWith(this, [{
@@ -456,9 +460,9 @@ define(function (require, exports, module) {
                     }]);
                 });
                 return deferred;
-            } else {
-                return null;
             }
+
+            return null;
         }
 
 
@@ -546,7 +550,9 @@ define(function (require, exports, module) {
             // Since we're now inside the double-quotes we just inserted,
             // immediately pop up the attribute value hint.
             return true;
-        } else if (tokenType === HTMLUtils.ATTR_VALUE && this.tagInfo.attr.hasEndQuote) {
+        }
+
+        if (tokenType === HTMLUtils.ATTR_VALUE && this.tagInfo.attr.hasEndQuote) {
             // Move the cursor to the right of the existing end quote after value insertion.
             this.editor.setCursorPos(start.line, start.ch + completion.length + 1);
         }

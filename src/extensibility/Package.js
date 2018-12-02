@@ -89,9 +89,9 @@ define(function (require, exports, module) {
     function _extensionManagerCall(callback) {
         if (_nodeConnection.domains.extensionManager) {
             return callback(_nodeConnection.domains.extensionManager);
-        } else {
-            return new $.Deferred().reject("extensionManager domain is undefined").promise();
         }
+
+        return new $.Deferred().reject("extensionManager domain is undefined").promise();
     }
 
     /**
@@ -427,9 +427,9 @@ define(function (require, exports, module) {
         if (Array.isArray(error)) {
             error[0] = localize(error[0]);
             return StringUtils.format.apply(window, error);
-        } else {
-            return localize(error);
         }
+
+        return localize(error);
     }
 
     /**
