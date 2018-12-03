@@ -68,7 +68,7 @@ module.exports = {
         // http://eslint.org/docs/rules/#nodejs-and-commonjs
         "no-new-require": "error",
         // http://eslint.org/docs/rules/#stylistic-issues
-        "block-spacing": "warn",
+        "block-spacing": "error",
         "brace-style": ["error", "1tbs", { allowSingleLine: true }],
         "camelcase": "warn",
         "comma-dangle": "error",
@@ -142,6 +142,13 @@ module.exports = {
         "XMLHttpRequest": false
     },
     "overrides": [
+        // src/
+        {
+            "files": [ "src/**" ],
+            "globals": {
+                "electron": false
+            }
+        },
         // TypeScript
         {
             "files": [ "**/*.ts" ],

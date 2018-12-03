@@ -185,7 +185,7 @@ define(function (require, exports, module) {
      * @private
      */
     function _syncWithFileSystem() {
-        _mrofList = _mrofList.filter(function (e) {return e; });
+        _mrofList = _mrofList.filter(function (e) { return e; });
         return Async.doSequentially(_mrofList, _checkExt, false);
     }
 
@@ -431,7 +431,7 @@ define(function (require, exports, module) {
         }
 
         _syncWithFileSystem().always(function () {
-            _mrofList = _mrofList.filter(function (e) {return e; });
+            _mrofList = _mrofList.filter(function (e) { return e; });
             _createFileEntries($mrofList);
             var $fileLinks = $("#mrof-container #mrof-list > li > a.mroitem");
             // Handlers for mouse events on the list items
@@ -705,7 +705,7 @@ define(function (require, exports, module) {
         });
 
         // Clean the null/undefined entries
-        _mrofList = _mrofList.filter(function (e) {return e; });
+        _mrofList = _mrofList.filter(function (e) { return e; });
 
         PreferencesManager.setViewState(OPEN_FILES_VIEW_STATE, _mrofList, _getPrefsContext(), true);
     }

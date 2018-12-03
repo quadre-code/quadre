@@ -260,7 +260,7 @@ define(function (require, exports, module) {
       * @param {!Object} changeObj detailed information about the change that occurred in the document
       */
     function onChange(cm, changeObj) {
-        if (changeObj.origin === "setValue") {//text content has changed outside of brackets
+        if (changeObj.origin === "setValue") { // text content has changed outside of brackets
             var folds = cm.getValidFolds(cm._lineFolds);
             cm._lineFolds = folds;
             Object.keys(folds).forEach(function (line) {
