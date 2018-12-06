@@ -1,0 +1,81 @@
+/*
+ * Copyright (c) 2018 - present The quadre code authors. All rights reserved.
+ * @license MIT
+ *
+ */
+
+"use strict";
+
+const gulp = require("gulp");
+const eslint = require("gulp-eslint");
+
+const meta = {
+    app: [
+        "app/**/*.js",
+        "app/**/*.ts"
+    ],
+    src: [
+        "src/**/*.js",
+        "src/**/*.ts",
+        "!src/thirdparty/**",
+        "!src/widgets/bootstrap-*.js",
+        "!src/extensions/**/unittest-files/**/*.js",
+        "!src/extensions/**/thirdparty/**/*.js",
+        "!src/extensions/default/quadre-eslint/**",
+        "!src/extensions/dev/**",
+        "!src/extensions/disabled/**",
+        "!**/node_modules/**",
+        "!src/**/*-min.js",
+        "!src/**/*.min.js"
+    ],
+    test: [
+        "test/**/*.js",
+        "test/**/*.ts",
+        "!test/perf/*-files/**/*.js",
+        "!test/spec/*-files/**/*.js",
+        "!test/spec/*-known-goods/**/*.js",
+        "!test/spec/FindReplace-test-files-*/**/*.js",
+        "!test/smokes/**",
+        "!test/temp/**",
+        "!test/thirdparty/**",
+        "!test/**/node_modules/**/*.js"
+    ],
+    build: [
+        "Gruntfile.js",
+        "gulpfile.js",
+        "tasks/**/*.js",
+        "tasks/**/*.ts"
+    ]
+};
+
+function eslintTask(files) {
+    return gulp.src(files)
+        .pipe(eslint({
+            quiet: true
+        }))
+        .pipe(eslint.format())
+        .pipe(eslint.failAfterError());
+}
+
+gulp.task("eslint:app", () => {
+    return eslintTask(meta.app);
+});
+
+gulp.task("eslint:src", () => {
+    return eslintTask(meta.src);
+});
+
+gulp.task("eslint:test", () => {
+    return eslintTask(meta.test);
+});
+
+gulp.task("eslint:build", () => {
+    return eslintTask(meta.build);
+});
+
+gulp.task("eslint", [
+    "eslint:build",
+    "eslint:app",
+    "eslint:src",
+    "eslint:test"
+]);

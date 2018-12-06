@@ -684,7 +684,7 @@ define(function (require, exports, module) {
                 selectHint(JSCodeHints.jsHintProvider, hintObj, 13); // hint 13 is "hello\\\"world!"
                 runs(function () {
                     expect(testEditor.getCursorPos()).toEqual(end);
-                    expect(testDoc.getRange(start, end)).toEqual(`"hello\\\\\\" world!"`);
+                    expect(testDoc.getRange(start, end)).toEqual('"hello\\\\\\" world!"');
                 });
             });
 
@@ -1675,9 +1675,11 @@ define(function (require, exports, module) {
         describe("regression tests", function () {
 
             it("should return true for valid identifier, false for invalid one", function () {
-                var identifierList = ["ᾩ", "ĦĔĽĻŎ", "〱〱〱〱", "जावास्क्रि",
+                var identifierList = [
+                    "ᾩ", "ĦĔĽĻŎ", "〱〱〱〱", "जावास्क्रि",
                     "KingGeorgeⅦ", "π", "ಠ_ಠ",
-                    "price_9̶9̶_89", "$_3423", "TRUE", "FALSE", "IV"];
+                    "price_9̶9̶_89", "$_3423", "TRUE", "FALSE", "IV"
+                ];
                 var invalidIdentifierList = [" break", "\tif", "\ntrade"];
 
                 invalidIdentifierList.forEach(function (element) {
@@ -1798,8 +1800,10 @@ define(function (require, exports, module) {
             });
 
             it("should format parameters with one required, one optional param", function () {
-                var params = [{name: "param1", type: "String"},
-                    {name: "param2", type: "String", isOptional: true}];
+                var params = [
+                    {name: "param1", type: "String"},
+                    {name: "param2", type: "String", isOptional: true}
+                ];
 
                 expect(HintUtils2.formatParameterHint(params)).toBe("String param1, [String param2]");
             });

@@ -7,6 +7,13 @@ const gulp = require("gulp");
 const path = require("path");
 const watch = require("gulp-watch");
 
+[
+    "./tasks/nls-check",
+    "./tasks/eslint"
+].forEach((taskfile) => {
+    require(taskfile);
+});
+
 const BASE_DIRS = ["app", "src", "samples"];
 const DIST_DIRS = ["dist", "dist/www", "dist/samples"];
 
@@ -49,3 +56,6 @@ gulp.task("watch", ["copy-src-dist", "copy-test-dist"], () => {
         });
     });
 });
+
+gulp.task("test", ["eslint", "nls-check"]);
+gulp.task("default", ["test"]);

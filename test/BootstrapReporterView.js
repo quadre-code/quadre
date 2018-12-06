@@ -41,16 +41,16 @@ define(function (require, exports, module) {
 
         // build DOM immediately
         var container = $(
-            `<div class="container-fluid">` +
-                `<div class="row-fluid">` +
-                    `<div class="span4">` +
-                        `<ul id="suite-list" class="nav nav-pills nav-stacked">` +
-                        `</ul>` +
-                    `</div>` +
-                    `<div id="results-container" class="span8">` +
-                    `</div>` +
-                `</div>` +
-                `</div>`
+            "<div class=\"container-fluid\">" +
+                "<div class=\"row-fluid\">" +
+                    "<div class=\"span4\">" +
+                        "<ul id=\"suite-list\" class=\"nav nav-pills nav-stacked\">" +
+                        "</ul>" +
+                    "</div>" +
+                    "<div id=\"results-container\" class=\"span8\">" +
+                    "</div>" +
+                "</div>" +
+                "</div>"
         );
 
         $(doc.body).append(container);
@@ -61,11 +61,11 @@ define(function (require, exports, module) {
     };
 
     BootstrapReporterView.prototype._createSuiteListItem = function (suiteName, specCount) {
-        var $badgeAll = $(`<span class="badge">` + specCount + "</span>"),
-            $badgePassed = $(`<span class="badge badge-success" style="display:none"/>`),
-            $badgeFailed = $(`<span class="badge badge-important" style="display:none"/>`),
-            $anchor = $(`<a href="?spec=` + encodeURIComponent(suiteName) + `">` + suiteName + `</a>`).append($badgeAll).append($badgePassed).append($badgeFailed),
-            $listItem = $(`<li/>`).append($anchor);
+        var $badgeAll = $("<span class=\"badge\">" + specCount + "</span>"),
+            $badgePassed = $("<span class=\"badge badge-success\" style=\"display:none\"/>"),
+            $badgeFailed = $("<span class=\"badge badge-important\" style=\"display:none\"/>"),
+            $anchor = $("<a href=\"?spec=" + encodeURIComponent(suiteName) + "\">" + suiteName + "</a>").append($badgeAll).append($badgePassed).append($badgeFailed),
+            $listItem = $("<li/>").append($anchor);
 
         this._topLevelSuiteMap[suiteName] = {
             $badgeAll: $badgeAll,
@@ -94,8 +94,8 @@ define(function (require, exports, module) {
 
     BootstrapReporterView.prototype._showProgressBar = function (spec) {
         if (!this.$progressBar) {
-            this.$progress = $(`<div class="bar"/>`);
-            this.$progressBar = $(`<div class="progress progress-striped"/>`).append(this.$progress);
+            this.$progress = $("<div class=\"bar\"/>");
+            this.$progressBar = $("<div class=\"progress progress-striped\"/>").append(this.$progress);
         }
 
         this.$resultsContainer.append(this.$progressBar);
@@ -118,7 +118,7 @@ define(function (require, exports, module) {
             this._showProgressBar();
 
             // display current running test
-            this.$info = $(`<div class="alert alert-info"/>`);
+            this.$info = $("<div class=\"alert alert-info\"/>");
             this.$resultsContainer.append(this.$info);
             this.$resultsContainer.append($("<hr/>"));
         }
@@ -225,12 +225,12 @@ define(function (require, exports, module) {
             var $suiteHeader = $("#suite-results-" + suiteData.id);
 
             if ($suiteHeader.length === 0) {
-                this.$resultsContainer.append($(`<div id="suite-results-` + suiteData.id + `" class="alert alert-info"/>`).text(suiteData.name));
+                this.$resultsContainer.append($("<div id=\"suite-results-" + suiteData.id + "\" class=\"alert alert-info\"/>").text(suiteData.name));
             }
 
             // print spec name
-            $specLink = $(`<a href="?spec=` + encodeURIComponent(specData.name) + `"/>`).text(specData.description);
-            $resultDisplay = $(`<div class="alert alert-error"/>`).append($specLink);
+            $specLink = $("<a href=\"?spec=" + encodeURIComponent(specData.name) + "\"/>").text(specData.description);
+            $resultDisplay = $("<div class=\"alert alert-error\"/>").append($specLink);
 
             // print failure details
             if (specData.messages) {
@@ -252,11 +252,11 @@ define(function (require, exports, module) {
 
         if (specData.passed && specData.perf) {
             // add spec name
-            $specLink = $(`<a href="?spec=` + encodeURIComponent(specData.name) + `"/>`).text(specData.name);
-            this.$resultsContainer.append($(`<div class="alert alert-info"/>`).append($specLink));
+            $specLink = $("<a href=\"?spec=" + encodeURIComponent(specData.name) + "\"/>").text(specData.name);
+            this.$resultsContainer.append($("<div class=\"alert alert-info\"/>").append($specLink));
 
             // add table
-            var $table = $(`<table class="table table-striped table-bordered table-condensed"><thead><tr><th>Measurement</th><th>Value</th></tr></thead></table>`),
+            var $table = $("<table class=\"table table-striped table-bordered table-condensed\"><thead><tr><th>Measurement</th><th>Value</th></tr></thead></table>"),
                 $tbody = $table.append($("<tbody/>")),
                 rows,
                 specRecords = specData.perf;

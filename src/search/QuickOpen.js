@@ -451,6 +451,7 @@ define(function (require, exports, module) {
 
             return [];  // red error highlight: line number out of range, or no editor open
         }
+
         if (query === ":") {  // treat blank ":" query as valid, but no-op
             return { error: null };
         }
@@ -512,10 +513,10 @@ define(function (require, exports, module) {
         var displayName = "";
         if (item.scoreDebug) {
             var sd = item.scoreDebug;
-            displayName += `<span title="sp:` + sd.special + ", m:" + sd.match +
+            displayName += '<span title="sp:' + sd.special + ", m:" + sd.match +
                 ", ls:" + sd.lastSegment + ", b:" + sd.beginning +
                 ", ld:" + sd.lengthDeduction + ", c:" + sd.consecutive + ", nsos: " +
-                sd.notStartingOnSpecial + ", upper: " + sd.upper + `">(` + item.matchGoodness + ") </span>";
+                sd.notStartingOnSpecial + ", upper: " + sd.upper + '">(' + item.matchGoodness + ") </span>";
         }
 
         // Put the path pieces together, highlighting the matched parts

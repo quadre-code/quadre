@@ -112,7 +112,7 @@ module.exports = {
                 ":": "before"
             }
         }],
-        "quotes": ["error", "double", { "allowTemplateLiterals": true }],
+        "quotes": ["error", "double", { "avoidEscape": true, "allowTemplateLiterals": true }],
         "semi-spacing": "error",
         "semi": "error",
         // https://eslint.org/docs/rules/#ecmascript-6
@@ -187,11 +187,15 @@ module.exports = {
         // Build files
         {
             "files": [
-                "*.js",
+                "Gruntfile.js",
+                "gulpfile.js",
                 "tasks/**/*.js"
             ],
             "parserOptions": {
                 "ecmaVersion": 6
+            },
+            "env": {
+                "node": true,
             }
         },
         // Tests

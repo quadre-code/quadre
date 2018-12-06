@@ -401,8 +401,8 @@ function _cmdDownloadFile(downloadId, url, proxy, callback, pCallback) {
         encoding: null,
         proxy: proxy
     },
-        // Note: we could use the traditional "response"/"data"/"end" events too if we wanted to stream data
-        // incrementally, limit download size, etc. - but the simple callback is good enough for our needs.
+    // Note: we could use the traditional "response"/"data"/"end" events too if we wanted to stream data
+    // incrementally, limit download size, etc. - but the simple callback is good enough for our needs.
     function (error, response, body) {
         if (error) {
             // Usually means we never got a response - server is down, no DNS entry, etc.

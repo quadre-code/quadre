@@ -196,7 +196,7 @@ define(function (require, exports, module) {
      *                          FOR INTERNAL USE ONLY
      */
     function makeResizable(element, direction, position, minSize, collapsible, forceLeft, createdByWorkspaceManager, usePercentages, _attachToParent) {
-        var $resizer            = $(`<div class="` + direction + `-resizer"></div>`),
+        var $resizer            = $('<div class="' + direction + '-resizer"></div>'),
             $element            = $(element),
             $parent             = $element.parent(),
             $resizableElement   = $($element.find(".resizable-content:first")[0]),

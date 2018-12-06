@@ -47,7 +47,7 @@ define(function (require, exports, module) {
             _$,
             promise;
 
-        var TEST_JS_CONTENT = `var myContent="This is awesome!";`;
+        var TEST_JS_CONTENT = "var myContent=\"This is awesome!\";";
         var TEST_JS_NEW_CONTENT = "hello world";
         var TEST_JS_SECOND_NEW_CONTENT = "hello world 2";
         var WINDOW_TITLE_DOT = brackets.platform === "mac" ? "\u2014" : "-";

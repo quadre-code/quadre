@@ -126,7 +126,7 @@ define(function (require, exports, module) {
      * @return {boolean} true if c is legal in an HTML attribute name
      */
     function isLegalInAttributeName(c) {
-        return c !== `"` && c !== "'" && c !== "<" && c !== "=";
+        return c !== '"' && c !== "'" && c !== "<" && c !== "=";
     }
 
     /**
@@ -288,7 +288,7 @@ define(function (require, exports, module) {
                 }
 
             /*
-            * attributes
+            *	attributes
             */
             } else if (this._state === BEFORE_ATTRIBUTE_NAME) {
                 if (c === ">") {
@@ -388,7 +388,7 @@ define(function (require, exports, module) {
                 }
 
             /*
-            * declarations
+            *	declarations
             */
             } else if (this._state === BEFORE_DECLARATION) {
                 if (c === "[") {
@@ -407,7 +407,7 @@ define(function (require, exports, module) {
 
 
             /*
-            * processing instructions
+            *	processing instructions
             */
             } else if (this._state === IN_PROCESSING_INSTRUCTION) {
                 if (c === ">") {
@@ -418,7 +418,7 @@ define(function (require, exports, module) {
 
 
             /*
-            * comments
+            *	comments
             */
             } else if (this._state === BEFORE_COMMENT) {
                 if (c === "-") {
@@ -452,7 +452,7 @@ define(function (require, exports, module) {
 
 
             /*
-            * cdata
+            *	cdata
             */
             } else if (this._state === BEFORE_CDATA_1) {
                 if (c === "C") {

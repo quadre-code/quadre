@@ -293,78 +293,8 @@ module.exports = function (grunt) {
                 }]
             }
         },
-        meta: {
-            app: [
-                "app/**/*.js",
-                "app/**/*.ts"
-            ],
-            src: [
-                "src/**/*.js",
-                "src/**/*.ts",
-                "!src/thirdparty/**",
-                "!src/widgets/bootstrap-*.js",
-                "!src/extensions/**/unittest-files/**/*.js",
-                "!src/extensions/**/thirdparty/**/*.js",
-                "!src/extensions/default/quadre-eslint/**",
-                "!src/extensions/dev/**",
-                "!src/extensions/disabled/**",
-                "!**/node_modules/**",
-                "!src/**/*-min.js",
-                "!src/**/*.min.js"
-            ],
-            test: [
-                "test/**/*.js",
-                "test/**/*.ts",
-                "!test/perf/*-files/**/*.js",
-                "!test/spec/*-files/**/*.js",
-                "!test/spec/*-known-goods/**/*.js",
-                "!test/spec/FindReplace-test-files-*/**/*.js",
-                "!test/smokes/**",
-                "!test/temp/**",
-                "!test/thirdparty/**",
-                "!test/**/node_modules/**/*.js"
-            ],
-            build: [
-                "*.js",
-                "tasks/**/*.js",
-                "tasks/**/*.ts"
-            ],
-            /* specs that can run in phantom.js */
-            specs: [
-                "test/spec/CommandManager-test.js",
-                //"test/spec/LanguageManager-test.js",
-                //"test/spec/PreferencesManager-test.js",
-                "test/spec/ViewUtils-test.js"
-            ]
-        },
-        watch: {
-            build: {
-                files: ["<%= meta.build %>"],
-                tasks: ["eslint:build"]
-            },
-            src: {
-                files: ["<%= meta.src %>"],
-                tasks: ["eslint:src"]
-            },
-            test: {
-                files: ["<%= meta.test %>"],
-                tasks: ["eslint:test"]
-            },
-            options: {
-                spawn: false
-            }
-        },
         "jasmine_node": {
             projectRoot: "src/extensibility/node/spec/"
-        },
-        eslint: {
-            build:  "<%= meta.build %>",
-            app:    "<%= meta.app %>",
-            src:    "<%= meta.src %>",
-            test:   "<%= meta.test %>",
-            options: {
-                quiet: true
-            }
         },
         shell: {
             repo: grunt.option("shell-repo") || "../brackets-shell",
@@ -383,9 +313,6 @@ module.exports = function (grunt) {
         // "npm-install-source",
         // "pack-web-dependencies"
     ]);
-
-    // task: test
-    grunt.registerTask("test", ["eslint", "nls-check"]);
 
     // task: set-release
     // Update version number in package.json and rewrite src/config.json
