@@ -83,7 +83,7 @@
     "chokidar": "1.6.1",
     "decompress-zip": "0.3.0",
     "electron-updater": "2.17.6",
-    "fs-extra": "5.0.0",
+    "fs-extra": "^7.0.1",
     "isbinaryfile": "3.0.2",
     "lodash": "4.17.4",
     "npm": "3.10.9",
@@ -100,7 +100,7 @@
     "yargs": "11.0.0"
   },
   "devDependencies": {
-    "@types/fs-extra": "5.0.0",
+    "@types/fs-extra": "^5.0.4",
     "@types/jquery": "2.0.41",
     "@types/lodash": "4.14.63",
     "@types/react": "16.0.38",

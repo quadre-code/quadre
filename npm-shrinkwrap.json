@@ -72,9 +72,9 @@
       }
     },
     "@types/fs-extra": {
-      "version": "5.0.0",
-      "resolved": "https://registry.npmjs.org/@types/fs-extra/-/fs-extra-5.0.0.tgz",
-      "integrity": "sha512-qtxDULQKUenuaDLW003CgC+0T0eiAfH3BrH+vSt87GLzbz5EZ6Ox6mv9rMttvhDOatbb9nYh0E1m7ydoYwUrAg==",
+      "version": "5.0.4",
+      "resolved": "https://registry.npmjs.org/@types/fs-extra/-/fs-extra-5.0.4.tgz",
+      "integrity": "sha512-DsknoBvD8s+RFfSGjmERJ7ZOP1HI0UZRA3FSI+Zakhrc/Gy26YQsLI+m5V5DHxroHRJqCDLKJp7Hixn8zyaF7g==",
       "dev": true,
       "requires": {
         "@types/node": "*"
@@ -3439,9 +3439,9 @@
       }
     },
     "fs-extra": {
-      "version": "5.0.0",
-      "resolved": "https://registry.npmjs.org/fs-extra/-/fs-extra-5.0.0.tgz",
-      "integrity": "sha512-66Pm4RYbjzdyeuqudYqhFiNBbCIuI9kgRqLPSHIlXHidW8NIQtVdkM1yeZ4lXwuhbTETv3EUGMNHAAw6hiundQ==",
+      "version": "7.0.1",
+      "resolved": "https://registry.npmjs.org/fs-extra/-/fs-extra-7.0.1.tgz",
+      "integrity": "sha512-YJDaCJZEnBmcbw13fvdAM9AwNOJwOzrE4pqMqBq5nFiEqXUqHwlK4B+3pUw6JNvfSPtX05xFHtYy/1ni01eGCw==",
       "requires": {
         "graceful-fs": "^4.1.2",
         "jsonfile": "^4.0.0",
@@ -3455,6 +3455,18 @@
       "requires": {
         "bluebird-lst": "^1.0.5",
         "fs-extra": "^5.0.0"
+      },
+      "dependencies": {
+        "fs-extra": {
+          "version": "5.0.0",
+          "resolved": "https://registry.npmjs.org/fs-extra/-/fs-extra-5.0.0.tgz",
+          "integrity": "sha512-66Pm4RYbjzdyeuqudYqhFiNBbCIuI9kgRqLPSHIlXHidW8NIQtVdkM1yeZ4lXwuhbTETv3EUGMNHAAw6hiundQ==",
+          "requires": {
+            "graceful-fs": "^4.1.2",
+            "jsonfile": "^4.0.0",
+            "universalify": "^0.1.0"
+          }
+        }
       }
     },
     "fs-write-stream-atomic": {
@@ -3499,7 +3511,8 @@
         },
         "ansi-regex": {
           "version": "2.1.1",
-          "bundled": true
+          "bundled": true,
+          "optional": true
         },
         "aproba": {
           "version": "1.1.1",
@@ -3556,6 +3569,7 @@
         "block-stream": {
           "version": "0.0.9",
           "bundled": true,
+          "optional": true,
           "requires": {
             "inherits": "~2.0.0"
           }
@@ -3563,6 +3577,7 @@
         "boom": {
           "version": "2.10.1",
           "bundled": true,
+          "optional": true,
           "requires": {
             "hoek": "2.x.x"
           }
@@ -3622,6 +3637,7 @@
         "cryptiles": {
           "version": "2.0.5",
           "bundled": true,
+          "optional": true,
           "requires": {
             "boom": "2.x.x"
           }
@@ -3709,6 +3725,7 @@
         "fstream": {
           "version": "1.0.11",
           "bundled": true,
+          "optional": true,
           "requires": {
             "graceful-fs": "^4.1.2",
             "inherits": "~2.0.0",
@@ -3770,7 +3787,8 @@
         },
         "graceful-fs": {
           "version": "4.1.11",
-          "bundled": true
+          "bundled": true,
+          "optional": true
         },
         "har-schema": {
           "version": "1.0.5",
@@ -3794,6 +3812,7 @@
         "hawk": {
           "version": "3.1.3",
           "bundled": true,
+          "optional": true,
           "requires": {
             "boom": "2.x.x",
             "cryptiles": "2.x.x",
@@ -3937,6 +3956,7 @@
         "mkdirp": {
           "version": "0.5.1",
           "bundled": true,
+          "optional": true,
           "requires": {
             "minimist": "0.0.8"
           }
@@ -4119,7 +4139,8 @@
         },
         "safe-buffer": {
           "version": "5.0.1",
-          "bundled": true
+          "bundled": true,
+          "optional": true
         },
         "semver": {
           "version": "5.3.0",
@@ -4139,6 +4160,7 @@
         "sntp": {
           "version": "1.0.9",
           "bundled": true,
+          "optional": true,
           "requires": {
             "hoek": "2.x.x"
           }
@@ -4192,6 +4214,7 @@
         "strip-ansi": {
           "version": "3.0.1",
           "bundled": true,
+          "optional": true,
           "requires": {
             "ansi-regex": "^2.0.0"
           }
@@ -4204,6 +4227,7 @@
         "tar": {
           "version": "2.2.1",
           "bundled": true,
+          "optional": true,
           "requires": {
             "block-stream": "*",
             "fstream": "^1.0.2",
