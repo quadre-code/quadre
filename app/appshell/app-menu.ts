@@ -1,6 +1,6 @@
 /* eslint no-undef:0 */
 /* tslint:disable:no-empty-interface */
-/* globals Electron, process */
+/* globals process */
 
 interface MenuItemOptions extends Electron.MenuItemConstructorOptions {}
 

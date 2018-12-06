@@ -707,11 +707,13 @@ function _buildDirsFirstComparator(contents) {
 
         if (!aIsFile && bIsFile) {
             return -1;
-        } else if (aIsFile && !bIsFile) {
-            return 1;
-        } else {
-            return FileUtils.compareFilenames(a, b);
         }
+
+        if (aIsFile && !bIsFile) {
+            return 1;
+        }
+
+        return FileUtils.compareFilenames(a, b);
     }
     return _dirsFirstCompare;
 }
@@ -728,9 +730,9 @@ function _buildDirsFirstComparator(contents) {
 function _sortDirectoryContents(contents, dirsFirst) {
     if (dirsFirst) {
         return contents.keySeq().sort(_buildDirsFirstComparator(contents));
-    } else {
-        return contents.keySeq().sort(FileUtils.compareFilenames);
     }
+
+    return contents.keySeq().sort(FileUtils.compareFilenames);
 }
 
 /**
@@ -1001,20 +1003,20 @@ class DirectoryContents extends React.Component<IDirectoryContentsProps, {}> {
                     forceRender={self.props.forceRender}
                     platform={self.props.platform}
                     key={name}></WithContextSettable>;
-            } else {
-                const WithContextSettable = withContextSettable(DirectoryNode);
-                return <WithContextSettable
-                    depth={self.props.depth}
-                    parentPath={self.props.parentPath}
-                    name={name}
-                    entry={entry}
-                    actions={self.props.actions}
-                    extensions={self.props.extensions}
-                    sortDirectoriesFirst={self.props.sortDirectoriesFirst}
-                    forceRender={self.props.forceRender}
-                    platform={self.props.platform}
-                    key={name}></WithContextSettable>;
             }
+
+            const WithContextSettable = withContextSettable(DirectoryNode);
+            return <WithContextSettable
+                depth={self.props.depth}
+                parentPath={self.props.parentPath}
+                name={name}
+                entry={entry}
+                actions={self.props.actions}
+                extensions={self.props.extensions}
+                sortDirectoriesFirst={self.props.sortDirectoriesFirst}
+                forceRender={self.props.forceRender}
+                platform={self.props.platform}
+                key={name}></WithContextSettable>;
         }.bind(this)).toArray();
 
         return <ul {...ulProps}>{children}</ul>;

@@ -1,5 +1,4 @@
 /* tslint:disable:no-empty-interface */
-/* globals Electron */
 
 export type BrowserWindows = Electron.BrowserWindow[];
 export interface MenuItemOptions extends Electron.MenuItemConstructorOptions {}
