@@ -105,6 +105,7 @@ module.exports = {
         "no-bitwise": "error",
         "no-mixed-spaces-and-tabs": "error",
         "no-new-object": "error",
+        "no-tabs": "error",
         "no-trailing-spaces": "error",
         "operator-linebreak": ["error", "after", {
             "overrides": {

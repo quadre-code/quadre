@@ -26,7 +26,7 @@ define(function (require, exports, module) {
     "use strict";
 
     var SpecRunnerUtils = brackets.getModule("spec/SpecRunnerUtils"),
-        FileUtils		= brackets.getModule("file/FileUtils"),
+        FileUtils       = brackets.getModule("file/FileUtils"),
         CommandManager,
         Commands,
         // eslint-disable-next-line no-unused-vars
@@ -87,12 +87,12 @@ define(function (require, exports, module) {
                 SpecRunnerUtils.createTestWindowAndRun(this, function (w) {
                     testWindow = w;
                     $ = testWindow.$;
-                    brackets		= testWindow.brackets;
+                    brackets        = testWindow.brackets;
                     DocumentManager = testWindow.brackets.test.DocumentManager;
                     MainViewManager = testWindow.brackets.test.MainViewManager;
                     CommandManager  = testWindow.brackets.test.CommandManager;
                     EditorManager   = testWindow.brackets.test.EditorManager;
-                    Dialogs			= testWindow.brackets.test.Dialogs;
+                    Dialogs         = testWindow.brackets.test.Dialogs;
                     Commands        = testWindow.brackets.test.Commands;
                     FileSystem      = testWindow.brackets.test.FileSystem;
                 });

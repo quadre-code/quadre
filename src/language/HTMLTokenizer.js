@@ -288,8 +288,8 @@ define(function (require, exports, module) {
                 }
 
             /*
-            *	attributes
-            */
+             * attributes
+             */
             } else if (this._state === BEFORE_ATTRIBUTE_NAME) {
                 if (c === ">") {
                     this._state = TEXT;
@@ -388,8 +388,8 @@ define(function (require, exports, module) {
                 }
 
             /*
-            *	declarations
-            */
+             * declarations
+             */
             } else if (this._state === BEFORE_DECLARATION) {
                 if (c === "[") {
                     this._state = BEFORE_CDATA_1;
@@ -407,8 +407,8 @@ define(function (require, exports, module) {
 
 
             /*
-            *	processing instructions
-            */
+             * processing instructions
+             */
             } else if (this._state === IN_PROCESSING_INSTRUCTION) {
                 if (c === ">") {
                     this._emitToken("processinginstruction");
@@ -418,8 +418,8 @@ define(function (require, exports, module) {
 
 
             /*
-            *	comments
-            */
+             * comments
+             */
             } else if (this._state === BEFORE_COMMENT) {
                 if (c === "-") {
                     this._state = IN_COMMENT;
@@ -452,8 +452,8 @@ define(function (require, exports, module) {
 
 
             /*
-            *	cdata
-            */
+             * cdata
+             */
             } else if (this._state === BEFORE_CDATA_1) {
                 if (c === "C") {
                     this._state = BEFORE_CDATA_2;

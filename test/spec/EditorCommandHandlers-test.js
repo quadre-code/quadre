@@ -58,10 +58,12 @@ define(function (require, exports, module) {
                              "\n" +
                              "}";
 
+        /* eslint-disable no-tabs */
         var tabbedContent =    "function funcWithTabs() {\n" +
                                "	var i		= 0;\n" +
                                "	var	offset	= 0;\n" +
                                "}";
+        /* eslint-enable no-tabs */
 
         var myDocument, myEditor;
 
