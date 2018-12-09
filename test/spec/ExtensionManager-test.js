@@ -1949,7 +1949,7 @@ define(function (require, exports, module) {
                     setupViewWithMockData(ExtensionManagerViewModel.InstalledViewModel);
                     runs(function () {
                         var $extTranslated  = $(".ext-translated", view.$el),
-                            languages       = [LocalizationUtils.getLocalizedLabel("en"), "foo",  LocalizationUtils.getLocalizedLabel("zh-cn")];
+                            languages       = ["foo", LocalizationUtils.getLocalizedLabel("zh-cn"), LocalizationUtils.getLocalizedLabel("en")];
                         expect($extTranslated.length).toBe(1);
                         expect($extTranslated.text()).toBe(StringUtils.format(Strings.EXTENSION_TRANSLATED_USER_LANG, languages.length));
                         expect($extTranslated.attr("title")).toBe(StringUtils.format(Strings.EXTENSION_TRANSLATED_LANGS, languages.join(", ")));

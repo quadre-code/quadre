@@ -1,3 +1,8 @@
+import * as electron from "electron";
+import appshell = require("./appshell/index");
+
+let t: any;
+
 // define global object extensions
 interface BracketsWindowGlobal extends NodeJS.Global {
     // TODO: better define appshell (brackets) global object
@@ -13,25 +18,23 @@ interface BracketsWindowGlobal extends NodeJS.Global {
     };
 }
 
-import * as electron from "electron";
-let t: any;
-
-try {
-    t = {
-        electron,
-        process,
-        require,
-        module,
-        __filename,
-        __dirname,
-        appshell: require("./appshell/index")
-    };
-    electron.ipcRenderer.send("log", "preload-fine");
-} catch (err) {
-    electron.ipcRenderer.send("log", err.stack);
-}
-
 process.once("loaded", function () {
+    try {
+        t = {
+            electron,
+            process,
+            require,
+            module,
+            __filename,
+            __dirname,
+            appshell
+        };
+        electron.ipcRenderer.send("log", "preload-fine");
+    } catch (err) {
+        electron.ipcRenderer.send("log", err.stack);
+        return;
+    }
+
     const g = global as BracketsWindowGlobal;
     // expose electron renderer process modules
     g.electron = t.electron;

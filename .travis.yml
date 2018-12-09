@@ -39,7 +39,7 @@ before_install:
     fi
 
 install:
-- nvm install 8.3
+- nvm install 12
 - node --version
 - npm --version
 - npm install

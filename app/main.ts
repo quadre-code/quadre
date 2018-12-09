@@ -185,7 +185,7 @@ export function openMainBracketsWindow(query: {} | string = {}): Electron.Browse
 
     const indexUrl = formatUrl(indexPath, formatOptions) + queryString;
 
-    const winOptions = {
+    const winOptions: Electron.BrowserWindowConstructorOptions = {
         title: appInfo.productName,
         x: shellConfig.getNumber("window.posX"),
         y: shellConfig.getNumber("window.posY"),
@@ -193,6 +193,7 @@ export function openMainBracketsWindow(query: {} | string = {}): Electron.Browse
         height: shellConfig.getNumber("window.height"),
         webPreferences: {
             nodeIntegration: false,
+            nodeIntegrationInSubFrames: true,
             preload: pathLib.resolve(__dirname, "preload.js"),
             nativeWindowOpen: true
         }
@@ -258,6 +259,19 @@ export function openMainBracketsWindow(query: {} | string = {}): Electron.Browse
     });
     win.on("move", function () {
         saveWindowPosition(win);
+    });
+
+    win.webContents.on("new-window", function (
+        event, url, frameName, disposition, options, additionalFeatures, referrer
+    ) {
+        event.preventDefault();
+
+        const newWin = new BrowserWindow(options);
+        newWin.once("ready-to-show", () => newWin.show());
+        if (!options.webContents) {
+            newWin.loadURL(url); // existing webContents will be navigated automatically
+        }
+        (event as any).newGuest = newWin;
     });
 
     return win;

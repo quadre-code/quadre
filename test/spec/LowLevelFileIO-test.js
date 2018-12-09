@@ -176,7 +176,7 @@ define(function (require, exports, module) {
                     error = e;
                 }
                 expect(error.name).toBe("TypeError");
-                expect(error.message).toContain("path must be a string");
+                expect(error.message).toContain("The \"path\" argument must be one of type string, Buffer, or URL. Received type number");
             });
         }); // describe("readdir")
 
@@ -237,7 +237,7 @@ define(function (require, exports, module) {
                     error = e;
                 }
                 expect(error.name).toBe("TypeError");
-                expect(error.message).toContain("path must be a string");
+                expect(error.message).toContain("The \"path\" argument must be one of type string, Buffer, or URL. Received type number");
             });
 
         }); // describe("stat")
@@ -515,7 +515,7 @@ define(function (require, exports, module) {
                     error = e;
                 }
                 expect(error.name).toBe("TypeError");
-                expect(error.message).toBe("\"options\" must be a string or an object, got number instead.");
+                expect(error.message).toBe("The \"options\" argument must be one of type string or Object. Received type number");
             });
 
             it("should return an error if trying to write a directory", function () {
@@ -614,7 +614,7 @@ define(function (require, exports, module) {
                     error = e;
                 }
                 expect(error.name).toContain("Error");
-                expect(error.message).toContain("be a string");
+                expect(error.message).toContain("The \"path\" argument must be one of type string, Buffer, or URL. Received type number");
             });
 
             it("should remove a directory", function () {

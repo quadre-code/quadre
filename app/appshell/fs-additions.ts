@@ -154,7 +154,7 @@ export function showSaveDialog(
     return dialog.showSaveDialog({
         title,
         defaultPath
-    }, function (path) {
+    }, function (path: string) {
         callback(null, utils.convertWindowsPathToUnixPath(path));
     });
 }

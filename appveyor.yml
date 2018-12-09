@@ -8,7 +8,7 @@ platform:
 environment:
   global:
     TEST_JUNIT_XML_ROOT: c:\projects\junit-test-results
-    NODE_VERSION: 8
+    NODE_VERSION: 12
 
 # set clone depth
 clone_depth: 5                      # clone entire repository history if not defined
@@ -20,7 +20,10 @@ cache:
 
 install:
   - git submodule update --init --recursive
-  - ps: Install-Product node $env:NODE_VERSION $env:PLATFORM
+  # Install the version if available on Appveyor
+  # - ps: Install-Product node $env:NODE_VERSION $env:PLATFORM
+  # Install the version regardless if available on Appveyor
+  - ps: Update-NodeJsInstallation (Get-NodeJsLatestBuild $env:NODE_VERSION) $env:PLATFORM
   - set PATH=%APPDATA%\npm;%PATH%
   - node --version
   - npm --version
