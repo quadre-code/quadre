@@ -64,7 +64,7 @@ let _addedClickHandler = false;
 
 function transformAtomFeed(obj: any): UpdateFeedInfo {
     const currentVersion = node.require("./package.json").version;
-    const GH = `https://github.com/zaggino/brackets-electron`;
+    const GH = "https://github.com/zaggino/brackets-electron";
 
     let entries = _.get(obj, "feed.entry", []);
     if (!_.isArray(entries)) { entries = [ entries ] as any; }

@@ -19,9 +19,9 @@ module.exports = function (grunt) {
         );
         var webpackTasks = [
             [
-                `./dist/node_modules/semver/semver.js`,
-                `./dist/www/thirdparty/semver.browser.js`,
-                `--output-library-target=amd`
+                "./dist/node_modules/semver/semver.js",
+                "./dist/www/thirdparty/semver.browser.js",
+                "--output-library-target=amd"
             ]
         ];
         var doneWithWebpackTask = _.after(webpackTasks.length, done);

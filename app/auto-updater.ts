@@ -11,7 +11,7 @@ const log = getLogger("auto-updater");
 export default class AppUpdater {
     constructor(window: Electron.BrowserWindow) {
         if (isDev()) {
-            log.info(`isDev() true, auto-updater disabled`);
+            log.info("isDev() true, auto-updater disabled");
             return;
         }
 

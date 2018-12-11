@@ -113,7 +113,7 @@ module.exports = {
                 ":": "before"
             }
         }],
-        "quotes": ["error", "double", { "avoidEscape": true, "allowTemplateLiterals": true }],
+        "quotes": ["error", "double", { "avoidEscape": true }],
         "semi-spacing": "error",
         "semi": "error",
         // https://eslint.org/docs/rules/#ecmascript-6

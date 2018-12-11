@@ -13,14 +13,14 @@ module.exports = function (grunt) {
 
         common.writeJSON(grunt, "app/tsconfig.json", _.defaultsDeep({
             compilerOptions: {
-                outDir: `../dist`
+                outDir: "../dist"
             },
             include: ["./**/*"]
         }, tsconfigJSON));
 
         common.writeJSON(grunt, "src/tsconfig.json", _.defaultsDeep({
             compilerOptions: {
-                outDir: `../dist/www`,
+                outDir: "../dist/www",
                 module: "amd",
                 moduleResolution: "classic",
                 noImplicitAny: false,
