@@ -27,7 +27,7 @@
 "use strict";
 
 module.exports = function (grunt) {
-    var common          = require("./lib/common")(grunt),
+    var common          = require("./lib/common"),
         childProcess    = require("child_process"),
         path            = require("path"),
         fs              = require("fs-extra"),
@@ -60,9 +60,7 @@ module.exports = function (grunt) {
     // task: test-integration
     grunt.registerTask("test-integration", "Run tests in brackets-shell. Requires 'grunt full-build' in shell.", function () {
         var done            = this.async(),
-            platform        = common.platform(),
             opts            = { cwd: process.cwd() },
-            cmd             = common.resolve(grunt.option("shell") || grunt.config("shell." + platform)),
             spec            = grunt.option("spec") || "all",
             suite           = grunt.option("suite") || "all",
             resultsDir      = process.env.TEST_JUNIT_XML_ROOT || path.join(process.cwd(), "dist", "test", "results"),
@@ -70,9 +68,9 @@ module.exports = function (grunt) {
             resultsPath     = common.resolve(results).replace(/\\/g, "/"),
             specRunnerPath  = common.resolve("dist/test/SpecRunner.html"),
             isCI            = /true/i.test(process.env.CI),
-            args            = " --startup-path=\"" + specRunnerPath + "?suite=" + encodeURIComponent(suite) + "&spec=" + encodeURIComponent(spec) + "&resultsPath=" + encodeURIComponent(resultsPath) + "&isCI=" + isCI + "\"";
+            args            = " --startup-path=\"" + specRunnerPath + "?suite=" + encodeURIComponent(suite) + "&spec=" + encodeURIComponent(spec) + "&resultsPath=" + encodeURIComponent(resultsPath) + "&isCI=" + isCI + "\"",
+            cmd = path.join("node_modules", ".bin", "electron") + " . " + args;
 
-        cmd = path.join("node_modules", ".bin", "electron") + " . " + args;
         grunt.log.writeln(cmd);
 
         fs.ensureDir(resultsDir)

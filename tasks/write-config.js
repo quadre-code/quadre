@@ -27,7 +27,7 @@
 "use strict";
 
 module.exports = function (grunt) {
-    var common  = require("./lib/common")(grunt),
+    var common  = require("./lib/common"),
         build   = require("./build")(grunt);
 
     // task: write-config
@@ -52,7 +52,7 @@ module.exports = function (grunt) {
                 appConfigJSON[key] = packageJSON[key];
             }
         });
-        common.writeJSON(grunt, "src/config.json", appConfigJSON);
+        common.writeJSON("src/config.json", appConfigJSON);
     });
 
     // task: build-config
@@ -64,7 +64,7 @@ module.exports = function (grunt) {
             distConfig.repository.SHA = gitInfo.sha;
             distConfig.repository.branch = gitInfo.branch;
             distConfig.config.build_timestamp = new Date().toString().split("(")[0].trim();
-            common.writeJSON(grunt, "dist/www/config.json", distConfig);
+            common.writeJSON("dist/www/config.json", distConfig);
             done();
         }, function (err) {
             grunt.log.writeln(err);

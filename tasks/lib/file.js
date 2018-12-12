@@ -42,5 +42,12 @@ function read(filepath) {
     return fs.readFileSync(filepath, "utf8");
 }
 
+function write(filepath, contents) {
+    // Create path, if necessary.
+    fs.mkdirpSync(path.dirname(filepath));
+    fs.writeFileSync(filepath, contents, {});
+}
+
 exports.recurse = recurse;
 exports.read = read;
+exports.write = write;

@@ -27,7 +27,7 @@
 "use strict";
 
 module.exports = function (grunt) {
-    var common = require("./lib/common")(grunt),
+    var common = require("./lib/common"),
         semver = require("semver");
 
     // task: update-release-number
@@ -44,6 +44,6 @@ module.exports = function (grunt) {
         packageJSON.version = release + "-0";
         packageJSON.apiVersion = release;
 
-        common.writeJSON(grunt, path, packageJSON);
+        common.writeJSON(path, packageJSON);
     });
 };

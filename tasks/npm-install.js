@@ -30,7 +30,7 @@
 module.exports = function (grunt) {
 
     var _       = require("lodash"),
-        common  = require("./lib/common")(grunt),
+        common  = require("./lib/common"),
         exec    = require("child_process").exec,
         _spawn  = require("child_process").spawn,
         fs      = require("fs-extra"),
@@ -125,7 +125,7 @@ module.exports = function (grunt) {
         /*
         try {
             const npmShrinkwrapJSON = grunt.file.readJSON("src/npm-shrinkwrap.json");
-            common.writeJSON(grunt, "dist/npm-shrinkwrap.json", npmShrinkwrapJSON);
+            common.writeJSON("dist/npm-shrinkwrap.json", npmShrinkwrapJSON);
         } catch (err) {
             grunt.log.error(err);
         }
@@ -147,7 +147,7 @@ module.exports = function (grunt) {
             "optionalDependencies"
         ]);
 
-        common.writeJSON(grunt, "dist/package.json", appJson);
+        common.writeJSON("dist/package.json", appJson);
 
         var done = this.async();
         runNpmInstall("dist", function (err) {
@@ -161,7 +161,7 @@ module.exports = function (grunt) {
             for (var key in packageJSONSrc.dependencies) {
                 appJson.dependencies[key] = packageJSONSrc.dependencies[key];
             }
-            common.writeJSON(grunt, "dist/www/package.json", appJson);
+            common.writeJSON("dist/www/package.json", appJson);
 
             runNpmInstall("dist/www", function (err) {
                 return err ? done(false) : done();

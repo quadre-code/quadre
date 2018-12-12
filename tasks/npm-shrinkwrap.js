@@ -28,7 +28,7 @@
 
 module.exports = function (grunt) {
 
-    var common  = require("./lib/common")(grunt),
+    var common  = require("./lib/common"),
         exec    = require("child_process").exec;
 
     function runNpmShrinkwrap(callback) {
@@ -45,7 +45,7 @@ module.exports = function (grunt) {
 
     function fixIndent(file) {
         const npmShrinkwrapJSON = grunt.file.readJSON(file);
-        common.writeJSON(grunt, file, npmShrinkwrapJSON);
+        common.writeJSON(file, npmShrinkwrapJSON);
     }
 
     grunt.registerTask("npm-shrinkwrap", "Regenerates shrinkwrap file", function () {

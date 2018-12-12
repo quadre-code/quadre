@@ -22,44 +22,22 @@
  *
  */
 
-/*eslint-env node */
-/*jslint node: true */
 "use strict";
 
-module.exports = function (grunt) {
-    var common      = {},
-        path        = require("path"),
-        _platform;
+var path        = require("path"),
+    file        = require("./file");
 
-    function resolve(relPath) {
-        return path.resolve(process.cwd(), relPath);
+function writeJSON(pathJson, obj) {
+    var content = JSON.stringify(obj, null, "    ");
+    if (process.platform === "win32") {
+        content = content.split("\n").join("\r\n");
     }
+    file.write(pathJson, content);
+}
 
-    function platform() {
-        if (!_platform) {
-            if (process.platform === "darwin") {
-                _platform = "mac";
-            } else if (process.platform === "win32") {
-                _platform = "win";
-            } else {
-                _platform = "linux";
-            }
-        }
+function resolve(relPath) {
+    return path.resolve(process.cwd(), relPath);
+}
 
-        return _platform;
-    }
-
-    function writeJSON(grunt, path, obj) {
-        var content = JSON.stringify(obj, null, "    ");
-        if (platform() === "win") {
-            content = content.split("\n").join("\r\n");
-        }
-        grunt.file.write(path, content);
-    }
-
-    common.writeJSON    = writeJSON;
-    common.resolve      = resolve;
-    common.platform     = platform;
-
-    return common;
-};
+exports.writeJSON    = writeJSON;
+exports.resolve      = resolve;
