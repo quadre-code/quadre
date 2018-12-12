@@ -307,7 +307,6 @@ module.exports = function (grunt) {
     // task: install
     grunt.registerTask("install", [
         "write-config:dist",
-        "sync-tsconfigs",
         "less",
         "npm-download-default-extensions"
         // "npm-install-source",
