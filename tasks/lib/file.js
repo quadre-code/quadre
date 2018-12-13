@@ -9,7 +9,6 @@
  * https://github.com/gruntjs/grunt/blob/01055249b3a6493ee2c0ef43168f1d4d591f31f4/lib/grunt/file.js
  */
 
-/*eslint-env node */
 "use strict";
 
 const path = require("path");

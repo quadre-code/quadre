@@ -24,8 +24,8 @@
 
 "use strict";
 
-var path        = require("path"),
-    file        = require("./file");
+const path = require("path");
+const file = require("./file");
 
 function writeJSON(pathJson, obj) {
     var content = JSON.stringify(obj, null, "    ");

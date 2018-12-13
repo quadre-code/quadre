@@ -49,7 +49,6 @@
     }
   },
   "scripts": {
-    "dep-change": "grunt dep-change",
     "postinstall": "grunt install && npm run build",
     "tsc": "tsc --project app && tsc --project src",
     "build": "rimraf ./dist && gulp copy-src-dist && grunt build && npm run tsc",
@@ -139,7 +138,6 @@
     "jasmine-node": "1.11.0",
     "load-grunt-tasks": "3.5.2",
     "plugin-error": "^1.0.1",
-    "q": "1.4.1",
     "rewire": "1.1.2",
     "rimraf": "2.6.2",
     "tar": "2.2.1",

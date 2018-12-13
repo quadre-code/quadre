@@ -22,25 +22,21 @@
  *
  */
 
-/*global Promise */
-/* eslint-env node */
-
 "use strict";
 
+const _       = require("lodash");
+const common  = require("./lib/common");
+const exec    = require("child_process").exec;
+const _spawn  = require("child_process").spawn;
+const fs      = require("fs-extra");
+const glob    = require("glob");
+const https   = require("https");
+const path    = require("path");
+const tar     = require("tar");
+const temp    = require("temp");
+const zlib    = require("zlib");
+
 module.exports = function (grunt) {
-
-    var _       = require("lodash"),
-        common  = require("./lib/common"),
-        exec    = require("child_process").exec,
-        _spawn  = require("child_process").spawn,
-        fs      = require("fs-extra"),
-        glob    = require("glob"),
-        https   = require("https"),
-        path    = require("path"),
-        tar     = require("tar"),
-        temp    = require("temp"),
-        zlib    = require("zlib");
-
     temp.track();
 
     function spawn(what, args, options, callback) {

@@ -313,15 +313,6 @@ module.exports = function (grunt) {
         // "pack-web-dependencies"
     ]);
 
-    // task: set-release
-    // Update version number in package.json and rewrite src/config.json
-    grunt.registerTask("set-release", ["update-release-number", "write-config:dev"]);
-
-    // task: dep-change - run when you modify dependencies in package.json
-    grunt.registerTask("dep-change", [
-        "npm-shrinkwrap"
-    ]);
-
     // task: build - build stuff into dist folder
     grunt.registerTask("build", [
         "npm-install-dist",

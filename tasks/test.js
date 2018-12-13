@@ -22,16 +22,15 @@
  *
  */
 
-/*eslint-env node */
-/*jslint node: true */
 "use strict";
 
+const common          = require("./lib/common");
+const childProcess    = require("child_process");
+const path            = require("path");
+const fs              = require("fs-extra");
+const XmlDocument     = require("xmldoc").XmlDocument;
+
 module.exports = function (grunt) {
-    var common          = require("./lib/common"),
-        childProcess    = require("child_process"),
-        path            = require("path"),
-        fs              = require("fs-extra"),
-        XmlDocument     = require("xmldoc").XmlDocument;
 
     /**
      * Check the unit test results for failures

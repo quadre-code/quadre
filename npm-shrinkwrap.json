@@ -3655,7 +3655,8 @@
         },
         "buffer-shims": {
           "version": "1.0.0",
-          "bundled": true
+          "bundled": true,
+          "optional": true
         },
         "caseless": {
           "version": "0.12.0",
@@ -3669,7 +3670,8 @@
         },
         "code-point-at": {
           "version": "1.1.0",
-          "bundled": true
+          "bundled": true,
+          "optional": true
         },
         "combined-stream": {
           "version": "1.0.5",
@@ -3686,11 +3688,13 @@
         },
         "console-control-strings": {
           "version": "1.1.0",
-          "bundled": true
+          "bundled": true,
+          "optional": true
         },
         "core-util-is": {
           "version": "1.0.2",
-          "bundled": true
+          "bundled": true,
+          "optional": true
         },
         "cryptiles": {
           "version": "2.0.5",
@@ -3757,7 +3761,8 @@
         },
         "extsprintf": {
           "version": "1.0.2",
-          "bundled": true
+          "bundled": true,
+          "optional": true
         },
         "forever-agent": {
           "version": "0.6.1",
@@ -3907,6 +3912,7 @@
         "is-fullwidth-code-point": {
           "version": "1.0.0",
           "bundled": true,
+          "optional": true,
           "requires": {
             "number-is-nan": "1.0.1"
           }
@@ -3918,7 +3924,8 @@
         },
         "isarray": {
           "version": "1.0.0",
-          "bundled": true
+          "bundled": true,
+          "optional": true
         },
         "isstream": {
           "version": "0.1.2",
@@ -4106,7 +4113,8 @@
         },
         "process-nextick-args": {
           "version": "1.0.7",
-          "bundled": true
+          "bundled": true,
+          "optional": true
         },
         "punycode": {
           "version": "1.4.1",
@@ -4139,6 +4147,7 @@
         "readable-stream": {
           "version": "2.2.9",
           "bundled": true,
+          "optional": true,
           "requires": {
             "buffer-shims": "~1.0.0",
             "core-util-is": "~1.0.0",
@@ -4237,6 +4246,7 @@
         "string-width": {
           "version": "1.0.2",
           "bundled": true,
+          "optional": true,
           "requires": {
             "code-point-at": "^1.0.0",
             "is-fullwidth-code-point": "^1.0.0",
@@ -4246,6 +4256,7 @@
         "string_decoder": {
           "version": "1.0.1",
           "bundled": true,
+          "optional": true,
           "requires": {
             "safe-buffer": "^5.0.1"
           }
@@ -4319,7 +4330,8 @@
         },
         "util-deprecate": {
           "version": "1.0.2",
-          "bundled": true
+          "bundled": true,
+          "optional": true
         },
         "uuid": {
           "version": "3.0.1",
@@ -10980,12 +10992,6 @@
       "version": "1.4.1",
       "resolved": "https://registry.npmjs.org/punycode/-/punycode-1.4.1.tgz",
       "integrity": "sha1-wNWmOycYgArY4esPpSachN1BhF4="
-    },
-    "q": {
-      "version": "1.4.1",
-      "resolved": "https://registry.npmjs.org/q/-/q-1.4.1.tgz",
-      "integrity": "sha1-VXBbzZPF82c1MMLCy8DCs63cKG4=",
-      "dev": true
     },
     "qs": {
       "version": "6.4.0",

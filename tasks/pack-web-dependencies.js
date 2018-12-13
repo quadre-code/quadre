@@ -1,12 +1,10 @@
-/* eslint-env node */
-
 "use strict";
 
-module.exports = function (grunt) {
+const _       = require("lodash");
+const path    = require("path");
+const spawn   = require("child_process").spawn;
 
-    var _       = require("lodash"),
-        path    = require("path"),
-        spawn   = require("child_process").spawn;
+module.exports = function (grunt) {
 
     grunt.registerTask("pack-web-dependencies", "Runs webpack on stuff we need to use from browser", function () {
         var done = this.async();

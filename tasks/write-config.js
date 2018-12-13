@@ -22,13 +22,12 @@
  *
  */
 
-/*eslint-env node */
-
 "use strict";
 
+const common = require("./lib/common");
+const build  = require("./build");
+
 module.exports = function (grunt) {
-    var common  = require("./lib/common"),
-        build   = require("./build")(grunt);
 
     // task: write-config
     grunt.registerTask("write-config", "Merge package.json and src/brackets.config.json into src/config.json", function () {
