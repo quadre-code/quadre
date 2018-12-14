@@ -65,13 +65,13 @@
     "publish-mac": "npm run build-optimized && build -m --publish onTagOrDraft",
     "publish-linux": "npm run build-optimized && build -l --publish onTagOrDraft",
     "test:prepare:ci": "gulp test && npm run tslint && gulp copy-test-dist",
-    "test:unit": "grunt test-integration --suite=unit --spec=all --results=TEST-unit",
-    "test:integration": "grunt test-integration --suite=integration --spec=all --results=TEST-integration",
-    "test:mainview": "grunt test-integration --suite=mainview --spec=all --results=TEST-mainview",
-    "test:livepreview": "grunt test-integration --suite=livepreview --spec=all --results=TEST-livepreview",
-    "test:performance": "grunt test-integration --suite=performance --spec=all --results=TEST-performance",
-    "test:extension": "grunt test-integration --suite=extension --spec=all --results=TEST-extension",
-    "test:all": "grunt test-integration --results=TEST-all"
+    "test:unit": "gulp test-integration --suite=unit --spec=all --results=TEST-unit",
+    "test:integration": "gulp test-integration --suite=integration --spec=all --results=TEST-integration",
+    "test:mainview": "gulp test-integration --suite=mainview --spec=all --results=TEST-mainview",
+    "test:livepreview": "gulp test-integration --suite=livepreview --spec=all --results=TEST-livepreview",
+    "test:performance": "gulp test-integration --suite=performance --spec=all --results=TEST-performance",
+    "test:extension": "gulp test-integration --suite=extension --spec=all --results=TEST-extension",
+    "test:all": "gulp test-integration --results=TEST-all"
   },
   "defaultExtensions": {
     "quadre-eslint": "5.0.0"
@@ -96,7 +96,7 @@
     "trash": "4.0.1",
     "ws": "2.3.1",
     "xml2js": "0.4.17",
-    "yargs": "11.0.0"
+    "yargs": "^12.0.5"
   },
   "devDependencies": {
     "@types/fs-extra": "^5.0.4",
@@ -105,7 +105,7 @@
     "@types/react": "16.0.38",
     "@types/react-dom": "16.0.4",
     "@types/ws": "0.0.40",
-    "@types/yargs": "11.0.0",
+    "@types/yargs": "^12.0.1",
     "concurrently": "3.5.1",
     "cross-spawn": "5.1.0",
     "electron": "~1.8.8",

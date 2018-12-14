@@ -9,7 +9,8 @@ const watch = require("gulp-watch");
 
 [
     "./tasks/nls-check",
-    "./tasks/eslint"
+    "./tasks/eslint",
+    "./tasks/test"
 ].forEach((taskfile) => {
     require(taskfile);
 });
