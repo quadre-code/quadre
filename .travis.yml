@@ -8,10 +8,11 @@ matrix:
   include:
     - os: osx
       osx_image: xcode7.3
+      env: USE_HARD_LINKS=false
     - os: linux
       dist: trusty
       sudo: required
-      env: DISPLAY=:99.0 CC=clang CXX=clang++ npm_config_clang=1
+      env: DISPLAY=:99.0 CC=clang CXX=clang++ npm_config_clang=1 USE_HARD_LINKS=false
       compiler: clang
 
 cache:
@@ -25,7 +26,7 @@ addons:
   apt:
     packages:
       - libgnome-keyring-dev
-      - icnsutils
+      - openjpeg-tools # or libopenjp2-tools
       - libx11-dev
       - libxkbfile-dev
       - libsecret-1-dev
