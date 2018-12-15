@@ -26,7 +26,8 @@
 /*jslint node: true */
 "use strict";
 
-var pathLib = require("path");
+var pathLib = require("path"),
+    file    = require("./tasks/lib/file");
 
 module.exports = function (grunt) {
     // load dependencies
@@ -40,7 +41,7 @@ module.exports = function (grunt) {
 
     // Project configuration.
     grunt.initConfig({
-        pkg  : grunt.file.readJSON("package.json"),
+        pkg  : file.readJSON("package.json"),
         clean: {
             dist: {
                 files: [{

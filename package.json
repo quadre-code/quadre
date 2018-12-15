@@ -133,6 +133,7 @@
     "gulp": "3.9.1",
     "gulp-eslint": "^5.0.0",
     "gulp-watch": "4.3.11",
+    "iconv-lite": "^0.4.24",
     "jasmine-node": "1.11.0",
     "load-grunt-tasks": "3.5.2",
     "node-abi": "^2.5.0",

@@ -25,6 +25,7 @@
 "use strict";
 
 const common = require("./lib/common");
+const file   = require("./lib/file");
 const build  = require("./build");
 
 module.exports = function (grunt) {
@@ -36,8 +37,8 @@ module.exports = function (grunt) {
             name = "dist";
         }
 
-        var appConfigJSON = grunt.file.readJSON("src/brackets.config.json"),
-            appConfigEnvJSON = grunt.file.readJSON("src/brackets.config." + name + ".json"),
+        var appConfigJSON = file.readJSON("src/brackets.config.json"),
+            appConfigEnvJSON = file.readJSON("src/brackets.config." + name + ".json"),
             key;
         for (key in appConfigEnvJSON) {
             if (appConfigEnvJSON.hasOwnProperty(key)) {
@@ -45,7 +46,7 @@ module.exports = function (grunt) {
             }
         }
 
-        var packageJSON = grunt.file.readJSON("package.json");
+        var packageJSON = file.readJSON("package.json");
         Object.keys(packageJSON).forEach(function (key) {
             if (appConfigJSON[key] === undefined) {
                 appConfigJSON[key] = packageJSON[key];
@@ -57,7 +58,7 @@ module.exports = function (grunt) {
     // task: build-config
     grunt.registerTask("build-config", "Update config.json with the build timestamp, branch and SHA being built", function () {
         var done = this.async(),
-            distConfig = grunt.file.readJSON("src/config.json");
+            distConfig = file.readJSON("src/config.json");
 
         build.getGitInfo(process.cwd()).then(function (gitInfo) {
             distConfig.repository.SHA = gitInfo.sha;

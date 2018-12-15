@@ -26,6 +26,7 @@
 
 const _       = require("lodash");
 const common  = require("./lib/common");
+const file    = require("./lib/file");
 const exec    = require("child_process").exec;
 const _spawn  = require("child_process").spawn;
 const fs      = require("fs-extra");
@@ -120,14 +121,14 @@ module.exports = function (grunt) {
     grunt.registerTask("npm-install-dist", "Install node_modules to the dist folder so it gets bundled with release", function () {
         /*
         try {
-            const npmShrinkwrapJSON = grunt.file.readJSON("src/npm-shrinkwrap.json");
+            const npmShrinkwrapJSON = file.readJSON("src/npm-shrinkwrap.json");
             common.writeJSON("dist/npm-shrinkwrap.json", npmShrinkwrapJSON);
         } catch (err) {
             grunt.log.error(err);
         }
         */
 
-        const packageJSON = grunt.file.readJSON("package.json");
+        const packageJSON = file.readJSON("package.json");
         const appJson = _.pick(packageJSON, [
             "name",
             "productName",
@@ -152,7 +153,7 @@ module.exports = function (grunt) {
             }
 
             // dist/www/node_modules
-            const packageJSONSrc = grunt.file.readJSON("src/package.json");
+            const packageJSONSrc = file.readJSON("src/package.json");
             appJson.dependencies = {};
             for (var key in packageJSONSrc.dependencies) {
                 appJson.dependencies[key] = packageJSONSrc.dependencies[key];
@@ -324,7 +325,7 @@ module.exports = function (grunt) {
         "npm-download-default-extensions",
         "Downloads extensions from npm and puts them to the src/extensions/default folder",
         function () {
-            var packageJSON = grunt.file.readJSON("package.json");
+            var packageJSON = file.readJSON("package.json");
             var extensionsToDownload = Object
                 .keys(packageJSON.defaultExtensions)
                 .map(function (name) {
