@@ -73,9 +73,9 @@ gulp.task("eslint:build", () => {
     return eslintTask(meta.build);
 });
 
-gulp.task("eslint", [
+gulp.task("eslint", gulp.parallel(
     "eslint:build",
     "eslint:app",
     "eslint:src",
     "eslint:test"
-]);
+));
