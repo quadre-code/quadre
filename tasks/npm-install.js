@@ -41,19 +41,19 @@ module.exports = function (grunt) {
     temp.track();
 
     function spawn(what, args, options, callback) {
-        var child = _spawn(what, args, options);
+        const child = _spawn(what, args, options);
         child.on("error", function (err) {
             return callback(err, null, err.toString());
         });
-        var stdout = [];
+        let stdout = [];
         child.stdout.addListener("data", function (buffer) {
             stdout.push(buffer);
         });
-        var stderr = [];
+        let stderr = [];
         child.stderr.addListener("data", function (buffer) {
             stderr.push(buffer);
         });
-        var exitCode;
+        let exitCode;
         child.addListener("exit", function (code) {
             exitCode = code;
         });
@@ -71,7 +71,7 @@ module.exports = function (grunt) {
             productionMode = true;
         }
 
-        var cmd = "npm install";
+        let cmd = "npm install";
         if (productionMode) {
             cmd += " --production";
         }
@@ -90,14 +90,14 @@ module.exports = function (grunt) {
                 grunt.log.writeln("skipping electron-rebuild in " + where);
                 return callback(null);
             }
-            var npmRebuildPath = path.resolve(
+            const npmRebuildPath = path.resolve(
                 __dirname,
                 "..",
                 "node_modules",
                 ".bin",
                 process.platform === "win32" ? "electron-rebuild.cmd" : "electron-rebuild"
             );
-            var args = [
+            const args = [
                 "-m=" + path.resolve(__dirname, "..", where)
             ];
             grunt.log.writeln("running electron-rebuild " + args.join(" "));
@@ -146,7 +146,7 @@ module.exports = function (grunt) {
 
         common.writeJSON("dist/package.json", appJson);
 
-        var done = this.async();
+        const done = this.async();
         runNpmInstall("dist", function (err) {
             if (err) {
                 return done(false);
@@ -155,7 +155,7 @@ module.exports = function (grunt) {
             // dist/www/node_modules
             const packageJSONSrc = file.readJSON("src/package.json");
             appJson.dependencies = {};
-            for (var key in packageJSONSrc.dependencies) {
+            for (const key in packageJSONSrc.dependencies) {
                 appJson.dependencies[key] = packageJSONSrc.dependencies[key];
             }
             common.writeJSON("dist/www/package.json", appJson);
@@ -167,7 +167,7 @@ module.exports = function (grunt) {
     });
 
     grunt.registerTask("npm-install-src", "Install node_modules to the src folder", function () {
-        var done = this.async();
+        const done = this.async();
         runNpmInstall("src", function (err) {
             if (err) {
                 done(false);
@@ -178,8 +178,8 @@ module.exports = function (grunt) {
 
     function npmInstallExtensions(globs, filterOutNodeModules = true, runProduction = true) {
         return new Promise(function (resolve) {
-            var result;
-            var doneWithGlob = _.after(globs.length, () => {
+            let result;
+            const doneWithGlob = _.after(globs.length, () => {
                 resolve(result);
             });
             globs.forEach(g => {
@@ -194,7 +194,7 @@ module.exports = function (grunt) {
                             return path.indexOf("node_modules") === -1;
                         });
                     }
-                    var doneWithFile = _.after(files.length, doneWithGlob);
+                    const doneWithFile = _.after(files.length, doneWithGlob);
                     files.forEach(function (file) {
                         runNpmInstall(path.dirname(file), runProduction, function (err) {
                             if (err) {
@@ -209,7 +209,7 @@ module.exports = function (grunt) {
     }
 
     grunt.registerTask("npm-install-extensions-src", "Install node_modules for default extensions which have package.json defined", function () {
-        var doneWithTask = this.async();
+        const doneWithTask = this.async();
         npmInstallExtensions([
             "src/www/+(extensibility|extensions|LiveDevelopment)/**/package.json"
         ]).then(function (result) {
@@ -218,7 +218,7 @@ module.exports = function (grunt) {
     });
 
     grunt.registerTask("npm-install-extensions-dist", "Install node_modules for default extensions which have package.json defined", function () {
-        var doneWithTask = this.async();
+        const doneWithTask = this.async();
         Promise.all([
             npmInstallExtensions([
                 "dist/www/node_modules/codemirror/package.json" // make sure codemirror builds
@@ -227,7 +227,7 @@ module.exports = function (grunt) {
                 "dist/www/+(extensibility|extensions|LiveDevelopment)/**/package.json"
             ])
         ]).then(function (results) {
-            var result = !results.some(x => x != null);
+            const result = !results.some(x => x != null);
             doneWithTask(result);
         }).catch(function (err) {
             grunt.log.error("err " + err);
@@ -269,10 +269,10 @@ module.exports = function (grunt) {
                     return reject(new Error("Request failed: " + res.statusCode));
                 }
 
-                var unzipStream = zlib.createGunzip();
+                const unzipStream = zlib.createGunzip();
                 res.pipe(unzipStream);
 
-                var extractStream = tar.Extract({ path: dirPath, strip: 0 });
+                const extractStream = tar.Extract({ path: dirPath, strip: 0 });
                 unzipStream.pipe(extractStream);
 
                 extractStream.on("finish", function() {
@@ -303,9 +303,9 @@ module.exports = function (grunt) {
     }
 
     function downloadAndInstallExtensionFromNpm(obj) {
-        var extensionName = obj.name;
-        var extensionVersion = obj.version ? "@" + obj.version : "";
-        var data = {};
+        const extensionName = obj.name;
+        const extensionVersion = obj.version ? "@" + obj.version : "";
+        const data = {};
         return getNodeModulePackageUrl(extensionName + extensionVersion)
             .then(function (urlToDownload) {
                 data.urlToDownload = urlToDownload;
@@ -316,7 +316,7 @@ module.exports = function (grunt) {
                 return downloadUrlToFolder(data.urlToDownload, data.tempDirPath);
             })
             .then(function (extensionPath) {
-                var target = path.resolve(__dirname, "..", "src", "extensions", "default", extensionName);
+                const target = path.resolve(__dirname, "..", "src", "extensions", "default", extensionName);
                 return move(extensionPath, target);
             });
     }
@@ -325,8 +325,8 @@ module.exports = function (grunt) {
         "npm-download-default-extensions",
         "Downloads extensions from npm and puts them to the src/extensions/default folder",
         function () {
-            var packageJSON = file.readJSON("package.json");
-            var extensionsToDownload = Object
+            const packageJSON = file.readJSON("package.json");
+            const extensionsToDownload = Object
                 .keys(packageJSON.defaultExtensions)
                 .map(function (name) {
                     return {
@@ -335,7 +335,7 @@ module.exports = function (grunt) {
                     };
                 });
 
-            var done = this.async();
+            const done = this.async();
             Promise.all(extensionsToDownload.map(function (extension) {
                 return downloadAndInstallExtensionFromNpm(extension);
             })).then(function () {

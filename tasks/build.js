@@ -30,8 +30,8 @@ const build        = {};
 const pexec        = util.promisify(childProcess.exec);
 
 function getGitInfo(cwd) {
-    var opts = { cwd: cwd, maxBuffer: 1024 * 1024 },
-        json = {};
+    const opts = { cwd: cwd, maxBuffer: 1024 * 1024 };
+    const json = {};
 
     // count the number of commits for our version number
     //     <major>.<minor>.<patch>-<number of commits>
@@ -46,10 +46,9 @@ function getGitInfo(cwd) {
         // compare HEAD to the HEADs on the remote
         return pexec("git ls-remote --heads origin", opts);
     }).then(function ({ stdout }) {
-        var log = stdout.toString(),
-            re = new RegExp(json.sha + "\\srefs/heads/(\\S+)\\s"),
-            match = re.exec(log),
-            reflog;
+        const log = stdout.toString();
+        const re = new RegExp(json.sha + "\\srefs/heads/(\\S+)\\s");
+        const match = re.exec(log);
 
         // if HEAD matches to a remote branch HEAD, grab the branch name
         if (match) {
@@ -58,12 +57,12 @@ function getGitInfo(cwd) {
         }
 
         // else, try match HEAD using reflog
-        reflog = pexec("git reflog show --no-abbrev-commit --all", opts);
+        const reflog = pexec("git reflog show --no-abbrev-commit --all", opts);
 
         return reflog.then(function (result) {
-            var logReflog = result.stdout,
-                reReflog = new RegExp(json.sha + "\\srefs/(remotes/origin|heads)/(\\S+)@"),
-                matchReflog = reReflog.exec(logReflog);
+            const logReflog = result.stdout;
+            const reReflog = new RegExp(json.sha + "\\srefs/(remotes/origin|heads)/(\\S+)@");
+            const matchReflog = reReflog.exec(logReflog);
 
             json.branch = (matchReflog && matchReflog[2]) || "(no branch)";
 

@@ -26,8 +26,8 @@
 /*jslint node: true */
 "use strict";
 
-var pathLib = require("path"),
-    file    = require("./tasks/lib/file");
+const pathLib = require("path");
+const file    = require("./tasks/lib/file");
 
 module.exports = function (grunt) {
     // load dependencies

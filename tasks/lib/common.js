@@ -28,7 +28,7 @@ const path = require("path");
 const file = require("./file");
 
 function writeJSON(pathJson, obj) {
-    var content = JSON.stringify(obj, null, "    ");
+    let content = JSON.stringify(obj, null, "    ");
     if (process.platform === "win32") {
         content = content.split("\n").join("\r\n");
     }

@@ -33,10 +33,10 @@ function createError(err, origError) {
 
 
 // The module to be exported.
-var file = module.exports = {};
+const file = module.exports = {};
 
 // Normalize \\ paths to / paths.
-var unixifyPath = function(filepath) {
+const unixifyPath = function(filepath) {
     if (process.platform === "win32") {
         return filepath.replace(/\\/g, "/");
     }
@@ -46,9 +46,9 @@ var unixifyPath = function(filepath) {
 
 // Recurse into a directory, executing callback for each file.
 file.recurse = function recurse(rootdir, callback, subdir) {
-    var abspath = subdir ? path.join(rootdir, subdir) : rootdir;
+    const abspath = subdir ? path.join(rootdir, subdir) : rootdir;
     fs.readdirSync(abspath).forEach(function(filename) {
-        var filepath = path.join(abspath, filename);
+        const filepath = path.join(abspath, filename);
         if (fs.statSync(filepath).isDirectory()) {
             recurse(rootdir, callback, unixifyPath(path.join(subdir || "", filename || "")));
         } else {
@@ -65,7 +65,7 @@ file.preserveBOM = false;
 // Read a file, return its contents.
 file.read = function(filepath, options) {
     if (!options) { options = {}; }
-    var contents;
+    let contents;
     try {
         contents = fs.readFileSync(String(filepath));
         // If encoding is not explicitly null, convert from encoded buffer to a
@@ -81,8 +81,8 @@ file.read = function(filepath, options) {
 
 // Read a file, parse its contents, return an object.
 file.readJSON = function(filepath, options) {
-    var src = file.read(filepath, options);
-    var result;
+    const src = file.read(filepath, options);
+    let result;
     try {
         result = JSON.parse(src);
         return result;

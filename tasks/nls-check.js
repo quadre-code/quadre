@@ -36,12 +36,11 @@ function nlsCheck(cb) {
     const rootDefinitions = {};
 
     function getDefinitions(abspath) {
-        var fileContent,
-            definitions = [];
+        const definitions = [];
 
-        fileContent = file.read(abspath);
+        const fileContent = file.read(abspath);
         fileContent.split("\n").forEach(function (line) {
-            var match = line.match(/^\s*"(\S+)"\s*:/);
+            const match = line.match(/^\s*"(\S+)"\s*:/);
             if (match && match[1]) {
                 definitions.push(match[1]);
             }

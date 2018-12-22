@@ -7,24 +7,24 @@ const spawn   = require("cross-spawn");
 module.exports = function (grunt) {
 
     grunt.registerTask("webpack-browser-dependencies", "Runs webpack on stuff we need to use from browser", function () {
-        var done = this.async();
-        var webpackPath = path.resolve(
+        const done = this.async();
+        const webpackPath = path.resolve(
             __dirname,
             "..",
             "node_modules",
             ".bin",
             process.platform === "win32" ? "webpack.cmd" : "webpack"
         );
-        var webpackTasks = [
+        const webpackTasks = [
             [
                 "./dist/node_modules/semver/semver.js",
                 "./dist/www/thirdparty/semver.browser.js",
                 "--output-library-target=amd"
             ]
         ];
-        var doneWithWebpackTask = _.after(webpackTasks.length, done);
+        const doneWithWebpackTask = _.after(webpackTasks.length, done);
         webpackTasks.forEach(args => {
-            var wp =spawn(webpackPath, args, {
+            const wp =spawn(webpackPath, args, {
                 cwd: path.resolve(__dirname, "..")
             });
             wp.stdout.on("data", (data) => {

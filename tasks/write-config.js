@@ -32,21 +32,20 @@ module.exports = function (grunt) {
 
     // task: write-config
     grunt.registerTask("write-config", "Merge package.json and src/brackets.config.json into src/config.json", function () {
-        var name = "dev";
+        let name = "dev";
         if (this.flags.dist === true) {
             name = "dist";
         }
 
-        var appConfigJSON = file.readJSON("src/brackets.config.json"),
-            appConfigEnvJSON = file.readJSON("src/brackets.config." + name + ".json"),
-            key;
-        for (key in appConfigEnvJSON) {
+        const appConfigJSON = file.readJSON("src/brackets.config.json");
+        const appConfigEnvJSON = file.readJSON("src/brackets.config." + name + ".json");
+        for (const key in appConfigEnvJSON) {
             if (appConfigEnvJSON.hasOwnProperty(key)) {
                 appConfigJSON.config[key] = appConfigEnvJSON[key];
             }
         }
 
-        var packageJSON = file.readJSON("package.json");
+        const packageJSON = file.readJSON("package.json");
         Object.keys(packageJSON).forEach(function (key) {
             if (appConfigJSON[key] === undefined) {
                 appConfigJSON[key] = packageJSON[key];
@@ -57,8 +56,8 @@ module.exports = function (grunt) {
 
     // task: build-config
     grunt.registerTask("build-config", "Update config.json with the build timestamp, branch and SHA being built", function () {
-        var done = this.async(),
-            distConfig = file.readJSON("src/config.json");
+        const done = this.async();
+        const distConfig = file.readJSON("src/config.json");
 
         build.getGitInfo(process.cwd()).then(function (gitInfo) {
             distConfig.repository.SHA = gitInfo.sha;

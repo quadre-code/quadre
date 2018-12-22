@@ -156,11 +156,18 @@ module.exports = {
             "excludedFiles": "**/*.js",
             "parser": "typescript-eslint-parser",
             "parserOptions": {
+                "ecmaVersion": 6,
                 "sourceType": "module"
             },
             "rules": {
                 "no-undef": "off",
-                "no-unused-vars": "off"
+                "no-unused-vars": "off",
+                // http://eslint.org/docs/rules/#stylistic-issues
+                "one-var": ["error", { let: "never", const: "never" }],
+                "one-var-declaration-per-line": ["error", "always"],
+                // https://eslint.org/docs/rules/#ecmascript-6
+                "no-var": "error",
+                "prefer-const": "error",
             }
         },
         // TypeScript + React
@@ -181,6 +188,13 @@ module.exports = {
             "rules": {
                 "no-undef": "off",
                 "no-unused-vars": "off",
+                // http://eslint.org/docs/rules/#stylistic-issues
+                "one-var": ["error", { let: "never", const: "never" }],
+                "one-var-declaration-per-line": ["error", "always"],
+                // https://eslint.org/docs/rules/#ecmascript-6
+                "no-var": "error",
+                "prefer-const": "error",
+                // react plugin
                 "react/jsx-uses-react": "error",
                 "react/jsx-uses-vars": "error"
             }
@@ -197,6 +211,14 @@ module.exports = {
             },
             "env": {
                 "node": true,
+            },
+            "rules": {
+                // http://eslint.org/docs/rules/#stylistic-issues
+                "one-var": ["error", { let: "never", const: "never" }],
+                "one-var-declaration-per-line": ["error", "always"],
+                // https://eslint.org/docs/rules/#ecmascript-6
+                "no-var": "error",
+                "prefer-const": "error",
             }
         },
         // Tests

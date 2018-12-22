@@ -41,10 +41,10 @@ const taskName = "test-integration";
  * Check the unit test results for failures
  */
 function checkForTestFailures(pathToResult) {
-    var resultXml = file.read(pathToResult),
-        xmlDocument = new XmlDocument(resultXml),
-        testSuites = xmlDocument.childrenNamed("testsuite"),
-        failures = 0;
+    const resultXml = file.read(pathToResult);
+    const xmlDocument = new XmlDocument(resultXml);
+    const testSuites = xmlDocument.childrenNamed("testsuite");
+    let failures = 0;
 
     testSuites.forEach(function (testSuite) {
         const num = Number(testSuite.attr.failures);
@@ -62,22 +62,22 @@ function checkForTestFailures(pathToResult) {
 }
 
 function testIntegration(cb) {
-    var opts            = { cwd: process.cwd() },
-        spec            = argv["spec"] || "all",
-        suite           = argv["suite"] || "all",
-        resultsDir      = process.env.TEST_JUNIT_XML_ROOT || path.join(process.cwd(), "dist", "test", "results"),
-        results         = resultsDir + "/" + (argv["results"] || "TEST-results") + ".xml",
-        resultsPath     = common.resolve(results).replace(/\\/g, "/"),
-        specRunnerPath  = common.resolve("dist/test/SpecRunner.html"),
-        isCI            = /true/i.test(process.env.CI),
-        args            = " --startup-path=\"" + specRunnerPath + "?suite=" + encodeURIComponent(suite) + "&spec=" + encodeURIComponent(spec) + "&resultsPath=" + encodeURIComponent(resultsPath) + "&isCI=" + isCI + "\"",
-        cmd = path.join("node_modules", ".bin", "electron") + " . " + args;
+    const opts            = { cwd: process.cwd() };
+    const spec            = argv["spec"] || "all";
+    const suite           = argv["suite"] || "all";
+    const resultsDir      = process.env.TEST_JUNIT_XML_ROOT || path.join(process.cwd(), "dist", "test", "results");
+    const results         = resultsDir + "/" + (argv["results"] || "TEST-results") + ".xml";
+    const resultsPath     = common.resolve(results).replace(/\\/g, "/");
+    const specRunnerPath  = common.resolve("dist/test/SpecRunner.html");
+    const isCI            = /true/i.test(process.env.CI);
+    const args            = " --startup-path=\"" + specRunnerPath + "?suite=" + encodeURIComponent(suite) + "&spec=" + encodeURIComponent(spec) + "&resultsPath=" + encodeURIComponent(resultsPath) + "&isCI=" + isCI + "\"";
+    const cmd = path.join("node_modules", ".bin", "electron") + " . " + args;
 
     log.info(cmd);
 
     fs.ensureDir(resultsDir)
         .then(() => {
-            var cp = childProcess.exec(cmd, opts, function (err, stdout, stderr) {
+            const cp = childProcess.exec(cmd, opts, function (err, stdout, stderr) {
                 if (err) {
                     log.error(err);
                     const errPlugin = new PluginError(taskName, err, { showStack: true });
@@ -98,7 +98,7 @@ function testIntegration(cb) {
                     return cb(errPlugin);
                 }
 
-                var failures = checkForTestFailures(resultsPath);
+                const failures = checkForTestFailures(resultsPath);
                 if (failures) {
                     const errPlugin = new PluginError(taskName, failures + " test failure(s). Results are available from " + resultsPath);
                     cb(errPlugin);
