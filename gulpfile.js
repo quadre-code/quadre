@@ -47,7 +47,7 @@ gulp.task("copy-test-dist", (_cb) => {
     });
 });
 
-gulp.task("watch", gulp.parallel("copy-src-dist", "copy-test-dist"), () => {
+gulp.task("watch-dev", () => {
     const BASE_WATCH_DIRS = BASE_DIRS.concat(BASE_TESTS_DIRS);
     const DIST_WATCH_DIRS = DIST_DIRS.concat(DIST_TESTS_DIRS);
     BASE_WATCH_DIRS.forEach((srcDir, idx) => {
@@ -57,6 +57,8 @@ gulp.task("watch", gulp.parallel("copy-src-dist", "copy-test-dist"), () => {
         });
     });
 });
+
+gulp.task("watch", gulp.series(gulp.parallel("copy-src-dist", "copy-test-dist"), "watch-dev"));
 
 gulp.task("test", gulp.parallel("eslint", "nls-check"));
 gulp.task("default", gulp.series("test"));

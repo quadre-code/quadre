@@ -106,7 +106,7 @@
     "@types/react-dom": "16.0.4",
     "@types/ws": "0.0.40",
     "@types/yargs": "^12.0.1",
-    "concurrently": "3.5.1",
+    "concurrently": "^4.1.0",
     "cross-spawn": "5.1.0",
     "electron": "~1.8.8",
     "electron-builder": "^20.38.3",
