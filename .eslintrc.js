@@ -159,10 +159,29 @@ module.exports = {
                 "ecmaVersion": 6,
                 "sourceType": "module"
             },
+            "plugins": [
+                "typescript"
+            ],
             "rules": {
+                // http://eslint.org/docs/rules/#variables
                 "no-undef": "off",
                 "no-unused-vars": "off",
+                "typescript/no-unused-vars": ["error", { "vars": "all", "args": "none" }],
                 // http://eslint.org/docs/rules/#stylistic-issues
+                "camelcase": "off",
+                "typescript/camelcase": "warn",
+                "indent": "off",
+                "typescript/indent": ["error", 4, {
+                    "SwitchCase": 1,
+                    "VariableDeclarator": 1,
+                    "FunctionDeclaration": { "parameters": "first", body: 1 },
+                    "FunctionExpression": { "parameters": "first", body: 1 },
+                    "CallExpression": { "arguments": 1 },
+                    "ArrayExpression": 1,
+                    "ObjectExpression": 1,
+                    "ImportDeclaration": 1,
+                    "flatTernaryExpressions": false
+                }],
                 "one-var": ["error", { let: "never", const: "never" }],
                 "one-var-declaration-per-line": ["error", "always"],
                 // https://eslint.org/docs/rules/#ecmascript-6
@@ -183,12 +202,29 @@ module.exports = {
                 }
             },
             "plugins": [
-                "react"
+                "react",
+                "typescript"
             ],
             "rules": {
+                // http://eslint.org/docs/rules/#variables
                 "no-undef": "off",
                 "no-unused-vars": "off",
+                "typescript/no-unused-vars": ["error", { "vars": "all", "args": "none" }],
                 // http://eslint.org/docs/rules/#stylistic-issues
+                "camelcase": "off",
+                "typescript/camelcase": "warn",
+                "indent": "off",
+                "typescript/indent": ["error", 4, {
+                    "SwitchCase": 1,
+                    "VariableDeclarator": 1,
+                    "FunctionDeclaration": { "parameters": "first", body: 1 },
+                    "FunctionExpression": { "parameters": "first", body: 1 },
+                    "CallExpression": { "arguments": 1 },
+                    "ArrayExpression": 1,
+                    "ObjectExpression": 1,
+                    "ImportDeclaration": 1,
+                    "flatTernaryExpressions": false
+                }],
                 "one-var": ["error", { let: "never", const: "never" }],
                 "one-var-declaration-per-line": ["error", "always"],
                 // https://eslint.org/docs/rules/#ecmascript-6
