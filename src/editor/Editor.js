@@ -100,7 +100,6 @@ define(function (require, exports, module) {
         USE_TAB_CHAR        = "useTabChar",
         WORD_WRAP           = "wordWrap",
         AUTO_HIDE_SEARCH    = "autoHideSearch",
-        INDENT_LINE_COMMENT   = "indentLineComment",
         INDENT_LINE_COMMENT = "indentLineComment",
         INPUT_STYLE         = "inputStyle";
 
@@ -231,7 +230,7 @@ define(function (require, exports, module) {
     PreferencesManager.definePreference(WORD_WRAP,          "boolean", true, {
         description: Strings.DESCRIPTION_WORD_WRAP
     });
-  
+
     PreferencesManager.definePreference(AUTO_HIDE_SEARCH,   "boolean", true, {
         description: Strings.DESCRIPTION_SEARCH_AUTOHIDE
     });
