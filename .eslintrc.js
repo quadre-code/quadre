@@ -143,11 +143,20 @@ module.exports = {
         "XMLHttpRequest": false
     },
     "overrides": [
+        // app/
+        {
+            "files": [ "app/**" ],
+            "env": {
+                "node": true
+            }
+        },
         // src/
         {
             "files": [ "src/**" ],
             "globals": {
-                "electron": false
+                "electron": false,
+                "exports": false,
+                "module": false
             }
         },
         // TypeScript
@@ -164,7 +173,6 @@ module.exports = {
             ],
             "rules": {
                 // http://eslint.org/docs/rules/#variables
-                "no-undef": "off",
                 "no-unused-vars": "off",
                 "typescript/no-unused-vars": ["error", { "vars": "all", "args": "none" }],
                 // http://eslint.org/docs/rules/#stylistic-issues
@@ -207,7 +215,6 @@ module.exports = {
             ],
             "rules": {
                 // http://eslint.org/docs/rules/#variables
-                "no-undef": "off",
                 "no-unused-vars": "off",
                 "typescript/no-unused-vars": ["error", { "vars": "all", "args": "none" }],
                 // http://eslint.org/docs/rules/#stylistic-issues
