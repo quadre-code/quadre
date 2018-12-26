@@ -401,26 +401,6 @@ define(function (require, exports, module) {
                 testToggleLine(expectedText, {start: {line: 0, ch: 0}, end: {line: 7, ch: 3}});
             });
 
-            it("should comment/uncomment lines that were partially commented out already, our style", function () {
-
-                // Start with line 3 commented out, with "//" at column 0
-                var lines = defaultContent.split("\n");
-                lines[3] = "//        a();";
-                var startingContent = lines.join("\n");
-                myDocument.setText(startingContent);
-
-                // select lines 1-3
-                myEditor.setSelection({line: 1, ch: 0}, {line: 4, ch: 0});
-
-                lines = defaultContent.split("\n");
-                lines[1] = "    //function bar() {";
-                lines[2] = "    //    ";
-                lines[3] = "////        a();";
-                var expectedText = lines.join("\n");
-
-                testToggleLine(expectedText, {start: {line: 1, ch: 0}, end: {line: 4, ch: 0}});
-            });
-
             it("should comment/uncomment lines that were partially commented out already, comment closer to code", function () {
 
                 // Start with line 3 commented out, with "//" snug against the code

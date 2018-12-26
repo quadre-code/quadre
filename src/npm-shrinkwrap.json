@@ -88,19 +88,12 @@
       "integrity": "sha512-pbApC8zDzItP3HRphD6kQVwS976qB5Qi0hU3MZMixLk+AyugOW1RF+8XJEjeyl5yWsHNe88tDUxzeRh5AOxPRw=="
     },
     "codemirror-addon-toggle-comment": {
-      "version": "0.1.1",
-      "resolved": "https://registry.npmjs.org/codemirror-addon-toggle-comment/-/codemirror-addon-toggle-comment-0.1.1.tgz",
-      "integrity": "sha512-aHT/jJaU5q/fhKxypCldkBxx53/Lb50UOz0DWUgXZkV2GDnr0QeJwhUDkHpDIspULGF+YJ7UlW+irqywqt/9Jw==",
+      "version": "0.2.0",
+      "resolved": "https://registry.npmjs.org/codemirror-addon-toggle-comment/-/codemirror-addon-toggle-comment-0.2.0.tgz",
+      "integrity": "sha512-4ZK+TlP69JmP5JS/U9H5NG26OjDx2S9i2njSHGTa3w/aP9MoBUh68KPLGaAXGJnMJmhczx1QCGfRtczOOiADkQ==",
       "requires": {
         "codemirror": "^5.39.2",
         "lodash": "^4.17.10"
-      },
-      "dependencies": {
-        "codemirror": {
-          "version": "5.40.2",
-          "resolved": "https://registry.npmjs.org/codemirror/-/codemirror-5.40.2.tgz",
-          "integrity": "sha512-yoWuvEiD3v5vTwdoMc/wu/Ld6dh9K/yEiEBTKOPGM+/pN0gTAqFNtrLHv1IJ1UJvzFpNRvMi92XCi3+8/iIaEw=="
-        }
       }
     },
     "combined-stream": {
