@@ -93,6 +93,10 @@ define(function (require, exports, module) {
             myEditor.focus();
         }
 
+        beforeEach(function () {
+            PreferencesManager.set("paddingComment", "");
+        });
+
         afterEach(function () {
             if (myDocument) {
                 SpecRunnerUtils.destroyMockEditor(myDocument);
@@ -907,6 +911,33 @@ define(function (require, exports, module) {
                         {start: {line: 3, ch: 2}, end: {line: 3, ch: 2}, primary: true, reversed: false}]);
 
                 });
+            });
+        });
+
+        describe("Line comment/uncomment with `padding` option enabled", function () {
+            beforeEach(function () {
+                setupFullEditor();
+                PreferencesManager.set("paddingComment", " ");
+            });
+
+            afterEach(function () {
+                PreferencesManager.set("paddingComment", "");
+            });
+
+            it("should comment/uncomment after select all", function () {
+                myEditor.setSelection({line: 0, ch: 0}, {line: 7, ch: 1});
+
+                var expectedText = "// function foo() {\n" +
+                                   "//     function bar() {\n" +
+                                   "//         \n" +
+                                   "//         a();\n" +
+                                   "//         \n" +
+                                   "//     }\n" +
+                                   "// \n" +
+                                   "// }";
+
+                testToggleLine(expectedText, {start: {line: 0, ch: 0}, end: {line: 7, ch: 4}});
+                testToggleLine(defaultContent, {start: {line: 0, ch: 0}, end: {line: 7, ch: 1}});
             });
         });
 

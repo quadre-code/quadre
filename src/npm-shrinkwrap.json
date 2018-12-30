@@ -88,11 +88,10 @@
       "integrity": "sha512-pbApC8zDzItP3HRphD6kQVwS976qB5Qi0hU3MZMixLk+AyugOW1RF+8XJEjeyl5yWsHNe88tDUxzeRh5AOxPRw=="
     },
     "codemirror-addon-toggle-comment": {
-      "version": "0.2.0",
-      "resolved": "https://registry.npmjs.org/codemirror-addon-toggle-comment/-/codemirror-addon-toggle-comment-0.2.0.tgz",
-      "integrity": "sha512-4ZK+TlP69JmP5JS/U9H5NG26OjDx2S9i2njSHGTa3w/aP9MoBUh68KPLGaAXGJnMJmhczx1QCGfRtczOOiADkQ==",
+      "version": "0.4.0",
+      "resolved": "https://registry.npmjs.org/codemirror-addon-toggle-comment/-/codemirror-addon-toggle-comment-0.4.0.tgz",
+      "integrity": "sha512-Jnik9YJwtMkmqMingRVABgpPgvxLUqfEenPm6cU/s4Mo5+DdHhRgmNMfPJby0d7WT56MGfzeUEQvO7ljF9BvJQ==",
       "requires": {
-        "codemirror": "^5.39.2",
         "lodash": "^4.17.10"
       }
     },

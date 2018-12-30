@@ -101,6 +101,7 @@ define(function (require, exports, module) {
         WORD_WRAP           = "wordWrap",
         AUTO_HIDE_SEARCH    = "autoHideSearch",
         INDENT_LINE_COMMENT = "indentLineComment",
+        PADDING_COMMENT     = "paddingComment",
         INPUT_STYLE         = "inputStyle";
 
 
@@ -238,6 +239,10 @@ define(function (require, exports, module) {
     PreferencesManager.definePreference(INDENT_LINE_COMMENT,  "boolean", false, {
         description: Strings.DESCRIPTION_INDENT_LINE_COMMENT
     });
+    PreferencesManager.definePreference(PADDING_COMMENT, "string", " ", {
+        description: Strings.DESCRIPTION_PADDING_COMMENT
+    });
+
     PreferencesManager.definePreference(INPUT_STYLE,  "string", "textarea", {
         description: Strings.DESCRIPTION_INPUT_STYLE
     });
@@ -2737,6 +2742,27 @@ define(function (require, exports, module) {
      */
     Editor.getIndentLineComment = function (fullPath) {
         return PreferencesManager.get(INDENT_LINE_COMMENT, _buildPreferencesContext(fullPath));
+    };
+
+    /**
+     * Sets paddingComment option.
+     * Affects any editors that share the same preference location.
+     * @param {boolean} value
+     * @param {string=} fullPath Path to file to get preference for
+     * @return {boolean} true if value was valid
+     */
+    Editor.setPaddingComment = function (value, fullPath) {
+        var options = fullPath && {context: fullPath};
+        return PreferencesManager.set(PADDING_COMMENT, value, options);
+    };
+
+    /**
+     * Returns the string of paddingComment for the specified or current file
+     * @param {string=} fullPath Path to file to get preference for
+     * @return {boolean}
+     */
+    Editor.getPaddingComment = function (fullPath) {
+        return PreferencesManager.get(PADDING_COMMENT, _buildPreferencesContext(fullPath));
     };
 
     /**

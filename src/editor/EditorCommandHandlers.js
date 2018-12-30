@@ -62,8 +62,9 @@ define(function (require, exports, module) {
             return;
         }
 
-        editor._codeMirror.lineComment({
+        editor._codeMirror.toggleLineComment({
             indent: Editor.getIndentLineComment(),
+            padding: Editor.getPaddingComment(),
             getMode: function (mode) {
                 return _getMode(editor, mode);
             }
@@ -80,8 +81,9 @@ define(function (require, exports, module) {
             return;
         }
 
-        editor._codeMirror.blockComment({
+        editor._codeMirror.toggleBlockComment({
             indent: Editor.getIndentLineComment(),
+            padding: Editor.getPaddingComment(),
             getMode: function (mode) {
                 return _getMode(editor, mode);
             }
