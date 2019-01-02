@@ -116,7 +116,7 @@ export function showOpenDialog(
      * Extensions without wildcards or dots (e.g. 'png' is good but '.png' and '*.png' are bad).
      * To show all files, use the '*' wildcard (no other wildcard is supported).
      */
-    filters: Array<{ name: string; extensions: string[]; }>,
+    filters: Array<{ name: string, extensions: string[] }>,
     callback: (err: Error | null, fileNames: string[]) => void
 ) {
     const properties: Array<(

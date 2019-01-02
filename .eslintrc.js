@@ -195,6 +195,17 @@ module.exports = {
                 // https://eslint.org/docs/rules/#ecmascript-6
                 "no-var": "error",
                 "prefer-const": "error",
+                // Specific to TypeScript
+                "typescript/member-delimiter-style": ["error", {
+                    multiline: {
+                        delimiter: "semi",
+                        requireLast: true
+                    },
+                    singleline: {
+                        delimiter: "comma",
+                        requireLast: false
+                    }
+                }]
             }
         },
         // TypeScript + React
@@ -237,6 +248,8 @@ module.exports = {
                 // https://eslint.org/docs/rules/#ecmascript-6
                 "no-var": "error",
                 "prefer-const": "error",
+                // Specific to TypeScript
+                "typescript/member-delimiter-style": "error",
                 // react plugin
                 "react/jsx-uses-react": "error",
                 "react/jsx-uses-vars": "error"
