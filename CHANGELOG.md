@@ -1,3 +1,16 @@
+## v2.0.0-alpha.3 (2019-01-06)
+
+Add a paddingComment option
+
+Add a commentBlankLines option
+
+Start to switch from grunt to gulp
+
+Start consolidating the coding style
+
+Backport some patches from Brackets (Keep the search bar open)
+
+
 ## v2.0.0-alpha.2 (2018-11-25)
 
 Update electron to 1.8.8
