@@ -237,13 +237,13 @@ define(function (require, exports, module) {
         description: Strings.DESCRIPTION_SEARCH_AUTOHIDE
     });
 
-    PreferencesManager.definePreference(INDENT_LINE_COMMENT,  "boolean", false, {
+    PreferencesManager.definePreference(INDENT_LINE_COMMENT,  "boolean", true, {
         description: Strings.DESCRIPTION_INDENT_LINE_COMMENT
     });
     PreferencesManager.definePreference(PADDING_COMMENT, "string", " ", {
         description: Strings.DESCRIPTION_PADDING_COMMENT
     });
-    PreferencesManager.definePreference(COMMENT_BLANK_LINES, "boolean", true, {
+    PreferencesManager.definePreference(COMMENT_BLANK_LINES, "boolean", false, {
         description: Strings.DESCRIPTION_COMMENT_BLANK_LINES
     });
 

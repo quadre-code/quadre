@@ -36,7 +36,11 @@ define(function (require, exports, module) {
 
     require("editor/EditorCommandHandlers");
 
-    var shouldIndentLineComment = Editor.getIndentLineComment();
+    var indentLineCommentDefault = Editor.getIndentLineComment();
+    var paddingCommentDefault = Editor.getPaddingComment();
+    var commentBlankLinesDefault = Editor.getCommentBlankLines();
+
+    var useTabCharDefault = Editor.getUseTabChar();
 
     // Verify if we are running in a CI.
     var UrlParams = require("utils/UrlParams").UrlParams,
@@ -93,11 +97,13 @@ define(function (require, exports, module) {
             myEditor.focus();
         }
 
-        beforeEach(function () {
-            PreferencesManager.set("paddingComment", "");
-        });
-
         afterEach(function () {
+            PreferencesManager.set("indentLineComment", indentLineCommentDefault);
+            PreferencesManager.set("paddingComment", paddingCommentDefault);
+            PreferencesManager.set("commentBlankLines", commentBlankLinesDefault);
+
+            PreferencesManager.set("useTabChar", useTabCharDefault);
+
             if (myDocument) {
                 SpecRunnerUtils.destroyMockEditor(myDocument);
                 myEditor = null;
@@ -240,691 +246,40 @@ define(function (require, exports, module) {
             testToggleComment(expectedCommentedText, expectedCommentedSel, expectedSelText, "block");
         }
 
-        describe("Line comment/uncomment with indentLineComment enabled", function () {
-
+        describe("Line comment/uncomment with `indentLineComment` enabled", function () {
             beforeEach(function () {
                 setupFullEditor();
                 PreferencesManager.set("indentLineComment", true);
+                PreferencesManager.set("paddingComment", "");
+                PreferencesManager.set("commentBlankLines", true);
             });
 
-            afterEach(function () {
-                PreferencesManager.set("indentLineComment", shouldIndentLineComment);
-            });
-
-
-            it("should comment/uncomment a single line, cursor at start", function () {
-
-                myEditor.setCursorPos(3, 0);
-
-                var lines = defaultContent.split("\n");
-                lines[3] = "        //a();";
-                var expectedText = lines.join("\n");
-
-                testToggleLine(expectedText, {line: 3, ch: 0});
-
-
-            });
-
-            it("should comment/uncomment a single line, cursor at end", function () {
-
-                myEditor.setCursorPos(3, 12);
-
-                var lines = defaultContent.split("\n");
-                lines[3] = "        //a();";
-                var expectedText = lines.join("\n");
-
-                testToggleLine(expectedText, {line: 3, ch: 14});
-
-            });
-
-            it("should comment/uncomment first line in file", function () {
-
-                myEditor.setCursorPos(0, 0);
-
-                var lines = defaultContent.split("\n");
-                lines[0] = "//function foo() {";
-                var expectedText = lines.join("\n");
-
-                testToggleLine(expectedText, {line: 0, ch: 2});
-            });
-
-            it("should comment/uncomment a single partly-selected line", function () {
-
-                // select "function" on line 1
-                myEditor.setSelection({line: 1, ch: 4}, {line: 1, ch: 12});
-
-                var lines = defaultContent.split("\n");
-                lines[1] = "    //function bar() {";
-                var expectedText = lines.join("\n");
-
-                testToggleLine(expectedText, {start: {line: 1, ch: 6}, end: {line: 1, ch: 14}});
-
-            });
-
-            it("should comment/uncomment a single selected line", function () {
-
-                // selection covers all of line's text, but not \n at end
-                myEditor.setSelection({line: 1, ch: 0}, {line: 1, ch: 20});
-
-                var lines = defaultContent.split("\n");
-                lines[1] = "    //function bar() {";
-                var expectedText = lines.join("\n");
-
-                testToggleLine(expectedText, {start: {line: 1, ch: 0}, end: {line: 1, ch: 22}});
-            });
-
-            it("should comment/uncomment a single fully-selected line (including LF)", function () {
-
-
-                // selection including \n at end of line
-                myEditor.setSelection({line: 1, ch: 0}, {line: 2, ch: 0});
-
-                var lines = defaultContent.split("\n");
-                lines[1] = "    //function bar() {";
-                var expectedText = lines.join("\n");
-
-                testToggleLine(expectedText, {start: {line: 1, ch: 0}, end: {line: 2, ch: 0}});
-
-            });
-
-            it("should comment/uncomment multiple selected lines", function () {
-                // selection including \n at end of line
+            it("should comment/uncomment after select all with indent", function () {
                 myEditor.setSelection({line: 1, ch: 0}, {line: 6, ch: 0});
 
-                var lines = defaultContent.split("\n");
-                lines[1] = "    //function bar() {";
-                lines[2] = "    //    ";
-                lines[3] = "    //    a();";
-                lines[4] = "    //    ";
-                lines[5] = "    //}";
-                var expectedText = lines.join("\n");
+                var expectedText = "function foo() {\n" +
+                                   "    //function bar() {\n" +
+                                   "    //    \n" +
+                                   "    //    a();\n" +
+                                   "    //    \n" +
+                                   "    //}\n" +
+                                   "\n" +
+                                   "}";
 
                 testToggleLine(expectedText, {start: {line: 1, ch: 0}, end: {line: 6, ch: 0}});
-            });
-
-            it("should comment/uncomment ragged multi-line selection", function () {
-
-                myEditor.setSelection({line: 1, ch: 6}, {line: 3, ch: 9});
-
-                var lines = defaultContent.split("\n");
-                lines[1] = "    //function bar() {";
-                lines[2] = "    //    ";
-                lines[3] = "    //    a();";
-                var expectedText = lines.join("\n");
-
-                testToggleLine(expectedText, {start: {line: 1, ch: 8}, end: {line: 3, ch: 11}}, "nction bar() {\n    //    \n    //    a");
-
-
-            });
-
-            it("should comment/uncomment when selection starts & ends on whitespace lines", function () {
-
-                myEditor.setSelection({line: 2, ch: 0}, {line: 4, ch: 8});
-
-                var lines = defaultContent.split("\n");
-                lines[2] = "        //";
-                lines[3] = "        //a();";
-                lines[4] = "        //";
-                var expectedText = lines.join("\n");
-
-                testToggleLine(expectedText, {start: {line: 2, ch: 0}, end: {line: 4, ch: 10}});
-
-            });
-
-            it("should do nothing on whitespace line", function () {
-                myEditor.setCursorPos(2, 8);
-
-                testToggleLine(defaultContent, {line: 2, ch: 8});
-            });
-
-            it("should do nothing when only whitespace lines selected", function () {
-                // Start with line 2 duplicated twice (3 copies total)
-                var lines = defaultContent.split("\n");
-                lines.splice(2, 0, lines[2], lines[2]);
-                var startingContent = lines.join("\n");
-                myDocument.setText(startingContent);
-
-                myEditor.setSelection({line: 2, ch: 4}, {line: 4, ch: 4});
-
-                testToggleLine(startingContent, {start: {line: 2, ch: 4}, end: {line: 4, ch: 4}});
-            });
-
-            it("should comment/uncomment after select all", function () {
-
-                myEditor.setSelection({line: 0, ch: 0}, {line: 7, ch: 1});
-
-                var expectedText = "//function foo() {\n" +
-                                   "//    function bar() {\n" +
-                                   "//        \n" +
-                                   "//        a();\n" +
-                                   "//        \n" +
-                                   "//    }\n" +
-                                   "//\n" +
-                                   "//}";
-
-                testToggleLine(expectedText, {start: {line: 0, ch: 0}, end: {line: 7, ch: 3}});
-            });
-
-            it("should comment/uncomment lines that were partially commented out already, comment closer to code", function () {
-
-                // Start with line 3 commented out, with "//" snug against the code
-                var lines = defaultContent.split("\n");
-                lines[3] = "        //a();";
-                var startingContent = lines.join("\n");
-                myDocument.setText(startingContent);
-
-                // select lines 1-3
-                myEditor.setSelection({line: 1, ch: 0}, {line: 4, ch: 0});
-
-                lines = defaultContent.split("\n");
-                lines[1] = "    //function bar() {";
-                lines[2] = "    //    ";
-                lines[3] = "    //    //a();";
-                var expectedText = lines.join("\n");
-
-                testToggleLine(expectedText, {start: {line: 1, ch: 0}, end: {line: 4, ch: 0}});
-            });
-
-            it("should uncomment indented, aligned comments", function () {
-                // Start with lines 1-5 commented out, with "//" all aligned at column 4
-                var lines = defaultContent.split("\n");
-                lines[1] = "    //function bar() {";
-                lines[2] = "    //    ";
-                lines[3] = "    //    a();";
-                lines[4] = "    //    ";
-                lines[5] = "    //}";
-                var startingContent = lines.join("\n");
-                myDocument.setText(startingContent);
-
-                // select lines 1-5
-                myEditor.setSelection({line: 1, ch: 0}, {line: 6, ch: 0});
-
                 testToggleLine(defaultContent, {start: {line: 1, ch: 0}, end: {line: 6, ch: 0}});
-            });
-
-            it("should uncomment ragged partial comments with empty lines in-between", function () {
-                // Start with lines 1-5 commented out, with "//" snug up against each non-blank line's code
-                var lines = defaultContent.split("\n");
-                lines[1] = "    //function bar() {";
-                lines[2] = "";
-                lines[3] = "        //a();";
-                lines[4] = "";
-                lines[5] = "    //}";
-                var startingContent = lines.join("\n");
-                myDocument.setText(startingContent);
-
-                // select lines 1-5
-                myEditor.setSelection({line: 1, ch: 0}, {line: 6, ch: 0});
-
-                lines = defaultContent.split("\n");
-                lines[2] = "";
-                lines[4] = "";
-                var expectedText = lines.join("\n");
-
-                testToggleLine(expectedText, {start: {line: 1, ch: 0}, end: {line: 6, ch: 0}});
-            });
-
-            it("should uncomment ragged partial comments", function () {
-                // Start with lines 1-5 commented out, with "//" snug up against each non-blank line's code
-                var lines = defaultContent.split("\n");
-                lines[1] = "    //function bar() {";
-                lines[2] = "        ";
-                lines[3] = "        //a();";
-                lines[4] = "        ";
-                lines[5] = "    //}";
-                var startingContent = lines.join("\n");
-                myDocument.setText(startingContent);
-
-                // select lines 1-5
-                myEditor.setSelection({line: 1, ch: 0}, {line: 6, ch: 0});
-
-                testToggleLine(defaultContent, {start: {line: 1, ch: 0}, end: {line: 6, ch: 0}});
-            });
-
-            describe("with multiple selections", function () {
-                it("should toggle comments on separate lines with cursor selections", function () {
-
-                    myEditor.setSelections([{start: {line: 1, ch: 4}, end: {line: 1, ch: 4}},
-                        {start: {line: 3, ch: 4}, end: {line: 3, ch: 4}}]);
-
-                    var lines = defaultContent.split("\n");
-                    lines[1] = "    //function bar() {";
-                    lines[3] = "        //a();";
-                    var expectedText = lines.join("\n");
-
-                    testToggleLine(expectedText, [{start: {line: 1, ch: 6}, end: {line: 1, ch: 6}, primary: false, reversed: false},
-                        {start: {line: 3, ch : 4 }, end: {line: 3, ch: 4 }, reversed: false, primary: true}]);
-                });
-
-                it("should toggle comments on separate lines with range selections", function () {
-
-                    myEditor.setSelections([{start: {line: 1, ch: 4}, end: {line: 1, ch: 6}},
-                        {start: {line: 3, ch: 4}, end: {line: 3, ch: 6}}]);
-
-                    var lines = defaultContent.split("\n");
-                    lines[1] = "    //function bar() {";
-                    lines[3] = "        //a();";
-                    var expectedText = lines.join("\n");
-
-                    testToggleLine(expectedText, [{ start: {line: 1, ch: 6 }, end: {line: 1, ch: 8 }, reversed: false, primary: false },
-                        { start: {line: 3, ch: 4 }, end : {line: 3, ch: 6 }, reversed: false, primary: true }]);
-                });
-
-                it("should toggle comments on separate lines with multiline selections", function () {
-
-                    myEditor.setSelections([{start: {line: 1, ch: 4}, end: {line: 2, ch: 6}},
-                        {start: {line: 3, ch: 4}, end: {line: 4, ch: 6}}]);
-
-                    var lines = defaultContent.split("\n");
-                    lines[1] = "    //function bar() {";
-                    lines[2] = "    //    ";
-                    lines[3] = "        //a();";
-                    lines[4] = "        //";
-                    var expectedText = lines.join("\n");
-
-                    testToggleLine(expectedText, [{start: {line: 1, ch: 6 }, end: {line: 2, ch: 8 }, reversed: false, primary: false},
-                        {start: {line: 3, ch: 4 }, end: {line: 4, ch: 6 }, reversed: false, primary: true}]);
-                });
-
-                it("should adjust selections appropriately at start of line", function () {
-
-                    myEditor.setSelections([{start: {line: 1, ch: 0}, end: {line: 1, ch: 0}},
-                        {start: {line: 3, ch: 0}, end: {line: 3, ch: 6}}]);
-
-                    var lines = defaultContent.split("\n");
-                    lines[1] = "    //function bar() {";
-                    lines[3] = "        //a();";
-
-                    var expectedText = lines.join("\n");
-
-                    testToggleLine(expectedText, [{start: { line: 1, ch: 0 }, end: { line: 1, ch: 0 }, reversed: false, primary: false },
-                        {start: { line: 3, ch: 0 }, end: { line: 3, ch: 8 }, reversed: false, primary: true }]);
-                });
-
-                it("should only handle each line once, but preserve primary/reversed flags on ignored selections", function () {
-
-                    myEditor.setSelections([{start: {line: 1, ch: 4}, end: {line: 1, ch: 4}},
-                        {start: {line: 1, ch: 6}, end: {line: 2, ch: 4}, primary: true},
-                        {start: {line: 3, ch: 4}, end: {line: 3, ch: 4}},
-                        {start: {line: 3, ch: 6}, end: {line: 3, ch: 8}, reversed: true}]);
-
-                    var lines = defaultContent.split("\n");
-                    lines[1] = "    //function bar() {";
-                    lines[2] = "    //    ";
-                    lines[3] = "        //a();";
-
-
-                    var expectedText = lines.join("\n");
-
-                    testToggleLine(expectedText, [{start: {line: 1, ch: 6}, end: {line: 1, ch: 6}, reversed: false, primary: false},
-                        {start: {line: 1, ch: 8}, end: {line: 2, ch: 6}, reversed: false, primary: true},
-                        {start: {line: 3, ch: 4}, end: {line: 3, ch: 4}, reversed: false, primary: false},
-                        {start: {line: 3, ch: 6}, end: {line: 3, ch: 10}, reversed: true, primary: false}]);
-                });
-
-                it("should properly toggle when some selections are already commented but others aren't", function () {
-
-                    var lines = defaultContent.split("\n");
-                    lines[1] = "    //function bar() {";
-                    lines[3] = "    a();";
-                    lines[5] = "    //}";
-                    var startingContent = lines.join("\n");
-                    myDocument.setText(startingContent);
-
-                    myEditor.setSelections([{start: {line: 1, ch: 4}, end: {line: 1, ch: 4}},
-                        {start: {line: 3, ch: 4}, end: {line: 3, ch: 4}},
-                        {start: {line: 5, ch: 4}, end: {line: 5, ch: 4}}]);
-
-                    lines[1] = "    function bar() {";
-                    lines[3] = "    //a();";
-                    lines[5] = "    }";
-                    var expectedText = lines.join("\n");
-
-                    testToggleLine(expectedText, [{ start : { line : 1, ch : 4 }, end : { line : 1, ch : 4 }, reversed : false, primary : false },
-                        { start : { line : 3, ch : 6 }, end : { line : 3, ch : 6 }, reversed : false, primary : false },
-                        { start : { line : 5, ch : 4 }, end : { line : 5, ch : 4 }, reversed : false, primary : true }]);
-
-                });
-
-                it("should properly toggle adjacent lines (not coalescing them) if there are cursors on each line", function () {
-
-                    var lines = defaultContent.split("\n");
-                    lines[1] = "//" + lines[1];
-                    lines[2] = "    foo();"; // make this line non-blank so it will get commented
-                    lines[3] = "//" + lines[3];
-                    var startingContent = lines.join("\n");
-                    myDocument.setText(startingContent);
-
-                    myEditor.setSelections([{start: {line: 1, ch: 4}, end: {line: 1, ch: 4}},
-                        {start: {line: 2, ch: 4}, end: {line: 2, ch: 4}},
-                        {start: {line: 3, ch: 4}, end: {line: 3, ch: 4}}]);
-
-                    lines[1] = lines[1].slice(2);
-                    lines[2] = "    //foo();";
-                    lines[3] = lines[3].slice(2);
-                    var expectedText = lines.join("\n");
-
-                    testToggleLine(expectedText, [{start: {line: 1, ch: 2}, end: {line: 1, ch: 2}, primary: false, reversed: false},
-                        {start: {line: 2, ch: 6}, end: {line: 2, ch: 6}, primary: false, reversed: false},
-                        {start: {line: 3, ch: 2}, end: {line: 3, ch: 2}, primary: true, reversed: false}]);
-
-                });
             });
         });
 
-        describe("Line comment/uncomment with indentLineComment disabled", function () {
 
-            beforeEach(function () {
-                setupFullEditor();
-                PreferencesManager.set("indentLineComment", false);
-            });
-
-            afterEach(function () {
-                PreferencesManager.set("indentLineComment", shouldIndentLineComment);
-            });
-
-
-            it("should comment/uncomment a single line, cursor at start", function () {
-
-                myEditor.setCursorPos(3, 0);
-
-                var lines = defaultContent.split("\n");
-                lines[3] = "//        a();";
-                var expectedText = lines.join("\n");
-
-                testToggleLine(expectedText, {line: 3, ch: 2});
-
-
-            });
-
-            it("should comment/uncomment a single line, cursor at end", function () {
-
-                myEditor.setCursorPos(3, 12);
-
-                var lines = defaultContent.split("\n");
-                lines[3] = "//        a();";
-                var expectedText = lines.join("\n");
-
-                testToggleLine(expectedText, {line: 3, ch: 14});
-
-            });
-
-            it("should comment/uncomment first line in file", function () {
-
-                myEditor.setCursorPos(0, 0);
-
-                var lines = defaultContent.split("\n");
-                lines[0] = "//function foo() {";
-                var expectedText = lines.join("\n");
-
-                testToggleLine(expectedText, {line: 0, ch: 2});
-
-            });
-
-            it("should comment/uncomment a single partly-selected line", function () {
-
-                // select "function" on line 1
-                myEditor.setSelection({line: 1, ch: 4}, {line: 1, ch: 12});
-
-                var lines = defaultContent.split("\n");
-                lines[1] = "//    function bar() {";
-                var expectedText = lines.join("\n");
-
-                testToggleLine(expectedText, {start: {line: 1, ch: 6}, end: {line: 1, ch: 14}});
-
-            });
-
-            it("should comment/uncomment a single selected line", function () {
-                // selection covers all of line's text, but not \n at end
-                myEditor.setSelection({line: 1, ch: 0}, {line: 1, ch: 20});
-
-                var lines = defaultContent.split("\n");
-                lines[1] = "//    function bar() {";
-                var expectedText = lines.join("\n");
-
-                testToggleLine(expectedText, {start: {line: 1, ch: 0}, end: {line: 1, ch: 22}});
-
-            });
-
-            it("should comment/uncomment a single fully-selected line (including LF)", function () {
-
-                // selection including \n at end of line
-                myEditor.setSelection({line: 1, ch: 0}, {line: 2, ch: 0});
-
-                var lines = defaultContent.split("\n");
-                lines[1] = "//    function bar() {";
-                var expectedText = lines.join("\n");
-
-                testToggleLine(expectedText, {start: {line: 1, ch: 0}, end: {line: 2, ch: 0}});
-
-            });
-
-            it("should comment/uncomment multiple selected lines", function () {
-                // selection including \n at end of line
-                myEditor.setSelection({line: 1, ch: 0}, {line: 6, ch: 0});
-
-                var lines = defaultContent.split("\n");
-                lines[1] = "//    function bar() {";
-                lines[2] = "//        ";
-                lines[3] = "//        a();";
-                lines[4] = "//        ";
-                lines[5] = "//    }";
-                var expectedText = lines.join("\n");
-
-                testToggleLine(expectedText, {start: {line: 1, ch: 0}, end: {line: 6, ch: 0}});
-
-            });
-
-            it("should comment/uncomment ragged multi-line selection", function () {
-
-                myEditor.setSelection({line: 1, ch: 6}, {line: 3, ch: 9});
-
-                var lines = defaultContent.split("\n");
-                lines[1] = "//    function bar() {";
-                lines[2] = "//        ";
-                lines[3] = "//        a();";
-                var expectedText = lines.join("\n");
-
-                testToggleLine(expectedText, {start: {line: 1, ch: 8}, end: {line: 3, ch: 11}}, "nction bar() {\n//        \n//        a");
-
-            });
-
-            it("should comment/uncomment when selection starts & ends on whitespace lines", function () {
-
-                myEditor.setSelection({line: 2, ch: 0}, {line: 4, ch: 8});
-
-                var lines = defaultContent.split("\n");
-                lines[2] = "//        ";
-                lines[3] = "//        a();";
-                lines[4] = "//        ";
-                var expectedText = lines.join("\n");
-
-                testToggleLine(expectedText, {start: {line: 2, ch: 0}, end: {line: 4, ch: 10}});
-
-            });
-
-            it("should comment/uncomment lines that were partially commented out already, our style", function () {
-                // Start with line 3 commented out, with "//" at column 0
-                var lines = defaultContent.split("\n");
-                lines[3] = "//        a();";
-                var startingContent = lines.join("\n");
-                myDocument.setText(startingContent);
-
-                // select lines 1-3
-                myEditor.setSelection({line: 1, ch: 0}, {line: 4, ch: 0});
-
-                lines = defaultContent.split("\n");
-                lines[1] = "//    function bar() {";
-                lines[2] = "//        ";
-                lines[3] = "////        a();";
-                var expectedText = lines.join("\n");
-
-                testToggleLine(expectedText, {start: {line: 1, ch: 0}, end: {line: 4, ch: 0}});
-
-            });
-
-            it("should comment/uncomment lines that were partially commented out already, comment closer to code", function () {
-
-                // Start with line 3 commented out, with "//" snug against the code
-                var lines = defaultContent.split("\n");
-                lines[3] = "        //a();";
-                var startingContent = lines.join("\n");
-                myDocument.setText(startingContent);
-
-                // select lines 1-3
-                myEditor.setSelection({line: 1, ch: 0}, {line: 4, ch: 0});
-
-                lines = defaultContent.split("\n");
-                lines[1] = "//    function bar() {";
-                lines[2] = "//        ";
-                lines[3] = "//        //a();";
-                var expectedText = lines.join("\n");
-
-                testToggleLine(expectedText, {start: {line: 1, ch: 0}, end: {line: 4, ch: 0}});
-
-            });
-
-            describe("with multiple selections", function () {
-
-                it("should toggle comments on separate lines with cursor selections", function () {
-
-                    myEditor.setSelections([{start: {line: 1, ch: 4}, end: {line: 1, ch: 4}},
-                        {start: {line: 3, ch: 4}, end: {line: 3, ch: 4}}]);
-
-                    var lines = defaultContent.split("\n");
-                    lines[1] = "//    function bar() {";
-                    lines[3] = "//        a();";
-                    var expectedText = lines.join("\n");
-
-                    testToggleLine(expectedText, [{start: {line: 1, ch: 6}, end: {line: 1, ch: 6}, primary: false, reversed: false},
-                        {start: {line: 3, ch: 6}, end: {line: 3, ch: 6}, primary: true, reversed: false}]);
-
-                });
-
-                it("should toggle comments on separate lines with range selections", function () {
-
-                    myEditor.setSelections([{start: {line: 1, ch: 4}, end: {line: 1, ch: 6}},
-                        {start: {line: 3, ch: 4}, end: {line: 3, ch: 6}}]);
-
-                    var lines = defaultContent.split("\n");
-                    lines[1] = "//    function bar() {";
-                    lines[3] = "//        a();";
-                    var expectedText = lines.join("\n");
-
-                    testToggleLine(expectedText, [{start: {line: 1, ch: 6}, end: {line: 1, ch: 8}, primary: false, reversed: false},
-                        {start: {line: 3, ch: 6}, end: {line: 3, ch: 8}, primary: true, reversed: false}]);
-                });
-
-                it("should toggle comments on separate lines with multiline selections", function () {
-
-                    myEditor.setSelections([{start: {line: 1, ch: 4}, end: {line: 2, ch: 6}},
-                        {start: {line: 3, ch: 4}, end: {line: 4, ch: 6}}]);
-
-                    var lines = defaultContent.split("\n"), i;
-                    for (i = 1; i <= 4; i++) {
-                        lines[i] = "//" + lines[i];
-                    }
-                    var expectedText = lines.join("\n");
-
-                    testToggleLine(expectedText, [{start: {line: 1, ch: 6}, end: {line: 2, ch: 8}, primary: false, reversed: false},
-                        {start: {line: 3, ch: 6}, end: {line: 4, ch: 8}, primary: true, reversed: false}]);
-
-                });
-
-                it("should adjust selections appropriately at start of line", function () {
-
-                    myEditor.setSelections([{start: {line: 1, ch: 0}, end: {line: 1, ch: 0}},
-                        {start: {line: 3, ch: 0}, end: {line: 3, ch: 6}}]);
-
-                    var lines = defaultContent.split("\n");
-                    lines[1] = "//    function bar() {";
-                    lines[3] = "//        a();";
-                    var expectedText = lines.join("\n");
-
-                    testToggleLine(expectedText, [{start: {line: 1, ch: 2}, end: {line: 1, ch: 2}, primary: false, reversed: false},
-                        {start: {line: 3, ch: 0}, end: {line: 3, ch: 8}, primary: true, reversed: false}]);
-                });
-
-                it("should only handle each line once, but preserve primary/reversed flags on ignored selections", function () {
-
-                    myEditor.setSelections([{start: {line: 1, ch: 4}, end: {line: 1, ch: 4}},
-                        {start: {line: 1, ch: 6}, end: {line: 2, ch: 4}, primary: true},
-                        {start: {line: 3, ch: 4}, end: {line: 3, ch: 4}},
-                        {start: {line: 3, ch: 6}, end: {line: 3, ch: 8}, reversed: true}]);
-
-                    var lines = defaultContent.split("\n"), i;
-                    for (i = 1; i <= 3; i++) {
-                        lines[i] = "//" + lines[i];
-                    }
-                    var expectedText = lines.join("\n");
-
-                    testToggleLine(expectedText, [{start: {line: 1, ch: 6}, end: {line: 1, ch: 6}, primary: false, reversed: false},
-                        {start: {line: 1, ch: 8}, end: {line: 2, ch: 6}, primary: true, reversed: false},
-                        {start: {line: 3, ch: 6}, end: {line: 3, ch: 6}, primary: false, reversed: false},
-                        {start: {line: 3, ch: 8}, end: {line: 3, ch: 10}, primary: false, reversed: true}]);
-
-                });
-
-                it("should properly toggle when some selections are already commented but others aren't", function () {
-
-                    var lines = defaultContent.split("\n");
-                    lines[1] = "//" + lines[1];
-                    lines[5] = "//" + lines[5];
-                    var startingContent = lines.join("\n");
-                    myDocument.setText(startingContent);
-
-                    myEditor.setSelections([{start: {line: 1, ch: 4}, end: {line: 1, ch: 4}},
-                        {start: {line: 3, ch: 4}, end: {line: 3, ch: 4}},
-                        {start: {line: 5, ch: 4}, end: {line: 5, ch: 4}}]);
-
-                    lines[1] = lines[1].slice(2);
-                    lines[3] = "//" + lines[3];
-                    lines[5] = lines[5].slice(2);
-                    var expectedText = lines.join("\n");
-
-                    testToggleLine(expectedText, [{start: {line: 1, ch: 2}, end: {line: 1, ch: 2}, primary: false, reversed: false},
-                        {start: {line: 3, ch: 6}, end: {line: 3, ch: 6}, primary: false, reversed: false},
-                        {start: {line: 5, ch: 2}, end: {line: 5, ch: 2}, primary: true, reversed: false}]);
-
-                });
-
-                it("should properly toggle adjacent lines (not coalescing them) if there are cursors on each line", function () {
-
-                    var lines = defaultContent.split("\n");
-                    lines[1] = "//" + lines[1];
-                    lines[2] = "    foo();"; // make this line non-blank so it will get commented
-                    lines[3] = "//" + lines[3];
-                    var startingContent = lines.join("\n");
-                    myDocument.setText(startingContent);
-
-                    myEditor.setSelections([{start: {line: 1, ch: 4}, end: {line: 1, ch: 4}},
-                        {start: {line: 2, ch: 4}, end: {line: 2, ch: 4}},
-                        {start: {line: 3, ch: 4}, end: {line: 3, ch: 4}}]);
-
-                    lines[1] = lines[1].slice(2);
-                    lines[2] = "//" + lines[2];
-                    lines[3] = lines[3].slice(2);
-                    var expectedText = lines.join("\n");
-
-                    testToggleLine(expectedText, [{start: {line: 1, ch: 2}, end: {line: 1, ch: 2}, primary: false, reversed: false},
-                        {start: {line: 2, ch: 6}, end: {line: 2, ch: 6}, primary: false, reversed: false},
-                        {start: {line: 3, ch: 2}, end: {line: 3, ch: 2}, primary: true, reversed: false}]);
-
-                });
-            });
-        });
-
-        describe("Line comment/uncomment with `padding` option enabled", function () {
+        describe("Line comment/uncomment with `paddingComment` option enabled", function () {
             beforeEach(function () {
                 setupFullEditor();
                 PreferencesManager.set("paddingComment", " ");
+                PreferencesManager.set("commentBlankLines", true);
             });
 
-            afterEach(function () {
-                PreferencesManager.set("paddingComment", "");
-            });
-
-            it("should comment/uncomment after select all", function () {
+            it("should comment/uncomment after select all with padding", function () {
                 myEditor.setSelection({line: 0, ch: 0}, {line: 7, ch: 1});
 
                 var expectedText = "// function foo() {\n" +
@@ -941,6 +296,30 @@ define(function (require, exports, module) {
             });
         });
 
+        describe("Line comment/uncomment with `commentBlankLines` option disabled", function () {
+            beforeEach(function () {
+                setupFullEditor();
+                PreferencesManager.set("paddingComment", "");
+                PreferencesManager.set("commentBlankLines", false);
+            });
+
+            it("should comment/uncomment after select but no blank lines", function () {
+                myEditor.setSelection({line: 0, ch: 0}, {line: 7, ch: 1});
+
+                var expectedText = "//function foo() {\n" +
+                                   "//    function bar() {\n" +
+                                   "        \n" +
+                                   "//        a();\n" +
+                                   "        \n" +
+                                   "//    }\n" +
+                                   "\n" +
+                                   "//}";
+
+                testToggleLine(expectedText, {start: {line: 0, ch: 0}, end: {line: 7, ch: 3}});
+                testToggleLine(defaultContent, {start: {line: 0, ch: 0}, end: {line: 7, ch: 1}});
+            });
+        });
+
         describe("Line comment/uncomment in languages with only block comments and with indentLineComment enabled", function () {
             var htmlContent = "<html>\n" +
                               "    <body>\n" +
@@ -951,10 +330,7 @@ define(function (require, exports, module) {
             beforeEach(function () {
                 setupFullEditor(htmlContent, "html");
                 PreferencesManager.set("indentLineComment", true);
-            });
-
-            afterEach(function () {
-                PreferencesManager.set("indentLineComment", shouldIndentLineComment);
+                PreferencesManager.set("paddingComment", "");
             });
 
             it("should comment/uncomment a single line, cursor at start", function () {
@@ -1028,17 +404,11 @@ define(function (require, exports, module) {
                               "\t</body>\n" +
                               "</html>";
 
-            var shouldUseTabChar = Editor.getUseTabChar();
-
             beforeEach(function () {
                 setupFullEditor(htmlContent, "html");
                 PreferencesManager.set("indentLineComment", true);
+                PreferencesManager.set("paddingComment", "");
                 PreferencesManager.set("useTabChar", true);
-            });
-
-            afterEach(function () {
-                PreferencesManager.set("indentLineComment", shouldIndentLineComment);
-                PreferencesManager.set("useTabChar", shouldUseTabChar);
             });
 
             it("should comment/uncomment a single line, cursor at start", function () {
@@ -1113,10 +483,7 @@ define(function (require, exports, module) {
             beforeEach(function () {
                 setupFullEditor(htmlContent, "html");
                 PreferencesManager.set("indentLineComment", true);
-            });
-
-            afterEach(function () {
-                PreferencesManager.set("indentLineComment", shouldIndentLineComment);
+                PreferencesManager.set("paddingComment", "");
             });
 
             it("should comment/uncomment a single line, cursor at start", function () {
@@ -1163,6 +530,7 @@ define(function (require, exports, module) {
 
             beforeEach(function () {
                 setupFullEditor(null, "javascript2");
+                PreferencesManager.set("paddingComment", "");
             });
 
             it("should comment using the first prefix", function () {
@@ -1265,7 +633,10 @@ define(function (require, exports, module) {
         });
 
         describe("Block comment/uncomment", function () {
-            beforeEach(setupFullEditor);
+            beforeEach(function () {
+                setupFullEditor();
+                PreferencesManager.set("paddingComment", "");
+            });
 
             it("should block comment/uncomment, cursor at start of line", function () {
                 myEditor.setCursorPos(0, 0);
@@ -1638,7 +1009,10 @@ define(function (require, exports, module) {
         // meant line-uncomment (i.e. delegate to Toggle Line Comment). In all other cases, we ignore the line comment
         // and create a new block comment.
         describe("Block comment around line comments", function () {
-            beforeEach(setupFullEditor);
+            beforeEach(function () {
+                setupFullEditor();
+                PreferencesManager.set("paddingComment", "");
+            });
 
             // Selections including existing line comments (and possibly whitespace)
 
@@ -2054,6 +1428,8 @@ define(function (require, exports, module) {
 
             beforeEach(function () {
                 setupFullEditor(cssContent, "css");
+                PreferencesManager.set("indentLineComment", false);
+                PreferencesManager.set("paddingComment", "");
             });
 
             it("should block-comment entire line that cursor is in", function () {
@@ -2206,10 +1582,7 @@ define(function (require, exports, module) {
             beforeEach(function () {
                 setupFullEditor(htmlContent, "html");
                 PreferencesManager.set("indentLineComment", false);
-            });
-
-            afterEach(function () {
-                PreferencesManager.set("indentLineComment", shouldIndentLineComment);
+                PreferencesManager.set("paddingComment", "");
             });
 
             // Correct behavior for line and block comment commands
@@ -2276,14 +1649,6 @@ define(function (require, exports, module) {
             });
 
             describe("with multiple selections", function () {
-
-                beforeEach(function () {
-                    PreferencesManager.set("indentLineComment", false);
-                });
-
-                afterEach(function () {
-                    PreferencesManager.set("indentLineComment", shouldIndentLineComment);
-                });
 
                 it("should handle multiple selections in different regions, toggling block selection in each", function () {
                     myEditor.setSelections([{start: {line: 1, ch: 4}, end: {line: 1, ch: 10}},
@@ -2362,10 +1727,7 @@ define(function (require, exports, module) {
             beforeEach(function () {
                 setupFullEditor(htmlContent, "html");
                 PreferencesManager.set("indentLineComment", true);
-            });
-
-            afterEach(function () {
-                PreferencesManager.set("indentLineComment", shouldIndentLineComment);
+                PreferencesManager.set("paddingComment", "");
             });
 
             it("should line comment/uncomment generic JS code", function () {
@@ -2395,14 +1757,6 @@ define(function (require, exports, module) {
             });
 
             describe("with multiple selections", function () {
-                beforeEach(function () {
-                    PreferencesManager.set("indentLineComment", true);
-                });
-
-                afterEach(function () {
-                    PreferencesManager.set("indentLineComment", shouldIndentLineComment);
-                });
-
                 it("should handle multiple selections in different regions, toggling line selection (but falling back to block selection in HTML/CSS)", function () {
                     myEditor.setSelections([{start: {line: 1, ch: 4}, end: {line: 1, ch: 10}},
                         {start: {line: 4, ch: 16}, end: {line: 4, ch: 32}},
@@ -2446,6 +1800,7 @@ define(function (require, exports, module) {
 
             beforeEach(function () {
                 setupFullEditor(coffeeContent, "coffeescript2");
+                PreferencesManager.set("paddingComment", "");
             });
 
             it("should block comment/uncomment selecting part of lines", function () {
