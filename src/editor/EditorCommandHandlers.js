@@ -65,6 +65,7 @@ define(function (require, exports, module) {
         editor._codeMirror.toggleLineComment({
             indent: Editor.getIndentLineComment(),
             padding: Editor.getPaddingComment(),
+            commentBlankLines: Editor.getCommentBlankLines(),
             getMode: function (mode) {
                 return _getMode(editor, mode);
             }

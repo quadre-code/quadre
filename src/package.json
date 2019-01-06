@@ -3,7 +3,7 @@
   "dependencies": {
     "acorn": "5.1.1",
     "codemirror": "~5.42.0",
-    "codemirror-addon-toggle-comment": "~0.4.0",
+    "codemirror-addon-toggle-comment": "~0.5.0",
     "create-react-class": "15.6.3",
     "immutable": "3.8.2",
     "less": "2.7.3",

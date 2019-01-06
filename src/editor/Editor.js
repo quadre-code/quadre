@@ -102,6 +102,7 @@ define(function (require, exports, module) {
         AUTO_HIDE_SEARCH    = "autoHideSearch",
         INDENT_LINE_COMMENT = "indentLineComment",
         PADDING_COMMENT     = "paddingComment",
+        COMMENT_BLANK_LINES = "commentBlankLines",
         INPUT_STYLE         = "inputStyle";
 
 
@@ -241,6 +242,9 @@ define(function (require, exports, module) {
     });
     PreferencesManager.definePreference(PADDING_COMMENT, "string", " ", {
         description: Strings.DESCRIPTION_PADDING_COMMENT
+    });
+    PreferencesManager.definePreference(COMMENT_BLANK_LINES, "boolean", true, {
+        description: Strings.DESCRIPTION_COMMENT_BLANK_LINES
     });
 
     PreferencesManager.definePreference(INPUT_STYLE,  "string", "textarea", {
@@ -2763,6 +2767,27 @@ define(function (require, exports, module) {
      */
     Editor.getPaddingComment = function (fullPath) {
         return PreferencesManager.get(PADDING_COMMENT, _buildPreferencesContext(fullPath));
+    };
+
+    /**
+     * Sets commentBlankLines option.
+     * Affects any editors that share the same preference location.
+     * @param {boolean} value
+     * @param {string=} fullPath Path to file to get preference for
+     * @return {boolean} true if value was valid
+     */
+    Editor.setCommentBlankLines = function (value, fullPath) {
+        var options = fullPath && {context: fullPath};
+        return PreferencesManager.set(COMMENT_BLANK_LINES, value, options);
+    };
+
+    /**
+     * Returns true if commentBlankLines is enabled for the specified or current file
+     * @param {string=} fullPath Path to file to get preference for
+     * @return {boolean}
+     */
+    Editor.getCommentBlankLines = function (fullPath) {
+        return PreferencesManager.get(COMMENT_BLANK_LINES, _buildPreferencesContext(fullPath));
     };
 
     /**
