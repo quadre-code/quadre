@@ -1,3 +1,8 @@
+## Unreleased
+
+Don't show the Extension Manager by default (for now)
+
+
 ## v2.0.0-alpha.3 (2019-01-06)
 
 Add a paddingComment option

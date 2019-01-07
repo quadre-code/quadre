@@ -112,6 +112,9 @@ define(function (require, exports, module) {
     PreferencesManager.definePreference("extensions.sort", "string", "publishedDate", {
         description: Strings.SORT_EXTENSION_METHOD
     });
+    PreferencesManager.definePreference("extensionManager.show", "boolean", false, {
+        description: Strings.DESCRIPTION_EXTENSION_MANAGER_SHOW
+    });
 
     /**
      * @private

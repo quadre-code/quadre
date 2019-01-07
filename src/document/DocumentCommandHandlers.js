@@ -1744,7 +1744,7 @@ define(function (require, exports, module) {
 
         params.parse();
 
-        if (params.get("reloadWithoutUserExts") === "true") {
+        if (params.get("reloadWithoutUserExts") === "true" || PreferencesManager.get("extensionManager.show") === false) {
             CommandManager.get(Commands.FILE_EXTENSION_MANAGER).setEnabled(false);
             $icon.css({display: "none"});
             StatusBar.addIndicator("status-user-exts", $indicator, true);
