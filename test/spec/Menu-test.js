@@ -1010,10 +1010,16 @@ define(function (require, exports, module) {
                     CommandManager.register("Brackets Test Command Custom 57", "Menu-test.command57", function () {});
                     subMenu.addMenuItem("Menu-test.command57");
 
+                    subMenu.on("beforeSubMenuOpen", function() {
+                        openEvent = true;
+                    });
+
                     subMenu.open();
 
                     var $submenu = testWindow.$(".dropdown.open > ul");
                     expect(boundsInsideWindow($submenu)).toBeTruthy();
+
+                    expect(openEvent).toBeTruthy();
                 });
             });
 

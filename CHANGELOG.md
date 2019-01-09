@@ -2,6 +2,8 @@
 
 Don't show the Extension Manager by default (for now)
 
+Backport some patches from Brackets (Context sub menu)
+
 
 ## v2.0.0-alpha.3 (2019-01-06)
 

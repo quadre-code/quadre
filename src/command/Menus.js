@@ -836,7 +836,7 @@ define(function (require, exports, module) {
             // Insert menu item
             var $relativeElement = this._getRelativeMenuItem(relativeID, position);
             _insertInList($("li#" + StringUtils.jQueryIdEscape(this.id) + " > ul.dropdown-menu"),
-            $menuItem, position, $relativeElement);
+                $menuItem, position, $relativeElement);
         } else {
             // TODO: add submenus for native menus
         }
@@ -1243,7 +1243,9 @@ define(function (require, exports, module) {
             $menuAnchor = $("#" + escapedId),
             $menuWindow = $("#" + escapedId + " > ul"),
             posTop,
-            posLeft;
+            posLeft,
+            elementRect,
+            clip;
 
         // only show context menu if it has menu items
         if ($menuWindow.children().length <= 0) {
@@ -1261,12 +1263,12 @@ define(function (require, exports, module) {
             posTop = $parentMenuItem.offset().top;
             posLeft = $parentMenuItem.offset().left + $parentMenuItem.outerWidth();
 
-            var elementRect = {
+            elementRect = {
                 top:    posTop,
                 left:   posLeft,
                 height: $menuWindow.height() + 25,
                 width:  $menuWindow.width()
-            },
+            };
             clip = ViewUtils.getElementClipSize($window, elementRect);
 
             if (clip.bottom > 0) {
@@ -1288,12 +1290,12 @@ define(function (require, exports, module) {
             posTop  = mouseOrLocation.pageY;
             posLeft = mouseOrLocation.pageX;
 
-            var elementRect = {
+            elementRect = {
                 top:    posTop,
                 left:   posLeft,
                 height: $menuWindow.height() + 25,
                 width:  $menuWindow.width()
-            },
+            };
             clip = ViewUtils.getElementClipSize($window, elementRect);
 
             if (clip.bottom > 0) {
