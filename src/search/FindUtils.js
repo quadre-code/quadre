@@ -359,7 +359,7 @@ define(function (require, exports, module) {
         if (!queryInfo.isCaseSensitive) {
             flags += "i";
         }
-        
+
         var query = queryInfo.query;
 
         // Is it a (non-blank) regex?
