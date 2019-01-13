@@ -500,6 +500,11 @@ define(function (require, exports, module) {
                 tw$("#find-case-sensitive").click();
             }
         }
+        function toggleWholeWord(val) {
+            if (tw$("#find-whole-word").is(".active") !== val) {
+                tw$("#find-whole-word").click();
+            }
+        }
         function toggleRegexp(val) {
             if (tw$("#find-regexp").is(".active") !== val) {
                 tw$("#find-regexp").click();
@@ -553,6 +558,7 @@ define(function (require, exports, module) {
                 // Reset search options for next test, since these are persisted and the window is shared
                 // Note: tests that explicitly close the search bar before finishing will need to reset any changed options themselves
                 toggleCaseSensitive(false);
+                toggleWholeWord(false);
                 toggleRegexp(false);
 
                 waitsForDone(twCommandManager.execute(Commands.FILE_CLOSE, { _forceClose: true }));
@@ -1145,6 +1151,80 @@ define(function (require, exports, module) {
             });
         });
 
+        describe("Whole word search", function () {
+            it("should find whole word only", function () {
+                var expectedSelections = [
+                    {start: {line: LINE_FIRST_REQUIRE, ch: 8}, end: {line: LINE_FIRST_REQUIRE, ch: 11}},
+                    {start: {line: LINE_FIRST_REQUIRE, ch: 31}, end: {line: LINE_FIRST_REQUIRE, ch: 34}},
+                    {start: {line: LINE_FIRST_REQUIRE + 6, ch: 8}, end: {line: LINE_FIRST_REQUIRE + 6, ch: 11}}
+                ];
+                myEditor.setCursorPos(0, 0);
+
+                twCommandManager.execute(Commands.CMD_FIND);
+
+                toggleWholeWord(true);
+                enterSearchText("Foo");
+                expectHighlightedMatches(expectedSelections);
+                expectSelection(expectedSelections[0]);
+                expectMatchIndex(0, 3);
+
+                twCommandManager.execute(Commands.CMD_FIND_NEXT);
+                expectSelection(expectedSelections[1]);
+                expectMatchIndex(1, 3);
+                twCommandManager.execute(Commands.CMD_FIND_NEXT);
+                expectSelection(expectedSelections[2]);
+                expectMatchIndex(2, 3);
+
+                // wraparound
+                twCommandManager.execute(Commands.CMD_FIND_NEXT);
+                expectSelection(expectedSelections[0]);
+                expectMatchIndex(0, 3);
+            });
+
+            it("should find whole word only case sensitive", function () {
+                var expectedSelections = [
+                    {start: {line: LINE_FIRST_REQUIRE, ch: 8}, end: {line: LINE_FIRST_REQUIRE, ch: 11}},
+                    {start: {line: LINE_FIRST_REQUIRE, ch: 31}, end: {line: LINE_FIRST_REQUIRE, ch: 34}}
+                ];
+                myEditor.setCursorPos(0, 0);
+
+                twCommandManager.execute(Commands.CMD_FIND);
+
+                toggleWholeWord(true);
+                toggleCaseSensitive(true);
+                enterSearchText("Foo");
+                expectHighlightedMatches(expectedSelections);
+                expectSelection(expectedSelections[0]);
+                expectMatchIndex(0, 2);
+
+                twCommandManager.execute(Commands.CMD_FIND_NEXT);
+                expectSelection(expectedSelections[1]);
+                expectMatchIndex(1, 2);
+
+                // wraparound
+                twCommandManager.execute(Commands.CMD_FIND_NEXT);
+                expectSelection(expectedSelections[0]);
+                expectMatchIndex(0, 2);
+            });
+
+            // TODO: in future look to make the search unicode aware.
+            it("should find partial word since is only ASCII aware", function () {
+                myDocument.setText("fonctionnalités très praticques");
+
+                var expectedSelections = [
+                    {start: {line: 0, ch: 16}, end: {line: 0, ch: 19}}
+                ];
+                myEditor.setCursorPos(0, 0);
+
+                twCommandManager.execute(Commands.CMD_FIND);
+
+                toggleWholeWord(true);
+                enterSearchText("trè");
+                expectHighlightedMatches(expectedSelections);
+                expectSelection(expectedSelections[0]);
+                expectMatchIndex(0, 1);
+            });
+        });
 
         describe("RegExp Search", function () {
             it("should find based on regexp", function () {

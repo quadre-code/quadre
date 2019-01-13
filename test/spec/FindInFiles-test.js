@@ -142,8 +142,8 @@ define(function (require, exports, module) {
                 return $(".modal-bar").length === 1;
             }, "search bar open");
             runs(function () {
-                // Reset the regexp and case-sensitivity toggles.
-                ["#find-regexp", "#find-case-sensitive"].forEach(function (button) {
+                // Reset the find button options toggles.
+                ["#find-regexp", "#find-whole-word", "#find-case-sensitive"].forEach(function (button) {
                     if ($(button).is(".active")) {
                         $(button).click();
                         expect($(button).is(".active")).toBe(false);
@@ -1270,6 +1270,26 @@ define(function (require, exports, module) {
                         numMatches:      9,
                         replaceText:     "bar",
                         knownGoodFolder: "simple-case-sensitive"
+                    });
+                });
+
+                it("should replace all instances of a simple string in a project on disk for only whole word", function () {
+                    openTestProjectCopy(defaultSourcePath);
+                    doBasicTest({
+                        queryInfo:       {query: "Foo", isWholeWord: true},
+                        numMatches:      12,
+                        replaceText:     "bar",
+                        knownGoodFolder: "simple-whole-word"
+                    });
+                });
+
+                it("should replace all instances of a simple string in a project on disk case-sensitively for only whole word", function () {
+                    openTestProjectCopy(defaultSourcePath);
+                    doBasicTest({
+                        queryInfo:       {query: "Foo", isWholeWord: true, isCaseSensitive: true},
+                        numMatches:      4,
+                        replaceText:     "bar",
+                        knownGoodFolder: "simple-whole-word-case-sensitive"
                     });
                 });
 
