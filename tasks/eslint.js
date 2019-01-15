@@ -49,7 +49,9 @@ const meta = {
 };
 
 function eslintTask(files) {
-    return gulp.src(files)
+    // To automatically fix issues add `fix: true` to the eslint options and
+    // `.pipe(gulp.dest("./"));` at the end of the pipe.
+    return gulp.src(files, { base: "." })
         .pipe(eslint({
             quiet: true
         }))

@@ -23,9 +23,8 @@ const DIST_TESTS_DIRS = ["dist/test"];
 
 function copyJs(filePath, srcDir, distDir) {
     const relative = path.relative(path.join(__dirname, srcDir), filePath);
-    const from = path.join(srcDir, relative);
     const to = path.dirname(path.join(distDir, relative));
-    return gulp.src(from)
+    return gulp.src(filePath, { cwd: __dirname })
         .pipe(gulp.dest(to));
 }
 
