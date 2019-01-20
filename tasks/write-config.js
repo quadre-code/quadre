@@ -25,8 +25,8 @@
 "use strict";
 
 const common = require("./lib/common");
-const file   = require("./lib/file");
-const build  = require("./build");
+const file = require("./lib/file");
+const gitInfo = require("./lib/git-info");
 
 module.exports = function (grunt) {
 
@@ -59,9 +59,9 @@ module.exports = function (grunt) {
         const done = this.async();
         const distConfig = file.readJSON("src/config.json");
 
-        build.getGitInfo(process.cwd()).then(function (gitInfo) {
-            distConfig.repository.SHA = gitInfo.sha;
-            distConfig.repository.branch = gitInfo.branch;
+        gitInfo.getGitInfo(process.cwd()).then(function (info) {
+            distConfig.repository.SHA = info.sha;
+            distConfig.repository.branch = info.branch;
             distConfig.config.build_timestamp = new Date().toString().split("(")[0].trim();
             common.writeJSON("dist/www/config.json", distConfig);
             done();
