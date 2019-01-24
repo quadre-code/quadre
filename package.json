@@ -74,7 +74,8 @@
     "test:all": "gulp test-integration --results=TEST-all"
   },
   "defaultExtensions": {
-    "quadre-eslint": "5.1.0"
+    "quadre-eslint": "5.1.0",
+    "quadre-git": "1.0.0-alpha.2"
   },
   "dependencies": {
     "anymatch": "1.3.0",

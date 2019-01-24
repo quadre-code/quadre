@@ -30,6 +30,7 @@ package-lock.json
 /src/extensions/dev/*
 !/src/extensions/dev/README.*
 /src/extensions/default/quadre-eslint
+/src/extensions/default/quadre-git
 
 /src/extensions/disabled
 

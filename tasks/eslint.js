@@ -22,6 +22,7 @@ const meta = {
         "!src/extensions/**/unittest-files/**/*.js",
         "!src/extensions/**/thirdparty/**/*.js",
         "!src/extensions/default/quadre-eslint/**",
+        "!src/extensions/default/quadre-git/**",
         "!src/extensions/dev/**",
         "!src/extensions/disabled/**",
         "!**/node_modules/**",
