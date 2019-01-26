@@ -163,23 +163,23 @@ module.exports = {
         {
             "files": [ "**/*.ts" ],
             "excludedFiles": "**/*.js",
-            "parser": "typescript-eslint-parser",
+            "parser": "@typescript-eslint/parser",
             "parserOptions": {
                 "ecmaVersion": 6,
                 "sourceType": "module"
             },
             "plugins": [
-                "typescript"
+                "@typescript-eslint"
             ],
             "rules": {
                 // http://eslint.org/docs/rules/#variables
                 "no-unused-vars": "off",
-                "typescript/no-unused-vars": ["error", { "vars": "all", "args": "none" }],
+                "@typescript-eslint/no-unused-vars": ["error", { "vars": "all", "args": "none" }],
                 // http://eslint.org/docs/rules/#stylistic-issues
                 "camelcase": "off",
-                "typescript/camelcase": "warn",
+                "@typescript-eslint/camelcase": "warn",
                 "indent": "off",
-                "typescript/indent": ["error", 4, {
+                "@typescript-eslint/indent": ["error", 4, {
                     "SwitchCase": 1,
                     "VariableDeclarator": 1,
                     "FunctionDeclaration": { "parameters": "first", body: 1 },
@@ -196,7 +196,7 @@ module.exports = {
                 "no-var": "error",
                 "prefer-const": "error",
                 // Specific to TypeScript
-                "typescript/member-delimiter-style": ["error", {
+                "@typescript-eslint/member-delimiter-style": ["error", {
                     multiline: {
                         delimiter: "semi",
                         requireLast: true
@@ -212,7 +212,7 @@ module.exports = {
         {
             "files": [ "**/*.tsx" ],
             "excludedFiles": "**/*.js",
-            "parser": "typescript-eslint-parser",
+            "parser": "@typescript-eslint/parser",
             "parserOptions": {
                 "ecmaVersion": 6,
                 "sourceType": "module",
@@ -222,17 +222,17 @@ module.exports = {
             },
             "plugins": [
                 "react",
-                "typescript"
+                "@typescript-eslint"
             ],
             "rules": {
                 // http://eslint.org/docs/rules/#variables
                 "no-unused-vars": "off",
-                "typescript/no-unused-vars": ["error", { "vars": "all", "args": "none" }],
+                "@typescript-eslint/no-unused-vars": ["error", { "vars": "all", "args": "none" }],
                 // http://eslint.org/docs/rules/#stylistic-issues
                 "camelcase": "off",
-                "typescript/camelcase": "warn",
+                "@typescript-eslint/camelcase": "warn",
                 "indent": "off",
-                "typescript/indent": ["error", 4, {
+                "@typescript-eslint/indent": ["error", 4, {
                     "SwitchCase": 1,
                     "VariableDeclarator": 1,
                     "FunctionDeclaration": { "parameters": "first", body: 1 },
@@ -249,7 +249,7 @@ module.exports = {
                 "no-var": "error",
                 "prefer-const": "error",
                 // Specific to TypeScript
-                "typescript/member-delimiter-style": "error",
+                "@typescript-eslint/member-delimiter-style": "error",
                 // react plugin
                 "react/jsx-uses-react": "error",
                 "react/jsx-uses-vars": "error"
