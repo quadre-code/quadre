@@ -202,7 +202,6 @@ define(function (require, exports, module) {
     }
 
 
-
     /**
      * Special case handling to make the common case of downloading from GitHub easier; modifies 'urlInfo' as
      * needed. Converts a bare GitHub repo URL to the corresponding master ZIP URL; or if given a direct

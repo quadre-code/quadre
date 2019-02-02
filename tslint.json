@@ -1,6 +1,7 @@
 {
   "extends": "tslint:latest",
   "rules": {
+    "array-type": [true, "generic"],
     "ban-types": false,
     "interface-name": false,
     "member-ordering": false,

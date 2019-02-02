@@ -7,7 +7,7 @@ import * as path from "path";
 
 const log = getLogger("squirrel-event-handler");
 
-function spawnUpdate(args: string[]): Promise<void> {
+function spawnUpdate(args: Array<string>): Promise<void> {
     return new Promise<void>((resolve) => {
 
         const appFolder = path.resolve(process.execPath, "..");

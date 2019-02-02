@@ -257,60 +257,60 @@ AppInit.htmlReady(function () {
     // WorkingSet context menu - Unlike most context menus, we can't attach
     // listeners here because the DOM nodes for each pane's working set are
     // created dynamically. Each WorkingSetView attaches its own listeners.
-    const workingset_cmenu = Menus.registerContextMenu(Menus.ContextMenuIds.WORKING_SET_CONTEXT_MENU);
-    workingset_cmenu.addMenuItem(Commands.FILE_SAVE);
-    workingset_cmenu.addMenuItem(Commands.FILE_SAVE_AS);
-    workingset_cmenu.addMenuItem(Commands.FILE_RENAME);
-    workingset_cmenu.addMenuItem(Commands.NAVIGATE_SHOW_IN_FILE_TREE);
-    workingset_cmenu.addMenuItem(Commands.NAVIGATE_SHOW_IN_OS);
-    workingset_cmenu.addMenuDivider();
-    workingset_cmenu.addMenuItem(Commands.CMD_FIND_IN_SUBTREE);
-    workingset_cmenu.addMenuItem(Commands.CMD_REPLACE_IN_SUBTREE);
-    workingset_cmenu.addMenuDivider();
-    workingset_cmenu.addMenuItem(Commands.FILE_CLOSE);
+    const workingsetContextMenu = Menus.registerContextMenu(Menus.ContextMenuIds.WORKING_SET_CONTEXT_MENU);
+    workingsetContextMenu.addMenuItem(Commands.FILE_SAVE);
+    workingsetContextMenu.addMenuItem(Commands.FILE_SAVE_AS);
+    workingsetContextMenu.addMenuItem(Commands.FILE_RENAME);
+    workingsetContextMenu.addMenuItem(Commands.NAVIGATE_SHOW_IN_FILE_TREE);
+    workingsetContextMenu.addMenuItem(Commands.NAVIGATE_SHOW_IN_OS);
+    workingsetContextMenu.addMenuDivider();
+    workingsetContextMenu.addMenuItem(Commands.CMD_FIND_IN_SUBTREE);
+    workingsetContextMenu.addMenuItem(Commands.CMD_REPLACE_IN_SUBTREE);
+    workingsetContextMenu.addMenuDivider();
+    workingsetContextMenu.addMenuItem(Commands.FILE_CLOSE);
 
-    const workingset_configuration_menu = Menus.registerContextMenu(Menus.ContextMenuIds.WORKING_SET_CONFIG_MENU);
-    workingset_configuration_menu.addMenuItem(Commands.CMD_WORKINGSET_SORT_BY_ADDED);
-    workingset_configuration_menu.addMenuItem(Commands.CMD_WORKINGSET_SORT_BY_NAME);
-    workingset_configuration_menu.addMenuItem(Commands.CMD_WORKINGSET_SORT_BY_TYPE);
-    workingset_configuration_menu.addMenuDivider();
-    workingset_configuration_menu.addMenuItem(Commands.CMD_WORKING_SORT_TOGGLE_AUTO);
+    const workingsetConfigurationMenu = Menus.registerContextMenu(Menus.ContextMenuIds.WORKING_SET_CONFIG_MENU);
+    workingsetConfigurationMenu.addMenuItem(Commands.CMD_WORKINGSET_SORT_BY_ADDED);
+    workingsetConfigurationMenu.addMenuItem(Commands.CMD_WORKINGSET_SORT_BY_NAME);
+    workingsetConfigurationMenu.addMenuItem(Commands.CMD_WORKINGSET_SORT_BY_TYPE);
+    workingsetConfigurationMenu.addMenuDivider();
+    workingsetConfigurationMenu.addMenuItem(Commands.CMD_WORKING_SORT_TOGGLE_AUTO);
 
-    const splitview_menu = Menus.registerContextMenu(Menus.ContextMenuIds.SPLITVIEW_MENU);
-    splitview_menu.addMenuItem(Commands.CMD_SPLITVIEW_NONE);
-    splitview_menu.addMenuItem(Commands.CMD_SPLITVIEW_VERTICAL);
-    splitview_menu.addMenuItem(Commands.CMD_SPLITVIEW_HORIZONTAL);
+    const splitviewMenu = Menus.registerContextMenu(Menus.ContextMenuIds.SPLITVIEW_MENU);
+    splitviewMenu.addMenuItem(Commands.CMD_SPLITVIEW_NONE);
+    splitviewMenu.addMenuItem(Commands.CMD_SPLITVIEW_VERTICAL);
+    splitviewMenu.addMenuItem(Commands.CMD_SPLITVIEW_HORIZONTAL);
 
-    const project_cmenu = Menus.registerContextMenu(Menus.ContextMenuIds.PROJECT_MENU);
-    project_cmenu.addMenuItem(Commands.FILE_NEW);
-    project_cmenu.addMenuItem(Commands.FILE_NEW_FOLDER);
-    project_cmenu.addMenuItem(Commands.FILE_RENAME);
-    project_cmenu.addMenuItem(Commands.FILE_DELETE);
-    project_cmenu.addMenuItem(Commands.NAVIGATE_SHOW_IN_OS);
-    project_cmenu.addMenuDivider();
-    project_cmenu.addMenuItem(Commands.CMD_FIND_IN_SUBTREE);
-    project_cmenu.addMenuItem(Commands.CMD_REPLACE_IN_SUBTREE);
-    project_cmenu.addMenuDivider();
-    project_cmenu.addMenuItem(Commands.FILE_REFRESH);
+    const projectContextMenu = Menus.registerContextMenu(Menus.ContextMenuIds.PROJECT_MENU);
+    projectContextMenu.addMenuItem(Commands.FILE_NEW);
+    projectContextMenu.addMenuItem(Commands.FILE_NEW_FOLDER);
+    projectContextMenu.addMenuItem(Commands.FILE_RENAME);
+    projectContextMenu.addMenuItem(Commands.FILE_DELETE);
+    projectContextMenu.addMenuItem(Commands.NAVIGATE_SHOW_IN_OS);
+    projectContextMenu.addMenuDivider();
+    projectContextMenu.addMenuItem(Commands.CMD_FIND_IN_SUBTREE);
+    projectContextMenu.addMenuItem(Commands.CMD_REPLACE_IN_SUBTREE);
+    projectContextMenu.addMenuDivider();
+    projectContextMenu.addMenuItem(Commands.FILE_REFRESH);
 
-    const editor_cmenu = Menus.registerContextMenu(Menus.ContextMenuIds.EDITOR_MENU);
-    // editor_cmenu.addMenuItem(Commands.NAVIGATE_JUMPTO_DEFINITION);
-    editor_cmenu.addMenuItem(Commands.TOGGLE_QUICK_EDIT);
-    editor_cmenu.addMenuItem(Commands.TOGGLE_QUICK_DOCS);
-    editor_cmenu.addMenuDivider();
-    editor_cmenu.addMenuItem(Commands.EDIT_CUT);
-    editor_cmenu.addMenuItem(Commands.EDIT_COPY);
-    editor_cmenu.addMenuItem(Commands.EDIT_PASTE);
+    const editorContextMenu = Menus.registerContextMenu(Menus.ContextMenuIds.EDITOR_MENU);
+    // editorContextMenu.addMenuItem(Commands.NAVIGATE_JUMPTO_DEFINITION);
+    editorContextMenu.addMenuItem(Commands.TOGGLE_QUICK_EDIT);
+    editorContextMenu.addMenuItem(Commands.TOGGLE_QUICK_DOCS);
+    editorContextMenu.addMenuDivider();
+    editorContextMenu.addMenuItem(Commands.EDIT_CUT);
+    editorContextMenu.addMenuItem(Commands.EDIT_COPY);
+    editorContextMenu.addMenuItem(Commands.EDIT_PASTE);
 
-    editor_cmenu.addMenuDivider();
-    editor_cmenu.addMenuItem(Commands.EDIT_SELECT_ALL);
+    editorContextMenu.addMenuDivider();
+    editorContextMenu.addMenuItem(Commands.EDIT_SELECT_ALL);
 
-    const inline_editor_cmenu = Menus.registerContextMenu(Menus.ContextMenuIds.INLINE_EDITOR_MENU);
-    inline_editor_cmenu.addMenuItem(Commands.TOGGLE_QUICK_EDIT);
-    inline_editor_cmenu.addMenuItem(Commands.EDIT_SELECT_ALL);
-    inline_editor_cmenu.addMenuDivider();
-    inline_editor_cmenu.addMenuItem(Commands.QUICK_EDIT_PREV_MATCH);
-    inline_editor_cmenu.addMenuItem(Commands.QUICK_EDIT_NEXT_MATCH);
+    const inlineEditorContextMenu = Menus.registerContextMenu(Menus.ContextMenuIds.INLINE_EDITOR_MENU);
+    inlineEditorContextMenu.addMenuItem(Commands.TOGGLE_QUICK_EDIT);
+    inlineEditorContextMenu.addMenuItem(Commands.EDIT_SELECT_ALL);
+    inlineEditorContextMenu.addMenuDivider();
+    inlineEditorContextMenu.addMenuItem(Commands.QUICK_EDIT_PREV_MATCH);
+    inlineEditorContextMenu.addMenuItem(Commands.QUICK_EDIT_NEXT_MATCH);
 
     /**
      * Context menu for code editors (both full-size and inline)
@@ -342,9 +342,9 @@ AppInit.htmlReady(function () {
                 // Inline text editors have a different context menu (safe to assume it's not some other
                 // type of inline widget since we already know an Editor has focus)
                 if (inlineWidget) {
-                    inline_editor_cmenu.open(e);
+                    inlineEditorContextMenu.open(e);
                 } else {
-                    editor_cmenu.open(e);
+                    editorContextMenu.open(e);
                 }
             }
         });
@@ -354,14 +354,14 @@ AppInit.htmlReady(function () {
      * Context menu for folder tree
      */
     $("#project-files-container").on("contextmenu", function (e) {
-        project_cmenu.open(e);
+        projectContextMenu.open(e);
     });
 
     // Dropdown menu for workspace sorting
-    Menus.ContextMenu.assignContextMenuToSelector(".working-set-option-btn", workingset_configuration_menu);
+    Menus.ContextMenu.assignContextMenuToSelector(".working-set-option-btn", workingsetConfigurationMenu);
 
     // Dropdown menu for view splitting
-    Menus.ContextMenu.assignContextMenuToSelector(".working-set-splitview-btn", splitview_menu);
+    Menus.ContextMenu.assignContextMenuToSelector(".working-set-splitview-btn", splitviewMenu);
 
     // Prevent the browser context menu since Brackets creates a custom context menu
     $(window).contextmenu(function (e) {

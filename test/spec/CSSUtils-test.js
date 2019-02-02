@@ -722,7 +722,6 @@ define(function (require, exports, module) {
     }); // describe("CSSUtils")
 
 
-
     describe("CSS Parsing", function () {
 
         var lastCssCode,
@@ -1996,7 +1995,6 @@ define(function (require, exports, module) {
     }); //describe("CSS Parsing")
 
 
-
     describe("CSSUtils - Other", function () {
         function doAddRuleTest(options) {
             var mock = SpecRunnerUtils.createMockEditor(options.initialText, "css"),
@@ -2145,7 +2143,6 @@ define(function (require, exports, module) {
     });
 
 
-
     // Unit Tests: "HTMLUtils (css)"
     describe("HTMLUtils InlineEditorProviders", function () {
         var editor;
@@ -2184,7 +2181,6 @@ define(function (require, exports, module) {
             });
         });
     });
-
 
 
     // These tests are based on the implementation spec at https://github.com/adobe/brackets/wiki/CSS-Context-API-implementation-spec.
@@ -2669,7 +2665,6 @@ define(function (require, exports, module) {
     });
 
 
-
     // These are tests related to Shapes editor requirements for determining the start/end range of a css property
     describe("CSS Context Info Ranges", function () {
 
@@ -2758,7 +2753,6 @@ define(function (require, exports, module) {
             });
         });
     });
-
 
 
     describe("CSS Regions", function () {

@@ -7,7 +7,7 @@ export interface ConnectionMessage {
     domain: string;
     command?: string;
     event?: string;
-    parameters?: any[];
+    parameters?: Array<any>;
 }
 
 export interface ConnectionErrorMessage {
@@ -32,7 +32,7 @@ const log = getLogger("connection-manager");
  * @type{Array.<Connection>}
  * Currently active connections
  */
-const _connections: Connection[] = [];
+const _connections: Array<Connection> = [];
 
 export class Connection {
 
@@ -115,7 +115,7 @@ export class Connection {
             }
         }
 
-        const validId = m.id != null;
+        const validId = m.id !== null && m.id !== undefined;
         const hasDomain = !!m.domain;
         const hasCommand = typeof m.command === "string";
 
@@ -205,7 +205,7 @@ export class Connection {
      * @param {string} event Name of the event
      * @param {object} parameters Event parameters. Must be JSON.stringify-able.
      */
-    public sendEventMessage(id: number, domain: string, event: string, parameters?: any[]) {
+    public sendEventMessage(id: number, domain: string, event: string, parameters?: Array<any>) {
         this._send("event", { id, domain, event, parameters });
     }
 
@@ -242,7 +242,7 @@ export function closeAllConnections() {
  * @param {string} event Name of the event
  * @param {object} parameters Event parameters. Must be JSON.stringify-able.
  */
-export function sendEventToAllConnections(id: number, domain: string, event: string, parameters?: any[]) {
+export function sendEventToAllConnections(id: number, domain: string, event: string, parameters?: Array<any>) {
     _connections.forEach(function (c) {
         c.sendEventMessage(id, domain, event, parameters);
     });

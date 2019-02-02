@@ -54,7 +54,6 @@ define(function (require, exports, module) {
     _optionMapping[AUTO_HIDE_SEARCH] = Commands.TOGGLE_SEARCH_AUTOHIDE;
 
 
-
     /**
      * @private
      *

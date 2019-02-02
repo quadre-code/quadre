@@ -59,44 +59,46 @@ function _refreshMenu(win: Electron.BrowserWindow, callback?: () => void) {
 }
 
 function _findMenuItemPosition(
-    id: string, where: MenuItemOptions[], whereId: string = ""
+    id: string, where: Array<MenuItemOptions>, whereId: string = ""
 ): [string, number] | null {
     const result = _.find(where, { id });
     if (result) {
         return [whereId, _.findIndex(where, { id })];
     }
     const results = _.compact(where.map(function (menuItem) {
-        return menuItem.submenu ? _findMenuItemPosition(id, menuItem.submenu as MenuItemOptions[], menuItem.id) : null;
+        return menuItem.submenu
+            ? _findMenuItemPosition(id, menuItem.submenu as Array<MenuItemOptions>, menuItem.id)
+            : null;
     }));
     return results.length > 0 ? results[0] : null;
 }
 
-function _deleteMenuItemById(id: string, where: MenuItemOptions[]): boolean {
+function _deleteMenuItemById(id: string, where: Array<MenuItemOptions>): boolean {
     const result = _.findIndex(where, { id });
     if (result !== -1) {
         where.splice(result, 1);
         return true;
     }
     const deleted = where.map(function (menuItem) {
-        return menuItem.submenu ? _deleteMenuItemById(id, menuItem.submenu as MenuItemOptions[]) : null;
+        return menuItem.submenu ? _deleteMenuItemById(id, menuItem.submenu as Array<MenuItemOptions>) : null;
     }).filter((x) => x === true);
     return deleted.length > 0 ? true : false;
 }
 
-function _findMenuItemById(id: string, where: MenuItemOptions[]): MenuItemOptions | null {
+function _findMenuItemById(id: string, where: Array<MenuItemOptions>): MenuItemOptions | null {
     const result = _.find(where, { id });
     if (result) {
         return result;
     }
     const results = _.compact(where.map(function (menuItem) {
-        return menuItem.submenu ? _findMenuItemById(id, menuItem.submenu as MenuItemOptions[]) : null;
+        return menuItem.submenu ? _findMenuItemById(id, menuItem.submenu as Array<MenuItemOptions>) : null;
     }));
     return results.length > 0 ? results[0] : null;
 }
 
 function _addToPosition(
     obj: MenuItemOptions,
-    target: MenuItemOptions[],
+    target: Array<MenuItemOptions>,
     position: string,
     relativeId: string | null
 ): string | null {
@@ -235,7 +237,7 @@ export function addMenuItem(
             parentObj.submenu = [];
         }
 
-        const err = _addToPosition(newObj, parentObj.submenu as MenuItemOptions[], position || "last", relativeId);
+        const err = _addToPosition(newObj, parentObj.submenu as Array<MenuItemOptions>, position || "last", relativeId);
         _refreshMenu(win, callback.bind(null, err));
     });
 }

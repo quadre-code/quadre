@@ -47,8 +47,8 @@ define(function (require, exports, module) {
         togglePureCodeKeyMac      = "Cmd-Shift-2",
         togglePanelsKey           = "Ctrl-Shift-1",
         togglePanelsKeyMac        = "Cmd-Shift-1",
-        togglePanelsKey_EN        = "Ctrl-Shift-`",
-        togglePanelsKeyMac_EN     = "Cmd-Shift-`";
+        togglePanelsKeyEN        = "Ctrl-Shift-`",
+        togglePanelsKeyMacEN     = "Cmd-Shift-`";
 
     //locals
     var _previouslyOpenPanelIDs = [],
@@ -164,7 +164,7 @@ define(function (require, exports, module) {
         //default toggle panel shortcut was ctrl+shift+` as it is present in one vertical line in the keyboard. However, we later learnt
         //from IQE team than non-English keyboards does not have the ` char. So added one more shortcut ctrl+shift+1 which will be preferred
         KeyBindingManager.addBinding(CMD_TOGGLE_PANELS, [ {key: togglePanelsKey}, {key: togglePanelsKeyMac, platform: "mac"} ]);
-        KeyBindingManager.addBinding(CMD_TOGGLE_PANELS, [ {key: togglePanelsKey_EN}, {key: togglePanelsKeyMac_EN, platform: "mac"} ]);
+        KeyBindingManager.addBinding(CMD_TOGGLE_PANELS, [ {key: togglePanelsKeyEN}, {key: togglePanelsKeyMacEN, platform: "mac"} ]);
     }
 
     initializeCommands();

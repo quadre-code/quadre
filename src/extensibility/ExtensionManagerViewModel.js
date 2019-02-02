@@ -30,7 +30,7 @@ define(function (require, exports, module) {
     var _ = require("thirdparty/lodash");
 
     var ExtensionManager    = require("extensibility/ExtensionManager"),
-        registry_utils      = require("extensibility/registry_utils"),
+        registryUtils       = require("extensibility/registry_utils"),
         EventDispatcher     = require("utils/EventDispatcher"),
         Strings             = require("strings"),
         PreferencesManager  = require("preferences/PreferencesManager");
@@ -303,7 +303,7 @@ define(function (require, exports, module) {
     };
 
     ExtensionManagerViewModel.prototype._setSortedExtensionList = function (extensions, isTheme) {
-        this.filterSet = this.sortedFullSet = registry_utils.sortRegistry(extensions, "registryInfo", PreferencesManager.get("extensions.sort"))
+        this.filterSet = this.sortedFullSet = registryUtils.sortRegistry(extensions, "registryInfo", PreferencesManager.get("extensions.sort"))
             .filter(function (entry) {
                 if (!isTheme) {
                     return entry.registryInfo && !entry.registryInfo.metadata.theme;

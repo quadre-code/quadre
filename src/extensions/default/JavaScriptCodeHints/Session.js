@@ -34,7 +34,7 @@ define(function (require, exports, module) {
         HintUtils       = require("HintUtils"),
         ScopeManager    = require("ScopeManager"),
         Acorn           = require("node_modules/acorn/dist/acorn"),
-        Acorn_Loose     = require("node_modules/acorn/dist/acorn_loose");
+        AcornLoose      = require("node_modules/acorn/dist/acorn_loose");
 
     /**
      * Session objects encapsulate state associated with a hinting session
@@ -683,7 +683,7 @@ define(function (require, exports, module) {
         try {
             ast = Acorn.parse(fragment);
         } catch (e) {
-            ast = Acorn_Loose.parse_dammit(fragment, {});
+            ast = AcornLoose.parse_dammit(fragment, {});
         }
 
         // find argument as cursor location and bold it.

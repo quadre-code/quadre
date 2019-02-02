@@ -2,7 +2,6 @@
   "extends": "../tslint.json",
   "rules": {
     "align": false,
-    "array-type": [true, "generic"],
     "class-name": false,
     "max-line-length": false,
     "no-consecutive-blank-lines": [true, 2],

@@ -116,8 +116,8 @@ export function showOpenDialog(
      * Extensions without wildcards or dots (e.g. 'png' is good but '.png' and '*.png' are bad).
      * To show all files, use the '*' wildcard (no other wildcard is supported).
      */
-    filters: Array<{ name: string, extensions: string[] }>,
-    callback: (err: Error | null, fileNames: string[]) => void
+    filters: Array<{ name: string, extensions: Array<string> }>,
+    callback: (err: Error | null, fileNames: Array<string>) => void
 ) {
     const properties: Array<(
         "openFile" | "openDirectory" | "multiSelections" | "createDirectory" | "showHiddenFiles"
@@ -137,7 +137,7 @@ export function showOpenDialog(
         defaultPath,
         filters,
         properties
-    }, function (fileNames: string[]) {
+    }, function (fileNames: Array<string>) {
         callback(null, fileNames ? fileNames.map(utils.convertWindowsPathToUnixPath) : []);
     });
 }

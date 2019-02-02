@@ -1,13 +1,25 @@
 module.exports = {
     "extends": "moody-tsx",
     "rules": {
+        "guard-for-in": "off",
+        "max-len": ["warn", 120],
+        "new-cap": ["error", {
+            capIsNewExceptions: [
+                "CodeMirror.Pos",
+                "Immutable.List",
+                "Immutable.Map",
+                "$.Deferred",
+                "$.Event"
+            ]
+        }],
+        "no-invalid-this": "off",
+        "no-shadow": "warn",
     },
     "globals": {
         "$": false,
         "appshell": false,
         "brackets": false,
         "clearTimeout": false,
-        "console": false,
         "define": false,
         "node": false,
         "Promise": false,

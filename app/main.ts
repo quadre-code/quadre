@@ -21,7 +21,7 @@ process.on("uncaughtException", (err: Error) => {
 });
 
 const ipclog = getLogger("ipc-log");
-ipcMain.on("log", function (event: Event, ...args: any[]) {
+ipcMain.on("log", function (event: Event, ...args: Array<any>) {
     ipclog.info(...args);
 });
 
@@ -236,7 +236,7 @@ export function openMainBracketsWindow(query: {} | string = {}): Electron.Browse
         // when you should delete the corresponding element.
         const io = wins.indexOf(win);
         if (io !== -1) {
-            const oldWin = wins.splice(io, 1) as BrowserWindow[];
+            const oldWin = wins.splice(io, 1) as Array<BrowserWindow>;
 
             delete menuTemplates[oldWin[0].id];
         }

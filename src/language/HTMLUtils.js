@@ -515,7 +515,6 @@ define(function (require, exports, module) {
     }
 
 
-
     /**
      * Returns an Array of info about all blocks whose token mode name matches that passed in,
      * in the given Editor's HTML document (assumes the Editor contains HTML text).

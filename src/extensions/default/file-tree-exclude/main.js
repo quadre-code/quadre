@@ -82,7 +82,7 @@ define(function (require, exports, module) {
     ProjectManager.on("beforeProjectClose", function () { clearVariables(); });
     FileSystem.on("change", function (event, entry, added, removed) {
     // entry === null when manual refresh is done
-        if (entry == null) {
+        if (entry === null || entry === undefined) {
             fetchVariables(false);
         } else if (entry.name === ".brackets.json") {
             fetchVariables(true);
@@ -103,7 +103,8 @@ define(function (require, exports, module) {
         var relativePath = path.slice(projectPath.length);
 
         var excluded = _.any(excludeList, function (toMatch) {
-            return relativePath.match(toMatch) != null;
+            var doesMatch = relativePath.match(toMatch);
+            return doesMatch !== null && doesMatch !== undefined;
         });
 
         return excluded ? false : _oldFilter.apply(this, arguments);

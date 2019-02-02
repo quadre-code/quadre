@@ -391,7 +391,6 @@ define(function (require, exports, module) {
     }
 
 
-
     /**
      * Check to see whether any open files have been modified by an external app since the last time
      * Brackets synced up with the copy on disk (either by loading or saving the file). For clean

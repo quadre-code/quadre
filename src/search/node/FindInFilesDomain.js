@@ -449,21 +449,21 @@ function doSearch(searchObject, nextPages) {
     if (crawlComplete && !nextPages) {
         numMatches = getNumMatches(files, queryObject.queryExpr);
     }
-    var send_object = {
+    var sendObject = {
         "results":  results,
         "foundMaximum":  foundMaximum,
         "exceedsMaximum":  exceedsMaximum
     };
 
     if (!nextPages) {
-        send_object.numMatches = numMatches;
-        send_object.numFiles = numFiles;
+        sendObject.numMatches = numMatches;
+        sendObject.numFiles = numFiles;
     }
 
     if (searchObject.getAllResults) {
-        send_object.allResultsAvailable = true;
+        sendObject.allResultsAvailable = true;
     }
-    return send_object;
+    return sendObject;
 }
 
 /**
@@ -525,14 +525,14 @@ function documentChanged(updateObject) {
  * @return {Object} search results
  */
 function getNextPage() {
-    var send_object = {
+    var sendObject = {
         "results":  {},
         "numMatches": 0,
         "foundMaximum":  foundMaximum,
         "exceedsMaximum":  exceedsMaximum
     };
     if (!savedSearchObject) {
-        return send_object;
+        return sendObject;
     }
     savedSearchObject.startFileIndex = lastSearchedIndex;
     return doSearch(savedSearchObject, true);
@@ -543,14 +543,14 @@ function getNextPage() {
  * @return {Object} The results object
  */
 function getAllResults() {
-    var send_object = {
+    var sendObject = {
         "results":  {},
         "numMatches": 0,
         "foundMaximum":  foundMaximum,
         "exceedsMaximum":  exceedsMaximum
     };
     if (!savedSearchObject) {
-        return send_object;
+        return sendObject;
     }
     savedSearchObject.startFileIndex = 0;
     savedSearchObject.getAllResults = true;

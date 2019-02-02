@@ -21,9 +21,6 @@
  *
  */
 
-/*jslint nomen: true, unparam:true */
-/*global define, $, brackets, window, setInterval, clearInterval, Mustache, console */
-
 define(function (require, exports, module) {
     "use strict";
 
@@ -37,17 +34,18 @@ define(function (require, exports, module) {
         ScrollTrackMarkers   = brackets.getModule("search/ScrollTrackMarkers"),
         PreferencesManager   = brackets.getModule("preferences/PreferencesManager"),
         LanguageManager      = brackets.getModule("language/LanguageManager"),
+        Mustache             = brackets.getModule("thirdparty/mustache/mustache"),
 
         STYLES               = require("text!styles/styles.css"),
         PREFERENCES          = "thevirtualeuoccur.preferences",
         PREFERENCES_TEMPLATE = require("text!htmlContent/preferences.html"),
         STRINGS              = require("strings"),
 
-        cursor_last          = 0,
-        ticker_interval      = 0,
-        anim_last            = 0,
+        cursorLast           = 0,
+        tickerInterval       = 0,
+        animLast             = 0,
         occurrences          = [],
-        occurrences_for      = "",
+        occurrencesFor       = "",
         prefs                = PreferencesManager.getExtensionPrefs(PREFERENCES),
         prefsBackgroundColor,
         prefsEnabled         = true,
@@ -57,7 +55,7 @@ define(function (require, exports, module) {
         prefsTimeInterval    = 1;
 
     function clearOccurrences(editor) {
-        occurrences_for = "";
+        occurrencesFor = "";
         if (occurrences.length === 0) { return; }
         var cm = editor._codeMirror;
         cm.operation(function () {
@@ -120,10 +118,10 @@ define(function (require, exports, module) {
         if (word.indexOf("\n") >= 0) { return; }
         if (word.length === 0) { return; }
         word = word.replace(/[-[\]{}()*+?.,\\$^|#\s]/g, "\\$&");
-        if (word === occurrences_for) { return; }
+        if (word === occurrencesFor) { return; }
 
         clearOccurrences(editor);
-        if (start !== end) { occurrences_for = word; }
+        if (start !== end) { occurrencesFor = word; }
 
         ScrollTrackMarkers.setVisible(editor, true);
         poss = cmSearch(cm, new RegExp("\\W" + word + "\\W", ""), pos.line, start, end, 1, 1);
@@ -137,15 +135,15 @@ define(function (require, exports, module) {
     function ticker() {
         var $marks;
 
-        if (((prefsTimeInterval === 0) && (cursor_last === 0)) || ((prefsTimeInterval > 0) && (Date.now() - cursor_last > prefsTimeInterval * 1000))) {
-            cursor_last = Date.now();
+        if (((prefsTimeInterval === 0) && (cursorLast === 0)) || ((prefsTimeInterval > 0) && (Date.now() - cursorLast > prefsTimeInterval * 1000))) {
+            cursorLast = Date.now();
             findOccurrences();
         }
 
         if (!prefsAnim) { return; }
         if (occurrences.length === 0) { return; }
-        if (Date.now() - anim_last < 4000) { return; }
-        anim_last = Date.now();
+        if (Date.now() - animLast < 4000) { return; }
+        animLast = Date.now();
         $marks = $(".thevirtualeuoccur-highlighting .thevirtualeuoccur");
         $marks.animate({opacity : 0.5}, 200, function () {
             $marks.animate({opacity : 1}, 200);
@@ -153,7 +151,7 @@ define(function (require, exports, module) {
     }
 
     function applyNewSettings() {
-        clearInterval(ticker_interval);
+        window.clearInterval(tickerInterval);
 
         var editor = EditorManager.getCurrentFullEditor(),
             language = editor.document.getLanguage(),
@@ -189,16 +187,16 @@ define(function (require, exports, module) {
         if (!prefsEnabled) { return; }
         if (!prefsLanguageEnabled) { return; }
 
-        ticker_interval = setInterval(ticker, 100);
+        tickerInterval = window.setInterval(ticker, 100);
     }
 
     function handleNewCursorPosition($event, editor, event) {
         if (!prefsEnabled) { return; }
         if (!prefsLanguageEnabled) { return; }
 
-        cursor_last = Date.now();
+        cursorLast = Date.now();
         if (prefsTimeInterval === 0) {
-            cursor_last = 0;
+            cursorLast = 0;
             ticker();
         }
 

@@ -297,14 +297,14 @@ define(function (require, exports, module) {
      * @param {string} aaType The antialiasing type to be set. It can take either "subpixel-antialiased" or "antialiased"
      */
     function setMacFontSmoothingType(aaType) {
-        var $editor_holder  = $("#editor-holder");
+        var $editorHolder  = $("#editor-holder");
 
         // Add/Remove the class based on the preference. Also
         // default to subpixel AA in case of invalid entries.
         if (aaType === "antialiased") {
-            $editor_holder.removeClass("subpixel-aa");
+            $editorHolder.removeClass("subpixel-aa");
         } else {
-            $editor_holder.addClass("subpixel-aa");
+            $editorHolder.addClass("subpixel-aa");
         }
     }
 

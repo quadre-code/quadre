@@ -75,15 +75,15 @@ define(function (require, exports, module) {
         var editor = EditorManager.getFocusedEditor();
         command3.setEnabled(editor && editor.getSelectedText() !== "");
     };
-    var editor_cmenu = Menus.getContextMenu(Menus.ContextMenuIds.EDITOR_MENU);
-    editor_cmenu.on("beforeContextMenuOpen", updateEnabledState);
+    var editorContextMenu = Menus.getContextMenu(Menus.ContextMenuIds.EDITOR_MENU);
+    editorContextMenu.on("beforeContextMenuOpen", updateEnabledState);
 
 
     // Add the Commands as MenuItems of the Editor context menu
-    if (editor_cmenu) {
-        editor_cmenu.addMenuDivider();
-        editor_cmenu.addMenuItem("extensionTest.command1");
-        editor_cmenu.addMenuItem("extensionTest.command2");
-        editor_cmenu.addMenuItem("extensionTest.command3");
+    if (editorContextMenu) {
+        editorContextMenu.addMenuDivider();
+        editorContextMenu.addMenuItem("extensionTest.command1");
+        editorContextMenu.addMenuItem("extensionTest.command2");
+        editorContextMenu.addMenuItem("extensionTest.command3");
     }
 });

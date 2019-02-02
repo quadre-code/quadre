@@ -121,7 +121,6 @@ define(function (require, exports, module) {
     }
 
 
-
     /**
      * Updates _viewStateCache from the given editor's actual current state
      * @private
@@ -459,7 +458,6 @@ define(function (require, exports, module) {
 
         return inlineEditors;
     }
-
 
 
     /**

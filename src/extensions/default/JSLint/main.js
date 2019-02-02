@@ -244,6 +244,7 @@ define(function (require, exports, module) {
             options.browser = true;
         }
 
+        // eslint-disable-next-line new-cap
         var jslintResult = JSLINT(text, options);
 
         if (!jslintResult) {

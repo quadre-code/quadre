@@ -254,7 +254,6 @@ define(function (require, exports, module) {
     }
 
 
-
     /**
      * returns either WORKING_SET_VIEW or PROJECT_MANAGER
      * @return {!String}

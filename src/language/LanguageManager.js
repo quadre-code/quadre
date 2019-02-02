@@ -207,15 +207,15 @@ define(function (require, exports, module) {
      * We may rely on the tokens provided by some of these modes.
      */
     function _patchCodeMirror() {
-        var _original_CodeMirror_defineMode = CodeMirror.defineMode;
-        function _wrapped_CodeMirror_defineMode(name) {
+        var originalCodeMirrorDefineMode = CodeMirror.defineMode;
+        function wrappedCodeMirrorDefineMode(name) {
             if (CodeMirror.modes[name]) {
                 console.error("There already is a CodeMirror mode with the name \"" + name + "\"");
                 return;
             }
-            _original_CodeMirror_defineMode.apply(CodeMirror, arguments);
+            originalCodeMirrorDefineMode.apply(CodeMirror, arguments);
         }
-        CodeMirror.defineMode = _wrapped_CodeMirror_defineMode;
+        CodeMirror.defineMode = wrappedCodeMirrorDefineMode;
     }
 
     /**
@@ -431,7 +431,6 @@ define(function (require, exports, module) {
         }
         return extension.join(".");
     }
-
 
 
     /**

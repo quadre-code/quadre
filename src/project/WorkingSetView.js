@@ -844,7 +844,6 @@ define(function (require, exports, module) {
             }
 
 
-
             e.stopPropagation();
         });
     }

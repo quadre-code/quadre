@@ -31,7 +31,7 @@ define(function (require, exports, module) {
         EventDispatcher           = require("utils/EventDispatcher"),
         StringUtils               = require("utils/StringUtils"),
         ExtensionManager          = require("extensibility/ExtensionManager"),
-        registry_utils            = require("extensibility/registry_utils"),
+        registryUtils             = require("extensibility/registry_utils"),
         InstallExtensionDialog    = require("extensibility/InstallExtensionDialog"),
         LocalizationUtils         = require("utils/LocalizationUtils"),
         LanguageManager           = require("language/LanguageManager"),
@@ -343,7 +343,7 @@ define(function (require, exports, module) {
 
         // Copy over helper functions that we share with the registry app.
         ["lastVersionDate", "authorInfo"].forEach(function (helper) {
-            context[helper] = registry_utils[helper];
+            context[helper] = registryUtils[helper];
         });
 
         // Do some extra validation on homepage url to make sure we don't end up executing local binary

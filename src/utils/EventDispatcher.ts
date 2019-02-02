@@ -280,7 +280,7 @@ export function triggerWithArray(dispatcher, eventName, argsArray) {
  * @param {string} events
  * @param {?function(!{type:string, target:!Object}, ...)} fn
  */
-export function on_duringInit(futureDispatcher, events, fn) {
+export function on_duringInit(futureDispatcher, events, fn) { // eslint-disable-line @typescript-eslint/camelcase
     on.call(futureDispatcher, events, fn);
 }
 

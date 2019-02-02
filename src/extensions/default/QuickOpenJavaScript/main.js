@@ -70,7 +70,6 @@ define(function (require, exports, module) {
     }
 
 
-
     /**
      * @param {string} query what the user is searching for
      * @param {StringMatch.StringMatcher} matcher object that caches search-in-progress data

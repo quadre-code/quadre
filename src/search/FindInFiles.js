@@ -548,20 +548,20 @@ define(function (require, exports, module) {
                     _updateChangedDocs();
                     FindUtils.notifyNodeSearchStarted();
                     searchDomain.exec("doSearch", searchObject)
-                        .done(function (rcvd_object) {
+                        .done(function (rcvdObject) {
                             FindUtils.notifyNodeSearchFinished();
-                            if (!rcvd_object || !rcvd_object.results) {
+                            if (!rcvdObject || !rcvdObject.results) {
                                 console.log("no node falling back to brackets search");
                                 FindUtils.setNodeSearchDisabled(true);
                                 searchDeferred.fail();
                                 clearSearch();
                                 return;
                             }
-                            searchModel.results = rcvd_object.results;
-                            searchModel.numMatches = rcvd_object.numMatches;
-                            searchModel.numFiles = rcvd_object.numFiles;
-                            searchModel.exceedsMaximum = rcvd_object.exceedsMaximum;
-                            searchModel.allResultsAvailable = rcvd_object.allResultsAvailable;
+                            searchModel.results = rcvdObject.results;
+                            searchModel.numMatches = rcvdObject.numMatches;
+                            searchModel.numFiles = rcvdObject.numFiles;
+                            searchModel.exceedsMaximum = rcvdObject.exceedsMaximum;
+                            searchModel.allResultsAvailable = rcvdObject.allResultsAvailable;
                             searchDeferred.resolve();
                         })
                         .fail(function () {
@@ -957,17 +957,17 @@ define(function (require, exports, module) {
         _updateChangedDocs();
         FindUtils.notifyNodeSearchStarted();
         searchDomain.exec("nextPage")
-            .done(function (rcvd_object) {
+            .done(function (rcvdObject) {
                 FindUtils.notifyNodeSearchFinished();
                 if (searchModel.results) {
                     var resultEntry;
-                    for (resultEntry in rcvd_object.results ) {
-                        if (rcvd_object.results.hasOwnProperty(resultEntry)) {
-                            searchModel.results[resultEntry.toString()] = rcvd_object.results[resultEntry];
+                    for (resultEntry in rcvdObject.results ) {
+                        if (rcvdObject.results.hasOwnProperty(resultEntry)) {
+                            searchModel.results[resultEntry.toString()] = rcvdObject.results[resultEntry];
                         }
                     }
                 } else {
-                    searchModel.results = rcvd_object.results;
+                    searchModel.results = rcvdObject.results;
                 }
                 searchModel.fireChanged();
                 searchDeferred.resolve();
@@ -989,11 +989,11 @@ define(function (require, exports, module) {
         _updateChangedDocs();
         FindUtils.notifyNodeSearchStarted();
         searchDomain.exec("getAllResults")
-            .done(function (rcvd_object) {
+            .done(function (rcvdObject) {
                 FindUtils.notifyNodeSearchFinished();
-                searchModel.results = rcvd_object.results;
-                searchModel.numMatches = rcvd_object.numMatches;
-                searchModel.numFiles = rcvd_object.numFiles;
+                searchModel.results = rcvdObject.results;
+                searchModel.numMatches = rcvdObject.numMatches;
+                searchModel.numFiles = rcvdObject.numFiles;
                 searchModel.allResultsAvailable = true;
                 searchModel.fireChanged();
                 searchDeferred.resolve();

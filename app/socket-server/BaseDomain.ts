@@ -34,7 +34,7 @@ function cmdRestartNode() {
  * @param {Array.<string>} paths Paths to load
  * @return {boolean} Whether the load succeeded
  */
-function cmdLoadDomainModulesFromPaths(paths: string[]): boolean {
+function cmdLoadDomainModulesFromPaths(paths: Array<string>): boolean {
     if (_domainManager) {
         const success = _domainManager.loadDomainModulesFromPaths(paths);
         if (success) {

@@ -373,7 +373,6 @@ define(function (require, exports, module) {
     }
 
 
-
     /**
      * Request Jump-To-Definition from Tern.
      *

@@ -21,7 +21,7 @@ export function unsetLoggerWindow(win: Electron.BrowserWindow) {
 }
 
 const _console: any = {};
-function callMainWindowConsole(method: string, ...args: string[]) {
+function callMainWindowConsole(method: string, ...args: Array<string>) {
     if (mainWindow) {
         try {
             mainWindow.webContents.send("console-msg", method, ...args);
@@ -39,16 +39,16 @@ if (app) {
     Object.keys(c).forEach((key: string) => {
         if (typeof c[key] !== "function") { return; }
         _console[key] = c[key];
-        c[key] = (...args: any[]) => callMainWindowConsole(key, ...args);
+        c[key] = (...args: Array<any>) => callMainWindowConsole(key, ...args);
     });
 }
 
 export function getLogger(name: string) {
     return {
-        log: (...msgs: string[]) => console.log(`[${name}]`, ...msgs), // tslint:disable-line
-        info: (...msgs: string[]) => console.info(`[${name}]`, ...msgs), // tslint:disable-line
-        warn: (...msgs: string[]) => console.warn(`[${name}]`, ...msgs),
-        error: (...msgs: string[]) => console.error(`[${name}]`, ...msgs)
+        log: (...msgs: Array<string>) => console.log(`[${name}]`, ...msgs), // tslint:disable-line
+        info: (...msgs: Array<string>) => console.info(`[${name}]`, ...msgs), // tslint:disable-line
+        warn: (...msgs: Array<string>) => console.warn(`[${name}]`, ...msgs),
+        error: (...msgs: Array<string>) => console.error(`[${name}]`, ...msgs)
     };
 }
 

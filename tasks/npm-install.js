@@ -220,7 +220,7 @@ module.exports = function (grunt) {
                 "dist/www/+(extensibility|extensions|LiveDevelopment)/**/package.json"
             ])
         ]).then(function (results) {
-            const result = !results.some(x => x != null);
+            const result = !results.some(x => x !== null && x !== undefined);
             doneWithTask(result);
         }).catch(function (err) {
             grunt.log.error("err " + err);

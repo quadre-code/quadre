@@ -13,15 +13,15 @@ export interface DomainModule {
 }
 
 export interface DomainCommand {
-    commandFunction: (...args: any[]) => any;
+    commandFunction: (...args: Array<any>) => any;
     isAsync: boolean;
     description: string;
-    parameters: DomainCommandArgument[];
-    returns: DomainCommandArgument[];
+    parameters: Array<DomainCommandArgument>;
+    returns: Array<DomainCommandArgument>;
 }
 
 export interface DomainEvent {
-    parameters: DomainCommandArgument[];
+    parameters: Array<DomainCommandArgument>;
 }
 
 export interface DomainCommandArgument {
@@ -42,7 +42,7 @@ const _domains: { [domainName: string]: DomainDescription } = {};
  * @type {Array.<Module>}
  * Array of all modules we have loaded. Used for avoiding duplicate loading.
  */
-const _initializedDomainModules: DomainModule[] = [];
+const _initializedDomainModules: Array<DomainModule> = [];
 
 /**
  * @private
@@ -110,11 +110,11 @@ export const DomainManager = {
     registerCommand: function registerCommand(
         domainName: string,
         commandName: string,
-        commandFunction: (...args: any[]) => any,
+        commandFunction: (...args: Array<any>) => any,
         isAsync: boolean,
         description: string,
-        parameters: DomainCommandArgument[],
-        returns: DomainCommandArgument[]
+        parameters: Array<DomainCommandArgument>,
+        returns: Array<DomainCommandArgument>
     ) {
         if (!this.hasDomain(domainName)) {
             this.registerDomain(domainName, null);
@@ -151,7 +151,7 @@ export const DomainManager = {
         id: number,
         domainName: string,
         commandName: string,
-        parameters: any[] = []
+        parameters: Array<any> = []
     ) {
         if (_domains[domainName] &&
                 _domains[domainName].commands[commandName]) {
@@ -188,7 +188,11 @@ export const DomainManager = {
      * @param {?Array.<{name: string, type: string, description:string}>} parameters
      *    Used in the API documentation.
      */
-    registerEvent: function registerEvent(domainName: string, eventName: string, parameters: DomainCommandArgument[]) {
+    registerEvent: function registerEvent(
+        domainName: string,
+        eventName: string,
+        parameters: Array<DomainCommandArgument>
+    ) {
         if (!this.hasDomain(domainName)) {
             this.registerDomain(domainName, null);
         }
@@ -215,7 +219,7 @@ export const DomainManager = {
      * @param {string} eventName The event name.
      * @param {?Array} parameters The parameters. Must be JSON.stringify-able
      */
-    emitEvent: function emitEvent(domainName: string, eventName: string, parameters?: any[]) {
+    emitEvent: function emitEvent(domainName: string, eventName: string, parameters?: Array<any>) {
         if (_domains[domainName] && _domains[domainName].events[eventName]) {
             ConnectionManager.sendEventToAllConnections(
                 _eventCount++,
@@ -239,7 +243,7 @@ export const DomainManager = {
      *    should be absolute.
      * @return {boolean} Whether loading succeded. (Failure will throw an exception).
      */
-    loadDomainModulesFromPaths: function loadDomainModulesFromPaths(paths: string[]): boolean {
+    loadDomainModulesFromPaths: function loadDomainModulesFromPaths(paths: Array<string>): boolean {
         paths.forEach((path) => {
             const m = require(path);
             if (m && m.init) {

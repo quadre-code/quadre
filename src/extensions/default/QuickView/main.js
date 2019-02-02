@@ -101,7 +101,6 @@ define(function (require, exports, module) {
     var popoverState = null;
 
 
-
     // Popover widget management ----------------------------------------------
 
     /**

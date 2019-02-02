@@ -60,5 +60,3 @@ define(function (require, exports, module) {
     exports.TERN_INFERENCE_TIMEDOUT     = TERN_INFERENCE_TIMEDOUT;
     exports.SET_CONFIG                  = SET_CONFIG;
 });
-
-

@@ -77,7 +77,7 @@ export function getElapsedMilliseconds() {
     return diff[0] * 1000 + diff[1] / 1000000;
 }
 
-export function getPendingFilesToOpen(callback: (err?: Error, filePaths?: string[]) => void) {
+export function getPendingFilesToOpen(callback: (err?: Error, filePaths?: Array<string>) => void) {
     process.nextTick(function () {
         // TODO: implement
         callback(new Error("app.getPendingFilesToOpen not implemented"), []);

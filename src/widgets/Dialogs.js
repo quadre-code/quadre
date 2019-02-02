@@ -208,7 +208,6 @@ define(function (require, exports, module) {
     };
 
 
-
     /**
      * @constructor
      * @private

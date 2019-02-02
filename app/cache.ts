@@ -1,9 +1,9 @@
 /* tslint:disable:no-empty-interface */
 
-export type BrowserWindows = Electron.BrowserWindow[];
+export type BrowserWindows = Array<Electron.BrowserWindow>;
 export interface MenuItemOptions extends Electron.MenuItemConstructorOptions {}
 export interface MenuTemplates {
-    [winId: number]: MenuItemOptions[];
+    [winId: number]: Array<MenuItemOptions>;
 }
 
 // Keep a global reference of the window object, if you don't, the window will

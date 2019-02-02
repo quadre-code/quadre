@@ -69,7 +69,7 @@ define(function (require, exports, module) {
             return;
         }
 
-        if (errorCode == null) {
+        if (errorCode === null || errorCode === undefined) {
             // flag success message here.
             dialog = Dialogs.showModalDialog(
                 DefaultDialogs.DIALOG_ID_INFO,

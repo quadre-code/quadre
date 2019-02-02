@@ -263,7 +263,6 @@
     MessageBroker.on("ConnectionClose", Page.close);
 
 
-
     // By the time this executes, there must already be an active transport.
     if (!transport) {
         console.error("[Brackets LiveDev] No transport set");

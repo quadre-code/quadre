@@ -1486,7 +1486,6 @@ define(function (require, exports, module) {
     };
 
 
-
     /**
      * serializes the pane state from JSON
      * @param {!Object} state - the state to load

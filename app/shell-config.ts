@@ -51,7 +51,7 @@ export function get(key: string): any {
 
 export function getNumber(key: string): number {
     const result = get(key);
-    if (result != null && typeof result !== "number") {
+    if (result !== null && result !== undefined && typeof result !== "number") {
         throw new Error(`getNumber -> not-a-number: ${key} = ${result}`);
     }
     return result;
