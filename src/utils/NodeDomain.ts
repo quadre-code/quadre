@@ -22,43 +22,84 @@
  *
  */
 
-define(function (require, exports, module) {
-    "use strict";
+/// <amd-dependency path="module" name="module"/>
 
-    var NodeConnection = require("utils/NodeConnection"),
-        EventDispatcher = require("utils/EventDispatcher");
+import NodeConnection = require("utils/NodeConnection");
+import * as EventDispatcher from "utils/EventDispatcher";
 
-    // Used to remove all listeners at once when the connection drops
-    var EVENT_NAMESPACE = ".NodeDomainEvent";
+// Used to remove all listeners at once when the connection drops
+const EVENT_NAMESPACE = ".NodeDomainEvent";
+
+/**
+ * Provides a simple abstraction for executing the commands of a single
+ * domain loaded via a NodeConnection. Automatically handles connection
+ * management and domain loading, and exposes each command in the domain as
+ * a promise-returning method that can safely be called regardless of the
+ * current status of the underlying connection. Example usage:
+ *
+ *     var myDomain = new NodeDomain("someDomain", "/path/to/SomeDomainDef.js"),
+ *         $result = myDomain.exec("someCommand", arg1, arg2);
+ *
+ *     $result.done(function (value) {
+ *         // the command succeeded!
+ *     });
+ *
+ *     $result.fail(function (err) {
+ *         // the command failed; act accordingly!
+ *     });
+ *
+ * To handle domain events, just listen for the event on the domain:
+ *
+ *     myDomain.on("someEvent", someHandler);
+ *
+ * @constructor
+ * @param {string} domainName Name of the registered Node Domain
+ * @param {string} domainPath Full path of the JavaScript Node domain specification
+ */
+class NodeDomain {
+    /**
+     * The underlying Node connection object for this domain.
+     *
+     * @type {NodeConnection}
+     */
+    public connection;
 
     /**
-     * Provides a simple abstraction for executing the commands of a single
-     * domain loaded via a NodeConnection. Automatically handles connection
-     * management and domain loading, and exposes each command in the domain as
-     * a promise-returning method that can safely be called regardless of the
-     * current status of the underlying connection. Example usage:
+     * A promise that is resolved once the NodeConnection is connected and the
+     * domain has been loaded.
      *
-     *     var myDomain = new NodeDomain("someDomain", "/path/to/SomeDomainDef.js"),
-     *         $result = myDomain.exec("someCommand", arg1, arg2);
-     *
-     *     $result.done(function (value) {
-     *         // the command succeeded!
-     *     });
-     *
-     *     $result.fail(function (err) {
-     *         // the command failed; act accordingly!
-     *     });
-     *
-     * To handle domain events, just listen for the event on the domain:
-     *
-     *     myDomain.on("someEvent", someHandler);
-     *
-     * @constructor
-     * @param {string} domainName Name of the registered Node Domain
-     * @param {string} domainPath Full path of the JavaScript Node domain specification
+     * @type {?jQuery.Promise}
+     * @private
      */
-    function NodeDomain(domainName, domainPath) {
-        var connection = new NodeConnection();
+    private _connectionPromise: JQueryPromise<any> | null;
+
+    /**
+     * The name of this domain.
+     *
+     * @type {string}
+     * @private
+     */
+    private _domainName;
+
+    /**
+     * The path at which the Node definition of this domain resides.
+     *
+     * @type {string}
+     * @private
+     */
+    private _domainPath;
+
+    /**
+     * Whether or not the domain has been successfully loaded.
+     *
+     * @type {boolean}
+     * @private
+     */
+    private _domainLoaded = false;
+
+    constructor(domainName, domainPath) {
+        // @ts-ignore
+        const connection = new NodeConnection();
 
         this.connection = connection;
         this._domainName = domainName;
@@ -68,54 +109,13 @@ define(function (require, exports, module) {
         this._connectionPromise = connection.connect(true)
             .then(this._load);
 
-        connection.on("close", function (event, promise) {
-            this.connection.off(EVENT_NAMESPACE);
+        (connection as unknown as EventDispatcher.DispatcherEvents).on("close", function (this: NodeDomain, event, promise) {
+            (this.connection as unknown as EventDispatcher.DispatcherEvents).off(EVENT_NAMESPACE);
             this._domainLoaded = false;
             // in case of calling .disconnect() on connection, promise is undefined
             this._connectionPromise = promise ? promise.then(this._load) : null;
         }.bind(this));
     }
-    EventDispatcher.makeEventDispatcher(NodeDomain.prototype);
-
-    /**
-     * The underlying Node connection object for this domain.
-     *
-     * @type {NodeConnection}
-     */
-    NodeDomain.prototype.connection = null;
-
-    /**
-     * A promise that is resolved once the NodeConnection is connected and the
-     * domain has been loaded.
-     *
-     * @type {?jQuery.Promise}
-     * @private
-     */
-    NodeDomain.prototype._connectionPromise = null;
-
-    /**
-     * The name of this domain.
-     *
-     * @type {string}
-     * @private
-     */
-    NodeDomain.prototype._domainName = null;
-
-    /**
-     * The path at which the Node definition of this domain resides.
-     *
-     * @type {string}
-     * @private
-     */
-    NodeDomain.prototype._domainPath = null;
-
-    /**
-     * Whether or not the domain has been successfully loaded.
-     *
-     * @type {boolean}
-     * @private
-     */
-    NodeDomain.prototype._domainLoaded = false;
 
     /**
      * Loads the domain via the underlying connection object and exposes the
@@ -125,27 +125,27 @@ define(function (require, exports, module) {
      * @return {jQuery.Promise} Resolves once the domain is been loaded.
      * @private
      */
-    NodeDomain.prototype._load = function () {
-        var connection = this.connection;
+    private _load() {
+        const connection = this.connection;
         return connection.loadDomains(this._domainPath, true)
-            .done(function () {
+            .done(function (this: NodeDomain) {
                 this._domainLoaded = true;
                 this._connectionPromise = null;
 
-                var eventNames = Object.keys(connection.domainEvents[this._domainName]);
-                eventNames.forEach(function (domainEvent) {
-                    var connectionEvent = this._domainName + ":" + domainEvent + EVENT_NAMESPACE;
+                const eventNames = Object.keys(connection.domainEvents[this._domainName]);
+                eventNames.forEach(function (this: NodeDomain, domainEvent) {
+                    const connectionEvent = this._domainName + ":" + domainEvent + EVENT_NAMESPACE;
 
-                    connection.on(connectionEvent, function () {
-                        var params = Array.prototype.slice.call(arguments, 1);
+                    (connection as unknown as EventDispatcher.DispatcherEvents).on(connectionEvent, function (this: NodeDomain) {
+                        const params = Array.prototype.slice.call(arguments, 1);
                         EventDispatcher.triggerWithArray(this, domainEvent, params);
                     }.bind(this));
                 }, this);
             }.bind(this))
-            .fail(function (err) {
+            .fail(function (this: NodeDomain, err) {
                 console.error("[NodeDomain] Error loading domain \"" + this._domainName + "\": " + err);
             }.bind(this));
-    };
+    }
 
     /**
      * Synchronously determine whether the domain is ready; i.e., whether the
@@ -153,9 +153,9 @@ define(function (require, exports, module) {
      *
      * @return {boolean} Whether or not the domain is currently ready.
      */
-    NodeDomain.prototype.ready = function () {
+    public ready() {
         return this._domainLoaded && this.connection.connected();
-    };
+    }
 
     /**
      * Get a promise that resolves when the connection is open and the domain
@@ -163,12 +163,12 @@ define(function (require, exports, module) {
      *
      * @return {jQuery.Promise}
      */
-    NodeDomain.prototype.promise = function () {
+    public promise() {
         if (this._connectionPromise) {
             return this._connectionPromise;
         }
 
-        var deferred = new $.Deferred();
+        const deferred = $.Deferred();
 
         if (this.ready()) {
             deferred.resolve();
@@ -177,7 +177,7 @@ define(function (require, exports, module) {
         }
 
         return deferred.promise();
-    };
+    }
 
     /**
      * Applies the named command from the domain to a list of parameters, which
@@ -189,32 +189,36 @@ define(function (require, exports, module) {
      * @param {string} name The name of the domain command to execute
      * @return {jQuery.Promise} Resolves with the result of the command
      */
-    NodeDomain.prototype.exec = function (name) {
-        var connection = this.connection,
-            params = Array.prototype.slice.call(arguments, 1),
-            execConnected = function () {
-                var domain  = connection.domains[this._domainName],
-                    fn      = domain && domain[name],
-                    execResult;
+    public exec(name, ...args) {
+        const connection = this.connection;
+        const params = Array.prototype.slice.call(arguments, 1);
+        const execConnected = function (this: NodeDomain) {
+            const domain  = connection.domains[this._domainName];
+            const fn      = domain && domain[name];
+            let execResult;
 
-                if (fn) {
-                    execResult = fn.apply(domain, params);
-                } else {
-                    execResult = new $.Deferred().reject().promise();
-                }
-                return execResult;
-            }.bind(this);
+            if (fn) {
+                execResult = fn.apply(domain, params);
+            } else {
+                execResult = $.Deferred().reject().promise();
+            }
+            return execResult;
+        }.bind(this);
 
-        var result;
+        let result;
         if (this.ready()) {
             result = execConnected();
         } else if (this._connectionPromise) {
             result = this._connectionPromise.then(execConnected);
         } else {
-            result = new $.Deferred.reject().promise();
+            result = $.Deferred().reject().promise();
         }
         return result;
-    };
+    }
+}
 
-    module.exports = NodeDomain;
-});
+EventDispatcher.makeEventDispatcher(NodeDomain.prototype);
+
+// Cannot export using ES modules because otherwise other AMD modules
+// cannot consume it correctly.
+module.exports = NodeDomain;

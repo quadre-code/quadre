@@ -25,21 +25,20 @@
 /**
  * Compatibility shims for running Brackets in various environments, browsers.
  */
-define(function () {
-    "use strict";
 
-    // [IE10] String.prototype missing trimRight() and trimLeft()
-    if (!String.prototype.trimRight) {
-        String.prototype.trimRight = function () { return this.replace(/\s+$/, ""); };
-    }
-    if (!String.prototype.trimLeft) {
-        String.prototype.trimLeft = function () { return this.replace(/^\s+/, ""); };
-    }
+// [IE10] String.prototype missing trimRight() and trimLeft()
+if (!String.prototype.trimRight) {
+    String.prototype.trimRight = function () { return this.replace(/\s+$/, ""); };
+}
+if (!String.prototype.trimLeft) {
+    String.prototype.trimLeft = function () { return this.replace(/^\s+/, ""); };
+}
 
-    // Feature detection for Error.stack. Not all browsers expose it
-    // and Brackets assumes it will be a non-null string.
-    if (typeof (new Error()).stack === "undefined") {
-        Error.prototype.stack = "";
-    }
+// Feature detection for Error.stack. Not all browsers expose it
+// and Brackets assumes it will be a non-null string.
+if (typeof (new Error()).stack === "undefined") {
+    Error.prototype.stack = "";
+}
 
-});
+// See https://github.com/Microsoft/TypeScript/issues/20943
+export {};

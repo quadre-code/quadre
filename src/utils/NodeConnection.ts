@@ -22,106 +22,110 @@
  *
  */
 
-define(function (require, exports, module) {
-    "use strict";
+/// <amd-dependency path="module" name="module"/>
 
-    var EventDispatcher = require("utils/EventDispatcher");
+import * as EventDispatcher from "utils/EventDispatcher";
 
 
-    /**
-     * Connection attempts to make before failing
-     * @type {number}
-     */
-    var CONNECTION_ATTEMPTS = 10;
+/**
+ * Connection attempts to make before failing
+ * @type {number}
+ */
+const CONNECTION_ATTEMPTS = 10;
 
-    /**
-     * Milliseconds to wait before a particular connection attempt is considered failed.
-     * NOTE: It's okay for the connection timeout to be long because the
-     * expected behavior of WebSockets is to send a "close" event as soon
-     * as they realize they can't connect. So, we should rarely hit the
-     * connection timeout even if we try to connect to a port that isn't open.
-     * @type {number}
-     */
-    var CONNECTION_TIMEOUT  = 10000; // 10 seconds
+/**
+ * Milliseconds to wait before a particular connection attempt is considered failed.
+ * NOTE: It's okay for the connection timeout to be long because the
+ * expected behavior of WebSockets is to send a "close" event as soon
+ * as they realize they can't connect. So, we should rarely hit the
+ * connection timeout even if we try to connect to a port that isn't open.
+ * @type {number}
+ */
+const CONNECTION_TIMEOUT  = 10000; // 10 seconds
 
-    /**
-     * Milliseconds to wait before retrying connecting
-     * @type {number}
-     */
-    var RETRY_DELAY         = 500;   // 1/2 second
+/**
+ * Milliseconds to wait before retrying connecting
+ * @type {number}
+ */
+const RETRY_DELAY         = 500;   // 1/2 second
 
-    /**
-     * Maximum value of the command ID counter
-     * @type  {number}
-     */
-    var MAX_COUNTER_VALUE = 4294967295; // 2^32 - 1
+/**
+ * Maximum value of the command ID counter
+ * @type  {number}
+ */
+const MAX_COUNTER_VALUE = 4294967295; // 2^32 - 1
 
-    /**
-     * @private
-     * Helper function to auto-reject a deferred after a given amount of time.
-     * If the deferred is resolved/rejected manually, then the timeout is
-     * automatically cleared.
-     */
-    function setDeferredTimeout(deferred, delay) {
-        var timer = setTimeout(function () {
-            deferred.reject("timeout");
-        }, delay);
-        deferred.always(function () { clearTimeout(timer); });
-    }
+/**
+ * @private
+ * Helper function to auto-reject a deferred after a given amount of time.
+ * If the deferred is resolved/rejected manually, then the timeout is
+ * automatically cleared.
+ */
+function setDeferredTimeout(deferred, delay) {
+    const timer = setTimeout(function () {
+        deferred.reject("timeout");
+    }, delay);
+    deferred.always(function () { clearTimeout(timer); });
+}
 
-    /**
-     * @private
-     * Helper function to attempt a single connection to the node server
-     */
-    function attemptSingleConnect() {
-        var deferred = $.Deferred();
-        var port = null;
-        var ws = null;
-        setDeferredTimeout(deferred, CONNECTION_TIMEOUT);
+/**
+ * @private
+ * Helper function to attempt a single connection to the node server
+ */
+function attemptSingleConnect() {
+    const deferred = $.Deferred();
+    let port = null;
+    let ws: WebSocket;
+    setDeferredTimeout(deferred, CONNECTION_TIMEOUT);
 
-        brackets.app.getNodeState(function (err, nodePort) {
-            if (!err && nodePort && deferred.state() !== "rejected") {
-                port = nodePort;
-                ws = new WebSocket("ws://localhost:" + port);
+    brackets.app.getNodeState(function (err, nodePort) {
+        if (!err && nodePort && deferred.state() !== "rejected") {
+            port = nodePort;
+            ws = new WebSocket("ws://localhost:" + port);
 
-                // Expect ArrayBuffer objects from Node when receiving binary
-                // data instead of DOM Blobs, which are the default.
-                ws.binaryType = "arraybuffer";
+            // Expect ArrayBuffer objects from Node when receiving binary
+            // data instead of DOM Blobs, which are the default.
+            ws.binaryType = "arraybuffer";
 
-                // If the server port isn't open, we get a close event
-                // at some point in the future (and will not get an onopen
-                // event)
-                ws.onclose = function () {
-                    deferred.reject("WebSocket closed");
-                };
+            // If the server port isn't open, we get a close event
+            // at some point in the future (and will not get an onopen
+            // event)
+            ws.onclose = function () {
+                deferred.reject("WebSocket closed");
+            };
 
-                ws.onopen = function () {
-                    // If we successfully opened, remove the old onclose
-                    // handler (which was present to detect failure to
-                    // connect at all).
-                    ws.onclose = null;
-                    deferred.resolveWith(null, [ws, port]);
-                };
-            } else {
-                deferred.reject("brackets.app.getNodeState error: " + err);
-            }
-        });
+            ws.onopen = function () {
+                // If we successfully opened, remove the old onclose
+                // handler (which was present to detect failure to
+                // connect at all).
+                ws.onclose = null;
+                deferred.resolveWith(null, [ws, port] as Array<any>);
+            };
+        } else {
+            deferred.reject("brackets.app.getNodeState error: " + err);
+        }
+    });
 
-        return deferred.promise();
-    }
+    return deferred.promise();
+}
 
-    /**
-     * Provides an interface for interacting with the node server.
-     * @constructor
-     */
-    function NodeConnection() {
-        this.domains = {};
-        this._registeredModules = [];
-        this._pendingInterfaceRefreshDeferreds = [];
-        this._pendingCommandDeferreds = [];
-    }
-    EventDispatcher.makeEventDispatcher(NodeConnection.prototype);
+interface NodeDomain {
+    base?: any;
+}
 
+interface NodeEvent {
+    [eventKey: string]: any;
+}
+
+interface NodeDomainEvent {
+    [domainKey: string]: NodeEvent;
+}
+
+/**
+ * Provides an interface for interacting with the node server.
+ * @constructor
+ */
+export class NodeConnection {
     /**
      * @type {Object}
      * Exposes the domains registered with the server. This object will
@@ -134,7 +138,9 @@ define(function (require, exports, module) {
      * on the base:newDomains event from the server). Therefore, code that
      * uses this object should not keep their own pointer to the domain property.
      */
-    NodeConnection.prototype.domains = null;
+    public domains: NodeDomain;
+
+    public domainEvents: NodeDomainEvent;
 
     /**
      * @private
@@ -142,35 +148,35 @@ define(function (require, exports, module) {
      * List of module pathnames that should be re-registered if there is
      * a disconnection/connection (i.e. if the server died).
      */
-    NodeConnection.prototype._registeredModules = null;
+    private _registeredModules: Array<any>;
 
     /**
      * @private
      * @type {WebSocket}
      * The connection to the server
      */
-    NodeConnection.prototype._ws = null;
+    private _ws: WebSocket | null = null;
 
     /**
      * @private
      * @type {?number}
      * The port the WebSocket is currently connected to
      */
-    NodeConnection.prototype._port = null;
+    private _port = null;
 
     /**
      * @private
      * @type {number}
      * Unique ID for commands
      */
-    NodeConnection.prototype._commandCount = 1;
+    private _commandCount = 1;
 
     /**
      * @private
      * @type {boolean}
      * Whether to attempt reconnection if connection fails
      */
-    NodeConnection.prototype._autoReconnect = false;
+    private _autoReconnect = false;
 
     /**
      * @private
@@ -178,7 +184,7 @@ define(function (require, exports, module) {
      * List of deferred objects that should be resolved pending
      * a successful refresh of the API
      */
-    NodeConnection.prototype._pendingInterfaceRefreshDeferreds = null;
+    private _pendingInterfaceRefreshDeferreds: Array<any>;
 
     /**
      * @private
@@ -186,15 +192,22 @@ define(function (require, exports, module) {
      * Array (indexed on command ID) of deferred objects that should be
      * resolved/rejected with the response of commands.
      */
-    NodeConnection.prototype._pendingCommandDeferreds = null;
+    private _pendingCommandDeferreds: Array<JQueryDeferred<any>>;
+
+    constructor() {
+        this.domains = {};
+        this._registeredModules = [];
+        this._pendingInterfaceRefreshDeferreds = [];
+        this._pendingCommandDeferreds = [];
+    }
 
     /**
      * @private
      * @return {number} The next command ID to use. Always representable as an
      * unsigned 32-bit integer.
      */
-    NodeConnection.prototype._getNextCommandID = function () {
-        var nextID;
+    private _getNextCommandID() {
+        let nextID;
 
         if (this._commandCount > MAX_COUNTER_VALUE) {
             nextID = this._commandCount = 0;
@@ -203,13 +216,13 @@ define(function (require, exports, module) {
         }
 
         return nextID;
-    };
+    }
 
     /**
      * @private
      * Helper function to do cleanup work when a connection fails
      */
-    NodeConnection.prototype._cleanup = function () {
+    private _cleanup() {
         // clear out the domains, since we may get different ones
         // on the next connection
         this.domains = {};
@@ -222,7 +235,7 @@ define(function (require, exports, module) {
                 // Do nothing
             }
         }
-        var failedDeferreds = this._pendingInterfaceRefreshDeferreds
+        const failedDeferreds = this._pendingInterfaceRefreshDeferreds
             .concat(this._pendingCommandDeferreds);
         failedDeferreds.forEach(function (d) {
             d.reject("cleanup");
@@ -232,7 +245,7 @@ define(function (require, exports, module) {
 
         this._ws = null;
         this._port = null;
-    };
+    }
 
     /**
      * Connect to the node server. After connecting, the NodeConnection
@@ -248,24 +261,24 @@ define(function (require, exports, module) {
      * @return {jQuery.Promise} Promise that resolves/rejects when the
      *    connection succeeds/fails
      */
-    NodeConnection.prototype.connect = function (autoReconnect) {
-        var self = this;
+    public connect(autoReconnect) {
+        const self = this;
         self._autoReconnect = autoReconnect;
-        var deferred = $.Deferred();
-        var attemptCount = 0;
-        var attemptTimestamp = null;
+        const deferred = $.Deferred();
+        let attemptCount = 0;
+        let attemptTimestamp: number;
 
         // Called after a successful connection to do final setup steps
         function registerHandlersAndDomains(ws, port) {
             // Called if we succeed at the final setup
             function success() {
-                self._ws.onclose = function () {
+                self._ws!.onclose = function () {
                     if (self._autoReconnect) {
-                        var $promise = self.connect(true);
-                        self.trigger("close", $promise);
+                        const $promise = self.connect(true);
+                        (self as unknown as EventDispatcher.DispatcherEvents).trigger("close", $promise);
                     } else {
                         self._cleanup();
-                        self.trigger("close");
+                        (self as unknown as EventDispatcher.DispatcherEvents).trigger("close");
                     }
                 };
                 deferred.resolve();
@@ -278,7 +291,7 @@ define(function (require, exports, module) {
 
             self._ws = ws;
             self._port = port;
-            self._ws.onmessage = self._receive.bind(self);
+            self._ws!.onmessage = self._receive.bind(self);
 
             // refresh the current domains, then re-register any
             // "autoregister" modules
@@ -302,14 +315,14 @@ define(function (require, exports, module) {
         // at least RETRY_DELAY before trying again.
         function doConnect() {
             attemptCount++;
-            attemptTimestamp = new Date();
+            attemptTimestamp = +new Date();
             attemptSingleConnect().then(
                 registerHandlersAndDomains, // succeded
                 function () { // failed this attempt, possibly try again
-                    if (attemptCount < CONNECTION_ATTEMPTS) { //try again
+                    if (attemptCount < CONNECTION_ATTEMPTS) { // try again
                         // Calculate how long we should wait before trying again
-                        var now = new Date();
-                        var delay = Math.max(
+                        const now = +new Date();
+                        const delay = Math.max(
                             RETRY_DELAY - (now - attemptTimestamp),
                             1
                         );
@@ -326,15 +339,15 @@ define(function (require, exports, module) {
         doConnect();
 
         return deferred.promise();
-    };
+    }
 
     /**
      * Determines whether the NodeConnection is currently connected
      * @return {boolean} Whether the NodeConnection is connected.
      */
-    NodeConnection.prototype.connected = function () {
+    public connected() {
         return !!(this._ws && this._ws.readyState === WebSocket.OPEN);
-    };
+    }
 
     /**
      * Explicitly disconnects from the server. Note that even if
@@ -342,10 +355,10 @@ define(function (require, exports, module) {
      * will not reconnect after this call. Reconnection can be manually done
      * by calling connect() again.
      */
-    NodeConnection.prototype.disconnect = function () {
+    public disconnect() {
         this._autoReconnect = false;
         this._cleanup();
-    };
+    }
 
     /**
      * Load domains into the server by path
@@ -357,10 +370,10 @@ define(function (require, exports, module) {
      *    succeeded and the new API is availale at NodeConnection.domains,
      *    or that rejects on failure.
      */
-    NodeConnection.prototype.loadDomains = function (paths, autoReload) {
-        var deferred = $.Deferred();
+    public loadDomains(paths, autoReload) {
+        const deferred = $.Deferred();
         setDeferredTimeout(deferred, CONNECTION_TIMEOUT);
-        var pathArray = paths;
+        let pathArray = paths;
         if (!Array.isArray(paths)) {
             pathArray = [paths];
         }
@@ -391,7 +404,7 @@ define(function (require, exports, module) {
         }
 
         return deferred.promise();
-    };
+    }
 
     /**
      * @private
@@ -399,11 +412,11 @@ define(function (require, exports, module) {
      * the message if necessary.
      * @param {Object|string} m Object to send. Must be JSON.stringify-able.
      */
-    NodeConnection.prototype._send = function (m) {
+    private _send(m) {
         if (this.connected()) {
 
             // Convert the message to a string
-            var messageString = null;
+            let messageString: string | null = null;
             if (typeof m === "string") {
                 messageString = m;
             } else {
@@ -417,7 +430,7 @@ define(function (require, exports, module) {
             // If we succeded in making a string, try to send it
             if (messageString) {
                 try {
-                    this._ws.send(messageString);
+                    this._ws!.send(messageString);
                 } catch (sendError) {
                     console.error("[NodeConnection] Error sending message: " + sendError.message);
                 }
@@ -425,7 +438,7 @@ define(function (require, exports, module) {
         } else {
             console.error("[NodeConnection] Not connected to node, unable to send.");
         }
-    };
+    }
 
     /**
      * @private
@@ -433,10 +446,10 @@ define(function (require, exports, module) {
      * and dispatches it appropriately.
      * @param {WebSocket.Message} message Message object from WebSocket
      */
-    NodeConnection.prototype._receive = function (message) {
-        var responseDeferred = null;
-        var data = message.data;
-        var m;
+    private _receive(message) {
+        let responseDeferred: JQueryDeferred<any> | null = null;
+        const data = message.data;
+        let m;
 
         if (message.data instanceof ArrayBuffer) {
             // The first four bytes encode the command ID as an unsigned 32-bit integer
@@ -445,10 +458,10 @@ define(function (require, exports, module) {
                 return;
             }
 
-            var header = data.slice(0, 4),
-                body = data.slice(4),
-                headerView = new Uint32Array(header),
-                id = headerView[0];
+            const header = data.slice(0, 4);
+            const body = data.slice(4);
+            const headerView = new Uint32Array(header);
+            const id = headerView[0];
 
             // Unpack the binary message into a commandResponse
             m = {
@@ -508,7 +521,7 @@ define(function (require, exports, module) {
             default:
                 console.error("[NodeConnection] unknown event type: " + m.type);
         }
-    };
+    }
 
     /**
      * @private
@@ -516,11 +529,11 @@ define(function (require, exports, module) {
      * Automatically called when the connection receives a base:newDomains
      * event from the server, and also called at connection time.
      */
-    NodeConnection.prototype._refreshInterface = function () {
-        var deferred = $.Deferred();
-        var self = this;
+    private _refreshInterface() {
+        const deferred = $.Deferred();
+        const self = this;
 
-        var pendingDeferreds = this._pendingInterfaceRefreshDeferreds;
+        const pendingDeferreds = this._pendingInterfaceRefreshDeferreds;
         this._pendingInterfaceRefreshDeferreds = [];
         deferred.then(
             function () {
@@ -534,9 +547,9 @@ define(function (require, exports, module) {
         function refreshInterfaceCallback(spec) {
             function makeCommandFunction(domainName, commandName) {
                 return function () {
-                    var deferred = $.Deferred();
-                    var parameters = Array.prototype.slice.call(arguments, 0);
-                    var id = self._getNextCommandID();
+                    const deferred = $.Deferred();
+                    const parameters = Array.prototype.slice.call(arguments, 0);
+                    const id = self._getNextCommandID();
                     self._pendingCommandDeferreds[id] = deferred;
                     self._send({
                         id: id,
@@ -552,15 +565,15 @@ define(function (require, exports, module) {
             self.domains = {};
             self.domainEvents = {};
             Object.keys(spec).forEach(function (domainKey) {
-                var domainSpec = spec[domainKey];
+                const domainSpec = spec[domainKey];
                 self.domains[domainKey] = {};
                 Object.keys(domainSpec.commands).forEach(function (commandKey) {
                     self.domains[domainKey][commandKey] = makeCommandFunction(domainKey, commandKey);
                 });
                 self.domainEvents[domainKey] = {};
                 Object.keys(domainSpec.events).forEach(function (eventKey) {
-                    var eventSpec = domainSpec.events[eventKey];
-                    var parameters = eventSpec.parameters;
+                    const eventSpec = domainSpec.events[eventKey];
+                    const parameters = eventSpec.parameters;
                     self.domainEvents[domainKey][eventKey] = parameters;
                 });
             });
@@ -576,17 +589,20 @@ define(function (require, exports, module) {
         }
 
         return deferred.promise();
-    };
+    }
 
     /**
      * @private
      * Get the default timeout value
      * @return {number} Timeout value in milliseconds
      */
-    NodeConnection._getConnectionTimeout = function () {
+    public static _getConnectionTimeout() {
         return CONNECTION_TIMEOUT;
-    };
+    }
+}
 
-    module.exports = NodeConnection;
+EventDispatcher.makeEventDispatcher(NodeConnection.prototype);
 
-});
+// Cannot export using ES modules because otherwise other AMD modules
+// cannot consume it correctly.
+module.exports = NodeConnection;

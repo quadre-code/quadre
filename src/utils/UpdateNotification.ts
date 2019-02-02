@@ -5,15 +5,15 @@ const _: typeof lodash = node.require("lodash");
 const getLogger = node.require("./utils").getLogger;
 const log = getLogger("UpdateNotification");
 
-import Dialogs              = require("widgets/Dialogs");
-import DefaultDialogs       = require("widgets/DefaultDialogs");
-import ExtensionManager     = require("extensibility/ExtensionManager");
-import PreferencesManager   = require("preferences/PreferencesManager");
-import NativeApp            = require("utils/NativeApp");
-import Strings              = require("strings");
-import UpdateDialogTemplate = require("text!htmlContent/update-dialog.html");
-import UpdateListTemplate   = require("text!htmlContent/update-list.html");
-import Mustache             = require("thirdparty/mustache/mustache");
+import * as Dialogs from "widgets/Dialogs";
+import * as DefaultDialogs from "widgets/DefaultDialogs";
+import * as ExtensionManager from "extensibility/ExtensionManager";
+import * as PreferencesManager from "preferences/PreferencesManager";
+import * as NativeApp from "utils/NativeApp";
+import * as Strings from "strings";
+import * as UpdateDialogTemplate from "text!htmlContent/update-dialog.html";
+import * as UpdateListTemplate from "text!htmlContent/update-list.html";
+import * as Mustache from "thirdparty/mustache/mustache";
 
 // make sure the global brackets variable is loaded
 import "utils/Global";

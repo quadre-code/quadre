@@ -1,4 +1,4 @@
 declare module "text!*" {
-    let text: any;
-    export default text;
+    const text: string;
+    export = text;
 }

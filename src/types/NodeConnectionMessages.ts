@@ -4,7 +4,7 @@ export interface NodeConnectionRequestMessage {
     id: number;
     domain: string;
     command: string;
-    parameters: any[];
+    parameters: Array<any>;
 }
 
 export interface NodeConnectionResponseMessage {
@@ -12,7 +12,7 @@ export interface NodeConnectionResponseMessage {
     domain: string;
     event: string;
     message: any;
-    parameters: any[];
+    parameters: Array<any>;
     response: any;
     stack: string;
 }

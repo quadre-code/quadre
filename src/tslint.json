@@ -2,9 +2,18 @@
   "extends": "../tslint.json",
   "rules": {
     "align": false,
+    "array-type": [true, "generic"],
+    "class-name": false,
+    "max-line-length": false,
+    "no-consecutive-blank-lines": [true, 2],
     "no-submodule-imports": false,
     "no-implicit-dependencies": false,
     "no-shadowed-variable": false,
-    "no-this-assignment": [true, {"allowed-names": ["^self$"]}]
+    "no-this-assignment": [true, {"allowed-names": ["^self$"]}],
+    "object-literal-key-quotes": false,
+    "object-literal-shorthand": false,
+    "prefer-conditional-expression": false,
+    "quotemark": [true, "double", "avoid-escape"],
+    "unnecessary-bind": false
   }
 }

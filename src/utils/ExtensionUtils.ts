@@ -27,275 +27,263 @@
 /**
  * ExtensionUtils defines utility methods for implementing extensions.
  */
-define(function (require, exports, module) {
-    "use strict";
 
-    var Async              = require("utils/Async"),
-        FileSystem         = require("filesystem/FileSystem"),
-        FileUtils          = require("file/FileUtils"),
-        PathUtils          = require("thirdparty/path-utils/path-utils"),
-        PreferencesManager = require("preferences/PreferencesManager");
+import * as Async from "utils/Async";
+import * as FileSystem from "filesystem/FileSystem";
+import * as FileUtils from "file/FileUtils";
+import * as PathUtils from "thirdparty/path-utils/path-utils";
+import * as PreferencesManager from "preferences/PreferencesManager";
 
-    /**
-     * Appends a <style> tag to the document's head.
-     *
-     * @param {!string} css CSS code to use as the tag's content
-     * @return {!HTMLStyleElement} The generated HTML node
-     **/
-    function addEmbeddedStyleSheet(css) {
-        return $("<style>").text(css).appendTo("head")[0];
+/**
+ * Appends a <style> tag to the document's head.
+ *
+ * @param {!string} css CSS code to use as the tag's content
+ * @return {!HTMLStyleElement} The generated HTML node
+ */
+export function addEmbeddedStyleSheet(css) {
+    return $("<style>").text(css).appendTo("head")[0];
+}
+
+/**
+ * Appends a <link> tag to the document's head.
+ *
+ * @param {!string} url URL to a style sheet
+ * @param {$.Deferred=} deferred Optionally check for load and error events
+ * @return {!HTMLLinkElement} The generated HTML node
+ */
+export function addLinkedStyleSheet(url, deferred) {
+    const attributes = {
+        type: "text/css",
+        rel:  "stylesheet",
+        href: url
+    };
+
+    const $link = $("<link/>").attr(attributes);
+
+    if (deferred) {
+        $link.on("load", deferred.resolve).on("error", deferred.reject);
     }
 
-    /**
-     * Appends a <link> tag to the document's head.
-     *
-     * @param {!string} url URL to a style sheet
-     * @param {$.Deferred=} deferred Optionally check for load and error events
-     * @return {!HTMLLinkElement} The generated HTML node
-     **/
-    function addLinkedStyleSheet(url, deferred) {
-        var attributes = {
-            type: "text/css",
-            rel:  "stylesheet",
-            href: url
+    $link.appendTo("head");
+
+    return $link[0];
+}
+
+/**
+ * getModuleUrl returns different urls for win platform
+ * so that's why we need a different check here
+ * @see #getModuleUrl
+ * @param {!string} pathOrUrl that should be checked if it's absolute
+ * @return {!boolean} returns true if pathOrUrl is absolute url on win platform
+ *                    or when it's absolute path on other platforms
+ */
+function isAbsolutePathOrUrl(pathOrUrl) {
+    return brackets.platform === "win" ? PathUtils.isAbsoluteUrl(pathOrUrl) : FileSystem.isAbsolutePath(pathOrUrl);
+}
+
+/**
+ * Parses LESS code and returns a promise that resolves with plain CSS code.
+ *
+ * Pass the {@link url} argument to resolve relative URLs contained in the code.
+ * Make sure URLs in the code are wrapped in quotes, like so:
+ *     background-image: url("image.png");
+ *
+ * @param {!string} code LESS code to parse
+ * @param {?string} url URL to the file containing the code
+ * @return {!$.Promise} A promise object that is resolved with CSS code if the LESS code can be parsed
+ */
+export function parseLessCode(code, url) {
+    const result = $.Deferred();
+    let options;
+
+    if (url) {
+        const dir = url.slice(0, url.lastIndexOf("/") + 1);
+
+        options = {
+            filename: url,
+            rootpath: dir
         };
 
-        var $link = $("<link/>").attr(attributes);
-
-        if (deferred) {
-            $link.on("load", deferred.resolve).on("error", deferred.reject);
-        }
-
-        $link.appendTo("head");
-
-        return $link[0];
-    }
-
-    /**
-     * getModuleUrl returns different urls for win platform
-     * so that's why we need a different check here
-     * @see #getModuleUrl
-     * @param {!string} pathOrUrl that should be checked if it's absolute
-     * @return {!boolean} returns true if pathOrUrl is absolute url on win platform
-     *                    or when it's absolute path on other platforms
-     */
-    function isAbsolutePathOrUrl(pathOrUrl) {
-        return brackets.platform === "win" ? PathUtils.isAbsoluteUrl(pathOrUrl) : FileSystem.isAbsolutePath(pathOrUrl);
-    }
-
-    /**
-     * Parses LESS code and returns a promise that resolves with plain CSS code.
-     *
-     * Pass the {@link url} argument to resolve relative URLs contained in the code.
-     * Make sure URLs in the code are wrapped in quotes, like so:
-     *     background-image: url("image.png");
-     *
-     * @param {!string} code LESS code to parse
-     * @param {?string} url URL to the file containing the code
-     * @return {!$.Promise} A promise object that is resolved with CSS code if the LESS code can be parsed
-     */
-    function parseLessCode(code, url) {
-        var result = new $.Deferred(),
-            options;
-
-        if (url) {
-            var dir = url.slice(0, url.lastIndexOf("/") + 1);
-
-            options = {
+        if (isAbsolutePathOrUrl(url)) {
+            options.currentFileInfo = {
+                currentDirectory: dir,
+                entryPath: dir,
                 filename: url,
+                rootFilename: url,
                 rootpath: dir
             };
+        }
+    }
 
-            if (isAbsolutePathOrUrl(url)) {
-                options.currentFileInfo = {
-                    currentDirectory: dir,
-                    entryPath: dir,
-                    filename: url,
-                    rootFilename: url,
-                    rootpath: dir
+    less.render(code, options, function onParse(err, tree) {
+        if (err) {
+            result.reject(err);
+        } else {
+            result.resolve(tree.css);
+        }
+    });
+
+    return result.promise();
+}
+
+/**
+ * Returns a path to an extension module.
+ *
+ * @param {!module} module Module provided by RequireJS
+ * @param {?string} path Relative path from the extension folder to a file
+ * @return {!string} The path to the module's folder
+ */
+export function getModulePath(module, path) {
+    let modulePath = module.uri.substr(0, module.uri.lastIndexOf("/") + 1);
+    if (path) {
+        modulePath += path;
+    }
+
+    return modulePath;
+}
+
+/**
+ * Returns a URL to an extension module.
+ *
+ * @param {!module} module Module provided by RequireJS
+ * @param {?string} path Relative path from the extension folder to a file
+ * @return {!string} The URL to the module's folder
+ */
+export function getModuleUrl(module, path) {
+    let url = encodeURI(getModulePath(module, path));
+
+    // On Windows, $.get() fails if the url is a full pathname. To work around this,
+    // prepend "file:///". On the Mac, $.get() works fine if the url is a full pathname,
+    // but *doesn't* work if it is prepended with "file://". Go figure.
+    // However, the prefix "file://localhost" does work.
+    if (brackets.platform === "win" && url.indexOf(":") !== -1) {
+        url = "file:///" + url;
+    }
+
+    return url;
+}
+
+/**
+ * Performs a GET request using a path relative to an extension module.
+ *
+ * The resulting URL can be retrieved in the resolve callback by accessing
+ *
+ * @param {!module} module Module provided by RequireJS
+ * @param {!string} path Relative path from the extension folder to a file
+ * @return {!$.Promise} A promise object that is resolved with the contents of the requested file
+ */
+export function loadFile(module, path) {
+    const url     = PathUtils.isAbsoluteUrl(path) ? path : getModuleUrl(module, path);
+    const promise = $.get(url);
+
+    return promise;
+}
+
+/**
+ * Loads a style sheet (CSS or LESS) relative to the extension module.
+ *
+ * @param {!module} module Module provided by RequireJS
+ * @param {!string} path Relative path from the extension folder to a CSS or LESS file
+ * @return {!$.Promise} A promise object that is resolved with an HTML node if the file can be loaded.
+ */
+export function loadStyleSheet(module, path) {
+    const result = $.Deferred();
+
+    loadFile(module, path)
+        .done(function (this: any, content) {
+            const url = this.url;
+
+            if (url.slice(-5) === ".less") {
+                parseLessCode(content, url)
+                    .done(function (css) {
+                        result.resolve(addEmbeddedStyleSheet(css));
+                    })
+                    .fail(result.reject);
+            } else {
+                const deferred = $.Deferred();
+                const link = addLinkedStyleSheet(url, deferred);
+
+                deferred
+                    .done(function () {
+                        result.resolve(link);
+                    })
+                    .fail(result.reject);
+            }
+        })
+        .fail(result.reject);
+
+    // Summarize error info to console for easier debugging
+    result.fail(function (error, textStatus, httpError) {
+        if (error.readyState !== undefined) {
+            // If first arg is a jQXHR object, the real error info is in the next two args
+            console.error("[Extension] Unable to read stylesheet " + path + ":", textStatus, httpError);
+        } else {
+            console.error("[Extension] Unable to process stylesheet " + path, error);
+        }
+    });
+
+    return result.promise();
+}
+
+/**
+ * Loads the package.json file in the given extension folder as well as any additional
+ * metadata.
+ *
+ * If there's a .disabled file in the extension directory, then the content of package.json
+ * will be augmented with disabled property set to true. It will override whatever value of
+ * disabled might be set.
+ *
+ * @param {string} folder The extension folder.
+ * @return {$.Promise} A promise object that is resolved with the parsed contents of the package.json file,
+ *     or rejected if there is no package.json with the boolean indicating whether .disabled file exists.
+ */
+export function loadMetadata(folder) {
+    const packageJSONFile = FileSystem.getFileForPath(folder + "/package.json");
+    const disabledFile = FileSystem.getFileForPath(folder + "/.disabled");
+    const baseName = FileUtils.getBaseName(folder);
+    const result = $.Deferred();
+    const jsonPromise = $.Deferred();
+    const disabledPromise = $.Deferred();
+    let json;
+    let disabled;
+    FileUtils.readAsText(packageJSONFile)
+        .then(function (text) {
+            try {
+                json = JSON.parse(text);
+                jsonPromise.resolve();
+            } catch (e) {
+                jsonPromise.reject();
+            }
+        })
+        .fail(jsonPromise.reject);
+    disabledFile.exists(function (err, exists) {
+        if (err) {
+            disabled = false;
+        } else {
+            disabled = exists;
+        }
+
+        const defaultDisabled = PreferencesManager.get("extensions.default.disabled");
+        if (Array.isArray(defaultDisabled) && defaultDisabled.indexOf(folder) !== -1) {
+            console.warn("Default extension has been disabled on startup: " + baseName);
+            disabled = true;
+        }
+
+        disabledPromise.resolve();
+    });
+    Async.waitForAll([jsonPromise, disabledPromise])
+        .always(function () {
+            if (!json) {
+                // if we don't have any metadata for the extension
+                // we should still create an empty one, so we can attach
+                // disabled property on it in case it's disabled
+                json = {
+                    name: baseName,
+                    title: baseName
                 };
             }
-        }
-
-        less.render(code, options, function onParse(err, tree) {
-            if (err) {
-                result.reject(err);
-            } else {
-                result.resolve(tree.css);
-            }
+            json.disabled = disabled;
+            result.resolve(json);
         });
-
-        return result.promise();
-    }
-
-    /**
-     * Returns a path to an extension module.
-     *
-     * @param {!module} module Module provided by RequireJS
-     * @param {?string} path Relative path from the extension folder to a file
-     * @return {!string} The path to the module's folder
-     **/
-    function getModulePath(module, path) {
-        var modulePath = module.uri.substr(0, module.uri.lastIndexOf("/") + 1);
-        if (path) {
-            modulePath += path;
-        }
-
-        return modulePath;
-    }
-
-    /**
-     * Returns a URL to an extension module.
-     *
-     * @param {!module} module Module provided by RequireJS
-     * @param {?string} path Relative path from the extension folder to a file
-     * @return {!string} The URL to the module's folder
-     **/
-    function getModuleUrl(module, path) {
-        var url = encodeURI(getModulePath(module, path));
-
-        // On Windows, $.get() fails if the url is a full pathname. To work around this,
-        // prepend "file:///". On the Mac, $.get() works fine if the url is a full pathname,
-        // but *doesn't* work if it is prepended with "file://". Go figure.
-        // However, the prefix "file://localhost" does work.
-        if (brackets.platform === "win" && url.indexOf(":") !== -1) {
-            url = "file:///" + url;
-        }
-
-        return url;
-    }
-
-    /**
-     * Performs a GET request using a path relative to an extension module.
-     *
-     * The resulting URL can be retrieved in the resolve callback by accessing
-     *
-     * @param {!module} module Module provided by RequireJS
-     * @param {!string} path Relative path from the extension folder to a file
-     * @return {!$.Promise} A promise object that is resolved with the contents of the requested file
-     **/
-    function loadFile(module, path) {
-        var url     = PathUtils.isAbsoluteUrl(path) ? path : getModuleUrl(module, path),
-            promise = $.get(url);
-
-        return promise;
-    }
-
-    /**
-     * Loads a style sheet (CSS or LESS) relative to the extension module.
-     *
-     * @param {!module} module Module provided by RequireJS
-     * @param {!string} path Relative path from the extension folder to a CSS or LESS file
-     * @return {!$.Promise} A promise object that is resolved with an HTML node if the file can be loaded.
-     */
-    function loadStyleSheet(module, path) {
-        var result = new $.Deferred();
-
-        loadFile(module, path)
-            .done(function (content) {
-                var url = this.url;
-
-                if (url.slice(-5) === ".less") {
-                    parseLessCode(content, url)
-                        .done(function (css) {
-                            result.resolve(addEmbeddedStyleSheet(css));
-                        })
-                        .fail(result.reject);
-                } else {
-                    var deferred = new $.Deferred(),
-                        link = addLinkedStyleSheet(url, deferred);
-
-                    deferred
-                        .done(function () {
-                            result.resolve(link);
-                        })
-                        .fail(result.reject);
-                }
-            })
-            .fail(result.reject);
-
-        // Summarize error info to console for easier debugging
-        result.fail(function (error, textStatus, httpError) {
-            if (error.readyState !== undefined) {
-                // If first arg is a jQXHR object, the real error info is in the next two args
-                console.error("[Extension] Unable to read stylesheet " + path + ":", textStatus, httpError);
-            } else {
-                console.error("[Extension] Unable to process stylesheet " + path, error);
-            }
-        });
-
-        return result.promise();
-    }
-
-    /**
-     * Loads the package.json file in the given extension folder as well as any additional
-     * metadata.
-     *
-     * If there's a .disabled file in the extension directory, then the content of package.json
-     * will be augmented with disabled property set to true. It will override whatever value of
-     * disabled might be set.
-     *
-     * @param {string} folder The extension folder.
-     * @return {$.Promise} A promise object that is resolved with the parsed contents of the package.json file,
-     *     or rejected if there is no package.json with the boolean indicating whether .disabled file exists.
-     */
-    function loadMetadata(folder) {
-        var packageJSONFile = FileSystem.getFileForPath(folder + "/package.json"),
-            disabledFile = FileSystem.getFileForPath(folder + "/.disabled"),
-            baseName = FileUtils.getBaseName(folder),
-            result = new $.Deferred(),
-            jsonPromise = new $.Deferred(),
-            disabledPromise = new $.Deferred(),
-            json,
-            disabled;
-        FileUtils.readAsText(packageJSONFile)
-            .then(function (text) {
-                try {
-                    json = JSON.parse(text);
-                    jsonPromise.resolve();
-                } catch (e) {
-                    jsonPromise.reject();
-                }
-            })
-            .fail(jsonPromise.reject);
-        disabledFile.exists(function (err, exists) {
-            if (err) {
-                disabled = false;
-            } else {
-                disabled = exists;
-            }
-
-            var defaultDisabled = PreferencesManager.get("extensions.default.disabled");
-            if (Array.isArray(defaultDisabled) && defaultDisabled.indexOf(folder) !== -1) {
-                console.warn("Default extension has been disabled on startup: " + baseName);
-                disabled = true;
-            }
-
-            disabledPromise.resolve();
-        });
-        Async.waitForAll([jsonPromise, disabledPromise])
-            .always(function () {
-                if (!json) {
-                    // if we don't have any metadata for the extension
-                    // we should still create an empty one, so we can attach
-                    // disabled property on it in case it's disabled
-                    json = {
-                        name: baseName,
-                        title: baseName
-                    };
-                }
-                json.disabled = disabled;
-                result.resolve(json);
-            });
-        return result.promise();
-    }
-
-    exports.addEmbeddedStyleSheet = addEmbeddedStyleSheet;
-    exports.addLinkedStyleSheet   = addLinkedStyleSheet;
-    exports.parseLessCode         = parseLessCode;
-    exports.getModulePath         = getModulePath;
-    exports.getModuleUrl          = getModuleUrl;
-    exports.loadFile              = loadFile;
-    exports.loadStyleSheet        = loadStyleSheet;
-    exports.loadMetadata          = loadMetadata;
-});
+    return result.promise();
+}

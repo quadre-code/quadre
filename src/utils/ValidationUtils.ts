@@ -22,59 +22,49 @@
  *
  */
 
-define(function (require, exports, module) {
-    "use strict";
-
-
-    /**
-     * Used to validate whether type of unknown value is an integer.
-     *
-     * @param {*} value Value for which to validate its type
-     * @return {boolean} true if value is a finite integer
-     */
-    function isInteger(value) {
-        // Validate value is a number
-        if (typeof (value) !== "number" || isNaN(parseInt(value, 10))) {
-            return false;
-        }
-
-        // Validate number is an integer
-        if (Math.floor(value) !== value) {
-            return false;
-        }
-
-        // Validate number is finite
-        if (!isFinite(value)) {
-            return false;
-        }
-
-        return true;
+/**
+ * Used to validate whether type of unknown value is an integer.
+ *
+ * @param {*} value Value for which to validate its type
+ * @return {boolean} true if value is a finite integer
+ */
+export function isInteger(value) {
+    // Validate value is a number
+    if (typeof (value) !== "number" || isNaN(parseInt(value as any, 10))) {
+        return false;
     }
 
-    /**
-     * Used to validate whether type of unknown value is an integer, and, if so,
-     * is it within the option lower and upper limits.
-     *
-     * @param {*} value Value for which to validate its type
-     * @param {number=} lowerLimit Optional lower limit (inclusive)
-     * @param {number=} upperLimit Optional upper limit (inclusive)
-     * @return {boolean} true if value is an interger, and optionally in specified range.
-     */
-    function isIntegerInRange(value, lowerLimit, upperLimit) {
-        // Validate value is an integer
-        if (!isInteger(value)) {
-            return false;
-        }
-
-        // Validate integer is in range
-        var hasLowerLimt = (typeof (lowerLimit) === "number"),
-            hasUpperLimt = (typeof (upperLimit) === "number");
-
-        return ((!hasLowerLimt || value >= lowerLimit) && (!hasUpperLimt || value <= upperLimit));
+    // Validate number is an integer
+    if (Math.floor(value) !== value) {
+        return false;
     }
 
+    // Validate number is finite
+    if (!isFinite(value)) {
+        return false;
+    }
 
-    // Define public API
-    exports.isInteger               = isInteger;
-    exports.isIntegerInRange        = isIntegerInRange;
-});
+    return true;
+}
+
+/**
+ * Used to validate whether type of unknown value is an integer, and, if so,
+ * is it within the option lower and upper limits.
+ *
+ * @param {*} value Value for which to validate its type
+ * @param {number=} lowerLimit Optional lower limit (inclusive)
+ * @param {number=} upperLimit Optional upper limit (inclusive)
+ * @return {boolean} true if value is an interger, and optionally in specified range.
+ */
+export function isIntegerInRange(value, lowerLimit, upperLimit) {
+    // Validate value is an integer
+    if (!isInteger(value)) {
+        return false;
+    }
+
+    // Validate integer is in range
+    const hasLowerLimt = (typeof (lowerLimit) === "number");
+    const hasUpperLimt = (typeof (upperLimit) === "number");
+
+    return ((!hasLowerLimt || value >= lowerLimit) && (!hasUpperLimt || value <= upperLimit));
+}

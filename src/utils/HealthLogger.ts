@@ -25,192 +25,176 @@
 /**
  *  Utilities functions related to Health Data logging
  */
-define(function (require, exports, module) {
-    "use strict";
 
-    var PreferencesManager          = require("preferences/PreferencesManager"),
-        LanguageManager             = require("language/LanguageManager"),
-        FileUtils                   = require("file/FileUtils"),
-        PerfUtils                   = require("utils/PerfUtils"),
-        FindUtils                   = require("search/FindUtils"),
-        StringUtils                 = require("utils/StringUtils"),
+import * as PreferencesManager from "preferences/PreferencesManager";
+import * as LanguageManager from "language/LanguageManager";
+import * as FileUtils from "file/FileUtils";
+import * as PerfUtils from "utils/PerfUtils";
+import * as FindUtils from "search/FindUtils";
+import * as StringUtils from "utils/StringUtils";
 
-        HEALTH_DATA_STATE_KEY       = "HealthData.Logs",
-        logHealthData               = true;
+const HEALTH_DATA_STATE_KEY       = "HealthData.Logs";
+let logHealthData                 = true;
 
-    /**
-     * Init: creates the health log preference keys in the state.json file
-     */
-    function init() {
-        PreferencesManager.stateManager.definePreference(HEALTH_DATA_STATE_KEY, "object", {});
+/**
+ * Init: creates the health log preference keys in the state.json file
+ */
+export function init() {
+    PreferencesManager.stateManager.definePreference(HEALTH_DATA_STATE_KEY, "object", {});
+}
+
+/**
+ * All the logging functions should be disabled if this returns false
+ * @return {boolean} true if health data can be logged
+ */
+export function shouldLogHealthData() {
+    return logHealthData;
+}
+
+/**
+ * Return all health data logged till now stored in the state prefs
+ * @return {Object} Health Data aggregated till now
+ */
+function getStoredHealthData() {
+    const storedData = PreferencesManager.getViewState(HEALTH_DATA_STATE_KEY) || {};
+    return storedData;
+}
+
+/**
+ * Return the aggregate of all health data logged till now from all sources
+ * @return {Object} Health Data aggregated till now
+ */
+export function getAggregatedHealthData() {
+    const healthData = getStoredHealthData();
+    $.extend(healthData, PerfUtils.getHealthReport());
+    $.extend(healthData, FindUtils.getHealthReport());
+    return healthData;
+}
+
+/**
+ * Sets the health data
+ * @param {Object} dataObject The object to be stored as health data
+ */
+function setHealthData(dataObject) {
+    if (!shouldLogHealthData()) {
+        return;
     }
+    PreferencesManager.setViewState(HEALTH_DATA_STATE_KEY, dataObject);
+}
 
-    /**
-     * All the logging functions should be disabled if this returns false
-     * @return {boolean} true if health data can be logged
-     */
-    function shouldLogHealthData() {
-        return logHealthData;
+/**
+ * Returns health data logged for the given key
+ * @return {Object} Health Data object for the key or undefined if no health data stored
+ */
+export function getHealthDataLog(key) {
+    const healthData = getStoredHealthData();
+    return healthData[key];
+}
+
+/**
+ * Sets the health data for the given key
+ * @param {Object} dataObject The object to be stored as health data for the key
+ */
+export function setHealthDataLog(key, dataObject) {
+    const healthData = getStoredHealthData();
+    healthData[key] = dataObject;
+    setHealthData(healthData);
+}
+
+/**
+ * Clears all the health data recorded till now
+ */
+export function clearHealthData() {
+    PreferencesManager.setViewState(HEALTH_DATA_STATE_KEY, {});
+    // clear the performance related health data also
+    PerfUtils.clear();
+}
+
+/**
+ * Enable or disable health data logs
+ * @param {boolean} enabled true to enable health logs
+ */
+export function setHealthLogsEnabled(enabled) {
+    logHealthData = enabled;
+    if (!enabled) {
+        clearHealthData();
     }
+}
 
-    /**
-     * Return all health data logged till now stored in the state prefs
-     * @return {Object} Health Data aggregated till now
-     */
-    function getStoredHealthData() {
-        var storedData = PreferencesManager.getViewState(HEALTH_DATA_STATE_KEY) || {};
-        return storedData;
+/**
+ * Whenever a file is opened call this function. The function will record the number of times
+ * the standard file types have been opened. We only log the standard filetypes
+ * @param {String} filePath          The path of the file to be registered
+ * @param {boolean} addedToWorkingSet set to true if extensions of files added to the
+ *                                    working set needs to be logged
+ */
+export function fileOpened(filePath, addedToWorkingSet) {
+    if (!shouldLogHealthData()) {
+        return;
     }
-
-    /**
-     * Return the aggregate of all health data logged till now from all sources
-     * @return {Object} Health Data aggregated till now
-     */
-    function getAggregatedHealthData() {
-        var healthData = getStoredHealthData();
-        $.extend(healthData, PerfUtils.getHealthReport());
-        $.extend(healthData, FindUtils.getHealthReport());
-        return healthData;
-    }
-
-    /**
-     * Sets the health data
-     * @param {Object} dataObject The object to be stored as health data
-     */
-    function setHealthData(dataObject) {
-        if (!shouldLogHealthData()) {
-            return;
+    const fileExtension = FileUtils.getFileExtension(filePath);
+    const language = LanguageManager.getLanguageForPath(filePath);
+    const healthData = getStoredHealthData();
+    let fileExtCountMap = {};
+    healthData.fileStats = healthData.fileStats || {
+        openedFileExt     : {},
+        workingSetFileExt : {}
+    };
+    if (language.getId() !== "unknown") {
+        fileExtCountMap = addedToWorkingSet ? healthData.fileStats.workingSetFileExt : healthData.fileStats.openedFileExt;
+        if (!fileExtCountMap[fileExtension]) {
+            fileExtCountMap[fileExtension] = 0;
         }
-        PreferencesManager.setViewState(HEALTH_DATA_STATE_KEY, dataObject);
-    }
-
-    /**
-     * Returns health data logged for the given key
-     * @return {Object} Health Data object for the key or undefined if no health data stored
-     */
-    function getHealthDataLog(key) {
-        var healthData = getStoredHealthData();
-        return healthData[key];
-    }
-
-    /**
-     * Sets the health data for the given key
-     * @param {Object} dataObject The object to be stored as health data for the key
-     */
-    function setHealthDataLog(key, dataObject) {
-        var healthData = getStoredHealthData();
-        healthData[key] = dataObject;
+        fileExtCountMap[fileExtension]++;
         setHealthData(healthData);
     }
+}
 
-    /**
-     * Clears all the health data recorded till now
-     */
-    function clearHealthData() {
-        PreferencesManager.setViewState(HEALTH_DATA_STATE_KEY, {});
-        //clear the performance related health data also
-        PerfUtils.clear();
+/**
+ * Sets the project details(a probably unique prjID, number of files in the project and the node cache size) in the health log
+ * The name of the project is never saved into the health data log, only the hash(name) is for privacy requirements.
+ * @param {string} projectName The name of the project
+ * @param {number} numFiles    The number of file in the project
+ * @param {number} cacheSize   The node file cache memory consumed by the project
+ */
+export function setProjectDetail(projectName, numFiles, cacheSize) {
+    const projectNameHash = StringUtils.hashCode(projectName);
+    let FIFLog = getHealthDataLog("ProjectDetails");
+    if (!FIFLog) {
+        FIFLog = {};
     }
+    FIFLog["prj" + projectNameHash] = {
+        numFiles : numFiles,
+        cacheSize : cacheSize
+    };
+    setHealthDataLog("ProjectDetails", FIFLog);
+}
 
-    /**
-     * Enable or disable health data logs
-     * @param {boolean} enabled true to enable health logs
-     */
-    function setHealthLogsEnabled(enabled) {
-        logHealthData = enabled;
-        if (!enabled) {
-            clearHealthData();
-        }
+/**
+ * Increments health log count for a particular kind of search done
+ * @param {string} searchType The kind of search type that needs to be logged- should be a js var compatible string
+ */
+export function searchDone(searchType) {
+    let searchDetails = getHealthDataLog("searchDetails");
+    if (!searchDetails) {
+        searchDetails = {};
     }
-
-    /**
-     * Whenever a file is opened call this function. The function will record the number of times
-     * the standard file types have been opened. We only log the standard filetypes
-     * @param {String} filePath          The path of the file to be registered
-     * @param {boolean} addedToWorkingSet set to true if extensions of files added to the
-     *                                    working set needs to be logged
-     */
-    function fileOpened(filePath, addedToWorkingSet) {
-        if (!shouldLogHealthData()) {
-            return;
-        }
-        var fileExtension = FileUtils.getFileExtension(filePath),
-            language = LanguageManager.getLanguageForPath(filePath),
-            healthData = getStoredHealthData(),
-            fileExtCountMap = [];
-        healthData.fileStats = healthData.fileStats || {
-            openedFileExt     : {},
-            workingSetFileExt : {}
-        };
-        if (language.getId() !== "unknown") {
-            fileExtCountMap = addedToWorkingSet ? healthData.fileStats.workingSetFileExt : healthData.fileStats.openedFileExt;
-            if (!fileExtCountMap[fileExtension]) {
-                fileExtCountMap[fileExtension] = 0;
-            }
-            fileExtCountMap[fileExtension]++;
-            setHealthData(healthData);
-        }
+    if (!searchDetails[searchType]) {
+        searchDetails[searchType] = 0;
     }
+    searchDetails[searchType]++;
+    setHealthDataLog("searchDetails", searchDetails);
+}
 
-    /**
-     * Sets the project details(a probably unique prjID, number of files in the project and the node cache size) in the health log
-     * The name of the project is never saved into the health data log, only the hash(name) is for privacy requirements.
-     * @param {string} projectName The name of the project
-     * @param {number} numFiles    The number of file in the project
-     * @param {number} cacheSize   The node file cache memory consumed by the project
-     */
-    function setProjectDetail(projectName, numFiles, cacheSize) {
-        var projectNameHash = StringUtils.hashCode(projectName),
-            FIFLog = getHealthDataLog("ProjectDetails");
-        if (!FIFLog) {
-            FIFLog = {};
-        }
-        FIFLog["prj" + projectNameHash] = {
-            numFiles : numFiles,
-            cacheSize : cacheSize
-        };
-        setHealthDataLog("ProjectDetails", FIFLog);
-    }
-
-    /**
-     * Increments health log count for a particular kind of search done
-     * @param {string} searchType The kind of search type that needs to be logged- should be a js var compatible string
-     */
-    function searchDone(searchType) {
-        var searchDetails = getHealthDataLog("searchDetails");
-        if (!searchDetails) {
-            searchDetails = {};
-        }
-        if (!searchDetails[searchType]) {
-            searchDetails[searchType] = 0;
-        }
-        searchDetails[searchType]++;
-        setHealthDataLog("searchDetails", searchDetails);
-    }
-
-    // Define public API
-    exports.getHealthDataLog          = getHealthDataLog;
-    exports.setHealthDataLog          = setHealthDataLog;
-    exports.getAggregatedHealthData   = getAggregatedHealthData;
-    exports.clearHealthData           = clearHealthData;
-    exports.fileOpened                = fileOpened;
-    exports.setProjectDetail          = setProjectDetail;
-    exports.searchDone                = searchDone;
-    exports.setHealthLogsEnabled      = setHealthLogsEnabled;
-    exports.shouldLogHealthData       = shouldLogHealthData;
-    exports.init                      = init;
-
-    // constants
-    // searchType for searchDone()
-    exports.SEARCH_INSTANT            = "searchInstant";
-    exports.SEARCH_ON_RETURN_KEY      = "searchOnReturnKey";
-    exports.SEARCH_REPLACE_ALL        = "searchReplaceAll";
-    exports.SEARCH_NEXT_PAGE          = "searchNextPage";
-    exports.SEARCH_PREV_PAGE          = "searchPrevPage";
-    exports.SEARCH_LAST_PAGE          = "searchLastPage";
-    exports.SEARCH_FIRST_PAGE         = "searchFirstPage";
-    exports.SEARCH_REGEXP             = "searchRegExp";
-    exports.SEARCH_CASE_SENSITIVE     = "searchCaseSensitive";
-    // A new search context on search bar up-Gives an idea of number of times user did a discrete search
-    exports.SEARCH_NEW                = "searchNew";
-});
+// searchType for searchDone()
+export const SEARCH_INSTANT            = "searchInstant";
+export const SEARCH_ON_RETURN_KEY      = "searchOnReturnKey";
+export const SEARCH_REPLACE_ALL        = "searchReplaceAll";
+export const SEARCH_NEXT_PAGE          = "searchNextPage";
+export const SEARCH_PREV_PAGE          = "searchPrevPage";
+export const SEARCH_LAST_PAGE          = "searchLastPage";
+export const SEARCH_FIRST_PAGE         = "searchFirstPage";
+export const SEARCH_REGEXP             = "searchRegExp";
+export const SEARCH_CASE_SENSITIVE     = "searchCaseSensitive";
+// A new search context on search bar up-Gives an idea of number of times user did a discrete search
+export const SEARCH_NEW                = "searchNew";

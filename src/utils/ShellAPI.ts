@@ -1,7 +1,7 @@
 // Load dependent modules
-import AppInit        = require("utils/AppInit");
-import CommandManager = require("command/CommandManager");
-import Commands       = require("command/Commands");
+import * as AppInit from "utils/AppInit";
+import * as CommandManager from "command/CommandManager";
+import * as Commands from "command/Commands";
 
 let appReady = false; // Set to true after app is fully initialized
 let appShortcuts: { [shortcut: string]: string } = {};
@@ -41,7 +41,7 @@ electron.ipcRenderer.on("executeCommand", function (evt: any, eventName: string)
     return executeCommand(eventName);
 });
 
-electron.ipcRenderer.on("console-msg", function (evt: any, method: string, ...args: string[]) {
+electron.ipcRenderer.on("console-msg", function (evt: any, method: string, ...args: Array<string>) {
     (console as any)[method]("[shell]", ...args);
 });
 

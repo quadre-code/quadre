@@ -6,6 +6,7 @@ import FileUtils       = require("file/FileUtils");
 import FileSystemStats = require("filesystem/FileSystemStats");
 import FileSystemError = require("filesystem/FileSystemError");
 import NodeDomain      = require("utils/NodeDomain");
+import { DispatcherEvents } from "utils/EventDispatcher";
 
 /**
  * @const
@@ -38,10 +39,11 @@ const _bracketsPath = FileUtils.getNativeBracketsDirectoryPath();
 const _modulePath   = FileUtils.getNativeModuleDirectoryPath(module);
 const _nodePath     = "node/FileWatcherDomain";
 const _domainPath   = [_bracketsPath, _modulePath, _nodePath].join("/");
+// @ts-ignore: see NodeDomain
 const _nodeDomain   = new NodeDomain("fileWatcher", _domainPath);
 
 // If the connection closes, notify the FileSystem that watchers have gone offline.
-_nodeDomain.connection.on("close", (event: any, reconnectPromise?: JQueryPromise<any>) => {
+(_nodeDomain.connection as unknown as DispatcherEvents).on("close", (event: any, reconnectPromise?: JQueryPromise<any>) => {
     if (_offlineCallback) {
         _offlineCallback();
     }
@@ -103,7 +105,7 @@ function _fileWatcherChange(evt: any, event: string, parentDirPath: string, entr
 }
 
 // Setup the change handler. This only needs to happen once.
-_nodeDomain.on("change", _fileWatcherChange);
+(_nodeDomain as unknown as DispatcherEvents).on("change", _fileWatcherChange);
 
 /**
  * Convert appshell error codes to FileSystemError values.
@@ -150,7 +152,7 @@ function _mapError(err: NodeJS.ErrnoException | null): string | NodeJS.ErrnoExce
  * @private
  */
 function _wrap(cb: Function) {
-    return function (err: NodeJS.ErrnoException | null, ...rest: any[]) {
+    return function (err: NodeJS.ErrnoException | null, ...rest: Array<any>) {
         cb(_mapError(err), ...rest);
     };
 }
@@ -172,7 +174,7 @@ function showOpenDialog(
     chooseDirectories: boolean,
     title: string,
     initialPath: string,
-    fileTypes: string[],
+    fileTypes: Array<string>,
     callback: Function
 ) {
     appshell.fs.showOpenDialog(
@@ -281,7 +283,7 @@ function exists(path: string, callback: Function) {
  * @param {function(?string, Array.<FileSystemEntry>=, Array.<string|FileSystemStats>=)} callback
  */
 function readdir(path: string, callback: Function) {
-    appshell.fs.readdir(path, function (err: NodeJS.ErrnoException, contents: string[]) {
+    appshell.fs.readdir(path, function (err: NodeJS.ErrnoException, contents: Array<string>) {
         if (err) {
             callback(_mapError(err));
             return;
@@ -293,7 +295,7 @@ function readdir(path: string, callback: Function) {
             return;
         }
 
-        const stats: any[] = [];
+        const stats: Array<any> = [];
         contents.forEach(function (val, idx) {
             stat(path + "/" + val, function (err2: NodeJS.ErrnoException, stat: any) {
                 stats[idx] = err2 || stat;
@@ -542,7 +544,7 @@ function initWatchers(changeCallback: Function, offlineCallback: Function) {
  */
 function watchPath(
     path: string,
-    ignored: string[],
+    ignored: Array<string>,
     callback: Function
 ) {
     appshell.fs.isNetworkDrive(path, function (err: NodeJS.ErrnoException, isNetworkDrive: boolean) {
@@ -571,7 +573,7 @@ function watchPath(
  */
 function unwatchPath(
     path: string,
-    ignored: string[],
+    ignored: Array<string>,
     callback: Function
 ) {
     _nodeDomain.exec("unwatchPath", path)

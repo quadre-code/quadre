@@ -34,137 +34,123 @@
  * in that it will call the handler immediately if brackets is already done
  * loading.
  */
-define(function (require, exports, module) {
-    "use strict";
 
-    /*
-     * Fires when the base htmlContent/main-view.html is loaded
-     * @type {string}
-     * @const
-     */
-    var HTML_READY  = "htmlReady";
+/*
+ * Fires when the base htmlContent/main-view.html is loaded
+ * @type {string}
+ * @const
+ */
+export const HTML_READY  = "htmlReady";
 
-    /*
-     * Fires when all extensions are loaded
-     * @type {string}
-     * @const
-     */
-    var APP_READY   = "appReady";
+/*
+ * Fires when all extensions are loaded
+ * @type {string}
+ * @const
+ */
+export const APP_READY   = "appReady";
 
-    /*
-     * Fires after extensions have been loaded
-     * @type {string}
-     * @const
-     */
-    var EXTENSIONS_LOADED = "extensionsLoaded";
+/*
+ * Fires after extensions have been loaded
+ * @type {string}
+ * @const
+ */
+export const EXTENSIONS_LOADED = "extensionsLoaded";
 
-    /*
-     * Map of each state's trigger
-     * @type {Object.<string, boolean>}
-     * @private
-     */
-    var _status      = { HTML_READY : false, APP_READY : false, EXTENSIONS_LOADED: false };
+/*
+ * Map of each state's trigger
+ * @type {Object.<string, boolean>}
+ * @private
+ */
+const _status      = { HTML_READY : false, APP_READY : false, EXTENSIONS_LOADED: false };
 
-    /*
-     * Map of callbacks to states
-     * @type {Object.<string, Array.<function()>>}
-     * @private
-     */
-    var _callbacks   = {};
+/*
+ * Map of callbacks to states
+ * @type {Object.<string, Array.<function()>>}
+ * @private
+ */
+const _callbacks   = {};
 
-    _callbacks[HTML_READY]        = [];
-    _callbacks[APP_READY]         = [];
-    _callbacks[EXTENSIONS_LOADED] = [];
+_callbacks[HTML_READY]        = [];
+_callbacks[APP_READY]         = [];
+_callbacks[EXTENSIONS_LOADED] = [];
 
 
-    /*
-     * calls the specified handler inside a try/catch handler
-     * @param {function()} handler - the callback to call
-     * @private
-     */
-    function _callHandler(handler) {
-        try {
-            // TODO (issue 1034): We *could* use a $.Deferred for this, except deferred objects enter a broken
-            // state if any resolution callback throws an exception. Since third parties (e.g. extensions) may
-            // add callbacks to this, we need to be robust to exceptions
-            handler();
-        } catch (e) {
-            console.error("Exception when calling a 'brackets done loading' handler: " + e);
-            console.log(e.stack);
-        }
+/*
+ * calls the specified handler inside a try/catch handler
+ * @param {function()} handler - the callback to call
+ * @private
+ */
+function _callHandler(handler) {
+    try {
+        // TODO (issue 1034): We *could* use a $.Deferred for this, except deferred objects enter a broken
+        // state if any resolution callback throws an exception. Since third parties (e.g. extensions) may
+        // add callbacks to this, we need to be robust to exceptions
+        handler();
+    } catch (e) {
+        console.error("Exception when calling a 'brackets done loading' handler: " + e);
+        console.log(e.stack);
+    }
+}
+
+/*
+ * dispatches the event by calling all handlers registered for that type
+ * @param {string} type - the event type to dispatch (APP_READY, EXTENSIONS_READY, HTML_READY)
+ * @private
+ */
+// Unit Test API
+export function _dispatchReady(type) {
+    let i;
+    const myHandlers = _callbacks[type];
+
+    // mark this status complete
+    _status[type] = true;
+
+    for (i = 0; i < myHandlers.length; i++) {
+        _callHandler(myHandlers[i]);
     }
 
-    /*
-     * dispatches the event by calling all handlers registered for that type
-     * @param {string} type - the event type to dispatch (APP_READY, EXTENSIONS_READY, HTML_READY)
-     * @private
-     */
-    function _dispatchReady(type) {
-        var i,
-            myHandlers = _callbacks[type];
+    // clear all callbacks after being called
+    _callbacks[type] = [];
+}
 
-        // mark this status complete
-        _status[type] = true;
-
-        for (i = 0; i < myHandlers.length; i++) {
-            _callHandler(myHandlers[i]);
-        }
-
-        // clear all callbacks after being called
-        _callbacks[type] = [];
+/*
+ * adds a callback to the list of functions to call for the specified event type
+ * @param {string} type - the event type to dispatch (APP_READY, EXTENSIONS_READY, HTML_READY)
+ * @param {function} handler - callback funciton to call when the event is triggered
+ * @private
+ */
+function _addListener(type, handler) {
+    if (_status[type]) {
+        _callHandler(handler);
+    } else {
+        _callbacks[type].push(handler);
     }
+}
 
-    /*
-     * adds a callback to the list of functions to call for the specified event type
-     * @param {string} type - the event type to dispatch (APP_READY, EXTENSIONS_READY, HTML_READY)
-     * @param {function} handler - callback funciton to call when the event is triggered
-     * @private
-     */
-    function _addListener(type, handler) {
-        if (_status[type]) {
-            _callHandler(handler);
-        } else {
-            _callbacks[type].push(handler);
-        }
-    }
+/**
+ * Adds a callback for the ready hook. Handlers are called after
+ * htmlReady is done, the initial project is loaded, and all extensions are
+ * loaded.
+ * @param {function} handler - callback function to call when the event is fired
+ */
+export function appReady(handler) {
+    _addListener(APP_READY, handler);
+}
 
-    /**
-     * Adds a callback for the ready hook. Handlers are called after
-     * htmlReady is done, the initial project is loaded, and all extensions are
-     * loaded.
-     * @param {function} handler - callback function to call when the event is fired
-     */
-    function appReady(handler) {
-        _addListener(APP_READY, handler);
-    }
+/**
+ * Adds a callback for the htmlReady hook. Handlers are called after the
+ * main application html template is rendered.
+ * @param {function} handler - callback function to call when the event is fired
+ */
+export function htmlReady(handler) {
+    _addListener(HTML_READY, handler);
+}
 
-    /**
-     * Adds a callback for the htmlReady hook. Handlers are called after the
-     * main application html template is rendered.
-     * @param {function} handler - callback function to call when the event is fired
-     */
-    function htmlReady(handler) {
-        _addListener(HTML_READY, handler);
-    }
-
-    /**
-     * Adds a callback for the extensionsLoaded hook. Handlers are called after the
-     * extensions have been loaded
-     * @param {function} handler - callback function to call when the event is fired
-     */
-    function extensionsLoaded(handler) {
-        _addListener(EXTENSIONS_LOADED, handler);
-    }
-
-    // Public API
-    exports.appReady = appReady;
-    exports.htmlReady = htmlReady;
-    exports.extensionsLoaded = extensionsLoaded;
-
-    exports.HTML_READY = HTML_READY;
-    exports.APP_READY = APP_READY;
-    exports.EXTENSIONS_LOADED = EXTENSIONS_LOADED;
-
-    // Unit Test API
-    exports._dispatchReady = _dispatchReady;
-});
+/**
+ * Adds a callback for the extensionsLoaded hook. Handlers are called after the
+ * extensions have been loaded
+ * @param {function} handler - callback function to call when the event is fired
+ */
+export function extensionsLoaded(handler) {
+    _addListener(EXTENSIONS_LOADED, handler);
+}

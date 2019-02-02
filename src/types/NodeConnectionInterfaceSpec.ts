@@ -6,7 +6,7 @@ export interface NodeConnectionCommandSpec {
 }
 
 export interface NodeConnectionEventSpec {
-    parameters: any[];
+    parameters: Array<any>;
 }
 
 export interface NodeConnectionDomainSpec {

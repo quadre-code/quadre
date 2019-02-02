@@ -123,6 +123,12 @@
       "integrity": "sha1-uHugUQEfme2+WG2Plygud4bgGm0=",
       "dev": true
     },
+    "@types/less": {
+      "version": "0.0.34",
+      "resolved": "https://registry.npmjs.org/@types/less/-/less-0.0.34.tgz",
+      "integrity": "sha512-hdL/tdqOVH6m9jwkQDoth3MjG0lnwU8YEBtY5XPIbvBUjIjzmm8WB3ziP2gWHNOs075wN5YCHUW9UMJAW5+9ag==",
+      "dev": true
+    },
     "@types/lodash": {
       "version": "4.14.63",
       "resolved": "https://registry.npmjs.org/@types/lodash/-/lodash-4.14.63.tgz",

@@ -22,38 +22,42 @@
  *
  */
 
-define(function (require, exports, module) {
-    "use strict";
+import * as KeyBindingManager from "command/KeyBindingManager";
+import * as KeyEvent from "utils/KeyEvent";
+import * as PopUpManager from "widgets/PopUpManager";
+import * as ViewUtils from "utils/ViewUtils";
 
-    var KeyBindingManager = require("command/KeyBindingManager"),
-        KeyEvent          = require("utils/KeyEvent"),
-        PopUpManager      = require("widgets/PopUpManager"),
-        ViewUtils         = require("utils/ViewUtils");
+/**
+ * Object to handle events for a dropdown list.
+ *
+ * DropdownEventHandler handles these events:
+ *
+ * Mouse:
+ * - click       - execute selection callback and dismiss list
+ * - mouseover   - highlight item
+ * - mouseleave  - remove mouse highlighting
+ *
+ * Keyboard:
+ * - Enter       - execute selection callback and dismiss list
+ * - Esc         - dismiss list
+ * - Up/Down     - change selection
+ * - PageUp/Down - change selection
+ *
+ * Items whose <a> has the .disabled class do not respond to selection.
+ *
+ * @constructor
+ * @param {jQueryObject} $list  associated list object
+ * @param {Function} selectionCallback  function called when list item is selected.
+ */
+export class DropdownEventHandler {
+    private $list;
+    private $items;
+    private selectionCallback;
+    private closeCallback;
+    private scrolling;
+    private _selectedIndex;
 
-    /**
-     * Object to handle events for a dropdown list.
-     *
-     * DropdownEventHandler handles these events:
-     *
-     * Mouse:
-     * - click       - execute selection callback and dismiss list
-     * - mouseover   - highlight item
-     * - mouseleave  - remove mouse highlighting
-     *
-     * Keyboard:
-     * - Enter       - execute selection callback and dismiss list
-     * - Esc         - dismiss list
-     * - Up/Down     - change selection
-     * - PageUp/Down - change selection
-     *
-     * Items whose <a> has the .disabled class do not respond to selection.
-     *
-     * @constructor
-     * @param {jQueryObject} $list  associated list object
-     * @param {Function} selectionCallback  function called when list item is selected.
-     */
-    function DropdownEventHandler($list, selectionCallback, closeCallback) {
-
+    constructor($list, selectionCallback, closeCallback) {
         this.$list = $list;
         this.$items = $list.find("li");
         this.selectionCallback = selectionCallback;
@@ -71,8 +75,8 @@ define(function (require, exports, module) {
     /**
      * Public open method
      */
-    DropdownEventHandler.prototype.open = function () {
-        var self = this;
+    public open() {
+        const self = this;
 
         /**
          * Convert keydown events into hint list navigation actions.
@@ -81,7 +85,7 @@ define(function (require, exports, module) {
          * @return {boolean} true if key was handled, otherwise false.
          */
         function _keydownHook(event) {
-            var keyCode;
+            let keyCode;
 
             // (page) up, (page) down, enter and tab key are handled by the list
             if (event.type === "keydown") {
@@ -140,28 +144,28 @@ define(function (require, exports, module) {
             this._registerMouseEvents();
             PopUpManager.addPopUp(this.$list, closeCallback, true);
         }
-    };
+    }
 
     /**
      * Public close method
      */
-    DropdownEventHandler.prototype.close = function () {
+    public close() {
         if (this.$list) {
             PopUpManager.removePopUp(this.$list);
         }
-    };
+    }
 
     /**
      * Cleanup
      */
-    DropdownEventHandler.prototype._cleanup = function () {
+    public _cleanup() {
         if (this.$list) {
             this.$list.off(".dropdownEventHandler");
         }
         if (this.closeCallback) {
             this.closeCallback();
         }
-    };
+    }
 
     /**
      * Try to select item at the given index. If it's disabled or a divider, keep trying by incrementing
@@ -172,9 +176,9 @@ define(function (require, exports, module) {
      * @param {number} direction  Either +1 or -1
      * @param {boolean=} noWrap  Clip out of range index values instead of wrapping. Default false (wrap).
      */
-    DropdownEventHandler.prototype._tryToSelect = function (index, direction, noWrap) {
+    public _tryToSelect(index, direction, noWrap?) {
         // Fix up 'index' if out of bounds (>= len or < 0)
-        var len = this.$items.length;
+        const len = this.$items.length;
         if (noWrap) {
             // Clip to stay in range (and set direction so we don't wrap in the recursion case either)
             if (index < 0) {
@@ -192,21 +196,21 @@ define(function (require, exports, module) {
             }
         }
 
-        var $item = this.$items.eq(index);
+        const $item = this.$items.eq(index);
         if ($item.hasClass("divider") || $item.find("a.disabled").length) {
             // Desired item is ineligible for selection: try next one
             this._tryToSelect(index + direction, direction, noWrap);
         } else {
             this._setSelectedIndex(index, true);
         }
-    };
+    }
 
     /**
      * @return {number} The number of items per scroll page.
      */
-    DropdownEventHandler.prototype._itemsPerPage = function () {
-        var itemsPerPage = 1,
-            itemHeight;
+    public _itemsPerPage() {
+        let itemsPerPage = 1;
+        let itemHeight;
 
         if (this.$items.length !== 0) {
             itemHeight = $(this.$items[0]).height();
@@ -218,27 +222,27 @@ define(function (require, exports, module) {
         }
 
         return itemsPerPage;
-    };
+    }
 
     /**
      * Call selectionCallback with selected index
      */
-    DropdownEventHandler.prototype._selectionHandler = function () {
+    public _selectionHandler() {
 
         if (this._selectedIndex === -1) {
             return;
         }
 
-        var $link = this.$items.eq(this._selectedIndex).find("a");
+        const $link = this.$items.eq(this._selectedIndex).find("a");
         this._clickHandler($link);
-    };
+    }
 
     /**
      * Call selectionCallback with selected item
      *
      * @param {jQueryObject} $item
      */
-    DropdownEventHandler.prototype._clickHandler = function ($link) {
+    public _clickHandler($link) {
 
         if (!this.selectionCallback || !this.$list || !$link) {
             return;
@@ -249,7 +253,7 @@ define(function (require, exports, module) {
 
         this.selectionCallback($link);
         PopUpManager.removePopUp(this.$list);
-    };
+    }
 
     /**
      * Select the item in the hint list at the specified index, or remove the
@@ -258,7 +262,7 @@ define(function (require, exports, module) {
      * @private
      * @param {number} index
      */
-    DropdownEventHandler.prototype._setSelectedIndex = function (index, scrollIntoView) {
+    private _setSelectedIndex(index, scrollIntoView) {
 
         // Range check
         index = Math.max(-1, Math.min(index, this.$items.length - 1));
@@ -272,7 +276,7 @@ define(function (require, exports, module) {
 
         // Highlight the new selected item, if necessary
         if (this._selectedIndex !== -1) {
-            var $item = this.$items.eq(this._selectedIndex);
+            const $item = this.$items.eq(this._selectedIndex);
 
             $item.find("a").addClass("selected");
             if (scrollIntoView) {
@@ -280,16 +284,16 @@ define(function (require, exports, module) {
                 ViewUtils.scrollElementIntoView(this.$list, $item, false);
             }
         }
-    };
+    }
 
     /**
      * Register mouse event handlers
      */
-    DropdownEventHandler.prototype._registerMouseEvents = function () {
-        var self = this;
+    public _registerMouseEvents() {
+        const self = this;
 
         this.$list
-            .on("click.dropdownEventHandler", "a", function () {
+            .on("click.dropdownEventHandler", "a", function (this: JQuery) {
                 self._clickHandler($(this));
             })
             .on("mouseover.dropdownEventHandler", "a", function (e) {
@@ -299,10 +303,10 @@ define(function (require, exports, module) {
                     return;
                 }
 
-                var $link = $(e.currentTarget),
-                    $item = $link.closest("li"),
-                    viewOffset = self.$list.offset(),
-                    elementOffset = $item.offset();
+                const $link = $(e.currentTarget);
+                const $item = $link.closest("li");
+                const viewOffset = self.$list.offset();
+                const elementOffset = $item.offset();
 
                 // Only set selected if enabled & in view
                 // (dividers are already screened out since they don't have an "a" tag in them)
@@ -312,13 +316,13 @@ define(function (require, exports, module) {
                     }
                 }
             });
-    };
+    }
 
     /**
      * Re-register mouse event handlers
      * @param {!jQueryObject} $list  newly updated list object
      */
-    DropdownEventHandler.prototype.reRegisterMouseHandlers = function ($list) {
+    public reRegisterMouseHandlers($list) {
         if (this.$list) {
             this.$list.off(".dropdownEventHandler");
 
@@ -327,8 +331,5 @@ define(function (require, exports, module) {
 
             this._registerMouseEvents();
         }
-    };
-
-    // Export public API
-    exports.DropdownEventHandler    = DropdownEventHandler;
-});
+    }
+}

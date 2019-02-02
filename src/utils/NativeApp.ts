@@ -22,98 +22,87 @@
  *
  */
 
-define(function (require, exports, module) {
-    "use strict";
+import * as Async from "utils/Async";
+import * as FileSystemError from "filesystem/FileSystemError";
 
-    var Async           = require("utils/Async"),
-        FileSystemError = require("filesystem/FileSystemError");
-
-    /**
-     * @private
-     * Map an fs error code to a FileError.
-     */
-    function _browserErrToFileError(err) {
-        if (err === brackets.fs.ERR_NOT_FOUND) {
-            return FileSystemError.NOT_FOUND;
-        }
-
-        // All other errors are mapped to the generic "unknown" error
-        return FileSystemError.UNKNOWN;
+/**
+ * @private
+ * Map an fs error code to a FileError.
+ */
+function _browserErrToFileError(err) {
+    if (err === brackets.fs.ERR_NOT_FOUND) {
+        return FileSystemError.NOT_FOUND;
     }
 
-    var liveBrowserOpenedPIDs = [];
+    // All other errors are mapped to the generic "unknown" error
+    return FileSystemError.UNKNOWN;
+}
 
-    /** openLiveBrowser
-     * Open the given URL in the user's system browser, optionally enabling debugging.
-     * @param {string} url The URL to open.
-     * @param {boolean=} enableRemoteDebugging Whether to turn on remote debugging. Default false.
-     * @return {$.Promise}
-     */
-    function openLiveBrowser(url, enableRemoteDebugging) {
-        var result = new $.Deferred();
+const liveBrowserOpenedPIDs: Array<any> = [];
 
-        brackets.app.openLiveBrowser(url, !!enableRemoteDebugging, function onRun(err, pid) {
-            if (!err) {
-                // Undefined ids never get removed from list, so don't push them on
-                if (pid !== undefined) {
-                    liveBrowserOpenedPIDs.push(pid);
-                }
-                result.resolve(pid);
-            } else {
-                result.reject(_browserErrToFileError(err));
+/**
+ * Open the given URL in the user's system browser, optionally enabling debugging.
+ * @param {string} url The URL to open.
+ * @param {boolean=} enableRemoteDebugging Whether to turn on remote debugging. Default false.
+ * @return {$.Promise}
+ */
+export function openLiveBrowser(url, enableRemoteDebugging) {
+    const result = $.Deferred();
+
+    brackets.app.openLiveBrowser(url, !!enableRemoteDebugging, function onRun(err, pid) {
+        if (!err) {
+            // Undefined ids never get removed from list, so don't push them on
+            if (pid !== undefined) {
+                liveBrowserOpenedPIDs.push(pid);
             }
-        });
-
-        return result.promise();
-    }
-
-    /** closeLiveBrowser
-     *
-     * @return {$.Promise}
-     */
-    function closeLiveBrowser(pid) {
-        var result = new $.Deferred();
-
-        if (isNaN(pid)) {
-            pid = 0;
+            result.resolve(pid);
+        } else {
+            result.reject(_browserErrToFileError(err));
         }
-        brackets.app.closeLiveBrowser(function (err) {
-            if (!err) {
-                var i = liveBrowserOpenedPIDs.indexOf(pid);
-                if (i !== -1) {
-                    liveBrowserOpenedPIDs.splice(i, 1);
-                }
-                result.resolve();
-            } else {
-                result.reject(_browserErrToFileError(err));
+    });
+
+    return result.promise();
+}
+
+/**
+ *
+ * @return {$.Promise}
+ */
+export function closeLiveBrowser(pid) {
+    const result = $.Deferred();
+
+    if (isNaN(pid)) {
+        pid = 0;
+    }
+    brackets.app.closeLiveBrowser(function (err) {
+        if (!err) {
+            const i = liveBrowserOpenedPIDs.indexOf(pid);
+            if (i !== -1) {
+                liveBrowserOpenedPIDs.splice(i, 1);
             }
-        }, pid);
+            result.resolve();
+        } else {
+            result.reject(_browserErrToFileError(err));
+        }
+    }, pid);
 
-        return result.promise();
-    }
+    return result.promise();
+}
 
-    /** closeAllLiveBrowsers
-     * Closes all the browsers that were tracked on open
-     * TODO: does not seem to work on Windows
-     * @return {$.Promise}
-     */
-    function closeAllLiveBrowsers() {
-        //make a copy incase the array is edited as we iterate
-        var closeIDs = liveBrowserOpenedPIDs.concat();
-        return Async.doSequentially(closeIDs, closeLiveBrowser, false);
-    }
+/**
+ * Closes all the browsers that were tracked on open
+ * TODO: does not seem to work on Windows
+ * @return {$.Promise}
+ */
+export function closeAllLiveBrowsers() {
+    // make a copy incase the array is edited as we iterate
+    const closeIDs = liveBrowserOpenedPIDs.concat();
+    return Async.doSequentially(closeIDs, closeLiveBrowser, false);
+}
 
-    /**
-     * Opens a URL in the system default browser
-     */
-    function openURLInDefaultBrowser(url) {
-        brackets.app.openURLInDefaultBrowser(url);
-    }
-
-
-    // Define public API
-    exports.openLiveBrowser = openLiveBrowser;
-    exports.closeLiveBrowser = closeLiveBrowser;
-    exports.closeAllLiveBrowsers = closeAllLiveBrowsers;
-    exports.openURLInDefaultBrowser = openURLInDefaultBrowser;
-});
+/**
+ * Opens a URL in the system default browser
+ */
+export function openURLInDefaultBrowser(url) {
+    brackets.app.openURLInDefaultBrowser(url);
+}
