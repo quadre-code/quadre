@@ -154,7 +154,7 @@ export function openMainBracketsWindow(query: {} | string = {}): Electron.Browse
     let indexPath = "www/index.html";
     const formatOptions: FormatOptions = {};
     if (argv["startup-path"]) {
-        indexPath = argv["startup-path"];
+        indexPath = argv["startup-path"] as string;
         formatOptions.isEncoded = true;
     }
 

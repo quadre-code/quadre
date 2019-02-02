@@ -43,7 +43,7 @@ module.exports = function (grunt) {
                 const unzipStream = zlib.createGunzip();
                 res.pipe(unzipStream);
 
-                const extractStream = tar.Extract({ path: dirPath, strip: 0 });
+                const extractStream = tar.extract({ cwd: dirPath, strip: 0 });
                 unzipStream.pipe(extractStream);
 
                 extractStream.on("finish", function() {
