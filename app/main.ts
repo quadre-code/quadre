@@ -16,7 +16,7 @@ import * as SocketServer from "./socket-server"; // Implementation of Brackets' 
 const appInfo = require("./package.json");
 
 const log = getLogger("main");
-(process as NodeJS.EventEmitter).on("uncaughtException", (err: Error) => {
+process.on("uncaughtException", (err: Error) => {
     log.error(`[uncaughtException] ${err.stack}`);
 });
 
@@ -148,13 +148,18 @@ function formatUrl(filePath: string, options: FormatOptions = {}) {
 }
 
 export function openMainBracketsWindow(query: {} | string = {}): Electron.BrowserWindow {
-    const argv = yargs.argv;
+    const argv = yargs
+        .describe("startup-path", "A file path to startup instead of default one.")
+        .string("startup-path")
+        .describe("devtools", "Open the devtools window at startup.")
+        .boolean("devtools")
+        .argv;
 
     // compose path to brackets' index file
     let indexPath = "www/index.html";
     const formatOptions: FormatOptions = {};
     if (argv["startup-path"]) {
-        indexPath = argv["startup-path"] as string;
+        indexPath = argv["startup-path"];
         formatOptions.isEncoded = true;
     }
 
@@ -212,7 +217,7 @@ export function openMainBracketsWindow(query: {} | string = {}): Electron.Browse
 
     // create the browser window
     const win = new BrowserWindow(winOptions);
-    if (process.argv.indexOf("--devtools") !== -1) {
+    if (argv.devtools) {
         win.webContents.openDevTools({ mode: "detach" });
     }
     wins.push(win);
