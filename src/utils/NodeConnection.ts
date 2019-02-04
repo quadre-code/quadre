@@ -125,7 +125,7 @@ interface NodeDomainEvent {
  * Provides an interface for interacting with the node server.
  * @constructor
  */
-export class NodeConnection {
+class NodeConnection {
     /**
      * @type {Object}
      * Exposes the domains registered with the server. This object will
@@ -603,6 +603,4 @@ export class NodeConnection {
 
 EventDispatcher.makeEventDispatcher(NodeConnection.prototype);
 
-// Cannot export using ES modules because otherwise other AMD modules
-// cannot consume it correctly.
-module.exports = NodeConnection;
+export = NodeConnection;

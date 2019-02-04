@@ -62,7 +62,7 @@ class NodeDomain {
      *
      * @type {NodeConnection}
      */
-    public connection;
+    public connection: NodeConnection;
 
     /**
      * A promise that is resolved once the NodeConnection is connected and the
@@ -219,6 +219,4 @@ class NodeDomain {
 
 EventDispatcher.makeEventDispatcher(NodeDomain.prototype);
 
-// Cannot export using ES modules because otherwise other AMD modules
-// cannot consume it correctly.
-module.exports = NodeDomain;
+export = NodeDomain;
