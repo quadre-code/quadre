@@ -250,7 +250,7 @@ function checkForExtensionsUpdate() {
  * @param {Object} _testValues This should only be used for testing purposes. See comments for details.
  * @return {$.Promise} jQuery Promise object that is resolved or rejected after the update check is complete.
  */
-function checkForUpdate(force: boolean = false, _testValues?: any) {
+export function checkForUpdate(force: boolean = false, _testValues?: any) {
     // This is the last version we notified the user about. If checkForUpdate()
     // is called with "false", only show the update notification dialog if there
     // is an update newer than this one. This value is saved in preferences.
@@ -367,7 +367,7 @@ function checkForUpdate(force: boolean = false, _testValues?: any) {
 /**
  * Launches both check for Brackets update and check for installed extensions update
  */
-function launchAutomaticUpdate() {
+export function launchAutomaticUpdate() {
     // launch immediately and then every 24 hours + 2 minutes
     checkForUpdate();
     checkForExtensionsUpdate();
@@ -376,7 +376,3 @@ function launchAutomaticUpdate() {
 
 // Events listeners
 ExtensionManager.on("registryDownload", _onRegistryDownloaded);
-
-// Define public API
-exports.launchAutomaticUpdate = launchAutomaticUpdate;
-exports.checkForUpdate        = checkForUpdate;

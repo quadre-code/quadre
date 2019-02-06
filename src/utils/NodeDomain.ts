@@ -98,7 +98,6 @@ class NodeDomain {
     private _domainLoaded = false;
 
     constructor(domainName, domainPath) {
-        // @ts-ignore
         const connection = new NodeConnection();
 
         this.connection = connection;

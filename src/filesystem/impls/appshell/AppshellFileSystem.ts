@@ -39,7 +39,6 @@ const _bracketsPath = FileUtils.getNativeBracketsDirectoryPath();
 const _modulePath   = FileUtils.getNativeModuleDirectoryPath(module);
 const _nodePath     = "node/FileWatcherDomain";
 const _domainPath   = [_bracketsPath, _modulePath, _nodePath].join("/");
-// @ts-ignore: see NodeDomain
 const _nodeDomain   = new NodeDomain("fileWatcher", _domainPath);
 
 // If the connection closes, notify the FileSystem that watchers have gone offline.

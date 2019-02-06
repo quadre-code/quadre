@@ -47,9 +47,7 @@ import * as _ from "thirdparty/lodash";
  *
  * @return {string} Formatted string
  */
-export function format(str) {
-    // arguments[0] is the base string, so we need to adjust index values here
-    const args = [].slice.call(arguments, 1);
+export function format(str, ...args) {
     return str.replace(/\{(\d+)\}/g, function (match, num) {
         return typeof args[num] !== "undefined" ? args[num] : match;
     });
