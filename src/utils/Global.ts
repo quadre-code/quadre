@@ -40,7 +40,7 @@ import * as ShellAPI from "utils/ShellAPI";
 // object when this code is running. However, in case it isn't (e.g. if we're running
 // inside Node for CI testing) we use this trick to get the global object.
 const Fn = Function;
-const global = (new Fn("return this"))();
+export const global = (new Fn("return this"))();
 if (!global.brackets) {
     global.brackets = {};
 }
@@ -128,5 +128,3 @@ global.brackets.getModule = require;
 global.brackets._getGlobalRequireJSConfig = function () {
     return global.require.s.contexts._.config;
 };
-
-exports.global = global;

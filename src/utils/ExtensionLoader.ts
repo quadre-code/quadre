@@ -134,7 +134,7 @@ function _mergeConfig(baseConfig) {
     // Optional JSON config for require.js
     FileUtils.readAsText(extensionConfigFile).done(function (text) {
         try {
-            const extensionConfig = JSON.parse(text);
+            const extensionConfig = JSON.parse(text!);
 
             // baseConfig.paths properties will override any extension config paths
             _.extend(extensionConfig.paths, baseConfig.paths);

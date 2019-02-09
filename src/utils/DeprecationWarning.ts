@@ -66,7 +66,7 @@ function _trimStack(stack) {
  * @param {number=} callerStackPos Only used if oncePerCaller=true. Overrides the `Error().stack` depth
  *     where the client-code caller can be found. Only needed if extra shim layers are involved.
  */
-export function deprecationWarning(message, oncePerCaller, callerStackPos = 3) {
+export function deprecationWarning(message, oncePerCaller = false, callerStackPos = 3) {
     // If oncePerCaller isn't set, then only show the message once no matter who calls it.
     if (!message || (!oncePerCaller && displayedWarnings[message])) {
         return;

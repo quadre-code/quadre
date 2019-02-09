@@ -47,11 +47,11 @@ function _loadSHA(path): JQueryPromise<any> {
         // to a file in /refs which in turn contains the SHA
         const file = FileSystem.getFileForPath(path);
         FileUtils.readAsText(file).done(function (text) {
-            if (text.indexOf("ref: ") === 0) {
+            if (text!.indexOf("ref: ") === 0) {
                 // e.g. "ref: refs/heads/branchname"
                 const basePath    = path.substr(0, path.lastIndexOf("/"));
-                const refRelPath  = text.substr(5).trim();
-                const branch      = text.substr(16).trim();
+                const refRelPath  = text!.substr(5).trim();
+                const branch      = text!.substr(16).trim();
 
                 _loadSHA(basePath + "/" + refRelPath).done(function (data) {
                     result.resolve({ branch: branch, sha: data.sha.trim() });

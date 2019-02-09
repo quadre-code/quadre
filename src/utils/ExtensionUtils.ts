@@ -249,7 +249,7 @@ export function loadMetadata(folder) {
     FileUtils.readAsText(packageJSONFile)
         .then(function (text) {
             try {
-                json = JSON.parse(text);
+                json = JSON.parse(text!);
                 jsonPromise.resolve();
             } catch (e) {
                 jsonPromise.reject();
