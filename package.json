@@ -106,6 +106,7 @@
     "@types/lodash": "4.14.63",
     "@types/react": "16.0.38",
     "@types/react-dom": "16.0.4",
+    "@types/requirejs": "^2.1.31",
     "@types/ws": "0.0.40",
     "@types/yargs": "^12.0.8",
     "concurrently": "^4.1.0",

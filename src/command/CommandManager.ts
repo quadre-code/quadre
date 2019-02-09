@@ -30,120 +30,124 @@
  *    - commandRegistered  -- when a new command is registered
  *    - beforeExecuteCommand -- before dispatching a command
  */
-define(function (require, exports, module) {
-    "use strict";
 
-    var EventDispatcher = require("utils/EventDispatcher");
+import * as EventDispatcher from "utils/EventDispatcher";
 
 
-    /**
-     * Map of all registered global commands
-     * @type {Object.<commandID: string, Command>}
-     */
-    var _commands = {};
+/**
+ * Map of all registered global commands
+ * @type {Object.<commandID: string, Command>}
+ */
+let _commands = {};
 
-    /**
-     * Temporary copy of commands map for restoring after testing
-     * TODO (issue #1039): implement separate require contexts for unit tests
-     * @type {Object.<commandID: string, Command>}
-     */
-    var _commandsOriginal = {};
+/**
+ * Temporary copy of commands map for restoring after testing
+ * TODO (issue #1039): implement separate require contexts for unit tests
+ * @type {Object.<commandID: string, Command>}
+ */
+let _commandsOriginal = {};
 
-    /**
-     * Events:
-     * - enabledStateChange
-     * - checkedStateChange
-     * - keyBindingAdded
-     * - keyBindingRemoved
-     *
-     * @constructor
-     * @private
-     * @param {string} name - text that will be displayed in the UI to represent command
-     * @param {string} id
-     * @param {function} commandFn - the function that is called when the command is executed.
-     *
-     * TODO: where should this be triggered, The Command or Exports?
-     */
-    function Command(name, id, commandFn) {
+/**
+ * Events:
+ * - enabledStateChange
+ * - checkedStateChange
+ * - keyBindingAdded
+ * - keyBindingRemoved
+ *
+ * @constructor
+ * @private
+ * @param {string} name - text that will be displayed in the UI to represent command
+ * @param {string} id
+ * @param {function} commandFn - the function that is called when the command is executed.
+ *
+ * TODO: where should this be triggered, The Command or Exports?
+ */
+class Command {
+    private _name;
+    private _id;
+    private _commandFn;
+    private _checked;
+    private _enabled;
+
+    constructor(name, id, commandFn) {
         this._name = name;
         this._id = id;
         this._commandFn = commandFn;
         this._checked = undefined;
         this._enabled = true;
     }
-    EventDispatcher.makeEventDispatcher(Command.prototype);
 
     /**
      * Get command id
      * @return {string}
      */
-    Command.prototype.getID = function () {
+    public getID() {
         return this._id;
-    };
+    }
 
     /**
      * Executes the command. Additional arguments are passed to the executing function
      *
      * @return {$.Promise} a jQuery promise that will be resolved when the command completes.
      */
-    Command.prototype.execute = function () {
+    public execute() {
         if (!this._enabled) {
-            return (new $.Deferred()).reject().promise();
+            return $.Deferred().reject().promise();
         }
 
-        var result = this._commandFn.apply(this, arguments);
+        const result = this._commandFn.apply(this, arguments);
         if (!result) {
             // If command does not return a promise, assume that it handled the
             // command and return a resolved promise
-            return (new $.Deferred()).resolve().promise();
+            return $.Deferred().resolve().promise();
         }
 
         return result;
-    };
+    }
 
     /**
      * Is command enabled?
      * @return {boolean}
      */
-    Command.prototype.getEnabled = function () {
+    public getEnabled() {
         return this._enabled;
-    };
+    }
 
     /**
      * Sets enabled state of Command and dispatches "enabledStateChange"
      * when the enabled state changes.
      * @param {boolean} enabled
      */
-    Command.prototype.setEnabled = function (enabled) {
-        var changed = this._enabled !== enabled;
+    public setEnabled(enabled) {
+        const changed = this._enabled !== enabled;
         this._enabled = enabled;
 
         if (changed) {
-            this.trigger("enabledStateChange");
+            (this as unknown as EventDispatcher.DispatcherEvents).trigger("enabledStateChange");
         }
-    };
+    }
 
     /**
      * Sets enabled state of Command and dispatches "checkedStateChange"
      * when the enabled state changes.
      * @param {boolean} checked
      */
-    Command.prototype.setChecked = function (checked) {
-        var changed = this._checked !== checked;
+    public setChecked(checked) {
+        const changed = this._checked !== checked;
         this._checked = checked;
 
         if (changed) {
-            this.trigger("checkedStateChange");
+            (this as unknown as EventDispatcher.DispatcherEvents).trigger("checkedStateChange");
         }
-    };
+    }
 
     /**
      * Is command checked?
      * @return {boolean}
      */
-    Command.prototype.getChecked = function () {
+    public getChecked() {
         return this._checked;
-    };
+    }
 
     /**
      * Sets the name of the Command and dispatches "nameChange" so that
@@ -155,150 +159,141 @@ define(function (require, exports, module) {
      *
      * @param {string} name
      */
-    Command.prototype.setName = function (name) {
-        var changed = this._name !== name;
+    public setName(name) {
+        const changed = this._name !== name;
         this._name = name;
 
         if (changed) {
-            this.trigger("nameChange");
+            (this as unknown as EventDispatcher.DispatcherEvents).trigger("nameChange");
         }
-    };
+    }
 
     /**
      * Get command name
      * @return {string}
      */
-    Command.prototype.getName = function () {
+    public getName() {
         return this._name;
-    };
+    }
+}
+EventDispatcher.makeEventDispatcher(Command.prototype);
 
 
-
-    /**
-     * Registers a global command.
-     * @param {string} name - text that will be displayed in the UI to represent command
-     * @param {string} id - unique identifier for command.
-     *      Core commands in Brackets use a simple command title as an id, for example "open.file".
-     *      Extensions should use the following format: "author.myextension.mycommandname".
-     *      For example, "lschmitt.csswizard.format.css".
-     * @param {function(...)} commandFn - the function to call when the command is executed. Any arguments passed to
-     *     execute() (after the id) are passed as arguments to the function. If the function is asynchronous,
-     *     it must return a jQuery promise that is resolved when the command completes. Otherwise, the
-     *     CommandManager will assume it is synchronous, and return a promise that is already resolved.
-     * @return {?Command}
-     */
-    function register(name, id, commandFn) {
-        if (_commands[id]) {
-            console.log("Attempting to register an already-registered command: " + id);
-            return null;
-        }
-        if (!name || !id || !commandFn) {
-            console.error("Attempting to register a command with a missing name, id, or command function:" + name + " " + id);
-            return null;
-        }
-
-        var command = new Command(name, id, commandFn);
-        _commands[id] = command;
-
-        exports.trigger("commandRegistered", command);
-
-        return command;
+/**
+ * Registers a global command.
+ * @param {string} name - text that will be displayed in the UI to represent command
+ * @param {string} id - unique identifier for command.
+ *      Core commands in Brackets use a simple command title as an id, for example "open.file".
+ *      Extensions should use the following format: "author.myextension.mycommandname".
+ *      For example, "lschmitt.csswizard.format.css".
+ * @param {function(...)} commandFn - the function to call when the command is executed. Any arguments passed to
+ *     execute() (after the id) are passed as arguments to the function. If the function is asynchronous,
+ *     it must return a jQuery promise that is resolved when the command completes. Otherwise, the
+ *     CommandManager will assume it is synchronous, and return a promise that is already resolved.
+ * @return {?Command}
+ */
+export function register(name, id, commandFn) {
+    if (_commands[id]) {
+        console.log("Attempting to register an already-registered command: " + id);
+        return null;
+    }
+    if (!name || !id || !commandFn) {
+        console.error("Attempting to register a command with a missing name, id, or command function:" + name + " " + id);
+        return null;
     }
 
-    /**
-     * Registers a global internal only command.
-     * @param {string} id - unique identifier for command.
-     *      Core commands in Brackets use a simple command title as an id, for example "app.abort_quit".
-     *      Extensions should use the following format: "author.myextension.mycommandname".
-     *      For example, "lschmitt.csswizard.format.css".
-     * @param {function(...)} commandFn - the function to call when the command is executed. Any arguments passed to
-     *     execute() (after the id) are passed as arguments to the function. If the function is asynchronous,
-     *     it must return a jQuery promise that is resolved when the command completes. Otherwise, the
-     *     CommandManager will assume it is synchronous, and return a promise that is already resolved.
-     * @return {?Command}
-     */
-    function registerInternal(id, commandFn) {
-        if (_commands[id]) {
-            console.log("Attempting to register an already-registered command: " + id);
-            return null;
-        }
-        if (!id || !commandFn) {
-            console.error("Attempting to register an internal command with a missing id, or command function: " + id);
-            return null;
-        }
+    const command = new Command(name, id, commandFn);
+    _commands[id] = command;
 
-        var command = new Command(null, id, commandFn);
-        _commands[id] = command;
+    (exports as EventDispatcher.DispatcherEvents).trigger("commandRegistered", command);
 
-        exports.trigger("commandRegistered", command);
+    return command;
+}
 
-        return command;
+/**
+ * Registers a global internal only command.
+ * @param {string} id - unique identifier for command.
+ *      Core commands in Brackets use a simple command title as an id, for example "app.abort_quit".
+ *      Extensions should use the following format: "author.myextension.mycommandname".
+ *      For example, "lschmitt.csswizard.format.css".
+ * @param {function(...)} commandFn - the function to call when the command is executed. Any arguments passed to
+ *     execute() (after the id) are passed as arguments to the function. If the function is asynchronous,
+ *     it must return a jQuery promise that is resolved when the command completes. Otherwise, the
+ *     CommandManager will assume it is synchronous, and return a promise that is already resolved.
+ * @return {?Command}
+ */
+export function registerInternal(id, commandFn) {
+    if (_commands[id]) {
+        console.log("Attempting to register an already-registered command: " + id);
+        return null;
+    }
+    if (!id || !commandFn) {
+        console.error("Attempting to register an internal command with a missing id, or command function: " + id);
+        return null;
     }
 
-    /**
-     * Clear all commands for unit testing, but first make copy of commands so that
-     * they can be restored afterward
-     */
-    function _testReset() {
-        _commandsOriginal = _commands;
-        _commands = {};
-    }
+    const command = new Command(null, id, commandFn);
+    _commands[id] = command;
 
-    /**
-     * Restore original commands after test and release copy
-     */
-    function _testRestore() {
-        _commands = _commandsOriginal;
-        _commandsOriginal = {};
-    }
+    (exports as EventDispatcher.DispatcherEvents).trigger("commandRegistered", command);
 
-    /**
-     * Retrieves a Command object by id
-     * @param {string} id
-     * @return {Command}
-     */
-    function get(id) {
-        return _commands[id];
-    }
+    return command;
+}
 
-    /**
-     * Returns the ids of all registered commands
-     * @return {Array.<string>}
-     */
-    function getAll() {
-        return Object.keys(_commands);
-    }
+/**
+ * Clear all commands for unit testing, but first make copy of commands so that
+ * they can be restored afterward
+ */
+export function _testReset() {
+    _commandsOriginal = _commands;
+    _commands = {};
+}
 
-    /**
-     * Looks up and runs a global command. Additional arguments are passed to the command.
-     *
-     * @param {string} id The ID of the command to run.
-     * @return {$.Promise} a jQuery promise that will be resolved when the command completes.
-     */
-    function execute(id) {
-        var command = _commands[id];
+/**
+ * Restore original commands after test and release copy
+ */
+export function _testRestore() {
+    _commands = _commandsOriginal;
+    _commandsOriginal = {};
+}
 
-        if (command) {
-            try {
-                exports.trigger("beforeExecuteCommand", id);
-            } catch (err) {
-                console.error(err);
-            }
+/**
+ * Retrieves a Command object by id
+ * @param {string} id
+ * @return {Command}
+ */
+export function get(id) {
+    return _commands[id];
+}
 
-            return command.execute.apply(command, Array.prototype.slice.call(arguments, 1));
+/**
+ * Returns the ids of all registered commands
+ * @return {Array.<string>}
+ */
+export function getAll() {
+    return Object.keys(_commands);
+}
+
+/**
+ * Looks up and runs a global command. Additional arguments are passed to the command.
+ *
+ * @param {string} id The ID of the command to run.
+ * @return {$.Promise} a jQuery promise that will be resolved when the command completes.
+ */
+export function execute(id, ...args) {
+    const command = _commands[id];
+
+    if (command) {
+        try {
+            (exports as EventDispatcher.DispatcherEvents).trigger("beforeExecuteCommand", id);
+        } catch (err) {
+            console.error(err);
         }
 
-        return (new $.Deferred()).reject().promise();
+        return command.execute.apply(command, Array.prototype.slice.call(arguments, 1));
     }
 
-    EventDispatcher.makeEventDispatcher(exports);
+    return $.Deferred().reject().promise();
+}
 
-    // Define public API
-    exports.register            = register;
-    exports.registerInternal    = registerInternal;
-    exports.execute             = execute;
-    exports.get                 = get;
-    exports.getAll              = getAll;
-    exports._testReset          = _testReset;
-    exports._testRestore        = _testRestore;
-});
+EventDispatcher.makeEventDispatcher(exports);
