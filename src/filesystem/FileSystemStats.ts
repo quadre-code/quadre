@@ -25,15 +25,53 @@
 /**
  * The FileSystemStats represents a particular FileSystemEntry's stats.
  */
-define(function (require, exports, module) {
-    "use strict";
+
+/**
+ * @constructor
+ * @param {{isFile: boolean, mtime: Date, size: Number, realPath: ?string, hash: object}} options
+ */
+class FileSystemStats {
 
     /**
-     * @constructor
-     * @param {{isFile: boolean, mtime: Date, size: Number, realPath: ?string, hash: object}} options
+     * Whether or not this is a stats object for a file
+     * @type {boolean}
      */
-    function FileSystemStats(options) {
-        var isFile = options.isFile;
+    private _isFile = false;
+
+    /**
+     * Whether or not this is a stats object for a directory
+     * @type {boolean}
+     */
+    private _isDirectory = false;
+
+    /**
+     * Modification time for a file
+     * @type {Date}
+     */
+    private _mtime;
+
+    /**
+     * Size in bytes of a file
+     * @type {Number}
+     */
+    private _size = null;
+
+    /**
+     * Consistency hash for a file
+     * @type {object}
+     */
+    public _hash = null;
+
+    /**
+     * The canonical path of this file or directory ONLY if it is a symbolic link,
+     * and null otherwise.
+     *
+     * @type {?string}
+     */
+    private _realPath = null;
+
+    constructor(options) {
+        const isFile = options.isFile;
 
         this._isFile = isFile;
         this._isDirectory = !isFile;
@@ -45,7 +83,7 @@ define(function (require, exports, module) {
         // as a valueOf modification time -> calculate here if it's not present
         this._hash = options.hash || this._mtime.valueOf();
 
-        var realPath = options.realPath;
+        let realPath = options.realPath;
         if (realPath) {
             if (!isFile && realPath[realPath.length - 1] !== "/") {
                 realPath += "/";
@@ -56,66 +94,22 @@ define(function (require, exports, module) {
     }
 
     // Add "isFile", "isDirectory", "mtime" and "size" getters
-    Object.defineProperties(FileSystemStats.prototype, {
-        "isFile": {
-            get: function () { return this._isFile; },
-            set: function () { throw new Error("Cannot set isFile"); }
-        },
-        "isDirectory": {
-            get: function () { return this._isDirectory; },
-            set: function () { throw new Error("Cannot set isDirectory"); }
-        },
-        "mtime": {
-            get: function () { return this._mtime; },
-            set: function () { throw new Error("Cannot set mtime"); }
-        },
-        "size": {
-            get: function () { return this._size; },
-            set: function () { throw new Error("Cannot set size"); }
-        },
-        "realPath": {
-            get: function () { return this._realPath; },
-            set: function () { throw new Error("Cannot set realPath"); }
-        }
-    });
 
-    /**
-     * Whether or not this is a stats object for a file
-     * @type {boolean}
-     */
-    FileSystemStats.prototype._isFile = false;
+    public get isFile() { return this._isFile; }
+    public set isFile(file) { throw new Error("Cannot set isFile"); }
 
-    /**
-     * Whether or not this is a stats object for a directory
-     * @type {boolean}
-     */
-    FileSystemStats.prototype._isDirectory = false;
+    public get isDirectory() { return this._isDirectory; }
+    public set isDirectory(directory) { throw new Error("Cannot set isDirectory"); }
 
-    /**
-     * Modification time for a file
-     * @type {Date}
-     */
-    FileSystemStats.prototype._mtime = null;
+    public get mtime() { return this._mtime; }
+    public set mtime(mtime) { throw new Error("Cannot set mtime"); }
 
-    /**
-     * Size in bytes of a file
-     * @type {Number}
-     */
-    FileSystemStats.prototype._size = null;
+    public get size() { return this._size; }
+    public set size(size) { throw new Error("Cannot set size"); }
 
-    /**
-     * Consistency hash for a file
-     * @type {object}
-     */
-    FileSystemStats.prototype._hash = null;
+    public get realPath() { return this._realPath; }
+    public set realPath(realPath) { throw new Error("Cannot set realPath"); }
 
-    /**
-     * The canonical path of this file or directory ONLY if it is a symbolic link,
-     * and null otherwise.
-     *
-     * @type {?string}
-     */
-    FileSystemStats.prototype._realPath = null;
+}
 
-    module.exports = FileSystemStats;
-});
+export = FileSystemStats;

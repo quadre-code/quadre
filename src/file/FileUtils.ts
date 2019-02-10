@@ -31,7 +31,7 @@
 
 import "utils/Global";
 
-import * as FileSystemError from "filesystem/FileSystemError";
+import FileSystemError = require("filesystem/FileSystemError");
 import * as DeprecationWarning from "utils/DeprecationWarning";
 import * as LanguageManager from "language/LanguageManager";
 import * as PerfUtils from "utils/PerfUtils";

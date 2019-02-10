@@ -22,52 +22,71 @@
  *
  */
 
-define(function (require, exports, module) {
-    "use strict";
+import FileSystemEntry = require("filesystem/FileSystemEntry");
+import FileSystemStats = require("filesystem/FileSystemStats");
+import { EntryKind } from "filesystem/EntryKind";
 
-    var FileSystemEntry = require("filesystem/FileSystemEntry");
-
-    /*
-     * Model for a file system Directory.
-     *
-     * This class should *not* be instantiated directly. Use FileSystem.getDirectoryForPath,
-     * FileSystem.resolve, or Directory.getContents to create an instance of this class.
-     *
-     * Note: Directory.fullPath always has a trailing slash.
-     *
-     * See the FileSystem class for more details.
-     *
-     * @constructor
-     * @param {!string} fullPath The full path for this Directory.
-     * @param {!FileSystem} fileSystem The file system associated with this Directory.
-     */
-    function Directory(fullPath, fileSystem) {
-        this._isDirectory = true;
-        FileSystemEntry.call(this, fullPath, fileSystem);
+/**
+ * Apply each callback in a list to the provided arguments. Callbacks
+ * can throw without preventing other callbacks from being applied.
+ *
+ * @private
+ * @param {Array.<function>} callbacks The callbacks to apply
+ * @param {Array} args The arguments to which each callback is applied
+ */
+function _applyAllCallbacks(callbacks, args) {
+    if (callbacks.length > 0) {
+        const callback = callbacks.pop();
+        try {
+            callback.apply(undefined, args);
+        } finally {
+            _applyAllCallbacks(callbacks, args);
+        }
     }
+}
 
-    Directory.prototype = Object.create(FileSystemEntry.prototype);
-    Directory.prototype.constructor = Directory;
-    Directory.prototype.parentClass = FileSystemEntry.prototype;
+/*
+ * Model for a file system Directory.
+ *
+ * This class should *not* be instantiated directly. Use FileSystem.getDirectoryForPath,
+ * FileSystem.resolve, or Directory.getContents to create an instance of this class.
+ *
+ * Note: Directory.fullPath always has a trailing slash.
+ *
+ * See the FileSystem class for more details.
+ *
+ * @constructor
+ * @param {!string} fullPath The full path for this Directory.
+ * @param {!FileSystem} fileSystem The file system associated with this Directory.
+ */
+class Directory extends FileSystemEntry {
+    public parentClass = FileSystemEntry.prototype;
+
+    private _contentsCallbacks;
 
     /**
      * The contents of this directory. This "private" property is used by FileSystem.
      * @type {Array<FileSystemEntry>}
      */
-    Directory.prototype._contents = null;
+    private _contents;
 
     /**
      * The stats for the contents of this directory, such that this._contentsStats[i]
      * corresponds to this._contents[i].
      * @type {Array.<FileSystemStats>}
      */
-    Directory.prototype._contentsStats = null;
+    private _contentsStats;
 
     /**
      * The stats errors for the contents of this directory.
      * @type {object.<string: string>} fullPaths are mapped to FileSystemError strings
      */
-    Directory.prototype._contentsStatsErrors = null;
+    private _contentsStatsErrors;
+
+    constructor(fullPath, fileSystem) {
+        super(fullPath, fileSystem, EntryKind.Directory);
+        this._isDirectory = true;
+    }
 
     /**
      * Clear any cached data for this directory. By default, we clear the contents
@@ -79,8 +98,8 @@ define(function (require, exports, module) {
      * @private
      * @param {boolean=} preserveImmediateChildren
      */
-    Directory.prototype._clearCachedData = function (preserveImmediateChildren) {
-        FileSystemEntry.prototype._clearCachedData.apply(this);
+    protected _clearCachedData(preserveImmediateChildren = false) {
+        super._clearCachedData();
 
         if (!preserveImmediateChildren) {
             if (this._contents) {
@@ -90,7 +109,7 @@ define(function (require, exports, module) {
             } else {
                 // No cached _contents, but child entries may still exist.
                 // Scan the full index to catch all of them.
-                var dirPath = this.fullPath;
+                const dirPath = this.fullPath;
                 this._fileSystem._index.visitAll(function (entry) {
                     if (entry.parentPath === dirPath) {
                         entry._clearCachedData(true);
@@ -102,25 +121,6 @@ define(function (require, exports, module) {
         this._contents = undefined;
         this._contentsStats = undefined;
         this._contentsStatsErrors = undefined;
-    };
-
-    /**
-     * Apply each callback in a list to the provided arguments. Callbacks
-     * can throw without preventing other callbacks from being applied.
-     *
-     * @private
-     * @param {Array.<function>} callbacks The callbacks to apply
-     * @param {Array} args The arguments to which each callback is applied
-     */
-    function _applyAllCallbacks(callbacks, args) {
-        if (callbacks.length > 0) {
-            var callback = callbacks.pop();
-            try {
-                callback.apply(undefined, args);
-            } finally {
-                _applyAllCallbacks(callbacks, args);
-            }
-        }
     }
 
     /**
@@ -136,7 +136,7 @@ define(function (require, exports, module) {
      *          and their stat errors. If there are no stat errors then the last
      *          parameter shall remain undefined.
      */
-    Directory.prototype.getContents = function (callback) {
+    public getContents(callback) {
         if (this._contentsCallbacks) {
             // There is already a pending call for this directory's contents.
             // Push the new callback onto the stack and return.
@@ -152,24 +152,24 @@ define(function (require, exports, module) {
 
         this._contentsCallbacks = [callback];
 
-        this._impl.readdir(this.fullPath, function (err, names, stats) {
-            var contents = [],
-                contentsStats = [],
-                contentsStatsErrors;
+        this._impl.readdir(this.fullPath, function (this: Directory, err, names, stats) {
+            const contents: Array<FileSystemEntry> = [];
+            const contentsStats: Array<FileSystemStats> = [];
+            let contentsStatsErrors;
 
             if (err) {
                 this._clearCachedData();
             } else {
                 // Use the "relaxed" parameter to _isWatched because it's OK to
                 // cache data even while watchers are still starting up
-                var watched = this._isWatched(true);
+                const watched = this._isWatched(true);
 
-                names.forEach(function (name, index) {
-                    var entryPath = this.fullPath + name;
+                names.forEach(function (this: Directory, name, index) {
+                    const entryPath = this.fullPath + name;
 
-                    var entryStats = stats[index];
+                    const entryStats = stats[index];
                     if (this._fileSystem._indexFilter(entryPath, name, entryStats)) {
-                        var entry;
+                        let entry;
 
                         // Note: not all entries necessarily have associated stats.
                         if (typeof entryStats === "string") {
@@ -205,15 +205,15 @@ define(function (require, exports, module) {
 
             // Reset the callback list before we begin calling back so that
             // synchronous reentrant calls are handled correctly.
-            var currentCallbacks = this._contentsCallbacks;
+            const currentCallbacks = this._contentsCallbacks;
 
             this._contentsCallbacks = null;
 
             // Invoke all saved callbacks
-            var callbackArgs = [err, contents, contentsStats, contentsStatsErrors];
+            const callbackArgs = [err, contents, contentsStats, contentsStatsErrors];
             _applyAllCallbacks(currentCallbacks, callbackArgs);
         }.bind(this));
-    };
+    }
 
     /**
      * Create a directory
@@ -221,13 +221,13 @@ define(function (require, exports, module) {
      * @param {function (?string, FileSystemStats=)=} callback Callback resolved with a
      *      FileSystemError string or the stat object for the created directory.
      */
-    Directory.prototype.create = function (callback) {
-        callback = callback || function () {};
+    public create(callback) {
+        callback = callback || function () { /* Do nothing */ };
 
         // Block external change events until after the write has finished
         this._fileSystem._beginChange();
 
-        this._impl.mkdir(this._path, function (err, stat) {
+        this._impl.mkdir(this._path, function (this: Directory, err, stat) {
             if (err) {
                 this._clearCachedData();
                 try {
@@ -239,14 +239,14 @@ define(function (require, exports, module) {
                 }
             }
 
-            var parent = this._fileSystem.getDirectoryForPath(this.parentPath);
+            const parent = this._fileSystem.getDirectoryForPath(this.parentPath);
 
             // Update internal filesystem state
             if (this._isWatched()) {
                 this._stat = stat;
             }
 
-            this._fileSystem._handleDirectoryChange(parent, function (added, removed) {
+            this._fileSystem._handleDirectoryChange(parent, function (this: Directory, added, removed) {
                 try {
                     callback(null, stat);
                 } finally {
@@ -258,8 +258,7 @@ define(function (require, exports, module) {
                 }
             }.bind(this));
         }.bind(this));
-    };
+    }
+}
 
-    // Export this class
-    module.exports = Directory;
-});
+export = Directory;

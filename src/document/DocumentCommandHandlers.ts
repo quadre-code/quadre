@@ -34,7 +34,8 @@ import * as DocumentManager from "document/DocumentManager";
 import * as MainViewManager from "view/MainViewManager";
 import * as EditorManager from "editor/EditorManager";
 import * as FileSystem from "filesystem/FileSystem";
-import * as FileSystemError from "filesystem/FileSystemError";
+import File = require("filesystem/File");
+import FileSystemError = require("filesystem/FileSystemError");
 import * as FileUtils from "file/FileUtils";
 import * as FileViewController from "project/FileViewController";
 import InMemoryFile = require("document/InMemoryFile");
@@ -386,7 +387,7 @@ function _doOpenWithOptionalPath(fullPath, silent, paneId, options) {
                 if (paths.length > 0) {
                     // Add all files to the workingset without verifying that
                     // they still exist on disk (for faster opening)
-                    const filesToOpen: Array<FileSystem.File> = [];
+                    const filesToOpen: Array<File> = [];
 
                     paths.forEach(function (path) {
                         filesToOpen.push(FileSystem.getFileForPath(path));
@@ -466,11 +467,11 @@ export function _parseDecoratedPath(path) {
  *   paneId: optional PaneId (defaults to active pane)
  * @return {$.Promise} a jQuery promise that will be resolved with a file object
  */
-function handleFileOpen(commandData): JQueryPromise<FileSystem.File> {
+function handleFileOpen(commandData): JQueryPromise<File> {
     const fileInfo = _parseDecoratedPath(commandData ? commandData.fullPath : null);
     const silent = (commandData && commandData.silent) || false;
     const paneId = (commandData && commandData.paneId) || MainViewManager.ACTIVE_PANE;
-    const result = $.Deferred();
+    const result = $.Deferred<File>();
 
     _doOpenWithOptionalPath(fileInfo.path, silent, paneId, commandData && commandData.options)
         .done(function (file) {
@@ -531,7 +532,7 @@ function handleDocumentOpen(commandData) {
             //  then we need to resolve that to a document.
             //  getOpenDocumentForPath will return null if there isn't a
             //  supporting document for that file (e.g. an image)
-            const doc = DocumentManager.getOpenDocumentForPath(file.fullPath);
+            const doc = DocumentManager.getOpenDocumentForPath(file!.fullPath);
             result.resolve(doc);
         })
         .fail(function (err) {
@@ -556,7 +557,7 @@ function handleFileAddToWorkingSetAndOpen(commandData) {
     return handleFileOpen(commandData).done(function (file) {
         const paneId = (commandData && commandData.paneId) || MainViewManager.ACTIVE_PANE;
         MainViewManager.addToWorkingSet(paneId, file, commandData.index, commandData.forceRedraw);
-        HealthLogger.fileOpened(file.fullPath, true);
+        HealthLogger.fileOpened(file!.fullPath, true);
     });
 }
 
@@ -584,7 +585,7 @@ function handleFileAddToWorkingSet(commandData) {
             //  then we need to resolve that to a document.
             //  getOpenDocumentForPath will return null if there isn't a
             //  supporting document for that file (e.g. an image)
-            const doc = DocumentManager.getOpenDocumentForPath(file.fullPath);
+            const doc = DocumentManager.getOpenDocumentForPath(file!.fullPath);
             result.resolve(doc);
         })
         .fail(function (err) {
@@ -736,8 +737,8 @@ function _showSaveFileError(name, path) {
  * @return {$.Promise} a promise that is resolved with the File of docToSave (to mirror
  *   the API of _doSaveAs()). Rejected in case of IO error (after error dialog dismissed).
  */
-function doSave(docToSave, force = false) {
-    const result = $.Deferred();
+function doSave(docToSave, force = false): JQueryPromise<File> {
+    const result = $.Deferred<File>();
     const file = docToSave.file;
 
     function handleError(error) {
@@ -875,11 +876,11 @@ function _doRevert(doc, suppressError = false) {
  * @return {$.Promise} a promise that is resolved with the saved document's File. Rejected in
  *   case of IO error (after error dialog dismissed), or if the Save dialog was canceled.
  */
-function _doSaveAs(doc, settings) {
+function _doSaveAs(doc, settings): JQueryPromise<File> {
     let origPath;
     let saveAsDefaultPath;
     let defaultName;
-    const result = $.Deferred();
+    const result = $.Deferred<File>();
 
     function _doSaveAfterSaveDialog(path) {
         // Reconstruct old doc's editor's view state, & finally resolve overall promise
@@ -1014,7 +1015,7 @@ function _doSaveAs(doc, settings) {
  *   dismissed), or if doc was untitled and the Save dialog was canceled (will be rejected with
  *   USER_CANCELED object).
  */
-function handleFileSave(commandData) {
+function handleFileSave(commandData): JQueryPromise<File> {
     const activeEditor = EditorManager.getActiveEditor();
     const activeDoc = activeEditor && activeEditor.document;
     const doc = (commandData && commandData.doc) || activeDoc;
@@ -1035,7 +1036,7 @@ function handleFileSave(commandData) {
         return doSave(doc);
     }
 
-    return $.Deferred().reject().promise();
+    return $.Deferred<File>().reject().promise();
 }
 
 /**
@@ -1054,7 +1055,7 @@ function _saveFileList(fileList) {
     // Do in serial because doSave shows error UI for each file, and we don't want to stack
     // multiple dialogs on top of each other
     let userCanceled = false;
-    const filesAfterSave: Array<FileSystem.File> = [];
+    const filesAfterSave: Array<File> = [];
 
     return Async.doSequentially(
         fileList,
@@ -1069,7 +1070,7 @@ function _saveFileList(fileList) {
                 const savePromise = handleFileSave({doc: doc});
                 savePromise
                     .done(function (newFile) {
-                        filesAfterSave.push(newFile);
+                        filesAfterSave.push(newFile!);
                     })
                     .fail(function (error) {
                         if (error === USER_CANCELED) {

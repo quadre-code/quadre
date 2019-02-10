@@ -22,39 +22,31 @@
  *
  */
 
-define(function (require, exports, module) {
-    "use strict";
-
-    var FileSystemEntry = require("filesystem/FileSystemEntry");
+import FileSystemEntry = require("filesystem/FileSystemEntry");
+import { EntryKind } from "filesystem/EntryKind";
 
 
-    /*
-     * Model for a File.
-     *
-     * This class should *not* be instantiated directly. Use FileSystem.getFileForPath,
-     * FileSystem.resolve, or Directory.getContents to create an instance of this class.
-     *
-     * See the FileSystem class for more details.
-     *
-     * @constructor
-     * @param {!string} fullPath The full path for this File.
-     * @param {!FileSystem} fileSystem The file system associated with this File.
-     */
-    function File(fullPath, fileSystem) {
-        this._isFile = true;
-        FileSystemEntry.call(this, fullPath, fileSystem);
-    }
-
-    File.prototype = Object.create(FileSystemEntry.prototype);
-    File.prototype.constructor = File;
-    File.prototype.parentClass = FileSystemEntry.prototype;
+/*
+ * Model for a File.
+ *
+ * This class should *not* be instantiated directly. Use FileSystem.getFileForPath,
+ * FileSystem.resolve, or Directory.getContents to create an instance of this class.
+ *
+ * See the FileSystem class for more details.
+ *
+ * @constructor
+ * @param {!string} fullPath The full path for this File.
+ * @param {!FileSystem} fileSystem The file system associated with this File.
+ */
+class File extends FileSystemEntry {
+    public parentClass = FileSystemEntry.prototype;
 
     /**
      * Cached contents of this file. This value is nullable but should NOT be undefined.
      * @private
      * @type {?string}
      */
-    File.prototype._contents = null;
+    private _contents = null;
 
     /**
      * Consistency hash for this file. Reads and writes update this value, and
@@ -64,17 +56,22 @@ define(function (require, exports, module) {
      * @private
      * @type {?object}
      */
-    File.prototype._hash = null;
+    private _hash = null;
+
+    constructor(fullPath, fileSystem) {
+        super(fullPath, fileSystem, EntryKind.File);
+        this._isFile = true;
+    }
 
     /**
      * Clear any cached data for this file. Note that this explicitly does NOT
      * clear the file's hash.
      * @private
      */
-    File.prototype._clearCachedData = function () {
-        FileSystemEntry.prototype._clearCachedData.apply(this);
+    protected _clearCachedData() {
+        super._clearCachedData();
         this._contents = null;
-    };
+    }
 
     /**
      * Read a file.
@@ -83,7 +80,7 @@ define(function (require, exports, module) {
      * @param {function (?string, string=, FileSystemStats=)} callback Callback that is passed the
      *              FileSystemError string or the file's contents and its stats.
      */
-    File.prototype.read = function (options, callback) {
+    public read(options, callback) {
         if (typeof (options) === "function") {
             callback = options;
             options = {};
@@ -98,12 +95,12 @@ define(function (require, exports, module) {
             return;
         }
 
-        var watched = this._isWatched();
+        const watched = this._isWatched();
         if (watched) {
             options.stat = this._stat;
         }
 
-        this._impl.readFile(this._path, options, function (err, data, stat) {
+        this._impl.readFile(this._path, options, function (this: File, err, data, stat) {
             if (err) {
                 this._clearCachedData();
                 callback(err);
@@ -121,7 +118,7 @@ define(function (require, exports, module) {
 
             callback(err, data, stat);
         }.bind(this));
-    };
+    }
 
     /**
      * Write a file.
@@ -131,7 +128,7 @@ define(function (require, exports, module) {
      * @param {function (?string, FileSystemStats=)=} callback Callback that is passed the
      *              FileSystemError string or the file's new stats.
      */
-    File.prototype.write = function (data, options, callback) {
+    public write(data, options, callback) {
         if (typeof options === "function") {
             callback = options;
             options = {};
@@ -140,7 +137,7 @@ define(function (require, exports, module) {
                 options = {};
             }
 
-            callback = callback || function () {};
+            callback = callback || function () { /* Do nothing */ };
         }
 
         // Request a consistency check if the write is not blind
@@ -152,7 +149,7 @@ define(function (require, exports, module) {
         // Block external change events until after the write has finished
         this._fileSystem._beginChange();
 
-        this._impl.writeFile(this._path, data, options, function (err, stat, created) {
+        this._impl.writeFile(this._path, data, options, function (this: File, err, stat, created) {
             if (err) {
                 this._clearCachedData();
                 try {
@@ -174,8 +171,8 @@ define(function (require, exports, module) {
             }
 
             if (created) {
-                var parent = this._fileSystem.getDirectoryForPath(this.parentPath);
-                this._fileSystem._handleDirectoryChange(parent, function (added, removed) {
+                const parent = this._fileSystem.getDirectoryForPath(this.parentPath);
+                this._fileSystem._handleDirectoryChange(parent, function (this: File, added, removed) {
                     try {
                         // Notify the caller
                         callback(null, stat);
@@ -203,8 +200,7 @@ define(function (require, exports, module) {
                 }
             }
         }.bind(this));
-    };
+    }
+}
 
-    // Export this class
-    module.exports = File;
-});
+export = File;

@@ -87,21 +87,78 @@
  * implementation object. This allows client code to use the FileSystem API without having to
  * worry about the underlying storage, which could be a local filesystem or a remote server.
  */
-define(function (require, exports, module) {
-    "use strict";
 
-    var Directory       = require("filesystem/Directory"),
-        File            = require("filesystem/File"),
-        FileIndex       = require("filesystem/FileIndex"),
-        FileSystemError = require("filesystem/FileSystemError"),
-        WatchedRoot     = require("filesystem/WatchedRoot"),
-        EventDispatcher = require("utils/EventDispatcher");
+import Directory       = require("filesystem/Directory");
+import File            = require("filesystem/File");
+import FileIndex       = require("filesystem/FileIndex");
+import FileSystemEntry = require("filesystem/FileSystemEntry");
+import FileSystemError = require("filesystem/FileSystemError");
+import WatchedRoot     = require("filesystem/WatchedRoot");
+import * as EventDispatcher from "utils/EventDispatcher";
+
+function _ensureTrailingSlash(path) {
+    if (path[path.length - 1] !== "/") {
+        path += "/";
+    }
+
+    return path;
+}
+
+/*
+* Matches continguous groups of forward slashes
+* @const
+*/
+const _DUPLICATED_SLASH_RE = /\/{2,}/g;
+
+/**
+ * The FileSystem is not usable until init() signals its callback.
+ * @constructor
+ */
+class FileSystem {
+    /**
+     * The low-level file system implementation used by this object.
+     * This is set in the init() function and cannot be changed.
+     */
+    private _impl;
 
     /**
-     * The FileSystem is not usable until init() signals its callback.
-     * @constructor
+     * The FileIndex used by this object. This is initialized in the constructor.
      */
-    function FileSystem() {
+    private _index;
+
+    /**
+     * Refcount of any pending filesystem mutation operations (e.g., writes,
+     * unlinks, etc.). Used to ensure that external change events aren't processed
+     * until after index fixups, operation-specific callbacks, and internal change
+     * events are complete. (This is important for distinguishing rename from
+     * an unrelated delete-add pair).
+     * @type {number}
+     */
+    private _activeChangeCount = 0;
+
+    /**
+     * Queue of arguments with which to invoke _handleExternalChanges(); triggered
+     * once _activeChangeCount drops to zero.
+     * @type {!Array.<{path:?string, stat:FileSystemStats=}>}
+     */
+    private _externalChanges;
+
+    /**
+     * The queue of pending watch/unwatch requests.
+     * @type {Array.<{fn: function(), cb: function()}>}
+     */
+    private _watchRequests;
+
+    /**
+     * The set of watched roots, encoded as a mapping from full paths to WatchedRoot
+     * objects which contain a file entry, filter function, and an indication of
+     * whether the watched root is inactive, starting up or fully active.
+     *
+     * @type {Object.<string, WatchedRoot>}
+     */
+    private _watchedRoots: { [fullpath: string]: WatchedRoot };
+
+    constructor() {
         // Create a file index
         this._index = new FileIndex();
 
@@ -114,48 +171,19 @@ define(function (require, exports, module) {
         // Initialize the queue of pending external changes
         this._externalChanges = [];
     }
-    EventDispatcher.makeEventDispatcher(FileSystem.prototype);
-
-    /**
-     * The low-level file system implementation used by this object.
-     * This is set in the init() function and cannot be changed.
-     */
-    FileSystem.prototype._impl = null;
-
-    /**
-     * The FileIndex used by this object. This is initialized in the constructor.
-     */
-    FileSystem.prototype._index = null;
-
-    /**
-     * Refcount of any pending filesystem mutation operations (e.g., writes,
-     * unlinks, etc.). Used to ensure that external change events aren't processed
-     * until after index fixups, operation-specific callbacks, and internal change
-     * events are complete. (This is important for distinguishing rename from
-     * an unrelated delete-add pair).
-     * @type {number}
-     */
-    FileSystem.prototype._activeChangeCount = 0;
 
     // For unit testing only
-    FileSystem.prototype._getActiveChangeCount = function () {
+    public _getActiveChangeCount() {
         return this._activeChangeCount;
-    };
-
-    /**
-     * Queue of arguments with which to invoke _handleExternalChanges(); triggered
-     * once _activeChangeCount drops to zero.
-     * @type {!Array.<{path:?string, stat:FileSystemStats=}>}
-     */
-    FileSystem.prototype._externalChanges = null;
+    }
 
     /** Process all queued watcher results, by calling _handleExternalChange() on each */
-    FileSystem.prototype._triggerExternalChangesNow = function () {
-        this._externalChanges.forEach(function (info) {
+    private _triggerExternalChangesNow() {
+        this._externalChanges.forEach(function (this: FileSystem, info) {
             this._handleExternalChange(info.path, info.stat);
         }, this);
         this._externalChanges.length = 0;
-    };
+    }
 
     /**
      * Receives a result from the impl's watcher callback, and either processes it
@@ -164,30 +192,23 @@ define(function (require, exports, module) {
      * @param {?string} path The fullPath of the changed entry
      * @param {FileSystemStats=} stat An optional stat object for the changed entry
      */
-    FileSystem.prototype._enqueueExternalChange = function (path, stat) {
+    private _enqueueExternalChange(path, stat) {
         this._externalChanges.push({path: path, stat: stat});
         if (!this._activeChangeCount) {
             this._triggerExternalChangesNow();
         }
-    };
-
-
-    /**
-     * The queue of pending watch/unwatch requests.
-     * @type {Array.<{fn: function(), cb: function()}>}
-     */
-    FileSystem.prototype._watchRequests = null;
+    }
 
     /**
      * Dequeue and process all pending watch/unwatch requests
      */
-    FileSystem.prototype._dequeueWatchRequest = function () {
+    private _dequeueWatchRequest() {
         if (this._watchRequests.length > 0) {
-            var request = this._watchRequests[0];
+            const request = this._watchRequests[0];
 
-            request.fn.call(null, function () {
+            request.fn.call(null, function (this: FileSystem) {
                 // Apply the given callback
-                var callbackArgs = arguments;
+                const callbackArgs = arguments;
                 try {
                     request.cb.apply(null, callbackArgs);
                 } finally {
@@ -197,7 +218,7 @@ define(function (require, exports, module) {
                 }
             }.bind(this));
         }
-    };
+    }
 
     /**
      * Enqueue a new watch/unwatch request.
@@ -206,7 +227,7 @@ define(function (require, exports, module) {
      * @param {callback()} cb - The callback for the provided watch/unwatch
      *      request function.
      */
-    FileSystem.prototype._enqueueWatchRequest = function (fn, cb) {
+    private _enqueueWatchRequest(fn, cb) {
         // Enqueue the given watch/unwatch request
         this._watchRequests.push({fn: fn, cb: cb});
 
@@ -214,16 +235,7 @@ define(function (require, exports, module) {
         if (this._watchRequests.length === 1) {
             this._dequeueWatchRequest();
         }
-    };
-
-    /**
-     * The set of watched roots, encoded as a mapping from full paths to WatchedRoot
-     * objects which contain a file entry, filter function, and an indication of
-     * whether the watched root is inactive, starting up or fully active.
-     *
-     * @type {Object.<string, WatchedRoot>}
-     */
-    FileSystem.prototype._watchedRoots = null;
+    }
 
     /**
      * Finds a parent watched root for a given path, or returns null if a parent
@@ -233,18 +245,19 @@ define(function (require, exports, module) {
      * @return {?{entry: FileSystemEntry, filter: function(string) boolean}} The parent
      *      watched root, if it exists, or null.
      */
-    FileSystem.prototype._findWatchedRootForPath = function (fullPath) {
-        var watchedRoot = null;
+    public _findWatchedRootForPath(fullPath): WatchedRoot | null {
+        let watchedRoot: WatchedRoot | null = null;
 
-        Object.keys(this._watchedRoots).some(function (watchedPath) {
+        Object.keys(this._watchedRoots).some(function (this: FileSystem, watchedPath) {
             if (fullPath.indexOf(watchedPath) === 0) {
                 watchedRoot = this._watchedRoots[watchedPath];
                 return true;
             }
+            return false;
         }, this);
 
         return watchedRoot;
-    };
+    }
 
     /**
      * Helper function to watch or unwatch a filesystem entry beneath a given
@@ -259,11 +272,11 @@ define(function (require, exports, module) {
      * @param {boolean} shouldWatch - Whether the entry should be watched (true)
      *      or unwatched (false).
      */
-    FileSystem.prototype._watchOrUnwatchEntry = function (entry, watchedRoot, callback, shouldWatch) {
-        var impl = this._impl,
-            recursiveWatch = impl.recursiveWatch,
-            commandName = shouldWatch ? "watchPath" : "unwatchPath",
-            filterGlobs = watchedRoot.filterGlobs;
+    private _watchOrUnwatchEntry(entry, watchedRoot, callback, shouldWatch) {
+        const impl = this._impl;
+        const recursiveWatch = impl.recursiveWatch;
+        const commandName = shouldWatch ? "watchPath" : "unwatchPath";
+        const filterGlobs = watchedRoot.filterGlobs;
 
         if (recursiveWatch) {
             // The impl can watch the entire subtree with one call on the root (we also fall into this case for
@@ -283,9 +296,9 @@ define(function (require, exports, module) {
             // filesystem to recursively watch all subdirectories.
             this._enqueueWatchRequest(function (requestCb) {
                 // First construct a list of entries to watch or unwatch
-                var entriesToWatch = [];
+                const entriesToWatch: Array<FileSystemEntry> = [];
 
-                var visitor = function (child) {
+                const visitor = function (child) {
                     if (watchedRoot.filter(child.name, child.parentPath)) {
                         if (child.isDirectory || child === watchedRoot.entry) {
                             entriesToWatch.push(child);
@@ -303,13 +316,13 @@ define(function (require, exports, module) {
                     }
 
                     // Then watch or unwatched all these entries
-                    var count = entriesToWatch.length;
+                    let count = entriesToWatch.length;
                     if (count === 0) {
                         requestCb(null);
                         return;
                     }
 
-                    var watchCallback = function () {
+                    const watchCallback = function () {
                         if (--count === 0) {
                             requestCb(null);
                         }
@@ -327,7 +340,7 @@ define(function (require, exports, module) {
                 impl.unwatchPath(entry.fullPath, requestCb);
             }, callback);
         }
-    };
+    }
 
     /**
      * Watch a filesystem entry beneath a given watchedRoot.
@@ -339,9 +352,9 @@ define(function (require, exports, module) {
      * @param {function(?string)} callback - A function that is called once the
      *      watch is complete, possibly with a FileSystemError string.
      */
-    FileSystem.prototype._watchEntry = function (entry, watchedRoot, callback) {
+    private _watchEntry(entry, watchedRoot, callback) {
         this._watchOrUnwatchEntry(entry, watchedRoot, callback, true);
-    };
+    }
 
     /**
      * Unwatch a filesystem entry beneath a given watchedRoot.
@@ -353,11 +366,11 @@ define(function (require, exports, module) {
      * @param {function(?string)} callback - A function that is called once the
      *      watch is complete, possibly with a FileSystemError string.
      */
-    FileSystem.prototype._unwatchEntry = function (entry, watchedRoot, callback) {
-        this._watchOrUnwatchEntry(entry, watchedRoot, function (err) {
+    private _unwatchEntry(entry, watchedRoot, callback) {
+        this._watchOrUnwatchEntry(entry, watchedRoot, function (this: FileSystem, err) {
             // Make sure to clear cached data for all unwatched entries because
             // entries always return cached data if it exists!
-            this._index.visitAll(function (child) {
+            this._index.visitAll(function (this: FileSystem, child) {
                 if (child.fullPath.indexOf(entry.fullPath) === 0) {
                     // 'true' so entry doesn't try to clear its immediate childrens' caches too. That would be redundant
                     // with the visitAll() here, and could be slow if we've already cleared its parent (#7150).
@@ -367,7 +380,7 @@ define(function (require, exports, module) {
 
             callback(err);
         }.bind(this), false);
-    };
+    }
 
     /**
      * Initialize this FileSystem instance.
@@ -375,23 +388,23 @@ define(function (require, exports, module) {
      * @param {FileSystemImpl} impl The back-end implementation for this
      *      FileSystem instance.
      */
-    FileSystem.prototype.init = function (impl) {
+    public init(impl) {
         console.assert(!this._impl, "This FileSystem has already been initialized!");
 
-        var changeCallback = this._enqueueExternalChange.bind(this),
-            offlineCallback = this._unwatchAll.bind(this);
+        const changeCallback = this._enqueueExternalChange.bind(this);
+        const offlineCallback = this._unwatchAll.bind(this);
 
         this._impl = impl;
         this._impl.initWatchers(changeCallback, offlineCallback);
-    };
+    }
 
     /**
      * Close a file system. Clear all caches, indexes, and file watchers.
      */
-    FileSystem.prototype.close = function () {
+    public close() {
         this._impl.unwatchAll();
         this._index.clear();
-    };
+    }
 
     /**
      * Returns true if the given path should be automatically added to the index & watch list when one of its ancestors
@@ -404,8 +417,8 @@ define(function (require, exports, module) {
      * @param {string} path Full path
      * @param {string} name Name portion of the path
      */
-    FileSystem.prototype._indexFilter = function (path, name) {
-        var parentRoot = this._findWatchedRootForPath(path);
+    public _indexFilter(path, name) {
+        const parentRoot = this._findWatchedRootForPath(path);
 
         if (parentRoot) {
             return parentRoot.filter(name, path);
@@ -415,7 +428,7 @@ define(function (require, exports, module) {
         // that would break usage of appFileSystem for 'system'-level things like enumerating extensions.
         // (Or in general, Directory.getContents() for any Directory outside the watch roots).
         return true;
-    };
+    }
 
     /**
      * Indicates that a filesystem-mutating operation has begun. As long as there
@@ -431,18 +444,18 @@ define(function (require, exports, module) {
      * All operations that mutate the file system MUST begin with a call to
      * _beginChange and must end with a call to _endChange.
      */
-    FileSystem.prototype._beginChange = function () {
+    public _beginChange() {
         this._activeChangeCount++;
-        //console.log("> beginChange  -> " + this._activeChangeCount);
-    };
+        // console.log("> beginChange  -> " + this._activeChangeCount);
+    }
 
     /**
      * Indicates that a filesystem-mutating operation has completed. See
      * FileSystem._beginChange above.
      */
-    FileSystem.prototype._endChange = function () {
+    public _endChange() {
         this._activeChangeCount--;
-        //console.log("< endChange    -> " + this._activeChangeCount);
+        // console.log("< endChange    -> " + this._activeChangeCount);
 
         if (this._activeChangeCount < 0) {
             console.error("FileSystem _activeChangeCount has fallen below zero!");
@@ -451,7 +464,7 @@ define(function (require, exports, module) {
         if (!this._activeChangeCount) {
             this._triggerExternalChangesNow();
         }
-    };
+    }
 
     /**
      * Determines whether or not the supplied path is absolute, as opposed to relative.
@@ -459,23 +472,9 @@ define(function (require, exports, module) {
      * @param {!string} fullPath
      * @return {boolean} True if the fullPath is absolute and false otherwise.
      */
-    FileSystem.isAbsolutePath = function (fullPath) {
+    public static isAbsolutePath(fullPath) {
         return (fullPath[0] === "/" || (fullPath[1] === ":" && fullPath[2] === "/"));
-    };
-
-    function _ensureTrailingSlash(path) {
-        if (path[path.length - 1] !== "/") {
-            path += "/";
-        }
-
-        return path;
     }
-
-    /*
-     * Matches continguous groups of forward slashes
-     * @const
-     */
-    var _DUPLICATED_SLASH_RE = /\/{2,}/g;
 
     /**
      * Returns a canonical version of the path: no duplicated "/"es, no ".."s,
@@ -484,22 +483,21 @@ define(function (require, exports, module) {
      * @param {boolean=} isDirectory
      * @return {!string}
      */
-    FileSystem.prototype._normalizePath = function (path, isDirectory) {
+    private _normalizePath(path, isDirectory) {
 
         if (!FileSystem.isAbsolutePath(path)) {
             throw new Error("Paths must be absolute: '" + path + "'");  // expect only absolute paths
         }
 
-        var isUNCPath = this._impl.normalizeUNCPaths && path.search(_DUPLICATED_SLASH_RE) === 0;
+        const isUNCPath = this._impl.normalizeUNCPaths && path.search(_DUPLICATED_SLASH_RE) === 0;
 
         // Remove duplicated "/"es
         path = path.replace(_DUPLICATED_SLASH_RE, "/");
 
         // Remove ".." segments
         if (path.indexOf("..") !== -1) {
-            var segments = path.split("/"),
-                i;
-            for (i = 1; i < segments.length; i++) {
+            const segments = path.split("/");
+            for (let i = 1; i < segments.length; i++) {
                 if (segments[i] === "..") {
                     if (i < 2) {
                         throw new Error("Invalid absolute path: '" + path + "'");
@@ -522,7 +520,7 @@ define(function (require, exports, module) {
         }
 
         return path;
-    };
+    }
 
     /**
      * This method adds an entry for a file in the file Index. Files on disk are added
@@ -532,13 +530,13 @@ define(function (require, exports, module) {
      * @param {File} The fileEntry which needs to be added
      * @param {String} The full path to the file
      */
-    FileSystem.prototype.addEntryForPathIfRequired = function (fileEntry, path) {
-        var entry = this._index.getEntry(path);
+    public addEntryForPathIfRequired(fileEntry, path) {
+        const entry = this._index.getEntry(path);
 
         if (!entry) {
             this._index.addEntry(fileEntry);
         }
-    };
+    }
 
     /**
      * Return a (strict subclass of a) FileSystemEntry object for the specified
@@ -552,10 +550,10 @@ define(function (require, exports, module) {
      * @return {File|Directory} The File or Directory object. This file may not
      *      yet exist on disk.
      */
-    FileSystem.prototype._getEntryForPath = function (EntryConstructor, path) {
-        var isDirectory = EntryConstructor === Directory;
+    private _getEntryForPath(EntryConstructor, path) {
+        const isDirectory = EntryConstructor === Directory;
         path = this._normalizePath(path, isDirectory);
-        var entry = this._index.getEntry(path);
+        let entry = this._index.getEntry(path);
 
         if (!entry) {
             entry = new EntryConstructor(path, this);
@@ -563,7 +561,7 @@ define(function (require, exports, module) {
         }
 
         return entry;
-    };
+    }
 
     /**
      * Return a File object for the specified path.
@@ -572,9 +570,9 @@ define(function (require, exports, module) {
      *
      * @return {File} The File object. This file may not yet exist on disk.
      */
-    FileSystem.prototype.getFileForPath = function (path) {
+    public getFileForPath(path) {
         return this._getEntryForPath(File, path);
-    };
+    }
 
     /**
      * Return a Directory object for the specified path.
@@ -583,9 +581,9 @@ define(function (require, exports, module) {
      *
      * @return {Directory} The Directory object. This directory may not yet exist on disk.
      */
-    FileSystem.prototype.getDirectoryForPath = function (path) {
+    public getDirectoryForPath(path) {
         return this._getEntryForPath(Directory, path);
-    };
+    }
 
     /**
      * Resolve a path.
@@ -594,9 +592,9 @@ define(function (require, exports, module) {
      * @param {function (?string, FileSystemEntry=, FileSystemStats=)} callback Callback resolved
      *      with a FileSystemError string or with the entry for the provided path.
      */
-    FileSystem.prototype.resolve = function (path, callback) {
-        var normalizedPath = this._normalizePath(path, false),
-            item = this._index.getEntry(normalizedPath);
+    public resolve(path, callback) {
+        let normalizedPath = this._normalizePath(path, false);
+        let item = this._index.getEntry(normalizedPath);
 
         if (!item) {
             normalizedPath = _ensureTrailingSlash(normalizedPath);
@@ -613,7 +611,7 @@ define(function (require, exports, module) {
                 callback(null, item, stat);
             });
         } else {
-            this._impl.stat(path, function (err, stat) {
+            this._impl.stat(path, function (this: FileSystem, err, stat) {
                 if (err) {
                     callback(err);
                     return;
@@ -632,7 +630,7 @@ define(function (require, exports, module) {
                 callback(null, item, stat);
             }.bind(this));
         }
-    };
+    }
 
     /**
      * Show an "Open" dialog and return the file(s)/directories selected by the user.
@@ -652,15 +650,16 @@ define(function (require, exports, module) {
      *                          open dialog, the error will be falsy and the file/directory array will
      *                          be empty.
      */
-    FileSystem.prototype.showOpenDialog = function (allowMultipleSelection,
-                                                    chooseDirectories,
-                                                    title,
-                                                    initialPath,
-                                                    fileTypes,
-                                                    callback) {
-
+    public showOpenDialog(
+        allowMultipleSelection,
+        chooseDirectories,
+        title,
+        initialPath,
+        fileTypes,
+        callback
+    ) {
         this._impl.showOpenDialog(allowMultipleSelection, chooseDirectories, title, initialPath, fileTypes, callback);
-    };
+    }
 
     /**
      * Show a "Save" dialog and return the path of the file to save.
@@ -675,9 +674,9 @@ define(function (require, exports, module) {
      *                          string or the name of the file to save. If the user cancels the save,
      *                          the error will be falsy and the name will be empty.
      */
-    FileSystem.prototype.showSaveDialog = function (title, initialPath, proposedNewFilename, callback) {
+    public showSaveDialog(title, initialPath, proposedNewFilename, callback) {
         this._impl.showSaveDialog(title, initialPath, proposedNewFilename, callback);
-    };
+    }
 
     /**
      * Fire a rename event. Clients listen for these events using FileSystem.on.
@@ -685,9 +684,9 @@ define(function (require, exports, module) {
      * @param {string} oldPath The entry's previous fullPath
      * @param {string} newPath The entry's current fullPath
      */
-    FileSystem.prototype._fireRenameEvent = function (oldPath, newPath) {
-        this.trigger("rename", oldPath, newPath);
-    };
+    public _fireRenameEvent(oldPath, newPath) {
+        (this as unknown as EventDispatcher.DispatcherEvents).trigger("rename", oldPath, newPath);
+    }
 
     /**
      * Fire a change event. Clients listen for these events using FileSystem.on.
@@ -698,9 +697,9 @@ define(function (require, exports, module) {
      * @param {Array<File|Directory>=} removed If the entry is a directory, this
      *      is a set of removed entries from the directory.
      */
-    FileSystem.prototype._fireChangeEvent = function (entry, added, removed) {
-        this.trigger("change", entry, added, removed);
-    };
+    public _fireChangeEvent(entry, added?, removed?) {
+        (this as unknown as EventDispatcher.DispatcherEvents).trigger("change", entry, added, removed);
+    }
 
     /**
      * @private
@@ -710,10 +709,10 @@ define(function (require, exports, module) {
      * @param {string} newFullPath
      * @param {boolean} isDirectory
      */
-    FileSystem.prototype._handleRename = function (oldFullPath, newFullPath, isDirectory) {
+    public _handleRename(oldFullPath, newFullPath, isDirectory) {
         // Update all affected entries in the index
         this._index.entryRenamed(oldFullPath, newFullPath, isDirectory);
-    };
+    }
 
     /**
      * Notify the filesystem that the given directory has changed. Updates the filesystem's
@@ -727,21 +726,21 @@ define(function (require, exports, module) {
      *      The callback that will be applied to a set of added and a set of removed
      *      FileSystemEntry objects.
      */
-    FileSystem.prototype._handleDirectoryChange = function (directory, callback) {
-        var oldContents = directory._contents;
+    private _handleDirectoryChange(directory, callback) {
+        const oldContents = directory._contents;
 
         directory._clearCachedData();
-        directory.getContents(function (err, contents) {
-            var addedEntries = oldContents && contents.filter(function (entry) {
+        directory.getContents(function (this: FileSystem, err, contents) {
+            const addedEntries = oldContents && contents.filter(function (entry) {
                 return oldContents.indexOf(entry) === -1;
             });
 
-            var removedEntries = oldContents && oldContents.filter(function (entry) {
+            const removedEntries = oldContents && oldContents.filter(function (entry) {
                 return contents.indexOf(entry) === -1;
             });
 
             // If directory is not watched, clear children's caches manually.
-            var watchedRoot = this._findWatchedRootForPath(directory.fullPath);
+            const watchedRoot = this._findWatchedRootForPath(directory.fullPath);
             if (!watchedRoot || !watchedRoot.filter(directory.name, directory.parentPath)) {
                 this._index.visitAll(function (entry) {
                     if (entry.fullPath.indexOf(directory.fullPath) === 0) {
@@ -754,16 +753,16 @@ define(function (require, exports, module) {
                 return;
             }
 
-            var addedCounter = addedEntries ? addedEntries.length : 0,
-                removedCounter = removedEntries ? removedEntries.length : 0,
-                counter = addedCounter + removedCounter;
+            const addedCounter = addedEntries ? addedEntries.length : 0;
+            const removedCounter = removedEntries ? removedEntries.length : 0;
+            let counter = addedCounter + removedCounter;
 
             if (counter === 0) {
                 callback(addedEntries, removedEntries);
                 return;
             }
 
-            var watchOrUnwatchCallback = function (err) {
+            const watchOrUnwatchCallback = function (err) {
                 if (err) {
                     console.error("FileSystem error in _handleDirectoryChange after watch/unwatch entries: " + err);
                 }
@@ -774,18 +773,18 @@ define(function (require, exports, module) {
             };
 
             if (addedEntries) {
-                addedEntries.forEach(function (entry) {
+                addedEntries.forEach(function (this: FileSystem, entry) {
                     this._watchEntry(entry, watchedRoot, watchOrUnwatchCallback);
                 }, this);
             }
 
             if (removedEntries) {
-                removedEntries.forEach(function (entry) {
+                removedEntries.forEach(function (this: FileSystem, entry) {
                     this._unwatchEntry(entry, watchedRoot, watchOrUnwatchCallback);
                 }, this);
             }
         }.bind(this));
-    };
+    }
 
     /**
      * @private
@@ -796,7 +795,7 @@ define(function (require, exports, module) {
      * @param {FileSystemStats=} stat Optional stat for the item that changed. This param is not always
      *         passed.
      */
-    FileSystem.prototype._handleExternalChange = function (path, stat) {
+    private _handleExternalChange(path, stat?) {
 
         if (!path) {
             // This is a "wholesale" change event; clear all caches
@@ -811,9 +810,9 @@ define(function (require, exports, module) {
 
         path = this._normalizePath(path, false);
 
-        var entry = this._index.getEntry(path);
+        const entry = this._index.getEntry(path);
         if (entry) {
-            var oldStat = entry._stat;
+            const oldStat = entry._stat;
             if (entry.isFile) {
                 // Update stat and clear contents, but only if out of date
                 if (!(stat && oldStat && stat.mtime.getTime() <= oldStat.mtime.getTime())) {
@@ -822,7 +821,7 @@ define(function (require, exports, module) {
                     this._fireChangeEvent(entry);
                 }
             } else {
-                this._handleDirectoryChange(entry, function (added, removed) {
+                this._handleDirectoryChange(entry, function (this: FileSystem, added, removed) {
                     entry._stat = stat;
 
                     if (entry._isWatched()) {
@@ -834,16 +833,16 @@ define(function (require, exports, module) {
                 }.bind(this));
             }
         }
-    };
+    }
 
     /**
      * Clears all cached content. Because of the performance implications of this, this should only be used if
      * there is a suspicion that the file system has not been updated through the normal file watchers
      * mechanism.
      */
-    FileSystem.prototype.clearAllCaches = function () {
+    public clearAllCaches() {
         this._handleExternalChange(null);
-    };
+    }
 
     /**
      * Start watching a filesystem root entry.
@@ -859,40 +858,45 @@ define(function (require, exports, module) {
      *      completed. If the watch fails, the function will have a non-null FileSystemError
      *      string parametr.
      */
-    FileSystem.prototype.watch = function (entry, filter, filterGlobs, callback) {
+    public watch(entry, filter, filterGlobs, callback) {
         // make filterGlobs an optional argument to stay backwards compatible
         if (typeof callback === "undefined" && typeof filterGlobs === "function") {
             callback = filterGlobs;
             filterGlobs = null;
         }
 
-        var fullPath = entry.fullPath;
+        const fullPath = entry.fullPath;
 
-        callback = callback || function () {};
+        callback = callback || function () { /* Do nothing */ };
 
-        var watchingParentRoot = this._findWatchedRootForPath(fullPath);
+        const watchingParentRoot = this._findWatchedRootForPath(fullPath);
         if (watchingParentRoot &&
                 (watchingParentRoot.status === WatchedRoot.STARTING ||
-                 watchingParentRoot.status === WatchedRoot.ACTIVE)) {
+                watchingParentRoot.status === WatchedRoot.ACTIVE)) {
             callback("A parent of this root is already watched");
             return;
         }
 
-        var watchingChildRoot = Object.keys(this._watchedRoots).some(function (path) {
-            var watchedRoot = this._watchedRoots[path],
-                watchedPath = watchedRoot.entry.fullPath;
-
-            return watchedPath.indexOf(fullPath) === 0;
-        }, this);
+        let watchingChildRoot: WatchedRoot | null = null;
+        for (const path in this._watchedRoots) {
+            if (this._watchedRoots.hasOwnProperty(path)) {
+                const watchedRoot = this._watchedRoots[path];
+                const watchedPath = watchedRoot.entry.fullPath;
+                if (watchedPath.indexOf(fullPath) === 0) {
+                    watchingChildRoot = watchedRoot;
+                    break;
+                }
+            }
+        }
 
         if (watchingChildRoot &&
                 (watchingChildRoot.status === WatchedRoot.STARTING ||
-                 watchingChildRoot.status === WatchedRoot.ACTIVE)) {
+                watchingChildRoot.status === WatchedRoot.ACTIVE)) {
             callback("A child of this root is already watched");
             return;
         }
 
-        var watchedRoot = new WatchedRoot(entry, filter, filterGlobs);
+        const watchedRoot = new WatchedRoot(entry, filter, filterGlobs);
 
         this._watchedRoots[fullPath] = watchedRoot;
 
@@ -900,7 +904,7 @@ define(function (require, exports, module) {
         // objects may cache their contents. See FileSystemEntry._isWatched.
         watchedRoot.status = WatchedRoot.STARTING;
 
-        this._watchEntry(entry, watchedRoot, function (err) {
+        this._watchEntry(entry, watchedRoot, function (this: FileSystem, err) {
             if (err) {
                 console.warn("Failed to watch root: ", entry.fullPath, err);
                 delete this._watchedRoots[fullPath];
@@ -912,7 +916,7 @@ define(function (require, exports, module) {
 
             callback(null);
         }.bind(this));
-    };
+    }
 
     /**
      * Stop watching a filesystem root entry.
@@ -923,11 +927,11 @@ define(function (require, exports, module) {
      *      completed. If the unwatch fails, the function will have a non-null FileSystemError
      *      string parameter.
      */
-    FileSystem.prototype.unwatch = function (entry, callback) {
-        var fullPath = entry.fullPath,
-            watchedRoot = this._watchedRoots[fullPath];
+    public unwatch(entry, callback) {
+        const fullPath = entry.fullPath;
+        const watchedRoot = this._watchedRoots[fullPath];
 
-        callback = callback || function () {};
+        callback = callback || function () { /* Do nothing */ };
 
         if (!watchedRoot) {
             callback(FileSystemError.ROOT_NOT_WATCHED);
@@ -938,10 +942,10 @@ define(function (require, exports, module) {
         // This is useful for making sure we don't try to concurrently watch overlapping roots.
         watchedRoot.status = WatchedRoot.INACTIVE;
 
-        this._unwatchEntry(entry, watchedRoot, function (err) {
+        this._unwatchEntry(entry, watchedRoot, function (this: FileSystem, err) {
             delete this._watchedRoots[fullPath];
 
-            this._index.visitAll(function (child) {
+            this._index.visitAll(function (this: FileSystem, child) {
                 if (child.fullPath.indexOf(entry.fullPath) === 0) {
                     this._index.removeEntry(child);
                 }
@@ -955,18 +959,18 @@ define(function (require, exports, module) {
 
             callback(null);
         }.bind(this));
-    };
+    }
 
     /**
      * Unwatch all watched roots. Calls unwatch on the underlying impl for each
      * watched root and ignores errors.
      * @private
      */
-    FileSystem.prototype._unwatchAll = function () {
+    private _unwatchAll() {
         console.warn("File watchers went offline!");
 
-        Object.keys(this._watchedRoots).forEach(function (path) {
-            var watchedRoot = this._watchedRoots[path];
+        Object.keys(this._watchedRoots).forEach(function (this: FileSystem, path) {
+            const watchedRoot = this._watchedRoots[path];
 
             watchedRoot.status = WatchedRoot.INACTIVE;
             delete this._watchedRoots[path];
@@ -978,64 +982,63 @@ define(function (require, exports, module) {
         // Fire a wholesale change event, clearing all caches and request that
         // clients manually update their state.
         this._handleExternalChange(null);
-    };
-
-
-    // The singleton instance
-    var _instance;
-
-    function _wrap(func) {
-        return function () {
-            return func.apply(_instance, arguments);
-        };
     }
+}
+EventDispatcher.makeEventDispatcher(FileSystem.prototype);
 
-    // Export public methods as proxies to the singleton instance
-    exports.init = _wrap(FileSystem.prototype.init);
-    exports.close = _wrap(FileSystem.prototype.close);
-    exports.shouldShow = _wrap(FileSystem.prototype.shouldShow);
-    exports.getFileForPath = _wrap(FileSystem.prototype.getFileForPath);
-    exports.addEntryForPathIfRequired = _wrap(FileSystem.prototype.addEntryForPathIfRequired);
-    exports.getDirectoryForPath = _wrap(FileSystem.prototype.getDirectoryForPath);
-    exports.resolve = _wrap(FileSystem.prototype.resolve);
-    exports.showOpenDialog = _wrap(FileSystem.prototype.showOpenDialog);
-    exports.showSaveDialog = _wrap(FileSystem.prototype.showSaveDialog);
-    exports.watch = _wrap(FileSystem.prototype.watch);
-    exports.unwatch = _wrap(FileSystem.prototype.unwatch);
-    exports.clearAllCaches = _wrap(FileSystem.prototype.clearAllCaches);
-
-    // Static public utility methods
-    exports.isAbsolutePath = FileSystem.isAbsolutePath;
-
-    // For testing only
-    exports._getActiveChangeCount = _wrap(FileSystem.prototype._getActiveChangeCount);
-
-    /**
-     * Add an event listener for a FileSystem event.
-     *
-     * @param {string} event The name of the event
-     * @param {function} handler The handler for the event
-     */
-    exports.on = function (event, handler) {
-        _instance.on(event, handler);
+function _wrap(func) {
+    return function (...args) {
+        return func.apply(_instance, arguments);
     };
+}
 
-    /**
-     * Remove an event listener for a FileSystem event.
-     *
-     * @param {string} event The name of the event
-     * @param {function} handler The handler for the event
-     */
-    exports.off = function (event, handler) {
-        _instance.off(event, handler);
-    };
+// Export public methods as proxies to the singleton instance
+export const init = _wrap(FileSystem.prototype.init);
+export const close = _wrap(FileSystem.prototype.close);
+// @ts-ignore: verify if shouldShow actually exists.
+export const shouldShow = _wrap(FileSystem.prototype.shouldShow);
+export const getFileForPath = _wrap(FileSystem.prototype.getFileForPath);
+export const addEntryForPathIfRequired = _wrap(FileSystem.prototype.addEntryForPathIfRequired);
+export const getDirectoryForPath = _wrap(FileSystem.prototype.getDirectoryForPath);
+export const resolve = _wrap(FileSystem.prototype.resolve);
+export const showOpenDialog = _wrap(FileSystem.prototype.showOpenDialog);
+export const showSaveDialog = _wrap(FileSystem.prototype.showSaveDialog);
+export const watch = _wrap(FileSystem.prototype.watch);
+export const unwatch = _wrap(FileSystem.prototype.unwatch);
+export const clearAllCaches = _wrap(FileSystem.prototype.clearAllCaches);
 
-    // Export the FileSystem class as "private" for unit testing only.
-    exports._FileSystem = FileSystem;
+// Static public utility methods
+export const isAbsolutePath = FileSystem.isAbsolutePath;
 
-    // Create the singleton instance
-    _instance = new FileSystem();
+// For testing only
+export const _getActiveChangeCount = _wrap(FileSystem.prototype._getActiveChangeCount);
 
-    // Initialize the singleton instance
-    _instance.init(require("fileSystemImpl"));
-});
+/**
+ * Add an event listener for a FileSystem event.
+ *
+ * @param {string} event The name of the event
+ * @param {function} handler The handler for the event
+ */
+export function on(event, handler) {
+    (_instance as unknown as EventDispatcher.DispatcherEvents).on(event, handler);
+}
+
+/**
+ * Remove an event listener for a FileSystem event.
+ *
+ * @param {string} event The name of the event
+ * @param {function} handler The handler for the event
+ */
+export function off(event, handler) {
+    (_instance as unknown as EventDispatcher.DispatcherEvents).off(event, handler);
+}
+
+// Export the FileSystem class as "private" for unit testing only.
+export const _FileSystem = FileSystem;
+
+// Create the singleton instance
+const _instance = new FileSystem();
+
+// Initialize the singleton instance
+import FileSystemImpl = require("fileSystemImpl");
+_instance.init(FileSystemImpl);

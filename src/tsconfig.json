@@ -7,6 +7,10 @@
         "jsx": "react",
         "baseUrl": ".",
         "paths": {
+            "fileSystemImpl": [
+                "filesystem/impls/appshell/AppshellFileSystem",
+                "../dist/www/filesystem/impls/appshell/AppshellFileSystem"
+            ],
             "thirdparty/*": [
                 "*",
                 "../dist/www/thirdparty/*"

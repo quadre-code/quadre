@@ -22,56 +22,52 @@
  *
  */
 
-define(function (require, exports, module) {
-    "use strict";
-
-    /*
-     * Represents file or directory structure watched by the FileSystem. If the
-     * entry is a directory, all children (that pass the supplied filter function)
-     * are also watched. A WatchedRoot object begins and ends its life in the
-     * INACTIVE state. While in the process of starting up watchers, the WatchedRoot
-     * is in the STARTING state. When watchers are ready, the WatchedRoot enters
-     * the ACTIVE state.
-     *
-     * See the FileSystem class for more details.
-     *
-     * @constructor
-     * @param {File|Directory} entry
-     * @param {function(string, string):boolean} filter
-     * @param {Array<string>} filterGlobs
-     */
-    function WatchedRoot(entry, filter, filterGlobs) {
-        this.entry = entry;
-        this.filter = filter;
-        this.filterGlobs = filterGlobs;
-    }
-
+/*
+ * Represents file or directory structure watched by the FileSystem. If the
+ * entry is a directory, all children (that pass the supplied filter function)
+ * are also watched. A WatchedRoot object begins and ends its life in the
+ * INACTIVE state. While in the process of starting up watchers, the WatchedRoot
+ * is in the STARTING state. When watchers are ready, the WatchedRoot enters
+ * the ACTIVE state.
+ *
+ * See the FileSystem class for more details.
+ *
+ * @constructor
+ * @param {File|Directory} entry
+ * @param {function(string, string):boolean} filter
+ * @param {Array<string>} filterGlobs
+ */
+class WatchedRoot {
     // Status constants
-    WatchedRoot.INACTIVE = 0;
-    WatchedRoot.STARTING = 1;
-    WatchedRoot.ACTIVE = 2;
+    public static INACTIVE = 0;
+    public static STARTING = 1;
+    public static ACTIVE = 2;
 
     /**
      * @type {File|Directory}
      */
-    WatchedRoot.prototype.entry = null;
+    public entry;
 
     /**
      * @type {function(string, string):boolean}
      */
-    WatchedRoot.prototype.filter = null;
+    public filter;
 
     /**
      * @type {Array<string>}
      */
-    WatchedRoot.prototype.filterGlobs = null;
+    public filterGlobs;
 
     /**
      * @type {number}
      */
-    WatchedRoot.prototype.status = WatchedRoot.INACTIVE;
+    public status = WatchedRoot.INACTIVE;
 
+    constructor(entry, filter, filterGlobs) {
+        this.entry = entry;
+        this.filter = filter;
+        this.filterGlobs = filterGlobs;
+    }
+}
 
-    // Export this class
-    module.exports = WatchedRoot;
-});
+export = WatchedRoot;

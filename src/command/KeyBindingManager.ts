@@ -37,7 +37,7 @@ import * as CommandManager from "command/CommandManager";
 import * as DefaultDialogs from "widgets/DefaultDialogs";
 import * as EventDispatcher from "utils/EventDispatcher";
 import * as FileSystem from "filesystem/FileSystem";
-import * as FileSystemError from "filesystem/FileSystemError";
+import FileSystemError = require("filesystem/FileSystemError");
 import * as FileUtils from "file/FileUtils";
 import * as KeyEvent from "utils/KeyEvent";
 import * as Strings from "strings";

@@ -23,7 +23,7 @@
  */
 
 import * as Async from "utils/Async";
-import * as FileSystemError from "filesystem/FileSystemError";
+import FileSystemError = require("filesystem/FileSystemError");
 
 /**
  * @private

@@ -35,8 +35,8 @@
  * return someInMemFile).
  */
 
-import * as File from "filesystem/File";
-import * as FileSystemError from "filesystem/FileSystemError";
+import File = require("filesystem/File");
+import FileSystemError = require("filesystem/FileSystemError");
 
 class InMemoryFile extends File {
     public parentClass = File.prototype;

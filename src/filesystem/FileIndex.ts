@@ -27,63 +27,60 @@
  *
  * This module is *only* used by FileSystem, and should not be called directly.
  */
-define(function (require, exports, module) {
-    "use strict";
 
-    /**
-     * @constructor
-     */
-    function FileIndex() {
-        this._index = {};
-    }
-
+/**
+ * @constructor
+ */
+class FileIndex {
     /**
      * Master index
      *
      * @type {Object.<string, File|Directory>} Maps a fullPath to a File or Directory object
      */
-    FileIndex.prototype._index = null;
+    private _index;
+
+    constructor() {
+        this._index = {};
+    }
 
     /**
      * Clear the file index cache.
      */
-    FileIndex.prototype.clear = function () {
+    public clear() {
         this._index = {};
-    };
+    }
 
     /**
      * Visits every entry in the entire index; no stopping condition.
      * @param {!function(FileSystemEntry, string):void} Called with an entry and its fullPath
      */
-    FileIndex.prototype.visitAll = function (visitor) {
-        var path;
-        for (path in this._index) {
+    public visitAll(visitor) {
+        for (const path in this._index) {
             if (this._index.hasOwnProperty(path)) {
                 visitor(this._index[path], path);
             }
         }
-    };
+    }
 
     /**
      * Add an entry.
      *
      * @param {FileSystemEntry} entry The entry to add.
      */
-    FileIndex.prototype.addEntry = function (entry) {
+    public addEntry(entry) {
         this._index[entry.fullPath] = entry;
-    };
+    }
 
     /**
      * Remove an entry.
      *
      * @param {FileSystemEntry} entry The entry to remove.
      */
-    FileIndex.prototype.removeEntry = function (entry) {
-        var path = entry.fullPath,
-            property;
+    public removeEntry(entry) {
+        const path = entry.fullPath;
 
         function replaceMember(property) {
-            var member = entry[property];
+            const member = entry[property];
             if (typeof member === "function") {
                 entry[property] = function () {
                     console.warn("FileSystemEntry used after being removed from index: ", path);
@@ -94,12 +91,12 @@ define(function (require, exports, module) {
 
         delete this._index[path];
 
-        for (property in entry) {
+        for (const property in entry) {
             if (entry.hasOwnProperty(property)) {
                 replaceMember(property);
             }
         }
-    };
+    }
 
     /**
      * Notify the index that an entry has been renamed. This updates
@@ -109,12 +106,11 @@ define(function (require, exports, module) {
      * @param {string} newPath
      * @param {boolean} isDirectory
      */
-    FileIndex.prototype.entryRenamed = function (oldPath, newPath, isDirectory) {
-        var path,
-            renameMap = {};
+    public entryRenamed(oldPath, newPath, isDirectory) {
+        const renameMap = {};
 
         // Find all entries affected by the rename and put into a separate map.
-        for (path in this._index) {
+        for (const path in this._index) {
             if (this._index.hasOwnProperty(path)) {
                 // See if we have a match. For directories, see if the path
                 // starts with the old name. This is safe since paths always end
@@ -127,9 +123,9 @@ define(function (require, exports, module) {
         }
 
         // Do the rename.
-        for (path in renameMap) {
+        for (const path in renameMap) {
             if (renameMap.hasOwnProperty(path)) {
-                var item = this._index[path];
+                const item = this._index[path];
 
                 // Sanity check to make sure the item and path still match
                 console.assert(item.fullPath === path);
@@ -139,7 +135,7 @@ define(function (require, exports, module) {
                 item._setPath(renameMap[path]);
             }
         }
-    };
+    }
 
     /**
      * Returns the cached entry for the specified path, or undefined
@@ -149,10 +145,9 @@ define(function (require, exports, module) {
      * @return {File|Directory} The entry for the path, or undefined if it hasn't
      *              been cached yet.
      */
-    FileIndex.prototype.getEntry = function (path) {
+    public getEntry(path) {
         return this._index[path];
-    };
+    }
+}
 
-    // Export public API
-    module.exports = FileIndex;
-});
+export = FileIndex;

@@ -28,30 +28,28 @@
  *
  * Error values are strings. Any "falsy" value: null, undefined or "" means "no error".
  */
-define(function (require, exports, module) {
-    "use strict";
 
-    /**
-     * Enumerated File System Errors
-     * @enum {string}
-     */
-    module.exports = {
-        UNKNOWN                     : "Unknown",
-        INVALID_PARAMS              : "InvalidParams",
-        NOT_FOUND                   : "NotFound",
-        PERM_DENIED                 : "PermDenied",
-        NOT_READABLE                : "PermDenied", // this is here for compatibility, PERM_DENIED is preffered
-        NOT_WRITABLE                : "PermDenied", // this is here for compatibility, PERM_DENIED is preffered
-        UNSUPPORTED_ENCODING        : "UnsupportedEncoding",
-        NOT_SUPPORTED               : "NotSupported",
-        OUT_OF_SPACE                : "OutOfSpace",
-        TOO_MANY_ENTRIES            : "TooManyEntries",
-        ALREADY_EXISTS              : "AlreadyExists",
-        CONTENTS_MODIFIED           : "ContentsModified",
-        ROOT_NOT_WATCHED            : "RootNotBeingWatched",
-        EXCEEDS_MAX_FILE_SIZE       : "ExceedsMaxFileSize",
-        NETWORK_DRIVE_NOT_SUPPORTED : "NetworkDriveNotSupported"
+/**
+ * Enumerated File System Errors
+ * @enum {string}
+ */
+enum FileSystemErrors {
+    UNKNOWN                     = "Unknown",
+    INVALID_PARAMS              = "InvalidParams",
+    NOT_FOUND                   = "NotFound",
+    PERM_DENIED                 = "PermDenied",
+    NOT_READABLE                = "PermDenied", // this is here for compatibility, PERM_DENIED is preffered
+    NOT_WRITABLE                = "PermDenied", // this is here for compatibility, PERM_DENIED is preffered
+    UNSUPPORTED_ENCODING        = "UnsupportedEncoding",
+    NOT_SUPPORTED               = "NotSupported",
+    OUT_OF_SPACE                = "OutOfSpace",
+    TOO_MANY_ENTRIES            = "TooManyEntries",
+    ALREADY_EXISTS              = "AlreadyExists",
+    CONTENTS_MODIFIED           = "ContentsModified",
+    ROOT_NOT_WATCHED            = "RootNotBeingWatched",
+    EXCEEDS_MAX_FILE_SIZE       = "ExceedsMaxFileSize",
+    NETWORK_DRIVE_NOT_SUPPORTED = "NetworkDriveNotSupported"
 
-        // FUTURE: Add remote connection errors: timeout, not logged in, connection err, etc.
-    };
-});
+    // FUTURE: Add remote connection errors: timeout, not logged in, connection err, etc.
+}
+export = FileSystemErrors;

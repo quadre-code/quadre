@@ -256,7 +256,7 @@ function statSync(path: string): FileSystemStatsType {
  * @param {function(?string, boolean)} callback
  */
 function exists(path: string, callback: Function) {
-    stat(path, function (err: NodeJS.ErrnoException) {
+    stat(path, function (err: NodeJS.ErrnoException | FileSystemError) {
         if (err) {
             if (err === FileSystemError.NOT_FOUND) {
                 callback(null, false);
@@ -445,7 +445,7 @@ function writeFile(
         }
     }
 
-    stat(path, function (err: NodeJS.ErrnoException, stats: any) {
+    stat(path, function (err: NodeJS.ErrnoException | FileSystemError, stats: any) {
         if (err) {
             switch (err) {
                 case FileSystemError.NOT_FOUND:

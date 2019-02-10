@@ -60,119 +60,118 @@
  * operations, but required for read-only operations. The first argument to the
  * callback should always be a nullable error string from FileSystemError.
  */
-define(function (require, exports, module) {
-    "use strict";
 
-    var FileSystemError = require("filesystem/FileSystemError"),
-        WatchedRoot     = require("filesystem/WatchedRoot");
+import FileSystemError = require("filesystem/FileSystemError");
+import WatchedRoot     = require("filesystem/WatchedRoot");
+import FileSystemStats = require("filesystem/FileSystemStats");
+import { EntryKind } from "filesystem/EntryKind";
 
-    var VISIT_DEFAULT_MAX_DEPTH = 100,
-        VISIT_DEFAULT_MAX_ENTRIES = 30000;
+const VISIT_DEFAULT_MAX_DEPTH = 100;
+const VISIT_DEFAULT_MAX_ENTRIES = 30000;
 
-    /* Counter to give every entry a unique id */
-    var nextId = 0;
+/* Counter to give every entry a unique id */
+let nextId = 0;
+
+/**
+ * Model for a file system entry. This is the base class for File and Directory,
+ * and is never used directly.
+ *
+ * See the File, Directory, and FileSystem classes for more details.
+ *
+ * @constructor
+ * @param {string} path The path for this entry.
+ * @param {FileSystem} fileSystem The file system associated with this entry.
+ */
+class FileSystemEntry {
+    private _id;
 
     /**
-     * Model for a file system entry. This is the base class for File and Directory,
-     * and is never used directly.
-     *
-     * See the File, Directory, and FileSystem classes for more details.
-     *
-     * @constructor
-     * @param {string} path The path for this entry.
-     * @param {FileSystem} fileSystem The file system associated with this entry.
+     * Cached stat object for this file.
+     * @type {?FileSystemStats}
      */
-    function FileSystemEntry(path, fileSystem) {
+    protected _stat?: FileSystemStats;
+
+    /**
+     * Parent file system.
+     * @type {!FileSystem}
+     */
+    protected _fileSystem;
+
+    /**
+     * The path of this entry.
+     * @type {string}
+     */
+    protected _path = null;
+
+    /**
+     * The name of this entry.
+     * @type {string}
+     */
+    private _name = null;
+
+    /**
+     * The parent of this entry.
+     * @type {string}
+     */
+    private _parentPath;
+
+    /**
+     * Whether or not the entry is a file
+     * @type {boolean}
+     */
+    protected _isFile = false;
+
+    /**
+     * Whether or not the entry is a directory
+     * @type {boolean}
+     */
+    protected _isDirectory = false;
+
+    /**
+     * Cached copy of this entry's watched root
+     * @type {entry: File|Directory, filter: function(FileSystemEntry):boolean, active: boolean}
+     */
+    private _watchedRoot;
+
+    /**
+     * Cached result of _watchedRoot.filter(this.name, this.parentPath).
+     * @type {boolean}
+     */
+    private _watchedRootFilterResult;
+
+    constructor(path, fileSystem, entryKind: EntryKind) {
+        if (entryKind === EntryKind.Directory) {
+            this._isDirectory = true;
+        } else if (entryKind === EntryKind.File) {
+            this._isFile = true;
+        }
         this._setPath(path);
         this._fileSystem = fileSystem;
         this._id = nextId++;
     }
 
     // Add "fullPath", "name", "parent", "id", "isFile" and "isDirectory" getters
-    Object.defineProperties(FileSystemEntry.prototype, {
-        "fullPath": {
-            get: function () { return this._path; },
-            set: function () { throw new Error("Cannot set fullPath"); }
-        },
-        "name": {
-            get: function () { return this._name; },
-            set: function () { throw new Error("Cannot set name"); }
-        },
-        "parentPath": {
-            get: function () { return this._parentPath; },
-            set: function () { throw new Error("Cannot set parentPath"); }
-        },
-        "id": {
-            get: function () { return this._id; },
-            set: function () { throw new Error("Cannot set id"); }
-        },
-        "isFile": {
-            get: function () { return this._isFile; },
-            set: function () { throw new Error("Cannot set isFile"); }
-        },
-        "isDirectory": {
-            get: function () { return this._isDirectory; },
-            set: function () { throw new Error("Cannot set isDirectory"); }
-        },
-        "_impl": {
-            get: function () { return this._fileSystem._impl; },
-            set: function () { throw new Error("Cannot set _impl"); }
-        }
-    });
 
-    /**
-     * Cached stat object for this file.
-     * @type {?FileSystemStats}
-     */
-    FileSystemEntry.prototype._stat = null;
+    public get fullPath() { return this._path; }
+    public set fullPath(fullPath) { throw new Error("Cannot set fullPath"); }
 
-    /**
-     * Parent file system.
-     * @type {!FileSystem}
-     */
-    FileSystemEntry.prototype._fileSystem = null;
+    public get name() { return this._name; }
+    public set name(name) { throw new Error("Cannot set name"); }
 
-    /**
-     * The path of this entry.
-     * @type {string}
-     */
-    FileSystemEntry.prototype._path = null;
+    public get parentPath() { return this._parentPath; }
+    public set parentPath(parentPath) { throw new Error("Cannot set parentPath"); }
 
-    /**
-     * The name of this entry.
-     * @type {string}
-     */
-    FileSystemEntry.prototype._name = null;
+    public get id() { return this._id; }
+    public set id(id) { throw new Error("Cannot set id"); }
 
-    /**
-     * The parent of this entry.
-     * @type {string}
-     */
-    FileSystemEntry.prototype._parentPath = null;
+    public get isFile() { return this._isFile; }
+    public set isFile(isFile) { throw new Error("Cannot set isFile"); }
 
-    /**
-     * Whether or not the entry is a file
-     * @type {boolean}
-     */
-    FileSystemEntry.prototype._isFile = false;
+    public get isDirectory() { return this._isDirectory; }
+    public set isDirectory(isDirectory) { throw new Error("Cannot set isDirectory"); }
 
-    /**
-     * Whether or not the entry is a directory
-     * @type {boolean}
-     */
-    FileSystemEntry.prototype._isDirectory = false;
-
-    /**
-     * Cached copy of this entry's watched root
-     * @type {entry: File|Directory, filter: function(FileSystemEntry):boolean, active: boolean}
-     */
-    FileSystemEntry.prototype._watchedRoot = undefined;
-
-    /**
-     * Cached result of _watchedRoot.filter(this.name, this.parentPath).
-     * @type {boolean}
-     */
-    FileSystemEntry.prototype._watchedRootFilterResult = undefined;
+    public get _impl() { return this._fileSystem._impl; }
+    public set _impl(_impl) { throw new Error("Cannot set _impl"); }
 
     /**
      * Determines whether or not the entry is watched.
@@ -181,9 +180,9 @@ define(function (require, exports, module) {
      *      true if the watched root is either starting up or fully active.
      * @return {boolean}
      */
-    FileSystemEntry.prototype._isWatched = function (relaxed) {
-        var watchedRoot = this._watchedRoot,
-            filterResult = this._watchedRootFilterResult;
+    protected _isWatched(relaxed = false) {
+        let watchedRoot = this._watchedRoot;
+        let filterResult = this._watchedRootFilterResult;
 
         if (!watchedRoot) {
             watchedRoot = this._fileSystem._findWatchedRootForPath(this._path);
@@ -191,7 +190,7 @@ define(function (require, exports, module) {
             if (watchedRoot) {
                 this._watchedRoot = watchedRoot;
                 if (watchedRoot.entry !== this) { // avoid creating entries for root's parent
-                    var parentEntry = this._fileSystem.getDirectoryForPath(this._parentPath);
+                    const parentEntry = this._fileSystem.getDirectoryForPath(this._parentPath);
                     if (parentEntry._isWatched() === false) {
                         filterResult = false;
                     } else {
@@ -216,15 +215,15 @@ define(function (require, exports, module) {
             this._clearCachedData();
         }
         return false;
-    };
+    }
 
     /**
      * Update the path for this entry
      * @private
      * @param {String} newPath
      */
-    FileSystemEntry.prototype._setPath = function (newPath) {
-        var parts = newPath.split("/");
+    private _setPath(newPath) {
+        const parts = newPath.split("/");
         if (this.isDirectory) {
             parts.pop(); // Remove the empty string after last trailing "/"
         }
@@ -240,7 +239,7 @@ define(function (require, exports, module) {
 
         this._path = newPath;
 
-        var watchedRoot = this._watchedRoot;
+        const watchedRoot = this._watchedRoot;
         if (watchedRoot) {
             if (newPath.indexOf(watchedRoot.entry.fullPath) === 0) {
                 // Update watchedRootFilterResult
@@ -251,22 +250,22 @@ define(function (require, exports, module) {
                 this._watchedRootFilterResult = false;
             }
         }
-    };
+    }
 
     /**
      * Clear any cached data for this entry
      * @private
      */
-    FileSystemEntry.prototype._clearCachedData = function () {
+    protected _clearCachedData() {
         this._stat = undefined;
-    };
+    }
 
     /**
      * Helpful toString for debugging purposes
      */
-    FileSystemEntry.prototype.toString = function () {
+    public toString() {
         return "[" + (this.isDirectory ? "Directory " : "File ") + this._path + "]";
-    };
+    }
 
     /**
      * Check to see if the entry exists on disk. Note that there will NOT be an
@@ -279,13 +278,13 @@ define(function (require, exports, module) {
      * @param {function (?string, boolean)} callback Callback with a FileSystemError
      *      string or a boolean indicating whether or not the file exists.
      */
-    FileSystemEntry.prototype.exists = function (callback) {
+    public exists(callback) {
         if (this._stat) {
             callback(null, true);
             return;
         }
 
-        this._impl.exists(this._path, function (err, exists) {
+        this._impl.exists(this._path, function (this: FileSystemEntry, err, exists) {
             if (err) {
                 this._clearCachedData();
                 callback(err);
@@ -298,7 +297,7 @@ define(function (require, exports, module) {
 
             callback(null, exists);
         }.bind(this));
-    };
+    }
 
     /**
      * Returns the stats for the entry.
@@ -306,13 +305,13 @@ define(function (require, exports, module) {
      * @param {function (?string, FileSystemStats=)} callback Callback with a
      *      FileSystemError string or FileSystemStats object.
      */
-    FileSystemEntry.prototype.stat = function (callback) {
+    public stat(callback) {
         if (this._stat) {
             callback(null, this._stat);
             return;
         }
 
-        this._impl.stat(this._path, function (err, stat) {
+        this._impl.stat(this._path, function (this: FileSystemEntry, err, stat) {
             if (err) {
                 this._clearCachedData();
                 callback(err);
@@ -325,7 +324,7 @@ define(function (require, exports, module) {
 
             callback(null, stat);
         }.bind(this));
-    };
+    }
 
     /**
      * Rename this entry.
@@ -334,14 +333,14 @@ define(function (require, exports, module) {
      * @param {function (?string)=} callback Callback with a single FileSystemError
      *      string parameter.
      */
-    FileSystemEntry.prototype.rename = function (newFullPath, callback) {
-        callback = callback || function () {};
+    public rename(newFullPath, callback) {
+        callback = callback || function () { /* Do nothing */ };
 
         // Block external change events until after the write has finished
         this._fileSystem._beginChange();
 
-        this._impl.rename(this._path, newFullPath, function (err) {
-            var oldFullPath = this._path;
+        this._impl.rename(this._path, newFullPath, function (this: FileSystemEntry, err) {
+            const oldFullPath = this._path;
 
             try {
                 if (err) {
@@ -365,7 +364,7 @@ define(function (require, exports, module) {
                 this._fileSystem._endChange();
             }
         }.bind(this));
-    };
+    }
 
     /**
      * Permanently delete this entry. For Directories, this will delete the directory
@@ -374,18 +373,18 @@ define(function (require, exports, module) {
      * @param {function (?string)=} callback Callback with a single FileSystemError
      *      string parameter.
      */
-    FileSystemEntry.prototype.unlink = function (callback) {
-        callback = callback || function () {};
+    public unlink(callback) {
+        callback = callback || function () { /* Do nothing */ };
 
         // Block external change events until after the write has finished
         this._fileSystem._beginChange();
 
         this._clearCachedData();
-        this._impl.unlink(this._path, function (err) {
-            var parent = this._fileSystem.getDirectoryForPath(this.parentPath);
+        this._impl.unlink(this._path, function (this: FileSystemEntry, err) {
+            const parent = this._fileSystem.getDirectoryForPath(this.parentPath);
 
             // Update internal filesystem state
-            this._fileSystem._handleDirectoryChange(parent, function (added, removed) {
+            this._fileSystem._handleDirectoryChange(parent, function (this: FileSystemEntry, added, removed) {
                 try {
                     // Notify the caller
                     callback(err);
@@ -400,7 +399,7 @@ define(function (require, exports, module) {
                 }
             }.bind(this));
         }.bind(this));
-    };
+    }
 
     /**
      * Move this entry to the trash. If the underlying file system doesn't support move
@@ -409,23 +408,23 @@ define(function (require, exports, module) {
      * @param {function (?string)=} callback Callback with a single FileSystemError
      *      string parameter.
      */
-    FileSystemEntry.prototype.moveToTrash = function (callback) {
+    public moveToTrash(callback) {
         if (!this._impl.moveToTrash) {
             this.unlink(callback);
             return;
         }
 
-        callback = callback || function () {};
+        callback = callback || function () { /* Do nothing */ };
 
         // Block external change events until after the write has finished
         this._fileSystem._beginChange();
 
         this._clearCachedData();
-        this._impl.moveToTrash(this._path, function (err) {
-            var parent = this._fileSystem.getDirectoryForPath(this.parentPath);
+        this._impl.moveToTrash(this._path, function (this: FileSystemEntry, err) {
+            const parent = this._fileSystem.getDirectoryForPath(this.parentPath);
 
             // Update internal filesystem state
-            this._fileSystem._handleDirectoryChange(parent, function (added, removed) {
+            this._fileSystem._handleDirectoryChange(parent, function (this: FileSystemEntry, added, removed) {
                 try {
                     // Notify the caller
                     callback(err);
@@ -440,7 +439,11 @@ define(function (require, exports, module) {
                 }
             }.bind(this));
         }.bind(this));
-    };
+    }
+
+    public getContents(callback: (err, entries, entriesStats) => void) {
+        throw new Error("FileSystemEntry: should never reach here!");
+    }
 
     /**
      * Private helper function for FileSystemEntry.visit that requires sanitized options.
@@ -454,10 +457,10 @@ define(function (require, exports, module) {
      * @param {{maxDepth: number, maxEntriesCounter: {value: number}, sortList: boolean}} options
      * @param {function(?string)=} callback Callback with single FileSystemError string parameter.
      */
-    FileSystemEntry.prototype._visitHelper = function (stats, visitedPaths, visitor, options, callback) {
-        var maxDepth = options.maxDepth,
-            maxEntriesCounter = options.maxEntriesCounter,
-            sortList = options.sortList;
+    private _visitHelper(stats, visitedPaths, visitor, options, callback) {
+        let maxDepth = options.maxDepth;
+        const maxEntriesCounter = options.maxEntriesCounter;
+        const sortList = options.sortList;
 
         if (maxEntriesCounter.value-- <= 0 || maxDepth-- < 0) {
             // The outer FileSystemEntry.visit call is responsible for applying
@@ -467,7 +470,7 @@ define(function (require, exports, module) {
         }
 
         if (this.isDirectory) {
-            var visitedPath = stats.realPath || this.fullPath;
+            const visitedPath = stats.realPath || this.fullPath;
 
             if (visitedPaths.hasOwnProperty(visitedPath)) {
                 // Link cycle detected
@@ -489,7 +492,7 @@ define(function (require, exports, module) {
                 return;
             }
 
-            var counter = entries.length;
+            let counter = entries.length;
             if (counter === 0) {
                 callback(null);
                 return;
@@ -501,34 +504,34 @@ define(function (require, exports, module) {
                 }
             }
 
-            var nextOptions = {
+            const nextOptions = {
                 maxDepth: maxDepth,
                 maxEntriesCounter: maxEntriesCounter,
                 sortList : sortList
             };
 
-            //sort entries if required
+            // sort entries if required
             function compareFilesWithIndices(index1, index2) {
                 return entries[index1]._name.toLocaleLowerCase().localeCompare(entries[index2]._name.toLocaleLowerCase());
             }
             if (sortList) {
-                var fileIndexes = [], i = 0;
-                for (i = 0; i < entries.length; i++) {
+                const fileIndexes: Array<number> = [];
+                for (let i = 0; i < entries.length; i++) {
                     fileIndexes[i] = i;
                 }
                 fileIndexes.sort(compareFilesWithIndices);
                 fileIndexes.forEach(function (fileIndex) {
-                    var stats = entriesStats[fileIndexes[fileIndex]];
+                    const stats = entriesStats[fileIndexes[fileIndex]];
                     entries[fileIndexes[fileIndex]]._visitHelper(stats, visitedPaths, visitor, nextOptions, helperCallback);
                 });
             } else {
                 entries.forEach(function (entry, index) {
-                    var stats = entriesStats[index];
+                    const stats = entriesStats[index];
                     entry._visitHelper(stats, visitedPaths, visitor, nextOptions, helperCallback);
                 });
             }
         }.bind(this));
-    };
+    }
 
     /**
      * Visit this entry and its descendents with the supplied visitor function.
@@ -545,7 +548,7 @@ define(function (require, exports, module) {
      * @param {{maxDepth: number=, maxEntries: number=}=} options
      * @param {function(?string)=} callback Callback with single FileSystemError string parameter.
      */
-    FileSystemEntry.prototype.visit = function (visitor, options, callback) {
+    public visit(visitor, options, callback) {
         if (typeof options === "function") {
             callback = options;
             options = {};
@@ -554,7 +557,7 @@ define(function (require, exports, module) {
                 options = {};
             }
 
-            callback = callback || function () {};
+            callback = callback || function () { /* Do nothing */ };
         }
 
         if (options.maxDepth === undefined) {
@@ -567,7 +570,7 @@ define(function (require, exports, module) {
 
         options.maxEntriesCounter = { value: options.maxEntries };
 
-        this.stat(function (err, stats) {
+        this.stat(function (this: FileSystemEntry, err, stats) {
             if (err) {
                 callback(err);
                 return;
@@ -589,8 +592,7 @@ define(function (require, exports, module) {
                 }
             }.bind(this));
         }.bind(this));
-    };
+    }
+}
 
-    // Export this class
-    module.exports = FileSystemEntry;
-});
+export = FileSystemEntry;
