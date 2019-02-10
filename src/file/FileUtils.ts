@@ -123,6 +123,7 @@ export function writeText(file, text, allowBlindWrite) {
  */
 export const LINE_ENDINGS_CRLF = "CRLF";
 export const LINE_ENDINGS_LF   = "LF";
+export type LineEndings = typeof LINE_ENDINGS_CRLF | typeof LINE_ENDINGS_LF;
 
 /**
  * Returns the standard line endings for the current platform

@@ -34,19 +34,16 @@
  * object, it won't know what you're talking about (`filesystem.getFileForPath(someInMemFile.fullPath)` will not
  * return someInMemFile).
  */
-define(function (require, exports, module) {
-    "use strict";
 
-    var File            = require("filesystem/File"),
-        FileSystemError = require("filesystem/FileSystemError");
+import * as File from "filesystem/File";
+import * as FileSystemError from "filesystem/FileSystemError";
 
-    function InMemoryFile(fullPath, fileSystem) {
-        File.call(this, fullPath, fileSystem);
+class InMemoryFile extends File {
+    public parentClass = File.prototype;
+
+    constructor(fullPath, fileSystem) {
+        super(fullPath, fileSystem);
     }
-
-    InMemoryFile.prototype = Object.create(File.prototype);
-    InMemoryFile.prototype.constructor = InMemoryFile;
-    InMemoryFile.prototype.parentClass = File.prototype;
 
     // Stub out invalid calls inherited from File
 
@@ -58,12 +55,12 @@ define(function (require, exports, module) {
      * @param {Object=} options Currently unused.
      * @param {function (number, string, object)} callback
      */
-    InMemoryFile.prototype.read = function (options, callback) {
+    public read(options, callback) {
         if (typeof (options) === "function") {
             callback = options;
         }
         callback(FileSystemError.NOT_FOUND);
-    };
+    }
 
     /**
      * Rejects any attempts to write the file.
@@ -73,36 +70,35 @@ define(function (require, exports, module) {
      * @param {!function (err, object)} callback Callback that is passed the
      *              error code and the file's new stats if the write is sucessful.
      */
-    InMemoryFile.prototype.write = function (data, encoding, callback) {
+    public write(data, encoding, callback) {
         if (typeof (encoding) === "function") {
             callback = encoding;
         }
         callback(FileSystemError.NOT_FOUND);
-    };
+    }
 
 
     // Stub out invalid calls inherited from FileSystemEntry
 
-    InMemoryFile.prototype.exists = function (callback) {
+    public exists(callback) {
         callback(null, false);
-    };
+    }
 
-    InMemoryFile.prototype.stat = function (callback) {
+    public static(callback) {
         callback(FileSystemError.NOT_FOUND);
-    };
+    }
 
-    InMemoryFile.prototype.unlink = function (callback) {
+    public unlink(callback) {
         callback(FileSystemError.NOT_FOUND);
-    };
+    }
 
-    InMemoryFile.prototype.rename = function (newName, callback) {
+    public rename(newName, callback) {
         callback(FileSystemError.NOT_FOUND);
-    };
+    }
 
-    InMemoryFile.prototype.moveToTrash = function (callback) {
+    public moveToTrash(callback) {
         callback(FileSystemError.NOT_FOUND);
-    };
+    }
+}
 
-    // Export this class
-    module.exports = InMemoryFile;
-});
+export = InMemoryFile;

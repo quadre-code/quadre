@@ -95,7 +95,7 @@ export class UrlParams {
      * Returns true if the parameter list is empty, else returns false.
      * @return {boolean}
      */
-    public isEmpty(name) {
+    public isEmpty() {
         return _.isEmpty(this._store);
     }
 

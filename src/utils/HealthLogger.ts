@@ -128,7 +128,7 @@ export function setHealthLogsEnabled(enabled) {
  * @param {boolean} addedToWorkingSet set to true if extensions of files added to the
  *                                    working set needs to be logged
  */
-export function fileOpened(filePath, addedToWorkingSet) {
+export function fileOpened(filePath, addedToWorkingSet = false) {
     if (!shouldLogHealthData()) {
         return;
     }

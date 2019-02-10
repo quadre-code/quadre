@@ -22,41 +22,55 @@
  *
  */
 
+import * as EventDispatcher from "utils/EventDispatcher";
+
+
 /**
+ * Stores a range of lines that is automatically maintained as the Document changes. The range
+ * MAY drop out of sync with the Document in certain edge cases; startLine & endLine will become
+ * null when that happens.
+ *
+ * Important: you must dispose() a TextRange when you're done with it. Because TextRange addRef()s
+ * the Document (in order to listen to it), you will leak Documents otherwise.
+ *
+ * TextRange dispatches these events:
+ *  - change -- When the range boundary line numbers change (due to a Document change)
+ *  - contentChange -- When the actual content of the range changes. This might or might not
+ *    be accompanied by a change in the boundary line numbers.
+ *  - lostSync -- When the backing Document changes in such a way that the range can no longer
+ *    accurately be maintained. Generally, occurs whenever an edit spans a range boundary.
+ *    After this, startLine & endLine will be unusable (set to null).
+ *    Also occurs when the document is deleted, though startLine & endLine won't be modified
+ * These events only ever occur in response to Document changes, so if you are already listening
+ * to the Document, you could ignore the TextRange events and just read its updated value in your
+ * own Document change handler.
+ *
+ * @constructor
+ *
+ * @param {!Document} document
+ * @param {number} startLine First line in range (0-based, inclusive)
+ * @param {number} endLine   Last line in range (0-based, inclusive)
  */
-define(function (require, exports, module) {
-    "use strict";
-
-    var EventDispatcher = require("utils/EventDispatcher");
-
+export class TextRange {
+    /**
+     * Containing document
+     * @type {!Document}
+     */
+    public document;
 
     /**
-     * Stores a range of lines that is automatically maintained as the Document changes. The range
-     * MAY drop out of sync with the Document in certain edge cases; startLine & endLine will become
-     * null when that happens.
-     *
-     * Important: you must dispose() a TextRange when you're done with it. Because TextRange addRef()s
-     * the Document (in order to listen to it), you will leak Documents otherwise.
-     *
-     * TextRange dispatches these events:
-     *  - change -- When the range boundary line numbers change (due to a Document change)
-     *  - contentChange -- When the actual content of the range changes. This might or might not
-     *    be accompanied by a change in the boundary line numbers.
-     *  - lostSync -- When the backing Document changes in such a way that the range can no longer
-     *    accurately be maintained. Generally, occurs whenever an edit spans a range boundary.
-     *    After this, startLine & endLine will be unusable (set to null).
-     *    Also occurs when the document is deleted, though startLine & endLine won't be modified
-     * These events only ever occur in response to Document changes, so if you are already listening
-     * to the Document, you could ignore the TextRange events and just read its updated value in your
-     * own Document change handler.
-     *
-     * @constructor
-     *
-     * @param {!Document} document
-     * @param {number} startLine First line in range (0-based, inclusive)
-     * @param {number} endLine   Last line in range (0-based, inclusive)
+     * Starting Line
+     * @type {?number} Null after "lostSync" is dispatched
      */
-    function TextRange(document, startLine, endLine) {
+    public startLine;
+
+    /**
+     * Ending Line
+     * @type {?number} Null after "lostSync" is dispatched
+     */
+    public endLine;
+
+    constructor(document, startLine, endLine) {
         this.startLine = startLine;
         this.endLine = endLine;
 
@@ -68,36 +82,14 @@ define(function (require, exports, module) {
         document.on("change", this._handleDocumentChange);
         document.on("deleted", this._handleDocumentDeleted);
     }
-    EventDispatcher.makeEventDispatcher(TextRange.prototype);
-
 
     /** Detaches from the Document. The TextRange will no longer update or send change events */
-    TextRange.prototype.dispose = function (editor, change) {
+    public dispose(editor, change) {
         // Disconnect from Document
         this.document.releaseRef();
         this.document.off("change", this._handleDocumentChange);
         this.document.off("deleted", this._handleDocumentDeleted);
-    };
-
-
-    /**
-     * Containing document
-     * @type {!Document}
-     */
-    TextRange.prototype.document = null;
-
-    /**
-     * Starting Line
-     * @type {?number} Null after "lostSync" is dispatched
-     */
-    TextRange.prototype.startLine = null;
-
-    /**
-     * Ending Line
-     * @type {?number} Null after "lostSync" is dispatched
-     */
-    TextRange.prototype.endLine = null;
-
+    }
 
     /**
      * Applies a single Document change object (out of the linked list of multiple such objects)
@@ -106,7 +98,7 @@ define(function (require, exports, module) {
      * @return {{hasChanged: boolean, hasContentChanged: boolean}} Whether the range boundary
      *     and/or content has changed.
      */
-    TextRange.prototype._applySingleChangeToRange = function (change) {
+    private _applySingleChangeToRange(change) {
         // console.log(this + " applying change to (" +
         //         (change.from && (change.from.line+","+change.from.ch)) + " - " +
         //         (change.to && (change.to.line+","+change.to.ch)) + ")");
@@ -133,7 +125,7 @@ define(function (require, exports, module) {
         }
 
         if ((change.from.line < this.startLine && change.to.line >= this.startLine) ||
-                   (change.from.line <= this.endLine && change.to.line > this.endLine)) {
+                (change.from.line <= this.endLine && change.to.line > this.endLine)) {
             this.startLine = null;
             this.endLine = null;
             return {hasChanged: true, hasContentChanged: true};
@@ -143,8 +135,8 @@ define(function (require, exports, module) {
         // start or end line was deleted during a change.
         }
 
-        var numAdded = change.text.length - (change.to.line - change.from.line + 1);
-        var result = {hasChanged: false, hasContentChanged: false};
+        const numAdded = change.text.length - (change.to.line - change.from.line + 1);
+        const result = {hasChanged: false, hasContentChanged: false};
 
         // This logic is so simple because we've already excluded all cases where the change
         // crosses the range boundaries
@@ -167,52 +159,48 @@ define(function (require, exports, module) {
         // console.log("Now " + this);
 
         return result;
-    };
+    }
 
     /**
      * Updates the range based on the changeList from a Document "change" event. Dispatches a
      * "change" event if the range was adjusted at all. Dispatches a "lostSync" event instead if the
      * range can no longer be accurately maintained.
      */
-    TextRange.prototype._applyChangesToRange = function (changeList) {
-        var hasChanged = false, hasContentChanged = false;
-        var i;
-        for (i = 0; i < changeList.length; i++) {
+    private _applyChangesToRange(changeList) {
+        let hasChanged = false;
+        let hasContentChanged = false;
+        for (const change of changeList) {
             // Apply this step of the change list
-            var result = this._applySingleChangeToRange(changeList[i]);
+            const result = this._applySingleChangeToRange(change);
             hasChanged = hasChanged || result.hasChanged;
             hasContentChanged = hasContentChanged || result.hasContentChanged;
 
             // If we lost sync with the range, just bail now
             if (this.startLine === null || this.endLine === null) {
-                this.trigger("lostSync");
+                (this as unknown as EventDispatcher.DispatcherEvents).trigger("lostSync");
                 break;
             }
         }
 
         if (hasChanged) {
-            this.trigger("change");
+            (this as unknown as EventDispatcher.DispatcherEvents).trigger("change");
         }
         if (hasContentChanged) {
-            this.trigger("contentChange");
+            (this as unknown as EventDispatcher.DispatcherEvents).trigger("contentChange");
         }
-    };
+    }
 
-    TextRange.prototype._handleDocumentChange = function (event, doc, changeList) {
+    private _handleDocumentChange(event, doc, changeList) {
         this._applyChangesToRange(changeList);
-    };
+    }
 
-    TextRange.prototype._handleDocumentDeleted = function (event) {
-        this.trigger("lostSync");
-    };
-
+    private _handleDocumentDeleted(event) {
+        (this as unknown as EventDispatcher.DispatcherEvents).trigger("lostSync");
+    }
 
     /* (pretty toString(), to aid debugging) */
-    TextRange.prototype.toString = function () {
+    public toString() {
         return "[TextRange " + this.startLine + "-" + this.endLine + " in " + this.document + "]";
-    };
-
-
-    // Define public API
-    exports.TextRange = TextRange;
-});
+    }
+}
+EventDispatcher.makeEventDispatcher(TextRange.prototype);
