@@ -22,32 +22,62 @@
  *
  */
 
-define(function (require, exports, module) {
-    "use strict";
+import * as DocumentManager from "document/DocumentManager";
+import * as ImageViewTemplate from "text!htmlContent/image-view.html";
+import * as ProjectManager from "project/ProjectManager";
+import * as LanguageManager from "language/LanguageManager";
+import * as MainViewFactory from "view/MainViewFactory";
+import * as Strings from "strings";
+import * as StringUtils from "utils/StringUtils";
+import * as FileSystem from "filesystem/FileSystem";
+import * as FileUtils from "file/FileUtils";
+import * as _ from "thirdparty/lodash";
+import * as Mustache from "thirdparty/mustache/mustache";
+import { DispatcherEvents } from "utils/EventDispatcher";
 
-    var DocumentManager     = require("document/DocumentManager"),
-        ImageViewTemplate   = require("text!htmlContent/image-view.html"),
-        ProjectManager      = require("project/ProjectManager"),
-        LanguageManager     = require("language/LanguageManager"),
-        MainViewFactory     = require("view/MainViewFactory"),
-        Strings             = require("strings"),
-        StringUtils         = require("utils/StringUtils"),
-        FileSystem          = require("filesystem/FileSystem"),
-        FileUtils           = require("file/FileUtils"),
-        _                   = require("thirdparty/lodash"),
-        Mustache            = require("thirdparty/mustache/mustache");
+const _viewers = {};
 
-    var _viewers = {};
+interface ScaleDivInfo {
+    left: number;
+    top: number;
+    right: number;
+    bottom: number;
+}
 
-    /**
-     * ImageView objects are constructed when an image is opened
-     * @see {@link Pane} for more information about where ImageViews are rendered
-     *
-     * @constructor
-     * @param {!File} file - The image file object to render
-     * @param {!jQuery} container - The container to render the image view in
-     */
-    function ImageView(file, $container) {
+/**
+ * ImageView objects are constructed when an image is opened
+ * @see {@link Pane} for more information about where ImageViews are rendered
+ *
+ * @constructor
+ * @param {!File} file - The image file object to render
+ * @param {!jQuery} container - The container to render the image view in
+ *
+ * This class is exported for extensions that want to create a
+ * view factory based on ImageViewer
+ */
+export class ImageView {
+    private file;
+    private $el: JQuery;
+    private _naturalWidth: number;
+    private _naturalHeight: number;
+    private _scale: number;
+    private _scaleDivInfo: ScaleDivInfo | null;
+    private relPath: string;
+
+    private $imagePath: JQuery;
+    private $imagePreview: JQuery;
+    private $imageData: JQuery;
+
+    private $image: JQuery;
+    private $imageTip: JQuery;
+    private $imageGuides: JQuery;
+    private $imageScale: JQuery;
+    private $x_value: JQuery;
+    private $y_value: JQuery;
+    private $horzGuide: JQuery;
+    private $vertGuide: JQuery;
+
+    constructor(file, $container) {
         this.file = file;
         this.$el = $(Mustache.render(ImageViewTemplate, {fullPath: FileUtils.encodeFilePath(file.fullPath),
             now: new Date().valueOf()}));
@@ -89,16 +119,16 @@ define(function (require, exports, module) {
      * @param {!string} newPath - the name of the file that's changing changing
      * @private
      */
-    ImageView.prototype._onFilenameChange = function (e, oldPath, newPath) {
+    private _onFilenameChange(e, oldPath, newPath) {
         /*
-         * File objects are already updated when the event is triggered
-         * so we just need to see if the file has the same path as our image
-         */
+        * File objects are already updated when the event is triggered
+        * so we just need to see if the file has the same path as our image
+        */
         if (this.file.fullPath === newPath) {
             this.relPath = ProjectManager.makeProjectRelativeIfPossible(newPath);
             this.$imagePath.text(this.relPath).attr("title", this.relPath);
         }
-    };
+    }
 
     /**
      * <img>.on("load") handler - updates content of the image view
@@ -107,30 +137,30 @@ define(function (require, exports, module) {
      * @param {Event} e - event
      * @private
      */
-    ImageView.prototype._onImageLoaded = function (e) {
+    private _onImageLoaded(e) {
         // add dimensions and size
         this._naturalWidth = e.currentTarget.naturalWidth;
         this._naturalHeight = e.currentTarget.naturalHeight;
 
-        var extension = FileUtils.getFileExtension(this.file.fullPath);
-        var dimensionString = this._naturalWidth + " &times; " + this._naturalHeight + " " + Strings.UNIT_PIXELS;
+        const extension = FileUtils.getFileExtension(this.file.fullPath);
+        let dimensionString = this._naturalWidth + " &times; " + this._naturalHeight + " " + Strings.UNIT_PIXELS;
 
         if (extension === "ico") {
             dimensionString += " (" + Strings.IMAGE_VIEWER_LARGEST_ICON + ")";
         }
 
         // get image size
-        var self = this;
+        const self = this;
 
         this.file.stat(function (err, stat) {
             if (err) {
                 self.$imageData.html(dimensionString);
             } else {
-                var sizeString = "";
+                let sizeString = "";
                 if (stat.size) {
                     sizeString = " &mdash; " + StringUtils.prettyPrintBytes(stat.size, 2);
                 }
-                var dimensionAndSize = dimensionString + sizeString;
+                const dimensionAndSize = dimensionString + sizeString;
                 self.$imageData.html(dimensionAndSize)
                     .attr("title", dimensionAndSize
                         .replace("&times;", "x")
@@ -139,7 +169,7 @@ define(function (require, exports, module) {
         });
 
         // make sure we always show the right file name
-        DocumentManager.on("fileNameChange.ImageView", _.bind(this._onFilenameChange, this));
+        (DocumentManager as unknown as DispatcherEvents).on("fileNameChange.ImageView", _.bind(this._onFilenameChange, this));
 
         this.$imageTip.hide();
         this.$imageGuides.hide();
@@ -148,14 +178,14 @@ define(function (require, exports, module) {
             .on("mouseleave.ImageView", ".image-preview", _.bind(this._hideImageTip, this));
 
         this._updateScale();
-    };
+    }
 
     /**
      * Update the scale element
      * @private
      */
-    ImageView.prototype._updateScale = function () {
-        var currentWidth = this.$imagePreview.width();
+    private _updateScale() {
+        const currentWidth = this.$imagePreview.width();
 
         if (currentWidth && currentWidth < this._naturalWidth) {
             this._scale = currentWidth / this._naturalWidth * 100;
@@ -169,7 +199,7 @@ define(function (require, exports, module) {
             this._scaleDivInfo = null;
             this.$imageScale.text("").hide();
         }
-    };
+    }
 
 
     /**
@@ -177,32 +207,32 @@ define(function (require, exports, module) {
      * @param {Event} e - event
      * @private
      */
-    ImageView.prototype._showImageTip = function (e) {
+    private _showImageTip(e) {
         // Don't show image tip if this._scale is close to zero.
         // since we won't have enough room to show tip anyway.
         if (Math.floor(this._scale) === 0) {
             return;
         }
 
-        var x                   = Math.round(e.offsetX * 100 / this._scale),
-            y                   = Math.round(e.offsetY * 100 / this._scale),
-            imagePos            = this.$imagePreview.position(),
-            left                = e.offsetX + imagePos.left,
-            top                 = e.offsetY + imagePos.top,
-            width               = this.$imagePreview.width(),
-            height              = this.$imagePreview.height(),
-            windowWidth         = $(window).width(),
-            fourDigitImageWidth = this._naturalWidth.toString().length === 4,
+        const x                   = Math.round(e.offsetX * 100 / this._scale);
+        const y                   = Math.round(e.offsetY * 100 / this._scale);
+        const imagePos            = this.$imagePreview.position();
+        const left                = e.offsetX + imagePos.left;
+        const top                 = e.offsetY + imagePos.top;
+        const width               = this.$imagePreview.width();
+        const height              = this.$imagePreview.height();
+        const windowWidth         = $(window).width();
+        const fourDigitImageWidth = this._naturalWidth.toString().length === 4;
 
-            // @todo -- seems a bit strange that we're computing sizes
-            //          using magic numbers
+        // @todo -- seems a bit strange that we're computing sizes
+        //          using magic numbers
 
-            infoWidth1          = 112,    // info div width 96px + vertical toolbar width 16px
-            infoWidth2          = 120,    // info div width 104px (for 4-digit image width) + vertical toolbar width 16px
-            tipOffsetX          = 10,     // adjustment for info div left from x coordinate of cursor
-            tipOffsetY          = -54,    // adjustment for info div top from y coordinate of cursor
-            tipMinusOffsetX1    = -82,    // for less than 4-digit image width
-            tipMinusOffsetX2    = -90;    // for 4-digit image width
+        const infoWidth1          = 112;    // info div width 96px + vertical toolbar width 16px
+        const infoWidth2          = 120;    // info div width 104px (for 4-digit image width) + vertical toolbar width 16px
+        let tipOffsetX            = 10;     // adjustment for info div left from x coordinate of cursor
+        const tipOffsetY          = -54;    // adjustment for info div top from y coordinate of cursor
+        const tipMinusOffsetX1    = -82;    // for less than 4-digit image width
+        const tipMinusOffsetX2    = -90;    // for 4-digit image width
 
         // Check whether we're getting mousemove events beyond the image boundaries due to a browser bug
         // or the rounding calculation above for a scaled image. For example, if an image is 120 px wide,
@@ -243,21 +273,21 @@ define(function (require, exports, module) {
             top: imagePos.top,
             height: height - 1
         }).show();
-    };
+    }
 
     /**
      * Hide image coordinates info tip
      * @param {Event} e - event
      * @private
      */
-    ImageView.prototype._hideImageTip = function (e) {
-        var $target   = $(e.target),
-            targetPos = $target.position(),
-            imagePos  = this.$imagePreview.position(),
-            right     = imagePos.left + this.$imagePreview.width(),
-            bottom    = imagePos.top + this.$imagePreview.height(),
-            x         = targetPos.left + e.offsetX,
-            y         = targetPos.top + e.offsetY;
+    private _hideImageTip(e) {
+        const $target   = $(e.target);
+        const targetPos = $target.position();
+        const imagePos  = this.$imagePreview.position();
+        const right     = imagePos.left + this.$imagePreview.width();
+        const bottom    = imagePos.top + this.$imagePreview.height();
+        const x         = targetPos.left + e.offsetX;
+        const y         = targetPos.top + e.offsetY;
 
         // Hide image tip and guides only if the cursor is outside of the image.
         if (x < imagePos.left || x >= right ||
@@ -268,16 +298,16 @@ define(function (require, exports, module) {
                 this.$imageScale.show();
             }
         }
-    };
+    }
 
     /**
      * Hides both guides and the tip
      * @private
      */
-    ImageView.prototype._hideGuidesAndTip = function () {
+    private _hideGuidesAndTip() {
         this.$imageTip.hide();
         this.$imageGuides.hide();
-    };
+    }
 
     /**
      * Check mouse entering/exiting the scale sticker.
@@ -287,15 +317,15 @@ define(function (require, exports, module) {
      * @param {number} offsetY mouseoffset from the top of the previewing image
      * @private
      */
-    ImageView.prototype._handleMouseEnterOrExitScaleSticker = function (offsetX, offsetY) {
-        var imagePos       = this.$imagePreview.position(),
-            scaleDivPos    = this.$imageScale.position(),
-            imgWidth       = this.$imagePreview.width(),
-            imgHeight      = this.$imagePreview.height(),
-            scaleDivLeft,
-            scaleDivTop,
-            scaleDivRight,
-            scaleDivBottom;
+    private _handleMouseEnterOrExitScaleSticker(offsetX, offsetY) {
+        const imagePos       = this.$imagePreview.position();
+        const scaleDivPos    = this.$imageScale.position();
+        const imgWidth       = this.$imagePreview.width();
+        const imgHeight      = this.$imagePreview.height();
+        let scaleDivLeft;
+        let scaleDivTop;
+        let scaleDivRight;
+        let scaleDivBottom;
 
         if (this._scaleDivInfo) {
             scaleDivLeft   = this._scaleDivInfo.left;
@@ -340,33 +370,33 @@ define(function (require, exports, module) {
                 this.$imageScale.hide();
             }
         }
-    };
+    }
 
     /**
      * View Interface functions
      */
 
     /*
-     * Retrieves the file object for this view
-     * return {!File} the file object for this view
-     */
-    ImageView.prototype.getFile = function () {
+    * Retrieves the file object for this view
+    * return {!File} the file object for this view
+    */
+    public getFile() {
         return this.file;
-    };
+    }
 
     /*
-     * Updates the layout of the view
-     */
-    ImageView.prototype.updateLayout = function () {
+    * Updates the layout of the view
+    */
+    public updateLayout() {
         this._hideGuidesAndTip();
 
-        var $container = this.$el.parent();
+        const $container = this.$el.parent();
 
-        var pos = $container.position(),
-            iWidth = $container.innerWidth(),
-            iHeight = $container.innerHeight(),
-            oWidth = $container.outerWidth(),
-            oHeight = $container.outerHeight();
+        const pos = $container.position();
+        const iWidth = $container.innerWidth();
+        const iHeight = $container.innerHeight();
+        const oWidth = $container.outerWidth();
+        const oHeight = $container.outerHeight();
 
         // $view is "position:absolute" so
         //  we have to update the height, width and position
@@ -375,25 +405,25 @@ define(function (require, exports, module) {
             width: iWidth,
             height: iHeight});
         this._updateScale();
-    };
+    }
 
     /*
-     * Destroys the view
-     */
-    ImageView.prototype.destroy = function () {
+    * Destroys the view
+    */
+    public destroy() {
         delete _viewers[this.file.fullPath];
-        DocumentManager.off(".ImageView");
+        (DocumentManager as unknown as DispatcherEvents).off(".ImageView");
         this.$image.off(".ImageView");
         this.$el.remove();
-    };
+    }
 
     /*
-     * Refreshes the image preview with what's on disk
-     */
-    ImageView.prototype.refresh = function () {
-        var noCacheUrl = this.$imagePreview.attr("src"),
-            now = new Date().valueOf(),
-            index = noCacheUrl.indexOf("?");
+    * Refreshes the image preview with what's on disk
+    */
+    public refresh() {
+        let noCacheUrl = this.$imagePreview.attr("src");
+        const now = new Date().valueOf();
+        const index = noCacheUrl.indexOf("?");
 
         // strip the old param off
         if (index > 0) {
@@ -407,72 +437,66 @@ define(function (require, exports, module) {
 
         // Update the DOM node with the src URL
         this.$imagePreview.attr("src", noCacheUrl);
-    };
+    }
+}
 
-    /*
-     * Creates an image view object and adds it to the specified pane
-     * @param {!File} file - the file to create an image of
-     * @param {!Pane} pane - the pane in which to host the view
-     * @return {jQuery.Promise}
-     */
-    function _createImageView(file, pane) {
-        var view = pane.getViewForPath(file.fullPath);
+/*
+ * Creates an image view object and adds it to the specified pane
+ * @param {!File} file - the file to create an image of
+ * @param {!Pane} pane - the pane in which to host the view
+ * @return {jQuery.Promise}
+ */
+function _createImageView(file, pane) {
+    let view = pane.getViewForPath(file.fullPath);
 
-        if (view) {
-            pane.showView(view);
-        } else {
-            view = new ImageView(file, pane.$content);
-            pane.addView(view, true);
-        }
-        return new $.Deferred().resolve().promise();
+    if (view) {
+        pane.showView(view);
+    } else {
+        view = new ImageView(file, pane.$content);
+        pane.addView(view, true);
+    }
+    return $.Deferred().resolve().promise();
+}
+
+/**
+ * Handles file system change events so we can refresh
+ *  image viewers for the files that changed on disk due to external editors
+ * @param {jQuery.event} event - event object
+ * @param {?File} file - file object that changed
+ * @param {Array.<FileSystemEntry>=} added If entry is a Directory, contains zero or more added children
+ * @param {Array.<FileSystemEntry>=} removed If entry is a Directory, contains zero or more removed children
+ */
+function _handleFileSystemChange(event, entry, added, removed) {
+    // this may have been called because files were added
+    //  or removed to the file system.  We don't care about those
+    if (!entry || entry.isDirectory) {
+        return;
     }
 
-    /**
-     * Handles file system change events so we can refresh
-     *  image viewers for the files that changed on disk due to external editors
-     * @param {jQuery.event} event - event object
-     * @param {?File} file - file object that changed
-     * @param {Array.<FileSystemEntry>=} added If entry is a Directory, contains zero or more added children
-     * @param {Array.<FileSystemEntry>=} removed If entry is a Directory, contains zero or more removed children
-     */
-    function _handleFileSystemChange(event, entry, added, removed) {
-        // this may have been called because files were added
-        //  or removed to the file system.  We don't care about those
-        if (!entry || entry.isDirectory) {
-            return;
-        }
+    // Look for a viewer for the changed file
+    const viewer = _viewers[entry.fullPath];
 
-        // Look for a viewer for the changed file
-        var viewer = _viewers[entry.fullPath];
-
-        // viewer found, call its refresh method
-        if (viewer) {
-            viewer.refresh();
-        }
+    // viewer found, call its refresh method
+    if (viewer) {
+        viewer.refresh();
     }
+}
 
-    /*
-     * Install an event listener to receive all file system change events
-     * so we can refresh the view when changes are made to the image in an external editor
-     */
-    FileSystem.on("change", _handleFileSystemChange);
+/*
+ * Install an event listener to receive all file system change events
+ * so we can refresh the view when changes are made to the image in an external editor
+ */
+FileSystem.on("change", _handleFileSystemChange);
 
-    /*
-     * Initialization, register our view factory
-     */
-    MainViewFactory.registerViewFactory({
-        canOpenFile: function (fullPath) {
-            var lang = LanguageManager.getLanguageForPath(fullPath);
-            return (lang.getId() === "image");
-        },
-        openFile: function (file, pane) {
-            return _createImageView(file, pane);
-        }
-    });
-
-    /*
-     * This is for extensions that want to create a
-     * view factory based on ImageViewer
-     */
-    exports.ImageView = ImageView;
+/*
+ * Initialization, register our view factory
+ */
+MainViewFactory.registerViewFactory({
+    canOpenFile: function (fullPath) {
+        const lang = LanguageManager.getLanguageForPath(fullPath);
+        return (lang.getId() === "image");
+    },
+    openFile: function (file, pane) {
+        return _createImageView(file, pane);
+    }
 });

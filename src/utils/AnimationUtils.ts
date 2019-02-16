@@ -65,7 +65,7 @@ const _transitionEvent = _detectTransitionEvent();
  * @param {number=} timeoutDuration Time to wait in ms before rejecting promise. Default is 400.
  * @return {$.Promise} A promise that is resolved when the animation completes. Never rejected.
  */
-export function animateUsingClass(target, animClass, timeoutDuration) {
+export function animateUsingClass(target, animClass, timeoutDuration?) {
     const result = $.Deferred();
     const $target = $(target);
 

@@ -204,7 +204,7 @@ export function offsetInToken(ctx) {
  * @param {boolean} precise If given, results in more current results. Suppresses caching.
  * @return {mode:{Object}, name:string}
  */
-export function getModeAt(cm, pos, precise) {
+export function getModeAt(cm, pos, precise?) {
     precise = precise || true;
     let modeData = cm.getMode();
     if (modeData.innerMode) {

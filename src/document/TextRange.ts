@@ -84,7 +84,7 @@ export class TextRange {
     }
 
     /** Detaches from the Document. The TextRange will no longer update or send change events */
-    public dispose(editor, change) {
+    public dispose() {
         // Disconnect from Document
         this.document.releaseRef();
         this.document.off("change", this._handleDocumentChange);

@@ -107,7 +107,7 @@ class FileSystemEntry {
      * The name of this entry.
      * @type {string}
      */
-    private _name = null;
+    private _name;
 
     /**
      * The parent of this entry.

@@ -51,7 +51,7 @@ define(function (require, exports, module) {
      * @param {!{SUMMARY:string, URL:string, VALUES:?Array.<{value:string, description:string}>}} cssPropDetails
      */
     function InlineDocsViewer(PropName, PropDetails) {
-        InlineWidget.call(this);
+        Object.assign(this, new InlineWidget());
 
         var templateVars = {
             propName            : PropName,

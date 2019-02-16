@@ -52,7 +52,7 @@ define(function (require, exports, module) {
         this._handleTimingFunctionChange = this._handleTimingFunctionChange.bind(this);
         this._handleHostDocumentChange = this._handleHostDocumentChange.bind(this);
 
-        InlineWidget.call(this);
+        Object.assign(this, new InlineWidget());
     }
 
     InlineTimingFunctionEditor.prototype = Object.create(InlineWidget.prototype);

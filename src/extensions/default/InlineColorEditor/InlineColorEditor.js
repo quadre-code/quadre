@@ -51,7 +51,7 @@ define(function (require, exports, module) {
         this._handleColorChange = this._handleColorChange.bind(this);
         this._handleHostDocumentChange = this._handleHostDocumentChange.bind(this);
 
-        InlineWidget.call(this);
+        Object.assign(this, new InlineWidget());
     }
 
     InlineColorEditor.prototype = Object.create(InlineWidget.prototype);

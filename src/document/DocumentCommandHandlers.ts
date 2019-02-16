@@ -1016,7 +1016,7 @@ function _doSaveAs(doc, settings): JQueryPromise<File> {
  *   USER_CANCELED object).
  */
 function handleFileSave(commandData): JQueryPromise<File> {
-    const activeEditor = EditorManager.getActiveEditor();
+    const activeEditor = EditorManager.getActiveEditor()!;
     const activeDoc = activeEditor && activeEditor.document;
     const doc = (commandData && commandData.doc) || activeDoc;
     let settings;

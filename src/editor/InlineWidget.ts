@@ -22,20 +22,25 @@
  *
  */
 
-define(function (require, exports, module) {
-    "use strict";
+// Load dependent modules
+import * as EditorManager from "editor/EditorManager";
+import * as EventDispatcher from "utils/EventDispatcher";
+import * as KeyEvent from "utils/KeyEvent";
+import { Editor } from "editor/Editor";
 
-    // Load dependent modules
-    var EditorManager       = require("editor/EditorManager"),
-        EventDispatcher     = require("utils/EventDispatcher"),
-        KeyEvent            = require("utils/KeyEvent");
+/**
+ * @constructor
+ *
+ */
+export class InlineWidget {
+    public htmlContent: HTMLElement;
+    public $htmlContent: JQuery;
+    public id = null;
+    public hostEditor: Editor | null = null;
+    private $closeBtn: JQuery;
 
-    /**
-     * @constructor
-     *
-     */
-    function InlineWidget() {
-        var self = this;
+    constructor() {
+        const self = this;
 
         // create the outer wrapper div
         this.htmlContent = window.document.createElement("div");
@@ -58,42 +63,37 @@ define(function (require, exports, module) {
             }
         });
     }
-    InlineWidget.prototype.htmlContent = null;
-    InlineWidget.prototype.$htmlContent = null;
-    InlineWidget.prototype.id = null;
-    InlineWidget.prototype.hostEditor = null;
-    EventDispatcher.makeEventDispatcher(InlineWidget.prototype);
 
     /**
      * Initial height of inline widget in pixels. Can be changed later via hostEditor.setInlineWidgetHeight()
      * @type {number}
      */
-    InlineWidget.prototype.height = 0;
+    public height = 0;
 
     /**
      * Closes this inline widget and all its contained Editors
      * @return {$.Promise} A promise that's resolved when the widget is fully closed.
      */
-    InlineWidget.prototype.close = function () {
+    public close() {
         return EditorManager.closeInlineWidget(this.hostEditor, this);
         // closeInlineWidget() causes our onClosed() handler to be called
-    };
+    }
 
     /**
      * @return {boolean} True if any part of the inline widget is focused
      */
-    InlineWidget.prototype.hasFocus = function () {
-        var focusedItem = window.document.activeElement,
-            htmlContent = this.$htmlContent[0];
-        return $.contains(htmlContent, focusedItem) || htmlContent === focusedItem;
-    };
+    public hasFocus() {
+        const focusedItem = window.document.activeElement;
+        const htmlContent = this.$htmlContent[0];
+        return $.contains(htmlContent, focusedItem!) || htmlContent === focusedItem;
+    }
 
     /**
      * Called any time inline is closed, whether manually or automatically.
      */
-    InlineWidget.prototype.onClosed = function () {
-        this.trigger("close");
-    };
+    public onClosed() {
+        (this as unknown as EventDispatcher.DispatcherEvents).trigger("close");
+    }
 
     /**
      * Called once content is parented in the host editor's DOM. Useful for performing tasks like setting
@@ -102,31 +102,29 @@ define(function (require, exports, module) {
      * IMPORTANT: onAdded() MUST be overridden to call hostEditor.setInlineWidgetHeight() at least once to
      * set the initial height (required to animate it open). The widget will never open otherwise.
      */
-    InlineWidget.prototype.onAdded = function () {
-        this.trigger("add");
-    };
+    public onAdded() {
+        (this as unknown as EventDispatcher.DispatcherEvents).trigger("add");
+    }
 
     /**
      * @param {Editor} hostEditor
      */
-    InlineWidget.prototype.load = function (hostEditor) {
+    public load(hostEditor) {
         this.hostEditor = hostEditor;
-    };
+    }
 
     /**
      * Called when the editor containing the inline is made visible.
      */
-    InlineWidget.prototype.onParentShown = function () {
+    public onParentShown() {
         // do nothing - base implementation
-    };
+    }
 
     /**
      * Called when the parent editor does a full refresh--for example, when the font size changes.
      */
-    InlineWidget.prototype.refresh = function () {
+    public refresh() {
         // do nothing - base implementation
-    };
-
-    exports.InlineWidget = InlineWidget;
-
-});
+    }
+}
+EventDispatcher.makeEventDispatcher(InlineWidget.prototype);
