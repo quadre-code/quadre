@@ -129,7 +129,7 @@ export type LineEndings = typeof LINE_ENDINGS_CRLF | typeof LINE_ENDINGS_LF;
  * Returns the standard line endings for the current platform
  * @return {LINE_ENDINGS_CRLF|LINE_ENDINGS_LF}
  */
-export function getPlatformLineEndings() {
+export function getPlatformLineEndings(): LineEndings {
     return brackets.platform === "win" ? LINE_ENDINGS_CRLF : LINE_ENDINGS_LF;
 }
 
@@ -139,7 +139,7 @@ export function getPlatformLineEndings() {
  * @param {!string} text
  * @return {null|LINE_ENDINGS_CRLF|LINE_ENDINGS_LF}
  */
-export function sniffLineEndings(text) {
+export function sniffLineEndings(text): LineEndings | null {
     const subset = text.substr(0, 1000);  // (length is clipped to text.length)
     const hasCRLF = /\r\n/.test(subset);
     const hasLF = /[^\r]\n/.test(subset);
