@@ -658,7 +658,7 @@ AppInit.extensionsLoaded(function () {
     PreferencesManager.fileChanged(doc.file.fullPath);
 });
 
-MainViewManager.on("currentFileChange", function (e, newFile, newPaneId, oldFile) {
+(MainViewManager as unknown as EventDispatcher.DispatcherEvents).on("currentFileChange", function (e, newFile, newPaneId, oldFile) {
     let newDoc: DocumentModule.Document | null = null;
     let oldDoc: DocumentModule.Document | null = null;
 

@@ -550,7 +550,7 @@ class FileSystem {
      * @return {File|Directory} The File or Directory object. This file may not
      *      yet exist on disk.
      */
-    private _getEntryForPath(EntryConstructor, path) {
+    private _getEntryForPath(EntryConstructor, path): File | Directory {
         const isDirectory = EntryConstructor === Directory;
         path = this._normalizePath(path, isDirectory);
         let entry = this._index.getEntry(path);
@@ -570,8 +570,8 @@ class FileSystem {
      *
      * @return {File} The File object. This file may not yet exist on disk.
      */
-    public getFileForPath(path) {
-        return this._getEntryForPath(File, path);
+    public getFileForPath(path): File {
+        return this._getEntryForPath(File, path) as File;
     }
 
     /**

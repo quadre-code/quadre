@@ -152,7 +152,7 @@ class FileSystemEntry {
 
     // Add "fullPath", "name", "parent", "id", "isFile" and "isDirectory" getters
 
-    public get fullPath() { return this._path; }
+    public get fullPath() { return this._path!; }
     public set fullPath(fullPath) { throw new Error("Cannot set fullPath"); }
 
     public get name() { return this._name; }

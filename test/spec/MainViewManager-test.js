@@ -1219,7 +1219,7 @@ define(function (require, exports, module) {
                 runs(function () {
                     promise = CommandManager.execute(Commands.FILE_OPEN, {
                         fullPath: testPath + "/test.html",
-                        aneId: "second-pane"
+                        paneId: "second-pane"
                     });
                     waitsForDone(promise, Commands.FILE_OPEN);
                 });
@@ -1245,7 +1245,7 @@ define(function (require, exports, module) {
                     var traverseResult = MainViewManager.traverseToNextViewInListOrder(1);
 
                     expect(traverseResult.file).toEqual(getFileObject("test.css"));
-                    expect(traverseResult.pane).toEqual("first-pane");
+                    expect(traverseResult.paneId).toEqual("first-pane");
                 });
             });
 
@@ -1254,7 +1254,7 @@ define(function (require, exports, module) {
                     var traverseResult = MainViewManager.traverseToNextViewInListOrder(1);
 
                     expect(traverseResult.file).toEqual(getFileObject("test.js"));
-                    expect(traverseResult.pane).toEqual("first-pane");
+                    expect(traverseResult.paneId).toEqual("first-pane");
                 });
             });
 
@@ -1274,7 +1274,7 @@ define(function (require, exports, module) {
                     var traverseResult = MainViewManager.traverseToNextViewInListOrder(1);
 
                     expect(traverseResult.file).toEqual(getFileObject("test.css"));
-                    expect(traverseResult.pane).toEqual("first-pane");
+                    expect(traverseResult.paneId).toEqual("first-pane");
                 });
             });
 
@@ -1293,7 +1293,7 @@ define(function (require, exports, module) {
                     var traverseResult = MainViewManager.traverseToNextViewInListOrder(-1);
 
                     expect(traverseResult.file).toEqual(getFileObject("test.html"));
-                    expect(traverseResult.pane).toEqual("second-pane");
+                    expect(traverseResult.paneId).toEqual("second-pane");
                 });
             });
         });

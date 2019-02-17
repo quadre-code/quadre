@@ -466,7 +466,7 @@ export function getDirNamesForDuplicateFiles(files) {
     return displayPaths;
 }
 
-export function traverseViewArray(viewArray, startIndex, direction) {
+export function traverseViewArray<T>(viewArray: Array<T>, startIndex: number, direction: number): T | null {
     if (Math.abs(direction) !== 1) {
         console.error("traverseViewArray called with unsupported direction: " + direction.toString());
         return null;

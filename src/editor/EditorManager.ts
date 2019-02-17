@@ -798,5 +798,5 @@ CommandManager.register(Strings.CMD_JUMPTO_DEFINITION, Commands.NAVIGATE_JUMPTO_
 // Create PerfUtils measurement
 PerfUtils.createPerfMeasurement("JUMP_TO_DEFINITION", "Jump-To-Definiiton");
 
-MainViewManager.on("currentFileChange", _handleCurrentFileChange);
-MainViewManager.on("workingSetRemove workingSetRemoveList", _handleRemoveFromPaneView);
+(MainViewManager as unknown as EventDispatcher.DispatcherEvents).on("currentFileChange", _handleCurrentFileChange);
+(MainViewManager as unknown as EventDispatcher.DispatcherEvents).on("workingSetRemove workingSetRemoveList", _handleRemoveFromPaneView);

@@ -61,49 +61,41 @@
  *      }
  *
  */
-define(function (require, exports, module) {
-    "use strict";
 
-    var _ = require("thirdparty/lodash");
+import * as _ from "thirdparty/lodash";
+import { Pane } from "view/Pane";
 
+interface Factory {
+    canOpenFile(path: string): boolean;
+    openFile(path: string, pane: Pane): void;
+}
 
-    /**
-     * @typedef {canOpenFile:function(path:string):boolean, openFile:function(path:string, pane:Pane)} Factory
-     */
+/**
+ * The view registration Database
+ * @private
+ * @type {Array.<Factory>}
+ */
+const _factories: Array<Factory> = [];
 
-    /**
-     * The view registration Database
-     * @private
-     * @type {Array.<Factory>}
-     */
-    var _factories = [];
+/**
+ * Registers a view factory
+ * @param {!Factory} factory - the view factory to register
+ */
+export function registerViewFactory(factory: Factory) {
+    _factories.push(factory);
+}
 
-    /**
-     * Registers a view factory
-     * @param {!Factory} factory - the view factory to register
-     */
-    function registerViewFactory(factory) {
-        _factories.push(factory);
-    }
-
-    /**
-     * Finds a factory that can open the specified file
-     * @param {!string} fullPath - the file to open
-     * @return {?Factory} A factory that can create a view for the path or undefined if there isn't one.
-     */
-    function findSuitableFactoryForPath(fullPath) {
-        return _.find(_factories, function (factory) {
-            // This could get more complex in the future by searching in this order
-            //  1) a factory that can open the file by fullPath
-            //  2) a factory that can open the file by name
-            //  3) a factory that can open the file by filetype
-            return factory.canOpenFile(fullPath);
-        });
-    }
-
-    /*
-     * Public API
-     */
-    exports.registerViewFactory         = registerViewFactory;
-    exports.findSuitableFactoryForPath  = findSuitableFactoryForPath;
-});
+/**
+ * Finds a factory that can open the specified file
+ * @param {!string} fullPath - the file to open
+ * @return {?Factory} A factory that can create a view for the path or undefined if there isn't one.
+ */
+export function findSuitableFactoryForPath(fullPath) {
+    return _.find(_factories, function (factory) {
+        // This could get more complex in the future by searching in this order
+        //  1) a factory that can open the file by fullPath
+        //  2) a factory that can open the file by name
+        //  3) a factory that can open the file by filetype
+        return factory.canOpenFile(fullPath);
+    });
+}

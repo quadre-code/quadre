@@ -81,13 +81,13 @@ interface Layer {
 }
 
 interface PreferenceOptions {
-    name: string;
+    name?: string;
     description: string;
-    validator: () => any;
-    excludeFromHints: boolean;
-    keys: any;
-    values: Array<any>;
-    valueType: any;
+    validator?: () => any;
+    excludeFromHints?: boolean;
+    keys?: any;
+    values?: Array<any>;
+    valueType?: any;
 }
 
 interface PreferenceDispatcherEvents extends EventDispatcher.DispatcherEvents {
@@ -1135,7 +1135,7 @@ class PrefixedPreferencesSystem {
      * @param {string} id Name of the preference for which the value should be retrieved
      * @param {Object=} context Optional context object to change the preference lookup
      */
-    public get(id, context) {
+    public get(id, context?) {
         context = context || {};
         return this.base.get(this.prefix + id, this.base._getContext(context));
     }
@@ -1161,7 +1161,7 @@ class PrefixedPreferencesSystem {
      * @return {valid:  {boolean}, true if no validator specified or if value is valid
      *          stored: {boolean}} true if a value was stored
      */
-    public set(id, value, options, doNotSave) {
+    public set(id, value, options?, doNotSave?) {
         return this.base.set(this.prefix + id, value, options, doNotSave);
     }
 

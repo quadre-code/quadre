@@ -302,14 +302,15 @@ export function showFileOpenError(name, path) {
  * If paneId is undefined, the ACTIVE_PANE constant
  */
 function _doOpen(fullPath, silent, paneId, options) {
-    const result = $.Deferred();
+    const result = $.Deferred<File>();
 
     // workaround for https://github.com/adobe/brackets/issues/6001
     // TODO should be removed once bug is closed.
     // if we are already displaying a file do nothing but resolve immediately.
     // this fixes timing issues in test cases.
     if (MainViewManager.getCurrentlyViewedPath(paneId || MainViewManager.ACTIVE_PANE) === fullPath) {
-        result.resolve(MainViewManager.getCurrentlyViewedFile(paneId || MainViewManager.ACTIVE_PANE));
+        const currentlyViewedFile = MainViewManager.getCurrentlyViewedFile(paneId || MainViewManager.ACTIVE_PANE)!;
+        result.resolve(currentlyViewedFile);
         return result.promise();
     }
 
@@ -905,7 +906,7 @@ function _doSaveAs(doc, settings): JQueryPromise<File> {
                     .openAndSelectDocument(path, FileViewController.PROJECT_MANAGER);
             } else {
                 // If selection is in workingset, replace orig item in place with the new file
-                const info = MainViewManager.findInAllWorkingSets(doc.file.fullPath).shift();
+                const info = MainViewManager.findInAllWorkingSets(doc.file.fullPath).shift()!;
 
                 // Remove old file from workingset; no redraw yet since there's a pause before the new file is opened
                 MainViewManager._removeView(info.paneId, doc.file, true);
@@ -1832,7 +1833,7 @@ CommandManager.registerInternal(Commands.APP_RELOAD_WITHOUT_EXTS,   handleReload
 ProjectManager.on("projectOpen", _updateTitle);
 (DocumentManager as unknown as DispatcherEvents).on("dirtyFlagChange", handleDirtyChange);
 (DocumentManager as unknown as DispatcherEvents).on("fileNameChange", handleCurrentFileChange);
-MainViewManager.on("currentFileChange", handleCurrentFileChange);
+(MainViewManager as unknown as DispatcherEvents).on("currentFileChange", handleCurrentFileChange);
 
 // Reset the untitled document counter before changing projects
 ProjectManager.on("beforeProjectClose", function () { _nextUntitledIndexToUse = 1; });
