@@ -26,35 +26,56 @@
  * A "modal bar" component. This is a lightweight replacement for modal dialogs that
  * appears at the top of the editor area for operations like Find and Quick Open.
  */
-define(function (require, exports, module) {
-    "use strict";
 
-    var MainViewManager  = require("view/MainViewManager"),
-        EventDispatcher  = require("utils/EventDispatcher"),
-        KeyEvent         = require("utils/KeyEvent"),
-        AnimationUtils   = require("utils/AnimationUtils"),
-        WorkspaceManager = require("view/WorkspaceManager");
+import * as MainViewManager from "view/MainViewManager";
+import * as EventDispatcher from "utils/EventDispatcher";
+import * as KeyEvent from "utils/KeyEvent";
+import * as AnimationUtils from "utils/AnimationUtils";
+import * as WorkspaceManager from "view/WorkspaceManager";
+
+/**
+ * Creates a modal bar whose contents are the given template.
+ *
+ * Dispatches one event:
+ * - close - When the bar is closed, either via close() or via autoClose. After this event, the
+ *     bar may remain visible and in the DOM while its closing animation is playing. However,
+ *     by the time "close" is fired, the bar has been "popped out" of the layout and the
+ *     editor scroll position has already been restored.
+ *     Second argument is the reason for closing (one of ModalBar.CLOSE_*).
+ *     Third argument is the Promise that close() will be returning.
+ *
+ * @constructor
+ *
+ * @param {string} template The HTML contents of the modal bar.
+ * @param {boolean} autoClose If true, then close the dialog if the user hits Esc
+ *      or if the bar loses focus.
+ * @param {boolean} animate If true (the default), animate the dialog closed, otherwise
+ *      close it immediately.
+ */
+export class ModalBar {
+    /**
+     * A jQuery object containing the root node of the ModalBar.
+     */
+    private _$root;
 
     /**
-     * Creates a modal bar whose contents are the given template.
-     *
-     * Dispatches one event:
-     * - close - When the bar is closed, either via close() or via autoClose. After this event, the
-     *     bar may remain visible and in the DOM while its closing animation is playing. However,
-     *     by the time "close" is fired, the bar has been "popped out" of the layout and the
-     *     editor scroll position has already been restored.
-     *     Second argument is the reason for closing (one of ModalBar.CLOSE_*).
-     *     Third argument is the Promise that close() will be returning.
-     *
-     * @constructor
-     *
-     * @param {string} template The HTML contents of the modal bar.
-     * @param {boolean} autoClose If true, then close the dialog if the user hits Esc
-     *      or if the bar loses focus.
-     * @param {boolean} animate If true (the default), animate the dialog closed, otherwise
-     *      close it immediately.
+     * True if this ModalBar is set to autoclose.
      */
-    function ModalBar(template, autoClose, animate) {
+    private _autoClose = false;
+
+    /**
+     * Allows client code to block autoClose from closing the ModalBar: if set, this function is called whenever
+     * autoClose would normally close the ModalBar. Returning true prevents the close from occurring. Programmatically
+     * calling close() will still close the bar, however.
+     * @type {?function():boolean}
+     */
+    public isLockedOpen;
+
+    public static CLOSE_ESCAPE = "escape";
+    public static CLOSE_BLUR = "blur";
+    public static CLOSE_API = "api";
+
+    constructor(template, autoClose, animate) {
         if (animate === undefined) {
             animate = true;
         }
@@ -87,7 +108,7 @@ define(function (require, exports, module) {
 
             // Set focus to the first input field, or the first button if there is no input field.
             // TODO: remove this logic?
-            var $firstInput = $("input[type='text']", this._$root).first();
+            const $firstInput = $("input[type='text']", this._$root).first();
             if ($firstInput.length > 0) {
                 $firstInput.focus();
             } else {
@@ -101,36 +122,13 @@ define(function (require, exports, module) {
         WorkspaceManager.recomputeLayout();  // changes available ht for editor area
         MainViewManager.restoreAdjustedScrollState(MainViewManager.ALL_PANES, this.height());
     }
-    EventDispatcher.makeEventDispatcher(ModalBar.prototype);
-
-    /**
-     * A jQuery object containing the root node of the ModalBar.
-     */
-    ModalBar.prototype._$root = null;
-
-    /**
-     * True if this ModalBar is set to autoclose.
-     */
-    ModalBar.prototype._autoClose = false;
-
-    /**
-     * Allows client code to block autoClose from closing the ModalBar: if set, this function is called whenever
-     * autoClose would normally close the ModalBar. Returning true prevents the close from occurring. Programmatically
-     * calling close() will still close the bar, however.
-     * @type {?function():boolean}
-     */
-    ModalBar.prototype.isLockedOpen = null;
-
-    ModalBar.CLOSE_ESCAPE = "escape";
-    ModalBar.CLOSE_BLUR = "blur";
-    ModalBar.CLOSE_API = "api";
 
     /**
      * @return {number} Height of the modal bar in pixels, if open.
      */
-    ModalBar.prototype.height = function () {
+    public height() {
         return this._$root.outerHeight();
-    };
+    }
 
     /**
      * Prepares the ModalBar for closing by popping it out of the main flow and resizing/
@@ -144,7 +142,7 @@ define(function (require, exports, module) {
      *     should do it immediately on return of this function (before the animation completes),
      *     because the editor will already have been resized.
      */
-    ModalBar.prototype.prepareClose = function (restoreScrollPos) {
+    public prepareClose(restoreScrollPos) {
         if (restoreScrollPos === undefined) {
             restoreScrollPos = true;
         }
@@ -154,13 +152,13 @@ define(function (require, exports, module) {
         // Since the modal bar has now an absolute position relative to the editor holder,
         // when there are html menus we need to adjust the top position
         if (!brackets.nativeMenus) {
-            var top = $("#titlebar").outerHeight();
+            const top = $("#titlebar").outerHeight();
             this._$root.css("top", top + "px");
         }
 
         // Preserve scroll position of all visible views
         //  adjusting for the height of the modal bar so the code doesn't appear to shift if possible.
-        var barHeight = this.height();
+        const barHeight = this.height();
         if (restoreScrollPos) {
             MainViewManager.cacheScrollState(MainViewManager.ALL_PANES);
         }
@@ -169,7 +167,7 @@ define(function (require, exports, module) {
         if (restoreScrollPos) {
             MainViewManager.restoreAdjustedScrollState(MainViewManager.ALL_PANES, -barHeight);
         }
-    };
+    }
 
     /**
      * Closes the modal bar and returns focus to the active editor. Returns a promise that is
@@ -185,9 +183,9 @@ define(function (require, exports, module) {
      * @param {string=} _reason For internal use only.
      * @return {$.Promise} promise resolved when close is finished
      */
-    ModalBar.prototype.close = function (restoreScrollPos, animate, _reason) {
-        var result = new $.Deferred(),
-            self = this;
+    public close(restoreScrollPos, animate, _reason) {
+        const result = $.Deferred();
+        const self = this;
 
         if (restoreScrollPos === undefined) {
             restoreScrollPos = true;
@@ -206,7 +204,7 @@ define(function (require, exports, module) {
             window.document.body.removeEventListener("focusin", this._handleFocusChange, true);
         }
 
-        this.trigger("close", _reason, result);
+        (this as unknown as EventDispatcher.DispatcherEvents).trigger("close", _reason, result);
 
         function doRemove() {
             self._$root.remove();
@@ -223,42 +221,41 @@ define(function (require, exports, module) {
         MainViewManager.focusActivePane();
 
         return result.promise();
-    };
+    }
 
     /**
      * If autoClose is set, close the bar when Escape is pressed
      */
-    ModalBar.prototype._handleKeydown = function (e) {
+    private _handleKeydown(e) {
         if (e.keyCode === KeyEvent.DOM_VK_ESCAPE) {
             e.stopPropagation();
             e.preventDefault();
             this.close(undefined, undefined, ModalBar.CLOSE_ESCAPE);
         }
-    };
+    }
 
     /**
      * If autoClose is set, detects when something other than the modal bar is getting focus and
      * dismisses the modal bar. DOM nodes with "attached-to" jQuery metadata referencing an element
      * within the ModalBar are allowed to take focus without closing it.
      */
-    ModalBar.prototype._handleFocusChange = function (e) {
+    private _handleFocusChange(e) {
         if (this.isLockedOpen && this.isLockedOpen()) {
             return;
         }
 
-        var effectiveElem = $(e.target).data("attached-to") || e.target;
+        const effectiveElem = $(e.target).data("attached-to") || e.target;
 
         if (!$.contains(this._$root.get(0), effectiveElem)) {
             this.close(undefined, undefined, ModalBar.CLOSE_BLUR);
         }
-    };
+    }
 
     /**
      * @return {jQueryObject} A jQuery object representing the root of the ModalBar.
      */
-    ModalBar.prototype.getRoot = function () {
+    public getRoot() {
         return this._$root;
-    };
-
-    exports.ModalBar = ModalBar;
-});
+    }
+}
+EventDispatcher.makeEventDispatcher(ModalBar.prototype);

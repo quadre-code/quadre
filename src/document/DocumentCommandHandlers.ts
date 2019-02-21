@@ -1439,7 +1439,7 @@ function handleAbortQuit() {
  * Implementation for native APP_BEFORE_MENUPOPUP callback to trigger beforeMenuPopup event
  */
 function handleBeforeMenuPopup() {
-    PopUpManager.trigger("beforeMenuPopup");
+    (PopUpManager as unknown as DispatcherEvents).trigger("beforeMenuPopup");
 }
 
 /**

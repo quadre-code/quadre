@@ -22,17 +22,13 @@
  *
  */
 
-define(function (require, exports, module) {
-    "use strict";
-
-    /**
-     * List of constants for the default dialogs IDs.
-     */
-    exports.DIALOG_ID_ERROR             = "error-dialog";
-    exports.DIALOG_ID_INFO              = "error-dialog"; // uses the same template for now--could be different in future
-    exports.DIALOG_ID_SAVE_CLOSE        = "save-close-dialog";
-    exports.DIALOG_ID_EXT_CHANGED       = "ext-changed-dialog";
-    exports.DIALOG_ID_EXT_DELETED       = "ext-deleted-dialog";
-    exports.DIALOG_ID_LIVE_DEVELOPMENT  = "live-development-error-dialog";
-    exports.DIALOG_ID_CHANGE_EXTENSIONS = "change-marked-extensions";
-});
+/**
+ * List of constants for the default dialogs IDs.
+ */
+export const DIALOG_ID_ERROR             = "error-dialog";
+export const DIALOG_ID_INFO              = "error-dialog"; // uses the same template for now--could be different in future
+export const DIALOG_ID_SAVE_CLOSE        = "save-close-dialog";
+export const DIALOG_ID_EXT_CHANGED       = "ext-changed-dialog";
+export const DIALOG_ID_EXT_DELETED       = "ext-deleted-dialog";
+export const DIALOG_ID_LIVE_DEVELOPMENT  = "live-development-error-dialog";
+export const DIALOG_ID_CHANGE_EXTENSIONS = "change-marked-extensions";
