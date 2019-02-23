@@ -866,7 +866,7 @@ define(function (require, exports, module) {
                 expect(language.getId()).toBe("ruby");
             });
 
-            it("should manage preferences for non-default languages", function() {
+            it("should manage preferences for non-default languages", function () {
                 var language,
                     def = { id: "test", name: "Test", mode: ["null", "text/plain"] };
                 PreferencesManager.set(LanguageManager._EXTENSION_MAP_PREF, {

@@ -36,7 +36,7 @@ function createError(err, origError) {
 const file = module.exports = {};
 
 // Normalize \\ paths to / paths.
-const unixifyPath = function(filepath) {
+const unixifyPath = function (filepath) {
     if (process.platform === "win32") {
         return filepath.replace(/\\/g, "/");
     }
@@ -47,7 +47,7 @@ const unixifyPath = function(filepath) {
 // Recurse into a directory, executing callback for each file.
 file.recurse = function recurse(rootdir, callback, subdir) {
     const abspath = subdir ? path.join(rootdir, subdir) : rootdir;
-    fs.readdirSync(abspath).forEach(function(filename) {
+    fs.readdirSync(abspath).forEach(function (filename) {
         const filepath = path.join(abspath, filename);
         if (fs.statSync(filepath).isDirectory()) {
             recurse(rootdir, callback, unixifyPath(path.join(subdir || "", filename || "")));
@@ -63,7 +63,7 @@ file.defaultEncoding = "utf8";
 file.preserveBOM = false;
 
 // Read a file, return its contents.
-file.read = function(filepath, options) {
+file.read = function (filepath, options) {
     if (!options) { options = {}; }
     let contents;
     try {
@@ -80,7 +80,7 @@ file.read = function(filepath, options) {
 };
 
 // Read a file, parse its contents, return an object.
-file.readJSON = function(filepath, options) {
+file.readJSON = function (filepath, options) {
     const src = file.read(filepath, options);
     let result;
     try {
@@ -92,7 +92,7 @@ file.readJSON = function(filepath, options) {
 };
 
 // Write a file.
-file.write = function(filepath, contents, options) {
+file.write = function (filepath, contents, options) {
     if (!options) { options = {}; }
     // Create path, if necessary.
     fs.mkdirpSync(path.dirname(filepath));

@@ -286,6 +286,7 @@ define(function (require, exports, module) {
      * @constructor
      */
     function JSHints() {
+        // Do nothing.
     }
 
     /**

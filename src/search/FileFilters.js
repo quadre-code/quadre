@@ -347,7 +347,7 @@ define(function (require, exports, module) {
 
         $nameField.bind("input", function () {
             var remainingCharacters = FILTER_NAME_CHARACTER_MAX - $(this).val().length;
-            if (remainingCharacters < 0.25*FILTER_NAME_CHARACTER_MAX) {
+            if (remainingCharacters < 0.25 * FILTER_NAME_CHARACTER_MAX) {
                 $remainingField.show();
 
                 $remainingField.text(StringUtils.format(

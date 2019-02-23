@@ -51,7 +51,7 @@ define(function (require, exports, module) {
     /**
      * @constructor
      */
-    function UrlCodeHints() {}
+    function UrlCodeHints() { /* Do nothing */ }
 
     /**
      * Helper function to create a list of urls to existing files based on the query.

@@ -194,7 +194,7 @@ function _dumpMarks(editor, nodeMap) {
     });
 }
 // Workaround for JSHint to not complain about the unused function
-void(_dumpMarks);
+void (_dumpMarks);
 
 /**
  * Get the instrumented tagID at the specified position. Returns -1 if

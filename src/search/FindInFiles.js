@@ -961,7 +961,7 @@ define(function (require, exports, module) {
                 FindUtils.notifyNodeSearchFinished();
                 if (searchModel.results) {
                     var resultEntry;
-                    for (resultEntry in rcvdObject.results ) {
+                    for (resultEntry in rcvdObject.results) {
                         if (rcvdObject.results.hasOwnProperty(resultEntry)) {
                             searchModel.results[resultEntry.toString()] = rcvdObject.results[resultEntry];
                         }

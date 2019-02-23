@@ -136,7 +136,7 @@ define(function (require, exports, module) {
             it("should return an error if invalid parameters are passed", function () {
                 var error;
                 try {
-                    brackets.app.addMenu(winId, TEST_MENU_TITLE, TEST_MENU_ID, 42, "", function () {});
+                    brackets.app.addMenu(winId, TEST_MENU_TITLE, TEST_MENU_ID, 42, "", function () { /* Do nothing */ });
                 } catch (e) {
                     error = e;
                 }
@@ -554,7 +554,7 @@ define(function (require, exports, module) {
             it("should return an error if invalid parameters are passed", function () {
                 var error;
                 try {
-                    brackets.app.addMenuItem(winId, TEST_MENU_ID, TEST_MENU_ITEM, TEST_MENU_ITEM_ID, "", 42, "", "", function () {});
+                    brackets.app.addMenuItem(winId, TEST_MENU_ID, TEST_MENU_ITEM, TEST_MENU_ITEM_ID, "", 42, "", "", function () { /* Do nothing */ });
                 } catch (e) {
                     error = e;
                 }
@@ -950,12 +950,12 @@ define(function (require, exports, module) {
                 // set up test menu and menu items
                 var SECTION_MENU = "menuitem-sectiontest";
                 runs(function () {
-                    brackets.app.addMenu(winId, "Section Test", "menuitem-sectiontest", "", "", function (err) {});
-                    brackets.app.addMenuItem(winId, SECTION_MENU, "Command 10", "Menu-test.command10", "", "", "", "", function (err) {});
-                    brackets.app.addMenuItem(winId, SECTION_MENU, "Command 11", "Menu-test.command11", "", "", "", "", function (err) {});
-                    brackets.app.addMenuItem(winId, SECTION_MENU, "---", String(Date.now()), "", "", "", "", function (err) {});
-                    brackets.app.addMenuItem(winId, SECTION_MENU, "Command 12", "Menu-test.command12", "", "", "", "", function (err) {});
-                    brackets.app.addMenuItem(winId, SECTION_MENU, "Command 13", "Menu-test.command13", "", "", "", "", function (err) {});
+                    brackets.app.addMenu(winId, "Section Test", "menuitem-sectiontest", "", "", function (err) { /* Do nothing */ });
+                    brackets.app.addMenuItem(winId, SECTION_MENU, "Command 10", "Menu-test.command10", "", "", "", "", function (err) { /* Do nothing */ });
+                    brackets.app.addMenuItem(winId, SECTION_MENU, "Command 11", "Menu-test.command11", "", "", "", "", function (err) { /* Do nothing */ });
+                    brackets.app.addMenuItem(winId, SECTION_MENU, "---", String(Date.now()), "", "", "", "", function (err) { /* Do nothing */ });
+                    brackets.app.addMenuItem(winId, SECTION_MENU, "Command 12", "Menu-test.command12", "", "", "", "", function (err) { /* Do nothing */ });
+                    brackets.app.addMenuItem(winId, SECTION_MENU, "Command 13", "Menu-test.command13", "", "", "", "", function (err) { /* Do nothing */ });
                 });
 
                 // Add new menu to END of menuSectionCmd10
@@ -1078,15 +1078,15 @@ define(function (require, exports, module) {
                     expect(index).toBe(5);
                 });
                 runs(function () {
-                    brackets.app.removeMenuItem(winId, "Menu-test.command10", function (err) {});
-                    brackets.app.removeMenuItem(winId, "Menu-test.command11", function (err) {});
-                    brackets.app.removeMenuItem(winId, "Menu-test.command12", function (err) {});
-                    brackets.app.removeMenuItem(winId, "Menu-test.command13", function (err) {});
-                    brackets.app.removeMenuItem(winId, "Menu-test.command14", function (err) {});
-                    brackets.app.removeMenuItem(winId, "Menu-test.command15", function (err) {});
-                    brackets.app.removeMenuItem(winId, "Menu-test.command16", function (err) {});
-                    brackets.app.removeMenuItem(winId, "Menu-test.command17", function (err) {});
-                    brackets.app.removeMenu(winId, SECTION_MENU, function (err) {});
+                    brackets.app.removeMenuItem(winId, "Menu-test.command10", function (err) { /* Do nothing */ });
+                    brackets.app.removeMenuItem(winId, "Menu-test.command11", function (err) { /* Do nothing */ });
+                    brackets.app.removeMenuItem(winId, "Menu-test.command12", function (err) { /* Do nothing */ });
+                    brackets.app.removeMenuItem(winId, "Menu-test.command13", function (err) { /* Do nothing */ });
+                    brackets.app.removeMenuItem(winId, "Menu-test.command14", function (err) { /* Do nothing */ });
+                    brackets.app.removeMenuItem(winId, "Menu-test.command15", function (err) { /* Do nothing */ });
+                    brackets.app.removeMenuItem(winId, "Menu-test.command16", function (err) { /* Do nothing */ });
+                    brackets.app.removeMenuItem(winId, "Menu-test.command17", function (err) { /* Do nothing */ });
+                    brackets.app.removeMenu(winId, SECTION_MENU, function (err) { /* Do nothing */ });
                 });
             });
         });  // describe("addMenuItem (with reference)")
@@ -1127,7 +1127,7 @@ define(function (require, exports, module) {
             it("should return an error if invalid parameters are passed", function () {
                 var error;
                 try {
-                    brackets.app.removeMenu(winId, 42, function () {});
+                    brackets.app.removeMenu(winId, 42, function () { /* Do nothing */ });
                 } catch (e) {
                     error = e;
                 }
@@ -1238,7 +1238,7 @@ define(function (require, exports, module) {
             it("should return an error if invalid parameters are passed", function () {
                 var error;
                 try {
-                    brackets.app.removeMenuItem(winId, 42, function () {});
+                    brackets.app.removeMenuItem(winId, 42, function () { /* Do nothing */ });
                 } catch (e) {
                     error = e;
                 }
@@ -1422,7 +1422,7 @@ define(function (require, exports, module) {
             it("should return an error if invalid parameters are passed", function () {
                 var error;
                 try {
-                    brackets.app.setMenuItemState(winId, ITEM_ID, "hello", "world", function () {});
+                    brackets.app.setMenuItemState(winId, ITEM_ID, "hello", "world", function () { /* Do nothing */ });
                 } catch (e) {
                     error = e;
                 }
@@ -1591,7 +1591,7 @@ define(function (require, exports, module) {
             it("should return an error if invalid parameters are passed", function () {
                 var error;
                 try {
-                    brackets.app.setMenuTitle(winId, TEST_MENU_ITEM_ID, 42, function () {});
+                    brackets.app.setMenuTitle(winId, TEST_MENU_ITEM_ID, 42, function () { /* Do nothing */ });
                 } catch (e) {
                     error = e;
                 }

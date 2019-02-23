@@ -495,7 +495,7 @@ define(function (require, exports, module) {
                 self.$("#find-what").focus();
                 $(".quick-search-container").hide();
             },
-            onHighlight: function (selectedItem, query, explicit) {},
+            onHighlight: function (selectedItem, query, explicit) { /* Do nothing */ },
             highlightZeroResults: false
         });
         this.searchField.setText(searchFieldInput.val());
@@ -690,7 +690,7 @@ define(function (require, exports, module) {
      * @param {!Editor} editor
      * @return {string} first line of primary selection to populate the find bar
      */
-    FindBar._getInitialQueryFromSelection = function(editor) {
+    FindBar._getInitialQueryFromSelection = function (editor) {
         var selectionText = editor.getSelectedText();
         if (selectionText) {
             return selectionText

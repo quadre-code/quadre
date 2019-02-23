@@ -167,7 +167,7 @@ define(function (require, exports, module) {
                 getHints: function (implicitChar) {
                     return { hints: ["mock hint"], match: null, selectInitial: false };
                 },
-                insertHint: function (hint) { }
+                insertHint: function (hint) { /* Do nothing */ }
             };
 
             function expectMockHints() {
@@ -308,7 +308,7 @@ define(function (require, exports, module) {
                     hintAfter = codeHintList.selectedIndex;
 
                     // selectedIndex should be one more after doing ctrl+space key event.
-                    expect(hintBefore).toEqual(hintAfter-1);
+                    expect(hintBefore).toEqual(hintAfter - 1);
 
                     editor = null;
                 });
@@ -339,7 +339,7 @@ define(function (require, exports, module) {
 
                     var codeHintList = expectSomeHints();
                     hintBefore = codeHintList.selectedIndex;
-                    var numberOfHints = codeHintList.$hintMenu.find("li").length-1;
+                    var numberOfHints = codeHintList.$hintMenu.find("li").length - 1;
 
                     // should be at last hint
                     expect(hintBefore).toEqual(numberOfHints);
@@ -475,9 +475,9 @@ define(function (require, exports, module) {
                     testWindow.$("body").click();
                     KeyBindingManager._handleKeyEvent({
                         keyCode: KeyEvent.DOM_VK_ENTER,
-                        stopImmediatePropagation: function () { },
-                        stopPropagation: function () { },
-                        preventDefault: function () { }
+                        stopImmediatePropagation: function () { /* Do nothing */ },
+                        stopPropagation: function () { /* Do nothing */ },
+                        preventDefault: function () { /* Do nothing */ }
                     });
 
                     // Verify that after the keydown, the session is closed

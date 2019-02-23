@@ -24,7 +24,7 @@ module.exports = function (grunt) {
         ];
         const doneWithWebpackTask = _.after(webpackTasks.length, done);
         webpackTasks.forEach(args => {
-            const wp =spawn(webpackPath, args, {
+            const wp = spawn(webpackPath, args, {
                 cwd: path.resolve(__dirname, "..")
             });
             wp.stdout.on("data", (data) => {

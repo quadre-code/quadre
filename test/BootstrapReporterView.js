@@ -358,6 +358,7 @@ define(function (require, exports, module) {
 
 
     BootstrapReporterView.prototype.log = function (str) {
+        // Do nothing.
     };
 
     exports.BootstrapReporterView = BootstrapReporterView;

@@ -25,7 +25,7 @@ module.exports = function (grunt) {
 
     function getTempDirectory(tempName) {
         return new Promise(function (resolve, reject) {
-            temp.mkdir(tempName, function(err, dirPath) {
+            temp.mkdir(tempName, function (err, dirPath) {
                 return err ? reject(err) : resolve(dirPath);
             });
         });
@@ -46,12 +46,12 @@ module.exports = function (grunt) {
                 const extractStream = tar.extract({ cwd: dirPath, strip: 0 });
                 unzipStream.pipe(extractStream);
 
-                extractStream.on("finish", function() {
+                extractStream.on("finish", function () {
                     grunt.log.writeln(url + " successfully downloaded");
                     resolve(path.resolve(dirPath, "package"));
                 });
 
-            }).on("error", function(err) {
+            }).on("error", function (err) {
                 reject(err);
             });
         });

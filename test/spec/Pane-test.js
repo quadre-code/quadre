@@ -53,17 +53,22 @@ define(function (require, exports, module) {
                     return this.file;
                 },
                 updateLayout: function (hint) {
+                    // Do nothing.
                 },
                 destroy: function () {
+                    // Do nothing.
                 },
                 getScrollPos: function () {
                     return "1234";
                 },
                 adjustScrollPos: function () {
+                    // Do nothing.
                 },
                 getViewState: function () {
+                    // Do nothing.
                 },
                 notifyContainerChange: function () {
+                    // Do nothing.
                 },
                 notifyVisibilityChange: function (visible) {
                     this._visible = visible;

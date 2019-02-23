@@ -55,7 +55,7 @@ export class SearchResult {
     public stringRanges?: Array<Range>;
     public label?: string;
 
-    constructor (label) {
+    constructor(label) {
         this.label = label;
     }
 }

@@ -267,7 +267,7 @@ define(function (require, exports, module) {
             return true;
         }
         tempDir = FileSystem.getDirectoryForPath(getTempDirectory());
-        tempDir.visit(visitor, function(err){
+        tempDir.visit(visitor, function (err) {
             if (!err) {
                 entryPromise.resolve(entries);
             } else {
@@ -278,7 +278,7 @@ define(function (require, exports, module) {
                 }
             }
         });
-        entryPromise.done(function(entries){
+        entryPromise.done(function (entries) {
             promise = Async.doSequentially(entries, function (entry) {
                 var deferred = new $.Deferred();
 
@@ -301,7 +301,7 @@ define(function (require, exports, module) {
                 return deferred.promise();
             }, true);
             promise.then(result.resolve, result.reject);
-        }).fail(function(err) {
+        }).fail(function (err) {
             result.reject(err);
         });
 
@@ -389,8 +389,8 @@ define(function (require, exports, module) {
 
         // Prevent adding doc to global 'open docs' list; prevents leaks or collisions if a test
         // fails to clean up properly (if test fails, or due to an apparent bug with afterEach())
-        docToShim.addRef = function () {};
-        docToShim.releaseRef = function () {};
+        docToShim.addRef = function () { /* Do nothing */ };
+        docToShim.releaseRef = function () { /* Do nothing */ };
         docToShim._ensureMasterEditor = function () {
             if (!this._masterEditor) {
                 // Don't let Document create an Editor itself via EditorManager; the unit test can't clean that up
@@ -490,6 +490,7 @@ define(function (require, exports, module) {
                 this.$content.append(editor.$el);
             },
             showView: function (editor) {
+                // Do nothing.
             }
         };
     }
@@ -1027,7 +1028,7 @@ define(function (require, exports, module) {
     function simulateKeyEvent(key, event, element, options) {
         var doc = element.ownerDocument;
 
-        if(typeof options === "undefined") {
+        if (typeof options === "undefined") {
             options = {
                 view: doc.defaultView,
                 bubbles: true,

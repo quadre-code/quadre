@@ -62,6 +62,7 @@ define(function (require, exports, module) {
      * Updates the layout of the view
      */
     ConfigView.prototype.updateLayout = function () {
+        // Do nothing.
     };
 
     /*

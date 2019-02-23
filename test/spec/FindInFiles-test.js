@@ -1576,7 +1576,7 @@ define(function (require, exports, module) {
                         if (typeof options === "function") {
                             callback = options;
                         } else {
-                            callback = callback || function () {};
+                            callback = callback || function () { /* Do nothing */ };
                         }
                         if (this.fullPath === testPath + "/css/foo.css") {
                             callback(FileSystemError.NOT_WRITABLE);

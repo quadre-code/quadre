@@ -247,7 +247,7 @@ define(function (require, exports, module) {
 
 
         it("handlers should be independent per-instance even when attached to prototype", function () {
-            function SomeClass() {}
+            function SomeClass() { /* Do nothing */ }
             EventDispatcher.makeEventDispatcher(SomeClass.prototype);
 
             var sc1 = new SomeClass();
@@ -430,7 +430,7 @@ define(function (require, exports, module) {
 
         it("on() should print warnings when too many listeners attached", function () {
             function makeStubListener() {  // avoids JSLint "don't make functions in a loop" complaint
-                return function () {};
+                return function () { /* Do nothing */ };
             }
 
             spyOn(console, "error");

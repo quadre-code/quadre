@@ -291,13 +291,13 @@ define(function (require, exports, module) {
                 // module spies
                 spyOn(CSSAgentModule, "styleForURL").andReturn([]);
                 spyOn(CSSAgentModule, "reloadCSSForDocument").andCallFake(function () { return new $.Deferred().resolve(); });
-                spyOn(HighlightAgentModule, "redraw").andCallFake(function () {});
-                spyOn(HighlightAgentModule, "rule").andCallFake(function () {});
+                spyOn(HighlightAgentModule, "redraw").andCallFake(function () { /* Do nothing */ });
+                spyOn(HighlightAgentModule, "rule").andCallFake(function () { /* Do nothing */ });
                 InspectorModule.CSS = {
                     getStyleSheet   : jasmine.createSpy("getStyleSheet")
                 };
-                spyOn(LiveDevelopmentModule, "showHighlight").andCallFake(function () {});
-                spyOn(LiveDevelopmentModule, "hideHighlight").andCallFake(function () {});
+                spyOn(LiveDevelopmentModule, "showHighlight").andCallFake(function () { /* Do nothing */ });
+                spyOn(LiveDevelopmentModule, "hideHighlight").andCallFake(function () { /* Do nothing */ });
 
                 // document spies
                 var mock = SpecRunnerUtils.createMockEditor("p {}\n\ndiv {}", "css");
@@ -390,10 +390,10 @@ define(function (require, exports, module) {
                 // module spies
                 spyOn(CSSAgentModule, "styleForURL").andReturn([]);
                 spyOn(CSSAgentModule, "reloadCSSForDocument").andCallFake(function () { return new $.Deferred().resolve(); });
-                spyOn(HighlightAgentModule, "redraw").andCallFake(function () {});
-                spyOn(HighlightAgentModule, "rule").andCallFake(function () {});
-                spyOn(LiveDevelopmentModule, "showHighlight").andCallFake(function () {});
-                spyOn(LiveDevelopmentModule, "hideHighlight").andCallFake(function () {});
+                spyOn(HighlightAgentModule, "redraw").andCallFake(function () { /* Do nothing */ });
+                spyOn(HighlightAgentModule, "rule").andCallFake(function () { /* Do nothing */ });
+                spyOn(LiveDevelopmentModule, "showHighlight").andCallFake(function () { /* Do nothing */ });
+                spyOn(LiveDevelopmentModule, "hideHighlight").andCallFake(function () { /* Do nothing */ });
 
                 var mock = SpecRunnerUtils.createMockEditor(fileContent, "scss");
                 testDocument = mock.doc;
@@ -491,10 +491,10 @@ define(function (require, exports, module) {
                 // module spies
                 spyOn(CSSAgentModule, "styleForURL").andReturn([]);
                 spyOn(CSSAgentModule, "reloadCSSForDocument").andCallFake(function () { return new $.Deferred().resolve(); });
-                spyOn(HighlightAgentModule, "redraw").andCallFake(function () {});
-                spyOn(HighlightAgentModule, "rule").andCallFake(function () {});
-                spyOn(LiveDevelopmentModule, "showHighlight").andCallFake(function () {});
-                spyOn(LiveDevelopmentModule, "hideHighlight").andCallFake(function () {});
+                spyOn(HighlightAgentModule, "redraw").andCallFake(function () { /* Do nothing */ });
+                spyOn(HighlightAgentModule, "rule").andCallFake(function () { /* Do nothing */ });
+                spyOn(LiveDevelopmentModule, "showHighlight").andCallFake(function () { /* Do nothing */ });
+                spyOn(LiveDevelopmentModule, "hideHighlight").andCallFake(function () { /* Do nothing */ });
 
                 // TODO: Due to https://github.com/adobe/brackets/issues/8837, we are
                 // using "scss" as language id instead of "less".
@@ -646,8 +646,8 @@ define(function (require, exports, module) {
 
                     // module spies -- used to mock actual API calls so that we can test those
                     // APIs without having to actually launch the browser.
-                    spyOn(HighlightAgentModule, "hide").andCallFake(function () {});
-                    spyOn(HighlightAgentModule, "domElement").andCallFake(function () {});
+                    spyOn(HighlightAgentModule, "hide").andCallFake(function () { /* Do nothing */ });
+                    spyOn(HighlightAgentModule, "domElement").andCallFake(function () { /* Do nothing */ });
 
                     var mock = SpecRunnerUtils.createMockEditor(fileContent, "html");
                     testDocument = mock.doc;

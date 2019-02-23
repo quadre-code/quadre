@@ -372,7 +372,7 @@ define(function (require, exports, module) {
             function makeUI(initialColor, callback, swatches, hide) {
                 colorEditor = new ColorEditor($(window.document.body),
                     initialColor,
-                    callback || function () { },
+                    callback || function () { /* Do nothing */ },
                     swatches || defaultSwatches);
                 if (hide !== false) {
                     colorEditor.getRootElement().css("display", "none");
@@ -845,7 +845,7 @@ define(function (require, exports, module) {
                     // The color picker needs to be displayed for this test; otherwise the
                     // selection won't be properly set, because you can only set the selection
                     // when the text field has focus.
-                    makeUI(opts.color || "hsla(50, 25%, 50%, 0.5)", function () { }, defaultSwatches, false);
+                    makeUI(opts.color || "hsla(50, 25%, 50%, 0.5)", function () { /* Do nothing */ }, defaultSwatches, false);
 
                     $item = colorEditor[opts.item];
                     $item.focus();

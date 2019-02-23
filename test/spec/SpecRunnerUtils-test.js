@@ -33,7 +33,7 @@ define(function (require, exports, module) {
 
             beforeEach(function () {
                 mockElement = SpecRunnerUtils.createMockElement();
-                mockElement.on("keydown", function(event) {
+                mockElement.on("keydown", function (event) {
                     capturedEvent = event;
                 });
             });

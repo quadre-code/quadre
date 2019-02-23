@@ -901,7 +901,7 @@ define(function (require, exports, module) {
             console.log("Edits", JSON.stringify(result.edits, null, 2));
         }
         // Workaround for JSHint to not complain about the unused function
-        void(debuggingDump);
+        void (debuggingDump);
 
         describe("HTML Instrumentation in dirty files", function () {
             var changeList, offsets;
@@ -1723,6 +1723,7 @@ define(function (require, exports, module) {
                     doEditTest(editor.document.getText(), function (editor, previousDOM) {
                         editor.document.replaceRange(" ", {line: 0, ch: 13});
                     }, function (result, previousDOM, incremental) {
+                        // Do nothing.
                     }, true);
                 });
             });
@@ -2330,6 +2331,7 @@ define(function (require, exports, module) {
                         editor.document.replaceRange("<div>Hello</div>", { line: 14, ch: 0 });
                         currentText = editor.document.getText();
                     }, function (result, previousDOM, incremental) {
+                        // Do nothing
                     }, false);
                 });
                 runs(function () {
@@ -2366,6 +2368,7 @@ define(function (require, exports, module) {
                         editor.document.replaceRange("", { line: 23, ch: 0 }, { line: 29, ch: 0 });
                         currentText = editor.document.getText();
                     }, function (result, previousDOM, incremental) {
+                        // Do nothing
                     }, false);
                 });
                 runs(function () {

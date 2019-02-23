@@ -92,6 +92,7 @@ define(function JSDocumentModule(require, exports, module) {
 
     /** Triggered on cursor activity by the editor */
     JSDocument.prototype.onCursorActivity = function onCursorActivity(event, editor) {
+        // Do nothing.
     };
 
     /** Triggered on change by the editor */

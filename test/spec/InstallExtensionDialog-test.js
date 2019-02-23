@@ -85,6 +85,7 @@ define(function (require, exports, module) {
                     return deferred.promise();
                 },
                 cancel: function () {
+                    // Do nothing.
                 }
             };
             spyOn(installer, "install").andCallThrough();

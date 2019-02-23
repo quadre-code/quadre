@@ -36,6 +36,7 @@ define(function (require, exports, module) {
      * @constructor
      */
     function AtRuleHints() {
+        // Do nothing.
     }
 
     // As we are only going to provide @rules name hints

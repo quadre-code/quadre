@@ -321,7 +321,7 @@
      * TODO currently a no-op.
      */
     function stop() {
-
+        // Do nothing.
     }
 
     var DocumentObserver = {

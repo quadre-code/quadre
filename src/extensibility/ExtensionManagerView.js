@@ -51,6 +51,7 @@ define(function (require, exports, module) {
      * @constructor
      */
     function ExtensionManagerView() {
+        // Do nothing.
     }
     EventDispatcher.makeEventDispatcher(ExtensionManagerView.prototype);
 

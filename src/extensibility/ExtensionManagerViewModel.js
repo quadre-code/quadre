@@ -164,7 +164,7 @@ define(function (require, exports, module) {
      * Re-sorts the current full set based on the source we're viewing.
      * The base implementation does nothing.
      */
-    ExtensionManagerViewModel.prototype._sortFullSet = function () { };
+    ExtensionManagerViewModel.prototype._sortFullSet = function () { /* Do nothing */ };
 
     /**
      * Initializes the model from the source.

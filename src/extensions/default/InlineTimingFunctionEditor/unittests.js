@@ -503,7 +503,7 @@ define(function (require, exports, module) {
             function makeTimingFuncUI(initialTimingFunction, callback) {
                 var parent = $(window.document.body),
                     match = TimingFunctionUtils.timingFunctionMatch(initialTimingFunction, true),
-                    cb = callback || function () { };
+                    cb = callback || function () { /* Do nothing */ };
 
                 if (match.isBezier) {
                     timingFuncEditor = new BezierCurveEditor(parent, match, cb);

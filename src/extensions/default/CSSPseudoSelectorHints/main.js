@@ -79,6 +79,7 @@ define(function (require, exports, module) {
      * @constructor
      */
     function PseudoSelectorHints() {
+        // Do nothing.
     }
 
     function _validatePseudoContext(token) {

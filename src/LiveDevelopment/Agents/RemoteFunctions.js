@@ -44,7 +44,7 @@ function RemoteFunctions(config, remoteWSPort) {
     var lastKeepAliveTime = Date.now();
     var req, timeout;
     var animateHighlight = function (time) {
-        if(req) {
+        if (req) {
             window.cancelAnimationFrame(req);
             window.clearTimeout(timeout);
         }
@@ -319,7 +319,7 @@ function RemoteFunctions(config, remoteWSPort) {
                 vertical: "top, bottom"
             };
 
-            var drawPaddingRect = function(side) {
+            var drawPaddingRect = function (side) {
                 var elStyling = {};
 
                 if (visualisations.horizontal.indexOf(side) >= 0) {
@@ -347,7 +347,7 @@ function RemoteFunctions(config, remoteWSPort) {
                 return elStyling;
             };
 
-            var drawMarginRect = function(side) {
+            var drawMarginRect = function (side) {
                 var elStyling = {};
 
                 var margin = [];
@@ -356,8 +356,7 @@ function RemoteFunctions(config, remoteWSPort) {
                 margin["bottom"] = parseFloat(elementStyling.getPropertyValue("margin-bottom"));
                 margin["left"] = parseFloat(elementStyling.getPropertyValue("margin-left"));
 
-                if(visualisations["horizontal"].indexOf(side) >= 0) {
-
+                if (visualisations["horizontal"].indexOf(side) >= 0) {
                     elStyling["width"] = elementStyling.getPropertyValue("margin-" + side);
                     elStyling["height"] = outerHeight + margin["top"] + margin["bottom"] + "px";
                     elStyling["top"] = "-" + (margin["top"] + parseFloat(realElBorder.top))  + "px";
@@ -439,7 +438,7 @@ function RemoteFunctions(config, remoteWSPort) {
                 offsetLeft += el.offsetLeft;
                 offsetTop  += el.offsetTop;
                 el = el.offsetParent;
-            } while(el);
+            } while (el);
 
             var stylesToSet = {
                 "left": offsetLeft + "px",
@@ -1047,6 +1046,7 @@ function RemoteFunctions(config, remoteWSPort) {
         };
 
         _ws.onmessage = function (evt) {
+            // Do nothing.
         };
 
         _ws.onclose = function () {

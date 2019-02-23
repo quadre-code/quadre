@@ -216,6 +216,7 @@ define(function (require, exports, module) {
         describe("editor manager integration", function () {
 
             beforeEach(function () {
+                // Do nothing.
             });
 
             it("should report the existing editor as the current full editor", function () {
