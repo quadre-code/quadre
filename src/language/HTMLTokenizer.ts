@@ -29,125 +29,133 @@
 
 /*unittests: HTML Tokenizer*/
 
-define(function (require, exports, module) {
+let i = 0;
 
-    "use strict";
-    var i = 0,
+const TEXT = i++;
+const BEFORE_TAG_NAME = i++; // after <
+const IN_TAG_NAME = i++;
+const BEFORE_CLOSING_TAG_NAME = i++;
+const IN_CLOSING_TAG_NAME = i++;
+const AFTER_CLOSING_TAG_NAME = i++;
+const AFTER_SELFCLOSE_SLASH = i++;
 
-        TEXT = i++,
-        BEFORE_TAG_NAME = i++, //after <
-        IN_TAG_NAME = i++,
-        BEFORE_CLOSING_TAG_NAME = i++,
-        IN_CLOSING_TAG_NAME = i++,
-        AFTER_CLOSING_TAG_NAME = i++,
-        AFTER_SELFCLOSE_SLASH = i++,
+// attributes
+const BEFORE_ATTRIBUTE_NAME = i++;
+const AFTER_QUOTED_ATTRIBUTE_VALUE = i++;
+const IN_ATTRIBUTE_NAME = i++;
+const AFTER_ATTRIBUTE_NAME = i++;
+const BEFORE_ATTRIBUTE_VALUE = i++;
+const IN_ATTRIBUTE_VALUE_DOUBLE_QUOTES = i++; // "
+const IN_ATTRIBUTE_VALUE_SINGLE_QUOTES = i++; // '
+const IN_ATTRIBUTE_VALUE_NO_QUOTES = i++;
 
-        //attributes
-        BEFORE_ATTRIBUTE_NAME = i++,
-        AFTER_QUOTED_ATTRIBUTE_VALUE = i++,
-        IN_ATTRIBUTE_NAME = i++,
-        AFTER_ATTRIBUTE_NAME = i++,
-        BEFORE_ATTRIBUTE_VALUE = i++,
-        IN_ATTRIBUTE_VALUE_DOUBLE_QUOTES = i++, // "
-        IN_ATTRIBUTE_VALUE_SINGLE_QUOTES = i++, // '
-        IN_ATTRIBUTE_VALUE_NO_QUOTES = i++,
+// declarations
+const BEFORE_DECLARATION = i++; // !
+const IN_DECLARATION = i++;
 
-        //declarations
-        BEFORE_DECLARATION = i++, // !
-        IN_DECLARATION = i++,
+// processing instructions
+const IN_PROCESSING_INSTRUCTION = i++; // ?
 
-        //processing instructions
-        IN_PROCESSING_INSTRUCTION = i++, // ?
+// comments
+const BEFORE_COMMENT = i++;
+const IN_COMMENT = i++;
+const AFTER_COMMENT_1 = i++;
+const AFTER_COMMENT_2 = i++;
 
-        //comments
-        BEFORE_COMMENT = i++,
-        IN_COMMENT = i++,
-        AFTER_COMMENT_1 = i++,
-        AFTER_COMMENT_2 = i++,
+// cdata
+const BEFORE_CDATA_1 = i++; // [
+const BEFORE_CDATA_2 = i++; // C
+const BEFORE_CDATA_3 = i++; // D
+const BEFORE_CDATA_4 = i++; // A
+const BEFORE_CDATA_5 = i++; // T
+const BEFORE_CDATA_6 = i++; // A
+const IN_CDATA = i++; // [
+const AFTER_CDATA_1 = i++; // ]
+const AFTER_CDATA_2 = i++; // ]
 
-        //cdata
-        BEFORE_CDATA_1 = i++, // [
-        BEFORE_CDATA_2 = i++, // C
-        BEFORE_CDATA_3 = i++, // D
-        BEFORE_CDATA_4 = i++, // A
-        BEFORE_CDATA_5 = i++, // T
-        BEFORE_CDATA_6 = i++, // A
-        IN_CDATA = i++, // [
-        AFTER_CDATA_1 = i++, // ]
-        AFTER_CDATA_2 = i++, // ]
+// special tags
+const BEFORE_SPECIAL = i++; // S
+const BEFORE_SPECIAL_END = i++;   // S
 
-        //special tags
-        BEFORE_SPECIAL = i++, //S
-        BEFORE_SPECIAL_END = i++,   //S
+const BEFORE_SCRIPT_1 = i++; // C
+const BEFORE_SCRIPT_2 = i++; // R
+const BEFORE_SCRIPT_3 = i++; // I
+const BEFORE_SCRIPT_4 = i++; // P
+const BEFORE_SCRIPT_5 = i++; // T
+const AFTER_SCRIPT_1 = i++; // C
+const AFTER_SCRIPT_2 = i++; // R
+const AFTER_SCRIPT_3 = i++; // I
+const AFTER_SCRIPT_4 = i++; // P
+const AFTER_SCRIPT_5 = i++; // T
 
-        BEFORE_SCRIPT_1 = i++, //C
-        BEFORE_SCRIPT_2 = i++, //R
-        BEFORE_SCRIPT_3 = i++, //I
-        BEFORE_SCRIPT_4 = i++, //P
-        BEFORE_SCRIPT_5 = i++, //T
-        AFTER_SCRIPT_1 = i++, //C
-        AFTER_SCRIPT_2 = i++, //R
-        AFTER_SCRIPT_3 = i++, //I
-        AFTER_SCRIPT_4 = i++, //P
-        AFTER_SCRIPT_5 = i++, //T
+const BEFORE_STYLE_1 = i++; // T
+const BEFORE_STYLE_2 = i++; // Y
+const BEFORE_STYLE_3 = i++; // L
+const BEFORE_STYLE_4 = i++; // E
+const AFTER_STYLE_1 = i++; // T
+const AFTER_STYLE_2 = i++; // Y
+const AFTER_STYLE_3 = i++; // L
+const AFTER_STYLE_4 = i++; // E
 
-        BEFORE_STYLE_1 = i++, //T
-        BEFORE_STYLE_2 = i++, //Y
-        BEFORE_STYLE_3 = i++, //L
-        BEFORE_STYLE_4 = i++, //E
-        AFTER_STYLE_1 = i++, //T
-        AFTER_STYLE_2 = i++, //Y
-        AFTER_STYLE_3 = i++, //L
-        AFTER_STYLE_4 = i++; //E
+/**
+ * @private
+ * @param {string} c the character to test
+ * @return {boolean} true if c is whitespace
+ */
+function isWhitespace(c) {
+    return c === " " || c === "\t" || c === "\r" || c === "\n";
+}
 
-    /**
-     * @private
-     * @param {string} c the character to test
-     * @return {boolean} true if c is whitespace
-     */
-    function isWhitespace(c) {
-        return c === " " || c === "\t" || c === "\r" || c === "\n";
-    }
+/**
+ * @private
+ * @param {string} c the character to test
+ * @return {boolean} true if c is legal in an HTML tag name
+ */
+function isLegalInTagName(c) {
+    // We allow "-" in tag names since they're popular in Angular custom tag names
+    // and will be legal in the web components spec.
+    return (/[A-Za-z0-9-]/).test(c);
+}
 
-    /**
-     * @private
-     * @param {string} c the character to test
-     * @return {boolean} true if c is legal in an HTML tag name
-     */
-    function isLegalInTagName(c) {
-        // We allow "-" in tag names since they're popular in Angular custom tag names
-        // and will be legal in the web components spec.
-        return (/[A-Za-z0-9-]/).test(c);
-    }
+/**
+ * @private
+ * @param {string} c the character to test
+ * @return {boolean} true if c is legal in an HTML attribute name
+ */
+function isLegalInAttributeName(c) {
+    return c !== '"' && c !== "'" && c !== "<" && c !== "=";
+}
 
-    /**
-     * @private
-     * @param {string} c the character to test
-     * @return {boolean} true if c is legal in an HTML attribute name
-     */
-    function isLegalInAttributeName(c) {
-        return c !== '"' && c !== "'" && c !== "<" && c !== "=";
-    }
+/**
+ * @private
+ * @param {string} c the character to test
+ * @return {boolean} true if c is legal in an unquoted attribute value
+ */
+function isLegalInUnquotedAttributeValue(c) {
+    return c !== "<" && c !== "=";
+}
 
-    /**
-     * @private
-     * @param {string} c the character to test
-     * @return {boolean} true if c is legal in an unquoted attribute value
-     */
-    function isLegalInUnquotedAttributeValue(c) {
-        return c !== "<" && c !== "=";
-    }
+function _clonePos(pos, offset?) {
+    return pos ? { line: pos.line, ch: pos.ch + (offset || 0)} : null;
+}
 
-    function _clonePos(pos, offset) {
-        return pos ? { line: pos.line, ch: pos.ch + (offset || 0)} : null;
-    }
+/**
+ * A simple HTML tokenizer. See the description of nextToken() for usage details.
+ * @constructor
+ * @param {string} text The HTML document to tokenize.
+ */
+export class Tokenizer {
+    private _state: number;
+    private _buffer: string;
+    private _sectionStart: number;
+    private _sectionStartPos;
+    private _index: number;
+    public _indexPos;
+    private _special: 0 | 1 | 2;
+    private _token;
+    private _nextToken;
 
-    /**
-     * A simple HTML tokenizer. See the description of nextToken() for usage details.
-     * @constructor
-     * @param {string} text The HTML document to tokenize.
-     */
-    function Tokenizer(text) {
+    constructor(text) {
         this._state = TEXT;
         this._buffer = text;
         this._sectionStart = 0;
@@ -180,17 +188,17 @@ define(function (require, exports, module) {
      *    start: the start index of the token contents within the text, or -1 for "opentagend" and "selfclosingtag"
      *    end: the end index of the token contents within the text, or the position of the boundary for "opentagend" and "selfclosingtag"
      */
-    Tokenizer.prototype.nextToken = function () {
+    public nextToken() {
         this._token = null;
 
         if (this._nextToken) {
-            var result = this._nextToken;
+            const result = this._nextToken;
             this._nextToken = null;
             return result;
         }
 
         while (this._index < this._buffer.length && !this._token) {
-            var c = this._buffer.charAt(this._index);
+            const c = this._buffer.charAt(this._index);
             if (this._state === TEXT) {
                 if (c === "<") {
                     this._emitTokenIfNonempty("text");
@@ -288,8 +296,8 @@ define(function (require, exports, module) {
                 }
 
             /*
-             * attributes
-             */
+            * attributes
+            */
             } else if (this._state === BEFORE_ATTRIBUTE_NAME) {
                 if (c === ">") {
                     this._state = TEXT;
@@ -388,8 +396,8 @@ define(function (require, exports, module) {
                 }
 
             /*
-             * declarations
-             */
+            * declarations
+            */
             } else if (this._state === BEFORE_DECLARATION) {
                 if (c === "[") {
                     this._state = BEFORE_CDATA_1;
@@ -407,8 +415,8 @@ define(function (require, exports, module) {
 
 
             /*
-             * processing instructions
-             */
+            * processing instructions
+            */
             } else if (this._state === IN_PROCESSING_INSTRUCTION) {
                 if (c === ">") {
                     this._emitToken("processinginstruction");
@@ -418,8 +426,8 @@ define(function (require, exports, module) {
 
 
             /*
-             * comments
-             */
+            * comments
+            */
             } else if (this._state === BEFORE_COMMENT) {
                 if (c === "-") {
                     this._state = IN_COMMENT;
@@ -439,7 +447,7 @@ define(function (require, exports, module) {
                 }
             } else if (this._state === AFTER_COMMENT_2) {
                 if (c === ">") {
-                    //remove 2 trailing chars
+                    // remove 2 trailing chars
                     // It should be okay to just decrement the char position by 2 because we know neither of the previous
                     // characters is a newline.
                     this._emitToken("comment", this._index - 2, _clonePos(this._indexPos, -2));
@@ -452,8 +460,8 @@ define(function (require, exports, module) {
 
 
             /*
-             * cdata
-             */
+            * cdata
+            */
             } else if (this._state === BEFORE_CDATA_1) {
                 if (c === "C") {
                     this._state = BEFORE_CDATA_2;
@@ -503,7 +511,7 @@ define(function (require, exports, module) {
                 }
             } else if (this._state === AFTER_CDATA_2) {
                 if (c === ">") {
-                    //remove 2 trailing chars
+                    // remove 2 trailing chars
                     // It should be okay to just decrement the char position by 2 because we know neither of the previous
                     // characters is a newline.
                     this._emitToken("cdata", this._index - 2, _clonePos(this._indexPos, -2));
@@ -512,7 +520,7 @@ define(function (require, exports, module) {
                 } else if (c !== "]") {
                     this._state = IN_CDATA;
                 }
-                //else: stay in AFTER_CDATA_2 (`]]]>`)
+                // else: stay in AFTER_CDATA_2 (`]]]>`)
 
 
             /*
@@ -525,7 +533,7 @@ define(function (require, exports, module) {
                     this._state = BEFORE_STYLE_1;
                 } else {
                     this._state = IN_TAG_NAME;
-                    continue; //consume the token again
+                    continue; // consume the token again
                 }
             } else if (this._state === BEFORE_SPECIAL_END) {
                 if (this._special === 1 && (c === "c" || c === "C")) {
@@ -545,35 +553,35 @@ define(function (require, exports, module) {
                     this._state = BEFORE_SCRIPT_2;
                 } else {
                     this._state = IN_TAG_NAME;
-                    continue; //consume the token again
+                    continue; // consume the token again
                 }
             } else if (this._state === BEFORE_SCRIPT_2) {
                 if (c === "i" || c === "I") {
                     this._state = BEFORE_SCRIPT_3;
                 } else {
                     this._state = IN_TAG_NAME;
-                    continue; //consume the token again
+                    continue; // consume the token again
                 }
             } else if (this._state === BEFORE_SCRIPT_3) {
                 if (c === "p" || c === "P") {
                     this._state = BEFORE_SCRIPT_4;
                 } else {
                     this._state = IN_TAG_NAME;
-                    continue; //consume the token again
+                    continue; // consume the token again
                 }
             } else if (this._state === BEFORE_SCRIPT_4) {
                 if (c === "t" || c === "T") {
                     this._state = BEFORE_SCRIPT_5;
                 } else {
                     this._state = IN_TAG_NAME;
-                    continue; //consume the token again
+                    continue; // consume the token again
                 }
             } else if (this._state === BEFORE_SCRIPT_5) {
                 if (c === "/" || c === ">" || isWhitespace(c)) {
                     this._special = 1;
                 }
                 this._state = IN_TAG_NAME;
-                continue; //consume the token again
+                continue; // consume the token again
             } else if (this._state === AFTER_SCRIPT_1) {
                 if (c === "r" || c === "R") {
                     this._state = AFTER_SCRIPT_2;
@@ -602,7 +610,7 @@ define(function (require, exports, module) {
                 if (c === ">" || isWhitespace(c)) {
                     this._state = IN_CLOSING_TAG_NAME;
                     this._startSection(-6);
-                    continue; //reconsume the token
+                    continue; // reconsume the token
                 } else {
                     this._state = TEXT;
                 }
@@ -616,28 +624,28 @@ define(function (require, exports, module) {
                     this._state = BEFORE_STYLE_2;
                 } else {
                     this._state = IN_TAG_NAME;
-                    continue; //consume the token again
+                    continue; // consume the token again
                 }
             } else if (this._state === BEFORE_STYLE_2) {
                 if (c === "l" || c === "L") {
                     this._state = BEFORE_STYLE_3;
                 } else {
                     this._state = IN_TAG_NAME;
-                    continue; //consume the token again
+                    continue; // consume the token again
                 }
             } else if (this._state === BEFORE_STYLE_3) {
                 if (c === "e" || c === "E") {
                     this._state = BEFORE_STYLE_4;
                 } else {
                     this._state = IN_TAG_NAME;
-                    continue; //consume the token again
+                    continue; // consume the token again
                 }
             } else if (this._state === BEFORE_STYLE_4) {
                 if (c === "/" || c === ">" || isWhitespace(c)) {
                     this._special = 2;
                 }
                 this._state = IN_TAG_NAME;
-                continue; //consume the token again
+                continue; // consume the token again
             } else if (this._state === AFTER_STYLE_1) {
                 if (c === "y" || c === "Y") {
                     this._state = AFTER_STYLE_2;
@@ -660,7 +668,7 @@ define(function (require, exports, module) {
                 if (c === ">" || isWhitespace(c)) {
                     this._state = IN_CLOSING_TAG_NAME;
                     this._startSection(-5);
-                    continue; //reconsume the token
+                    continue; // reconsume the token
                 } else {
                     this._state = TEXT;
                 }
@@ -689,9 +697,9 @@ define(function (require, exports, module) {
             }
         }
         return this._token;
-    };
+    }
 
-    Tokenizer.prototype._startSection = function (offset) {
+    private _startSection(offset?) {
         offset = offset || 0;
         this._sectionStart = this._index + offset;
 
@@ -700,7 +708,7 @@ define(function (require, exports, module) {
         // move to the next line. However, in all the cases where this is called, we are
         // adjusting for characters that we know are not newlines.
         this._sectionStartPos = _clonePos(this._indexPos, offset);
-    };
+    }
 
     /**
      * @private
@@ -709,14 +717,14 @@ define(function (require, exports, module) {
      * @param {string} type The token's type (see documentation for `nextToken()`)
      * @param {number} index If specified, the index to use as the end of the token; uses this._index if not specified
      */
-    Tokenizer.prototype._setToken = function (type, index, indexPos) {
+    private _setToken(type, index?, indexPos?) {
         if (index === undefined) {
             index = this._index;
         }
         if (indexPos === undefined) {
             indexPos = this._indexPos;
         }
-        var token = {
+        const token = {
             type: type,
             contents: this._sectionStart === -1 ? "" : this._buffer.substring(this._sectionStart, index),
             start: this._sectionStart,
@@ -735,7 +743,7 @@ define(function (require, exports, module) {
         } else {
             this._token = token;
         }
-    };
+    }
 
     /**
      * @private
@@ -744,11 +752,11 @@ define(function (require, exports, module) {
      * @param {string} type The token's type (see documentation for `nextToken()`)
      * @param {number} index If specified, the index to use as the end of the token; uses this._index if not specified
      */
-    Tokenizer.prototype._emitToken = function (type, index, indexPos) {
+    private _emitToken(type, index?, indexPos?) {
         this._setToken(type, index, indexPos);
         this._sectionStart = -1;
         this._sectionStartPos = null;
-    };
+    }
 
     /**
      * @private
@@ -756,13 +764,13 @@ define(function (require, exports, module) {
      * @param {string} type The token's type (see documentation for `nextToken()`)
      * @param {number} index If specified, the index to use as the end of the token; uses this._index if not specified
      */
-    Tokenizer.prototype._emitSpecialToken = function (type, index, indexPos) {
+    private _emitSpecialToken(type, index?, indexPos?) {
         // Force the section start to be -1, since these tokens don't have meaningful content--they're
         // just marking particular boundaries we care about (end of an open tag or a self-closing tag).
         this._sectionStart = -1;
         this._sectionStartPos = null;
         this._emitToken(type, index, indexPos);
-    };
+    }
 
     /**
      * @private
@@ -771,13 +779,11 @@ define(function (require, exports, module) {
      * started before the next `_emit`.
      * @param {string} type The token's type (see documentation for `nextToken()`)
      */
-    Tokenizer.prototype._emitTokenIfNonempty = function (type) {
+    private _emitTokenIfNonempty(type) {
         if (this._index > this._sectionStart) {
             this._setToken(type);
         }
         this._sectionStart = -1;
         this._sectionStartPos = null;
-    };
-
-    exports.Tokenizer = Tokenizer;
-});
+    }
+}

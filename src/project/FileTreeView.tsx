@@ -629,7 +629,7 @@ class FileNode extends React.Component<IFileNodeProps, IFileNodeState> {
 
     public render() {
         const fullname = this.props.name;
-        let extension = LanguageManager.getCompoundFileExtension(fullname);
+        let extension: string | JSX.Element = LanguageManager.getCompoundFileExtension(fullname);
         const name = _getName(fullname, extension);
 
         if (extension) {

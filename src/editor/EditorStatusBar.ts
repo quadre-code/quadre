@@ -399,7 +399,7 @@ AppInit.htmlReady(_init);
 AppInit.appReady(function () {
     // Populate language switcher with all languages after startup; update it later if this set changes
     _populateLanguageDropdown();
-    LanguageManager.on("languageAdded languageModified", _populateLanguageDropdown);
+    (LanguageManager as unknown as DispatcherEvents).on("languageAdded languageModified", _populateLanguageDropdown);
     _onActiveEditorChange(null, EditorManager.getActiveEditor(), null);
     StatusBar.show();
 });

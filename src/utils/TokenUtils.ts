@@ -103,7 +103,7 @@ export function getInitialContext(cm, pos) {
  *      If parsing unchanging code, use false to use cache for performance.
  * @return {boolean} whether the context changed
  */
-export function movePrevToken(ctx, precise) {
+export function movePrevToken(ctx, precise?) {
     if (precise === undefined) {
         precise = true;
     }
@@ -137,7 +137,7 @@ export function isAtStart(ctx) {
  *      If parsing unchanging code, use false to use cache for performance.
  * @return {boolean} whether the context changed
  */
-export function moveNextToken(ctx, precise) {
+export function moveNextToken(ctx, precise?) {
     const eol = ctx.editor.getLine(ctx.pos.line).length;
     if (precise === undefined) {
         precise = true;

@@ -299,7 +299,7 @@ function htmlToCSSProvider(hostEditor, pos) {
         .done(function (rules) {
             const inlineEditorDeferred = $.Deferred();
             cssInlineEditor = new MultiRangeInlineEditor(
-                CSSUtils.consolidateRules(rules),
+                CSSUtils.consolidateRules(rules!),
                 _getNoRulesMsg, CSSUtils.getRangeSelectors,
                 _fileComparator
             );
@@ -343,7 +343,7 @@ function htmlToCSSProvider(hostEditor, pos) {
                     // here if there are any stylesheets in project
                     if (cssFileInfos.length > 0) {
                         newRuleButton.$button.removeClass("disabled");
-                        if (!rules.length) {
+                        if (!rules!.length) {
                             // Force focus to the button so the user can create a new rule from the keyboard.
                             newRuleButton.$button.focus();
                         }

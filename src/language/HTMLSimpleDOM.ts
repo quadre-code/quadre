@@ -24,252 +24,265 @@
 
 /*unittests: HTML Instrumentation*/
 
-define(function (require, exports, module) {
-    "use strict";
+import { Tokenizer } from "language/HTMLTokenizer";
+import * as MurmurHash3 from "thirdparty/murmurhash3_gc";
+import * as PerfUtils from "utils/PerfUtils";
 
-    var Tokenizer   = require("language/HTMLTokenizer").Tokenizer,
-        MurmurHash3 = require("thirdparty/murmurhash3_gc"),
-        PerfUtils   = require("utils/PerfUtils");
+export const _seed = Math.floor(Math.random() * 65535);
 
-    var seed = Math.floor(Math.random() * 65535);
+let tagID = 1;
 
-    var tagID = 1;
+/**
+ * A list of tags whose start causes any of a given set of immediate parent
+ * tags to close. This mostly comes from the HTML5 spec section on omitted close tags:
+ * http://www.w3.org/html/wg/drafts/html/master/syntax.html#optional-tags
+ * This doesn't handle general content model violations.
+ */
+const openImpliesClose = {
+    li      : { li: true },
+    dt      : { dd: true, dt: true },
+    dd      : { dd: true, dt: true },
+    address : { p: true },
+    article : { p: true },
+    aside   : { p: true },
+    blockquote : { p: true },
+    colgroup: { caption: true },
+    details : { p: true },
+    dir     : { p: true },
+    div     : { p: true },
+    dl      : { p: true },
+    fieldset: { p: true },
+    figcaption: { p: true },
+    figure  : { p: true },
+    footer  : { p: true },
+    form    : { p: true },
+    h1      : { p: true },
+    h2      : { p: true },
+    h3      : { p: true },
+    h4      : { p: true },
+    h5      : { p: true },
+    h6      : { p: true },
+    header  : { p: true },
+    hgroup  : { p: true },
+    hr      : { p: true },
+    main    : { p: true },
+    menu    : { p: true },
+    nav     : { p: true },
+    ol      : { p: true },
+    p       : { p: true },
+    pre     : { p: true },
+    section : { p: true },
+    table   : { p: true },
+    ul      : { p: true },
+    rb      : { rb: true, rt: true, rtc: true, rp: true },
+    rp      : { rb: true, rt: true, rp: true },
+    rt      : { rb: true, rt: true, rp: true },
+    rtc     : { rb: true, rt: true, rtc: true, rp: true },
+    optgroup: { optgroup: true, option: true },
+    option  : { option: true },
+    tbody   : { caption: true, colgroup: true, thead: true, tbody: true, tfoot: true },
+    tfoot   : { caption: true, colgroup: true, thead: true, tbody: true },
+    thead   : { caption: true, colgroup: true },
+    tr      : { tr: true, th: true, td: true, caption: true },
+    th      : { th: true, td: true },
+    td      : { th: true, td: true },
+    body    : { head: true }
+};
 
-    /**
-     * A list of tags whose start causes any of a given set of immediate parent
-     * tags to close. This mostly comes from the HTML5 spec section on omitted close tags:
-     * http://www.w3.org/html/wg/drafts/html/master/syntax.html#optional-tags
-     * This doesn't handle general content model violations.
-     */
-    var openImpliesClose = {
-        li      : { li: true },
-        dt      : { dd: true, dt: true },
-        dd      : { dd: true, dt: true },
-        address : { p: true },
-        article : { p: true },
-        aside   : { p: true },
-        blockquote : { p: true },
-        colgroup: { caption: true },
-        details : { p: true },
-        dir     : { p: true },
-        div     : { p: true },
-        dl      : { p: true },
-        fieldset: { p: true },
-        figcaption: { p: true },
-        figure  : { p: true },
-        footer  : { p: true },
-        form    : { p: true },
-        h1      : { p: true },
-        h2      : { p: true },
-        h3      : { p: true },
-        h4      : { p: true },
-        h5      : { p: true },
-        h6      : { p: true },
-        header  : { p: true },
-        hgroup  : { p: true },
-        hr      : { p: true },
-        main    : { p: true },
-        menu    : { p: true },
-        nav     : { p: true },
-        ol      : { p: true },
-        p       : { p: true },
-        pre     : { p: true },
-        section : { p: true },
-        table   : { p: true },
-        ul      : { p: true },
-        rb      : { rb: true, rt: true, rtc: true, rp: true },
-        rp      : { rb: true, rt: true, rp: true },
-        rt      : { rb: true, rt: true, rp: true },
-        rtc     : { rb: true, rt: true, rtc: true, rp: true },
-        optgroup: { optgroup: true, option: true },
-        option  : { option: true },
-        tbody   : { caption: true, colgroup: true, thead: true, tbody: true, tfoot: true },
-        tfoot   : { caption: true, colgroup: true, thead: true, tbody: true },
-        thead   : { caption: true, colgroup: true },
-        tr      : { tr: true, th: true, td: true, caption: true },
-        th      : { th: true, td: true },
-        td      : { th: true, td: true },
-        body    : { head: true }
-    };
+/**
+ * A list of elements which are automatically closed when their parent is closed:
+ * http://www.w3.org/html/wg/drafts/html/master/syntax.html#optional-tags
+ */
+const optionalClose = {
+    html: true,
+    body: true,
+    li: true,
+    dd: true,
+    dt: true, // This is not actually correct, but showing a syntax error is not helpful
+    p: true,
+    rb: true,
+    rt: true,
+    rtc: true,
+    rp: true,
+    optgroup: true,
+    option: true,
+    colgroup: true,
+    caption: true,
+    tbody: true,
+    tfoot: true,
+    tr: true,
+    td: true,
+    th: true
+};
 
-    /**
-     * A list of elements which are automatically closed when their parent is closed:
-     * http://www.w3.org/html/wg/drafts/html/master/syntax.html#optional-tags
-     */
-    var optionalClose = {
-        html: true,
-        body: true,
-        li: true,
-        dd: true,
-        dt: true, // This is not actually correct, but showing a syntax error is not helpful
-        p: true,
-        rb: true,
-        rt: true,
-        rtc: true,
-        rp: true,
-        optgroup: true,
-        option: true,
-        colgroup: true,
-        caption: true,
-        tbody: true,
-        tfoot: true,
-        tr: true,
-        td: true,
-        th: true
-    };
+// TODO: handle optional start tags
 
-    // TODO: handle optional start tags
+/**
+ * A list of tags that are self-closing (do not contain other elements).
+ * Mostly taken from http://www.w3.org/html/wg/drafts/html/master/syntax.html#void-elements
+ */
+const voidElements = {
+    area: true,
+    base: true,
+    basefont: true,
+    br: true,
+    col: true,
+    command: true,
+    embed: true,
+    frame: true,
+    hr: true,
+    img: true,
+    input: true,
+    isindex: true,
+    keygen: true,
+    link: true,
+    menuitem: true,
+    meta: true,
+    param: true,
+    source: true,
+    track: true,
+    wbr: true
+};
 
-    /**
-     * A list of tags that are self-closing (do not contain other elements).
-     * Mostly taken from http://www.w3.org/html/wg/drafts/html/master/syntax.html#void-elements
-     */
-    var voidElements = {
-        area: true,
-        base: true,
-        basefont: true,
-        br: true,
-        col: true,
-        command: true,
-        embed: true,
-        frame: true,
-        hr: true,
-        img: true,
-        input: true,
-        isindex: true,
-        keygen: true,
-        link: true,
-        menuitem: true,
-        meta: true,
-        param: true,
-        source: true,
-        track: true,
-        wbr: true
-    };
+/**
+ * A SimpleNode represents one node in a SimpleDOM tree. Each node can have
+ * any set of properties on it, though there are a couple of assumptions made.
+ * Elements will have `children` and `attributes` properties. Text nodes will have a `content`
+ * property. All Elements will have a `tagID` and text nodes *can* have one.
+ *
+ * @constructor
+ *
+ * @param {Object} properties the properties provided will be set on the new object.
+ */
+export class SimpleNode {
+    private children;
+    public childSignature;
+    public subtreeSignature;
+    public textSignature;
+    public attributeSignature;
+    private content;
+    private attributes;
+    public tagID;
+    public parent;
+    public tag;
 
-    /**
-     * A SimpleNode represents one node in a SimpleDOM tree. Each node can have
-     * any set of properties on it, though there are a couple of assumptions made.
-     * Elements will have `children` and `attributes` properties. Text nodes will have a `content`
-     * property. All Elements will have a `tagID` and text nodes *can* have one.
-     *
-     * @constructor
-     *
-     * @param {Object} properties the properties provided will be set on the new object.
-     */
-    function SimpleNode(properties) {
+    constructor(properties) {
         $.extend(this, properties);
     }
 
-    SimpleNode.prototype = {
-
-        /**
-         * Updates signatures used to optimize the number of comparisons done during
-         * diffing. This is important to call if you change:
-         *
-         * * children
-         * * child node attributes
-         * * text content of a text node
-         * * child node text
-         */
-        update: function () {
-            if (this.isElement()) {
-                var i,
-                    subtreeHashes = "",
-                    childHashes = "",
-                    child;
-                for (i = 0; i < this.children.length; i++) {
-                    child = this.children[i];
-                    if (child.isElement()) {
-                        childHashes += String(child.tagID);
-                        subtreeHashes += String(child.tagID) + child.attributeSignature + child.subtreeSignature;
-                    } else {
-                        childHashes += child.textSignature;
-                        subtreeHashes += child.textSignature;
-                    }
+    /**
+     * Updates signatures used to optimize the number of comparisons done during
+     * diffing. This is important to call if you change:
+     *
+     * * children
+     * * child node attributes
+     * * text content of a text node
+     * * child node text
+     */
+    public update() {
+        if (this.isElement()) {
+            let subtreeHashes = "";
+            let childHashes = "";
+            for (const child of this.children) {
+                if (child.isElement()) {
+                    childHashes += String(child.tagID);
+                    subtreeHashes += String(child.tagID) + child.attributeSignature + child.subtreeSignature;
+                } else {
+                    childHashes += child.textSignature;
+                    subtreeHashes += child.textSignature;
                 }
-                this.childSignature = MurmurHash3.hashString(childHashes, childHashes.length, seed);
-                this.subtreeSignature = MurmurHash3.hashString(subtreeHashes, subtreeHashes.length, seed);
-            } else {
-                this.textSignature = MurmurHash3.hashString(this.content, this.content.length, seed);
             }
-        },
-
-        /**
-         * Updates the signature of this node's attributes. Call this after making attribute changes.
-         */
-        updateAttributeSignature: function () {
-            var attributeString = JSON.stringify(this.attributes);
-            this.attributeSignature = MurmurHash3.hashString(attributeString, attributeString.length, seed);
-        },
-
-        /**
-         * Is this node an element node?
-         *
-         * @return {bool} true if it is an element
-         */
-        isElement: function () {
-            return !!this.children;
-        },
-
-        /**
-         * Is this node a text node?
-         *
-         * @return {bool} true if it is text
-         */
-        isText: function () {
-            return !this.children;
+            this.childSignature = MurmurHash3.hashString(childHashes, childHashes.length, _seed);
+            this.subtreeSignature = MurmurHash3.hashString(subtreeHashes, subtreeHashes.length, _seed);
+        } else {
+            this.textSignature = MurmurHash3.hashString(this.content, this.content.length, _seed);
         }
-    };
-
-    /**
-     * @private
-     *
-     * Generates a synthetic ID for text nodes. These IDs are only used
-     * for convenience when reading a SimpleDOM that is dumped to the console.
-     *
-     * @param {Object} textNode new node for which we are generating an ID
-     * @return {string} ID for the node
-     */
-    function getTextNodeID(textNode) {
-        var childIndex = textNode.parent.children.indexOf(textNode);
-        if (childIndex === 0) {
-            return textNode.parent.tagID + ".0";
-        }
-        return textNode.parent.children[childIndex - 1].tagID + "t";
     }
 
     /**
-     * @private
-     *
-     * Adds two {line, ch}-style positions, returning a new pos.
+     * Updates the signature of this node's attributes. Call this after making attribute changes.
      */
-    function _addPos(pos1, pos2) {
-        return {line: pos1.line + pos2.line, ch: (pos2.line === 0 ? pos1.ch + pos2.ch : pos2.ch)};
+    public updateAttributeSignature() {
+        const attributeString = JSON.stringify(this.attributes);
+        this.attributeSignature = MurmurHash3.hashString(attributeString, attributeString.length, _seed);
     }
 
     /**
-     * @private
+     * Is this node an element node?
      *
-     * Offsets the character offset of the given {line, ch} pos by the given amount and returns a new
-     * pos. Not for general purpose use as it does not account for line boundaries.
+     * @return {bool} true if it is an element
      */
-    function _offsetPos(pos, offset) {
-        return {line: pos.line, ch: pos.ch + offset};
+    public isElement() {
+        return !!this.children;
     }
 
     /**
-     * A Builder creates a SimpleDOM tree of SimpleNode objects representing the
-     * "important" contents of an HTML document. It does not include things like comments.
-     * The nodes include information about their position in the text provided.
+     * Is this node a text node?
      *
-     * @constructor
-     *
-     * @param {string} text The text to parse
-     * @param {?int} startOffset starting offset in the text
-     * @param {?{line: int, ch: int}} startOffsetPos line/ch position in the text
+     * @return {bool} true if it is text
      */
-    function Builder(text, startOffset, startOffsetPos) {
+    public isText() {
+        return !this.children;
+    }
+}
+
+/**
+ * @private
+ *
+ * Generates a synthetic ID for text nodes. These IDs are only used
+ * for convenience when reading a SimpleDOM that is dumped to the console.
+ *
+ * @param {Object} textNode new node for which we are generating an ID
+ * @return {string} ID for the node
+ */
+export function _getTextNodeID(textNode) {
+    const childIndex = textNode.parent.children.indexOf(textNode);
+    if (childIndex === 0) {
+        return textNode.parent.tagID + ".0";
+    }
+    return textNode.parent.children[childIndex - 1].tagID + "t";
+}
+
+/**
+ * @private
+ *
+ * Adds two {line, ch}-style positions, returning a new pos.
+ */
+function _addPos(pos1, pos2) {
+    return {line: pos1.line + pos2.line, ch: (pos2.line === 0 ? pos1.ch + pos2.ch : pos2.ch)};
+}
+
+/**
+ * @private
+ *
+ * Offsets the character offset of the given {line, ch} pos by the given amount and returns a new
+ * pos. Not for general purpose use as it does not account for line boundaries.
+ */
+export function _offsetPos(pos, offset) {
+    return {line: pos.line, ch: pos.ch + offset};
+}
+
+/**
+ * A Builder creates a SimpleDOM tree of SimpleNode objects representing the
+ * "important" contents of an HTML document. It does not include things like comments.
+ * The nodes include information about their position in the text provided.
+ *
+ * @constructor
+ *
+ * @param {string} text The text to parse
+ * @param {?int} startOffset starting offset in the text
+ * @param {?{line: int, ch: int}} startOffsetPos line/ch position in the text
+ */
+export class Builder {
+    private stack: Array<any>;
+    private text: string;
+    private t: Tokenizer;
+    private currentTag;
+    private startOffset: number;
+    private startOffsetPos;
+    public errors: Array<unknown>;
+
+    constructor(text, startOffset?, startOffsetPos?) {
         this.stack = [];
         this.text = text;
         this.t = new Tokenizer(text);
@@ -278,10 +291,10 @@ define(function (require, exports, module) {
         this.startOffsetPos = startOffsetPos || {line: 0, ch: 0};
     }
 
-    Builder.prototype._logError = function (token) {
-        var error       = { token: token },
-            startPos    = token ? (token.startPos || token.endPos) : this.startOffsetPos,
-            endPos      = token ? token.endPos : this.startOffsetPos;
+    private _logError(token) {
+        const error: any = { token: token };
+        const startPos    = token ? (token.startPos || token.endPos) : this.startOffsetPos;
+        const endPos      = token ? token.endPos : this.startOffsetPos;
 
         error.startPos = _addPos(this.startOffsetPos, startPos);
         error.endPos = _addPos(this.startOffsetPos, endPos);
@@ -291,7 +304,7 @@ define(function (require, exports, module) {
         }
 
         this.errors.push(error);
-    };
+    }
 
     /**
      * Builds the SimpleDOM.
@@ -300,25 +313,25 @@ define(function (require, exports, module) {
      * @param {?Object} markCache a cache that can be used in ID generation (is passed to `getID`)
      * @return {SimpleNode} root of tree or null if parsing failed
      */
-    Builder.prototype.build = function (strict, markCache) {
-        var self = this;
-        var token,
-            lastClosedTag,
-            lastTextNode,
-            // eslint-disable-next-line no-unused-vars
-            lastIndex = 0;
-        var stack = this.stack;
-        var attributeName = null;
-        var nodeMap = {};
+    public build(strict?, markCache?) {
+        const self = this;
+        let token;
+        let lastClosedTag;
+        let lastTextNode;
+        // @ts-ignore
+        let lastIndex = 0; // eslint-disable-line @typescript-eslint/no-unused-vars
+        const stack = this.stack;
+        let attributeName: string | null = null;
+        const nodeMap = {};
 
         markCache = markCache || {};
 
         // Start timers for building full and partial DOMs.
         // Appropriate timer is used, and the other is discarded.
-        var timerBuildFull = "HTMLInstr. Build DOM Full";
-        var timerBuildPart = "HTMLInstr. Build DOM Partial";
-        var timers; // timer handles
-        timers = PerfUtils.markStart([timerBuildFull, timerBuildPart]);
+        let timerBuildFull = "HTMLInstr. Build DOM Full";
+        let timerBuildPart = "HTMLInstr. Build DOM Partial";
+        // timer handles
+        const timers = PerfUtils.markStart([timerBuildFull, timerBuildPart]);
         timerBuildFull = timers[0];
         timerBuildPart = timers[1];
 
@@ -331,6 +344,7 @@ define(function (require, exports, module) {
             lastClosedTag.endPos = _addPos(self.startOffsetPos, endPos);
         }
 
+        // tslint:disable-next-line:no-conditional-assignment
         while ((token = this.t.nextToken()) !== null) {
             // lastTextNode is used to glue text nodes together
             // If the last node we saw was text but this one is not, then we're done gluing.
@@ -347,11 +361,10 @@ define(function (require, exports, module) {
             }
 
             if (token.type === "opentagname") {
-                var newTagName = token.contents.toLowerCase(),
-                    newTag;
+                const newTagName = token.contents.toLowerCase();
 
                 if (openImpliesClose.hasOwnProperty(newTagName)) {
-                    var closable = openImpliesClose[newTagName];
+                    const closable = openImpliesClose[newTagName];
                     while (stack.length > 0 && closable.hasOwnProperty(stack[stack.length - 1].tag)) {
                         // Close the previous tag at the start of this tag.
                         // Adjust backwards for the < before the tag name.
@@ -359,7 +372,7 @@ define(function (require, exports, module) {
                     }
                 }
 
-                newTag = new SimpleNode({
+                const newTag = new SimpleNode({
                     tag: token.contents.toLowerCase(),
                     children: [],
                     attributes: {},
@@ -414,11 +427,11 @@ define(function (require, exports, module) {
                 }
             } else if (token.type === "closetag") {
                 // If this is a self-closing element, ignore the close tag.
-                var closeTagName = token.contents.toLowerCase();
+                const closeTagName = token.contents.toLowerCase();
                 if (!voidElements.hasOwnProperty(closeTagName)) {
                     // Find the topmost item on the stack that matches. If we can't find one, assume
                     // this is just a dangling closing tag and ignore it.
-                    var i;
+                    let i;
                     for (i = stack.length - 1; i >= 0; i--) {
                         if (stack[i].tag === closeTagName) {
                             break;
@@ -459,14 +472,14 @@ define(function (require, exports, module) {
                 attributeName = token.contents.toLowerCase();
                 // Set the value to the empty string in case this is an empty attribute. If it's not,
                 // it will get overwritten by the attribvalue later.
-                this.currentTag.attributes[attributeName] = "";
+                this.currentTag.attributes[attributeName!] = "";
             } else if (token.type === "attribvalue" && attributeName !== null) {
                 this.currentTag.attributes[attributeName] = token.contents;
                 attributeName = null;
             } else if (token.type === "text") {
                 if (stack.length) {
-                    var parent = stack[stack.length - 1];
-                    var newNode;
+                    const parent = stack[stack.length - 1];
+                    let newNode;
 
                     // Check to see if we're continuing a previous text.
                     if (lastTextNode) {
@@ -478,7 +491,7 @@ define(function (require, exports, module) {
                             content: token.contents
                         });
                         parent.children.push(newNode);
-                        newNode.tagID = getTextNodeID(newNode);
+                        newNode.tagID = _getTextNodeID(newNode);
                         nodeMap[newNode.tagID] = newNode;
                         lastTextNode = newNode;
                     }
@@ -501,7 +514,7 @@ define(function (require, exports, module) {
             closeTag(this.text.length, this.t._indexPos);
         }
 
-        var dom = lastClosedTag;
+        const dom = lastClosedTag;
         if (!dom) {
             // This can happen if the document has no nontrivial content, or if the user tries to
             // have something at the root other than the HTML tag. In all such cases, we treat the
@@ -515,16 +528,16 @@ define(function (require, exports, module) {
         PerfUtils.finalizeMeasurement(timerBuildPart);  // discard
 
         return dom;
-    };
+    }
 
     /**
      * Returns a new tag ID.
      *
      * @return {int} unique tag ID
      */
-    Builder.prototype.getNewID = function () {
+    public getNewID() {
         return tagID++;
-    };
+    }
 
     /**
      * Returns the best tag ID for the new tag object given.
@@ -534,58 +547,49 @@ define(function (require, exports, module) {
      * @param {Object} newTag tag object to potentially inspect to choose an ID
      * @return {int} unique tag ID
      */
-    Builder.prototype.getID = Builder.prototype.getNewID;
-
-    /**
-     * Builds a SimpleDOM from the text provided. If `strict` mode is true, parsing
-     * will halt as soon as any error is seen and null will be returned.
-     *
-     * @param {string} text Text of document to parse
-     * @param {bool} strict True for strict parsing
-     * @return {SimpleNode} root of tree or null if strict failed
-     */
-    function build(text, strict) {
-        var builder = new Builder(text);
-        return builder.build(strict);
+    public getID(...args) {
+        return this.getNewID();
     }
+}
 
-    /**
-     * @private
-     *
-     * Generates a string version of a SimpleDOM for debugging purposes.
-     *
-     * @param {SimpleNode} root root of the tree
-     * @return {string} Text version of the tree.
-     */
-    function _dumpDOM(root) {
-        var result = "",
-            indent = "";
+/**
+ * Builds a SimpleDOM from the text provided. If `strict` mode is true, parsing
+ * will halt as soon as any error is seen and null will be returned.
+ *
+ * @param {string} text Text of document to parse
+ * @param {bool} strict True for strict parsing
+ * @return {SimpleNode} root of tree or null if strict failed
+ */
+export function build(text, strict?) {
+    const builder = new Builder(text);
+    return builder.build(strict);
+}
 
-        function walk(node) {
-            if (node.tag) {
-                result += indent + "TAG " + node.tagID + " " + node.tag + " " + JSON.stringify(node.attributes) + "\n";
-            } else {
-                result += indent + "TEXT " + (node.tagID || "- ") + node.content + "\n";
-            }
-            if (node.isElement()) {
-                indent += "  ";
-                node.children.forEach(walk);
-                indent = indent.slice(2);
-            }
+/**
+ * @private
+ *
+ * Generates a string version of a SimpleDOM for debugging purposes.
+ *
+ * @param {SimpleNode} root root of the tree
+ * @return {string} Text version of the tree.
+ */
+export function _dumpDOM(root) {
+    let result = "";
+    let indent = "";
+
+    function walk(node) {
+        if (node.tag) {
+            result += indent + "TAG " + node.tagID + " " + node.tag + " " + JSON.stringify(node.attributes) + "\n";
+        } else {
+            result += indent + "TEXT " + (node.tagID || "- ") + node.content + "\n";
         }
-        walk(root);
-
-        return result;
+        if (node.isElement()) {
+            indent += "  ";
+            node.children.forEach(walk);
+            indent = indent.slice(2);
+        }
     }
+    walk(root);
 
-    // Public API
-    exports.build                       = build;
-    exports.Builder                     = Builder;
-    exports.SimpleNode                  = SimpleNode;
-
-    // Private API
-    exports._dumpDOM                    = _dumpDOM;
-    exports._offsetPos                  = _offsetPos;
-    exports._getTextNodeID              = getTextNodeID;
-    exports._seed                       = seed;
-});
+    return result;
+}

@@ -415,7 +415,7 @@ getDocumentForPath._pendingDocumentPromises = {};
  *              will be null if checkLineEndings was false.
  *     or rejected with a filesystem error.
  */
-export function getDocumentText(file, checkLineEndings) {
+export function getDocumentText(file, checkLineEndings?) {
     const result = $.Deferred();
     const doc = getOpenDocumentForPath(file.fullPath);
     if (doc) {
@@ -698,5 +698,5 @@ export type Document = DocumentModule.Document;
 PerfUtils.createPerfMeasurement("DOCUMENT_MANAGER_GET_DOCUMENT_FOR_PATH", "DocumentManager.getDocumentForPath()");
 
 // Handle Language change events
-LanguageManager.on("languageAdded", _handleLanguageAdded);
-LanguageManager.on("languageModified", _handleLanguageModified);
+(LanguageManager as unknown as EventDispatcher.DispatcherEvents).on("languageAdded", _handleLanguageAdded);
+(LanguageManager as unknown as EventDispatcher.DispatcherEvents).on("languageModified", _handleLanguageModified);
