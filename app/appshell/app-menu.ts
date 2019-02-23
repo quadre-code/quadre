@@ -110,7 +110,7 @@ function _addToPosition(
     } else if (
         position === "before" || position === "after" || position === "firstInSection" || position === "lastInSection"
     ) {
-        let idx = _.findIndex(target, {id: relativeId});
+        let idx = _.findIndex(target, {id: relativeId!});
         let idxSection: number;
         if (idx === -1) {
             // NOTE: original behaviour - if relativeId wasn't found
