@@ -25,67 +25,109 @@
 /*
  * UI for the Find/Replace and Find in Files modal bar.
  */
-define(function (require, exports, module) {
-    "use strict";
 
-    var _                  = require("thirdparty/lodash"),
-        Mustache           = require("thirdparty/mustache/mustache"),
-        EventDispatcher    = require("utils/EventDispatcher"),
-        Commands           = require("command/Commands"),
-        KeyBindingManager  = require("command/KeyBindingManager"),
-        KeyEvent           = require("utils/KeyEvent"),
-        ModalBar           = require("widgets/ModalBar").ModalBar,
-        PreferencesManager = require("preferences/PreferencesManager"),
-        MainViewManager    = require("view/MainViewManager"),
-        Strings            = require("strings"),
-        ViewUtils          = require("utils/ViewUtils"),
-        FindUtils          = require("search/FindUtils"),
-        QuickSearchField   = require("search/QuickSearchField").QuickSearchField,
-        HealthLogger       = require("utils/HealthLogger");
+import * as _ from "thirdparty/lodash";
+import * as Mustache from "thirdparty/mustache/mustache";
+import * as EventDispatcher from "utils/EventDispatcher";
+import * as Commands from "command/Commands";
+import * as KeyBindingManager from "command/KeyBindingManager";
+import * as KeyEvent from "utils/KeyEvent";
+import { ModalBar } from "widgets/ModalBar";
+import * as PreferencesManager from "preferences/PreferencesManager";
+import * as MainViewManager from "view/MainViewManager";
+import * as Strings from "strings";
+import * as ViewUtils from "utils/ViewUtils";
+import * as FindUtils from "search/FindUtils";
+import { QuickSearchField } from "search/QuickSearchField";
+import * as HealthLogger from "utils/HealthLogger";
+
+/**
+ * @private
+ * The template we use for all Find bars.
+ * @type {string}
+ */
+import * as _searchBarTemplate from "text!htmlContent/findreplace-bar.html";
+
+interface FindBarOption {
+    multifile: boolean;
+    replace: boolean;
+    queryPlaceholder: string;
+    initialQuery: string;
+    scopeLabel: string;
+}
+
+let lastTypedTime = 0;
+let currentTime = 0;
+let intervalId = 0;
+let lastQueriedText = "";
+let lastTypedText = "";
+let lastTypedTextWasRegexp = false;
+// @ts-ignore
+let lastKeyCode; // eslint-disable-line @typescript-eslint/no-unused-vars
+
+/**
+ * @constructor
+ * Find Bar UI component, used for both single- and multi-file find/replace. This doesn't actually
+ * create and add the FindBar to the DOM - for that, call open().
+ *
+ * Dispatches these events:
+ *
+ * - queryChange - when the user types in the input field or sets a query option. Use getQueryInfo()
+ *      to get the current query state.
+ * - doFind - when the user chooses to do a Find Previous or Find Next.
+ *      Parameters are:
+ *          shiftKey - boolean, false for Find Next, true for Find Previous
+ * - doReplace - when the user chooses to do a single replace. Use getReplaceText() to get the current replacement text.
+ * - doReplaceBatch - when the user chooses to initiate a Replace All. Use getReplaceText() to get the current replacement text.
+ * - doReplaceAll - when the user chooses to perform a Replace All. Use getReplaceText() to get the current replacement text.
+ * -  close - when the find bar is closed
+ *
+ * @param {boolean=} options.multifile - true if this is a Find/Replace in Files (changes the behavior of Enter in
+ *      the fields, hides the navigator controls, shows the scope/filter controls, and if in replace mode, hides the
+ *      Replace button (so there's only Replace All)
+ * @param {boolean=} options.replace - true to show the Replace controls - default false
+ * @param {string=}  options.queryPlaceholder - label to show in the Find field - default empty string
+ * @param {string=}  options.initialQuery - query to populate in the Find field on open - default empty string
+ * @param {string=}  scopeLabel - HTML label to show for the scope of the search, expected to be already escaped - default empty string
+ */
+export class FindBar {
+    private static _bars;
+
+    /*
+    * Instance properties/functions
+    */
 
     /**
      * @private
-     * The template we use for all Find bars.
-     * @type {string}
+     * Options passed into the FindBar.
+     * @type {!{multifile: boolean, replace: boolean, queryPlaceholder: string, initialQuery: string, scopeLabel: string}}
      */
-    var _searchBarTemplate = require("text!htmlContent/findreplace-bar.html");
-
-    var lastTypedTime = 0,
-        currentTime = 0,
-        intervalId = 0,
-        lastQueriedText = "",
-        lastTypedText = "",
-        lastTypedTextWasRegexp = false,
-        // eslint-disable-next-line no-unused-vars
-        lastKeyCode;
+    public _options: FindBarOption;
 
     /**
-     * @constructor
-     * Find Bar UI component, used for both single- and multi-file find/replace. This doesn't actually
-     * create and add the FindBar to the DOM - for that, call open().
-     *
-     * Dispatches these events:
-     *
-     * - queryChange - when the user types in the input field or sets a query option. Use getQueryInfo()
-     *      to get the current query state.
-     * - doFind - when the user chooses to do a Find Previous or Find Next.
-     *      Parameters are:
-     *          shiftKey - boolean, false for Find Next, true for Find Previous
-     * - doReplace - when the user chooses to do a single replace. Use getReplaceText() to get the current replacement text.
-     * - doReplaceBatch - when the user chooses to initiate a Replace All. Use getReplaceText() to get the current replacement text.
-     * - doReplaceAll - when the user chooses to perform a Replace All. Use getReplaceText() to get the current replacement text.
-     *-  close - when the find bar is closed
-     *
-     * @param {boolean=} options.multifile - true if this is a Find/Replace in Files (changes the behavior of Enter in
-     *      the fields, hides the navigator controls, shows the scope/filter controls, and if in replace mode, hides the
-     *      Replace button (so there's only Replace All)
-     * @param {boolean=} options.replace - true to show the Replace controls - default false
-     * @param {string=}  options.queryPlaceholder - label to show in the Find field - default empty string
-     * @param {string=}  options.initialQuery - query to populate in the Find field on open - default empty string
-     * @param {string=}  scopeLabel - HTML label to show for the scope of the search, expected to be already escaped - default empty string
+     * @private
+     * Whether the FindBar has been closed.
+     * @type {boolean}
      */
-    function FindBar(options) {
-        var defaults = {
+    private _closed = false;
+
+    /**
+     * @private
+     * Whether the FindBar is currently enabled.
+     * @type {boolean}
+     */
+    private _enabled = true;
+
+    /**
+     * @private
+     * @type {?ModalBar} Modal bar containing this find bar's UI
+     */
+    public _modalBar;
+
+    private searchField: QuickSearchField;
+
+    constructor(options) {
+        const defaults = {
             multifile: false,
             replace: false,
             queryPlaceholder: "",
@@ -96,15 +138,11 @@ define(function (require, exports, module) {
         this._options = _.extend(defaults, options);
         this._closed = false;
         this._enabled = true;
-        this.lastQueriedText = "";
-        this.lastTypedText = "";
-        this.lastTypedTextWasRegexp = false;
     }
-    EventDispatcher.makeEventDispatcher(FindBar.prototype);
 
     /*
-     * Global FindBar functions for making sure only one is open at a time.
-     */
+    * Global FindBar functions for making sure only one is open at a time.
+    */
 
     // TODO: this is temporary - we should do this at the ModalBar level, but can't do that until
     // we land the simplified Quick Open UI (#7227) that eliminates some asynchronicity in closing
@@ -116,10 +154,10 @@ define(function (require, exports, module) {
      * Note that this is a global function, not an instance function.
      * @param {!FindBar} findBar The find bar to register.
      */
-    FindBar._addFindBar = function (findBar) {
+    private static _addFindBar(findBar) {
         FindBar._bars = FindBar._bars || [];
         FindBar._bars.push(findBar);
-    };
+    }
 
     /**
      * @private
@@ -127,11 +165,11 @@ define(function (require, exports, module) {
      * Note that this is a global function, not an instance function.
      * @param {FindBar} findBar The bar to remove.
      */
-    FindBar._removeFindBar = function (findBar) {
+    private static _removeFindBar(findBar) {
         if (FindBar._bars) {
             _.pull(FindBar._bars, findBar);
         }
-    };
+    }
 
     /**
      * @private
@@ -139,46 +177,15 @@ define(function (require, exports, module) {
      * timing issues due to animation we maintain a list.
      * Note that this is a global function, not an instance function.
      */
-    FindBar._closeFindBars = function () {
-        var bars = FindBar._bars;
+    private static _closeFindBars() {
+        let bars = FindBar._bars;
         if (bars) {
             bars.forEach(function (bar) {
                 bar.close(true, false);
             });
             bars = [];
         }
-    };
-
-    /*
-     * Instance properties/functions
-     */
-
-    /**
-     * @private
-     * Options passed into the FindBar.
-     * @type {!{multifile: boolean, replace: boolean, queryPlaceholder: string, initialQuery: string, scopeLabel: string}}
-     */
-    FindBar.prototype._options = null;
-
-    /**
-     * @private
-     * Whether the FindBar has been closed.
-     * @type {boolean}
-     */
-    FindBar.prototype._closed = false;
-
-    /**
-     * @private
-     * Whether the FindBar is currently enabled.
-     * @type {boolean}
-     */
-    FindBar.prototype._enabled = true;
-
-    /**
-     * @private
-     * @type {?ModalBar} Modal bar containing this find bar's UI
-     */
-    FindBar.prototype._modalBar = null;
+    }
 
     /**
      * @private
@@ -187,13 +194,13 @@ define(function (require, exports, module) {
      * @return {jQueryObject} The jQuery object for the element, or an empty object if the Find bar isn't yet
      *      in the DOM or the element doesn't exist.
      */
-    FindBar.prototype.$ = function (selector) {
+    public $(selector) {
         if (this._modalBar) {
             return $(selector, this._modalBar.getRoot());
         }
 
         return $();
-    };
+    }
 
     // TODO: change IDs to classes
 
@@ -201,25 +208,25 @@ define(function (require, exports, module) {
      * @private
      * Set the state of the toggles in the Find bar to the saved prefs state.
      */
-    FindBar.prototype._updateSearchBarFromPrefs = function () {
+    private _updateSearchBarFromPrefs() {
         // Have to make sure we explicitly cast the second parameter to a boolean, because
         // toggleClass expects literal true/false.
         this.$("#find-case-sensitive").toggleClass("active", !!PreferencesManager.getViewState("caseSensitive"));
         this.$("#find-regexp").toggleClass("active", !!PreferencesManager.getViewState("regexp"));
         this.$("#find-whole-word").toggleClass("active", !!PreferencesManager.getViewState("wholeWord"));
-    };
+    }
 
     /**
      * @private
      * Save the prefs state based on the state of the toggles.
      */
-    FindBar.prototype._updatePrefsFromSearchBar = function () {
-        var isRegexp = this.$("#find-regexp").is(".active");
+    private _updatePrefsFromSearchBar() {
+        const isRegexp = this.$("#find-regexp").is(".active");
         PreferencesManager.setViewState("caseSensitive", this.$("#find-case-sensitive").is(".active"));
         PreferencesManager.setViewState("regexp", isRegexp);
         PreferencesManager.setViewState("wholeWord", this.$("#find-whole-word").is(".active"));
         lastTypedTextWasRegexp = isRegexp;
-    };
+    }
 
     /**
      * @private
@@ -227,25 +234,25 @@ define(function (require, exports, module) {
      * @param {jQueryObject} $elem The element to add the shortcut to.
      * @param {string} commandId The ID for the command whose keyboard shortcut to show.
      */
-    FindBar.prototype._addShortcutToTooltip = function ($elem, commandId) {
-        var replaceShortcut = KeyBindingManager.getKeyBindings(commandId)[0];
+    private _addShortcutToTooltip($elem, commandId) {
+        const replaceShortcut = KeyBindingManager.getKeyBindings(commandId)[0];
         if (replaceShortcut) {
-            var oldTitle = $elem.attr("title");
+            let oldTitle = $elem.attr("title");
             oldTitle = (oldTitle ? oldTitle + " " : "");
             $elem.attr("title", oldTitle + "(" + KeyBindingManager.formatKeyDescriptor(replaceShortcut.displayKey) + ")");
         }
-    };
+    }
 
     /**
      * @private
      * Adds element to the search history queue.
      * @param {string} search string that needs to be added to history.
      */
-    FindBar.prototype._addElementToSearchHistory = function (searchVal) {
+    private _addElementToSearchHistory(searchVal) {
         if (searchVal) {
-            var searchHistory = PreferencesManager.getViewState("searchHistory");
-            var maxCount = PreferencesManager.get("maxSearchHistory");
-            var searchQueryIndex = searchHistory.indexOf(searchVal);
+            const searchHistory = PreferencesManager.getViewState("searchHistory");
+            const maxCount = PreferencesManager.get("maxSearchHistory");
+            const searchQueryIndex = searchHistory.indexOf(searchVal);
             if (searchQueryIndex !== -1) {
                 searchHistory.splice(searchQueryIndex, 1);
             } else {
@@ -256,13 +263,13 @@ define(function (require, exports, module) {
             searchHistory.unshift(searchVal);
             PreferencesManager.setViewState("searchHistory", searchHistory);
         }
-    };
+    }
 
     /**
      * Opens the Find bar, closing any other existing Find bars.
      */
-    FindBar.prototype.open = function () {
-        var self = this;
+    public open() {
+        const self = this;
 
         // Normally, creating a new Find bar will simply cause the old one to close
         // automatically. This can cause timing issues because the focus change might
@@ -274,7 +281,7 @@ define(function (require, exports, module) {
             HealthLogger.searchDone(HealthLogger.SEARCH_NEW);
         }
 
-        var templateVars = _.clone(this._options);
+        const templateVars = _.clone(this._options);
         templateVars.Strings = Strings;
         templateVars.replaceBatchLabel = (templateVars.multifile ? Strings.BUTTON_REPLACE_ALL_IN_FILES : Strings.BUTTON_REPLACE_BATCH);
         templateVars.replaceAllLabel = Strings.BUTTON_REPLACE_ALL;
@@ -311,7 +318,7 @@ define(function (require, exports, module) {
             lastTypedTime = 0;
             FindBar._removeFindBar(self);
             MainViewManager.focusActivePane();
-            self.trigger("close");
+            (self as unknown as EventDispatcher.DispatcherEvents).trigger("close");
             if (self.searchField) {
                 self.searchField.destroy();
             }
@@ -319,25 +326,25 @@ define(function (require, exports, module) {
 
         FindBar._addFindBar(this);
 
-        var $root = this._modalBar.getRoot();
+        const $root = this._modalBar.getRoot();
 
         $root
             .on("input", "#find-what", function () {
-                self.trigger("queryChange");
-                var queryInfo = self.getQueryInfo();
+                (self as unknown as EventDispatcher.DispatcherEvents).trigger("queryChange");
+                const queryInfo = self.getQueryInfo();
                 lastTypedText = queryInfo.query;
                 lastTypedTextWasRegexp = queryInfo.isRegexp;
             })
             .on("click", ".find-toggle", function (e) {
                 $(e.currentTarget).toggleClass("active");
                 self._updatePrefsFromSearchBar();
-                self.trigger("queryChange");
-                if (self._options.multifile) {  //instant search
-                    self.trigger("doFind");
+                (self as unknown as EventDispatcher.DispatcherEvents).trigger("queryChange");
+                if (self._options.multifile) {  // instant search
+                    (self as unknown as EventDispatcher.DispatcherEvents).trigger("doFind");
                 }
             })
             .on("click", ".dropdown-icon", function (e) {
-                var quickSearchContainer = $(".quick-search-container");
+                const quickSearchContainer = $(".quick-search-container");
                 if (!self.searchField) {
                     self.showSearchHints();
                 } else if (quickSearchContainer.is(":visible")) {
@@ -351,7 +358,7 @@ define(function (require, exports, module) {
             .on("keydown", "#find-what, #replace-with", function (e) {
                 lastTypedTime = new Date().getTime();
                 lastKeyCode = e.keyCode;
-                var executeSearchIfNeeded = function () {
+                const executeSearchIfNeeded = function () {
                     // We only do instant search via node.
                     if (FindUtils.isNodeSearchDisabled() || FindUtils.isInstantSearchDisabled()) {
                         // we still keep the intrval timer up as instant search could get enabled/disabled based on node busy state
@@ -371,7 +378,7 @@ define(function (require, exports, module) {
                             if ($(e.target).is("#find-what")) {
                                 if (!self._options.replace) {
                                     HealthLogger.searchDone(HealthLogger.SEARCH_INSTANT);
-                                    self.trigger("doFind");
+                                    (self as unknown as EventDispatcher.DispatcherEvents).trigger("doFind");
                                     lastQueriedText = self.getQueryInfo().query;
                                 }
                             }
@@ -394,19 +401,19 @@ define(function (require, exports, module) {
                             } else {
                                 HealthLogger.searchDone(HealthLogger.SEARCH_ON_RETURN_KEY);
                                 // Trigger a Find (which really means "Find All" in this context).
-                                self.trigger("doFind");
+                                (self as unknown as EventDispatcher.DispatcherEvents).trigger("doFind");
                             }
                         } else {
                             HealthLogger.searchDone(HealthLogger.SEARCH_REPLACE_ALL);
-                            self.trigger("doReplaceBatch");
+                            (self as unknown as EventDispatcher.DispatcherEvents).trigger("doReplaceBatch");
                         }
                     } else {
                         // In the single file case, we just want to trigger a Find Next (or Find Previous
                         // if Shift is held down).
-                        self.trigger("doFind", e.shiftKey);
+                        (self as unknown as EventDispatcher.DispatcherEvents).trigger("doFind", e.shiftKey);
                     }
                 } else if (e.keyCode === KeyEvent.DOM_VK_DOWN || e.keyCode === KeyEvent.DOM_VK_UP) {
-                    var quickSearchContainer = $(".quick-search-container");
+                    const quickSearchContainer = $(".quick-search-container");
                     if (!self.searchField) {
                         self.showSearchHints();
                     } else if (!quickSearchContainer.is(":visible")) {
@@ -423,10 +430,10 @@ define(function (require, exports, module) {
             this._addShortcutToTooltip($("#find-prev"), Commands.CMD_FIND_PREVIOUS);
             $root
                 .on("click", "#find-next", function (e) {
-                    self.trigger("doFind", false);
+                    (self as unknown as EventDispatcher.DispatcherEvents).trigger("doFind", false);
                 })
                 .on("click", "#find-prev", function (e) {
-                    self.trigger("doFind", true);
+                    (self as unknown as EventDispatcher.DispatcherEvents).trigger("doFind", true);
                 });
         }
 
@@ -434,13 +441,13 @@ define(function (require, exports, module) {
             this._addShortcutToTooltip($("#replace-yes"), Commands.CMD_REPLACE);
             $root
                 .on("click", "#replace-yes", function (e) {
-                    self.trigger("doReplace");
+                    (self as unknown as EventDispatcher.DispatcherEvents).trigger("doReplace");
                 })
                 .on("click", "#replace-batch", function (e) {
-                    self.trigger("doReplaceBatch");
+                    (self as unknown as EventDispatcher.DispatcherEvents).trigger("doReplaceBatch");
                 })
                 .on("click", "#replace-all", function (e) {
-                    self.trigger("doReplaceAll");
+                    (self as unknown as EventDispatcher.DispatcherEvents).trigger("doReplaceAll");
                 })
                 // One-off hack to make Find/Replace fields a self-contained tab cycle
                 // TODO: remove once https://trello.com/c/lTSJgOS2 implemented
@@ -464,21 +471,21 @@ define(function (require, exports, module) {
         // Set up the initial UI state.
         this._updateSearchBarFromPrefs();
         this.focusQuery();
-    };
+    }
 
     /**
      * @private
      * Shows the search History in dropdown.
      */
-    FindBar.prototype.showSearchHints = function () {
-        var self = this;
-        var searchFieldInput = self.$("#find-what");
+    public showSearchHints() {
+        const self = this;
+        const searchFieldInput = self.$("#find-what");
         this.searchField = new QuickSearchField(searchFieldInput, {
             verticalAdjust: searchFieldInput.offset().top > 0 ? 0 : this._modalBar.getRoot().outerHeight(),
             maxResults: 20,
             firstHighlightIndex: null,
             resultProvider: function (query) {
-                var asyncResult = new $.Deferred();
+                const asyncResult = $.Deferred();
                 asyncResult.resolve(PreferencesManager.getViewState("searchHistory"));
                 return asyncResult.promise();
             },
@@ -488,7 +495,7 @@ define(function (require, exports, module) {
             onCommit: function (selectedItem, query) {
                 if (selectedItem) {
                     self.$("#find-what").val(selectedItem);
-                    self.trigger("queryChange");
+                    (self as unknown as EventDispatcher.DispatcherEvents).trigger("queryChange");
                 } else if (query.length) {
                     self.searchField.setText(query);
                 }
@@ -499,53 +506,53 @@ define(function (require, exports, module) {
             highlightZeroResults: false
         });
         this.searchField.setText(searchFieldInput.val());
-    };
+    }
 
     /**
      * Closes this Find bar. If already closed, does nothing.
      * @param {boolean} suppressAnimation If true, don't do the standard closing animation. Default false.
      */
-    FindBar.prototype.close = function (suppressAnimation) {
+    public close(suppressAnimation?) {
         if (this._modalBar) {
             // 1st arg = restore scroll pos; 2nd arg = no animation, since getting replaced immediately
             this._modalBar.close(true, !suppressAnimation);
         }
-    };
+    }
 
     /**
      * @return {boolean} true if this FindBar has been closed.
      */
-    FindBar.prototype.isClosed = function () {
+    public isClosed() {
         return this._closed;
-    };
+    }
 
     /**
      * @return {Object} The options passed into the FindBar.
      */
-    FindBar.prototype.getOptions = function () {
+    public getOptions() {
         return this._options;
-    };
+    }
 
     /**
      * Returns the current query and parameters.
      * @return {{query: string, isCaseSensitive: boolean, isRegexp: boolean, isWholeWord: boolean}}
      */
-    FindBar.prototype.getQueryInfo = function () {
+    public getQueryInfo() {
         return {
             query:           this.$("#find-what").val() || "",
             isCaseSensitive: this.$("#find-case-sensitive").is(".active"),
             isRegexp:        PreferencesManager.getViewState("regexp"),
             isWholeWord:     PreferencesManager.getViewState("wholeWord")
         };
-    };
+    }
 
     /**
      * Show or clear an error message related to the query.
      * @param {?string} error The error message to show, or null to hide the error display.
      * @param {boolean=} isHTML Whether the error message is HTML that should remain unescaped.
      */
-    FindBar.prototype.showError = function (error, isHTML) {
-        var $error = this.$(".error");
+    public showError(error, isHTML?) {
+        const $error = this.$(".error");
         if (error) {
             if (isHTML) {
                 $error.html(error);
@@ -556,15 +563,15 @@ define(function (require, exports, module) {
         } else {
             $error.hide();
         }
-    };
+    }
 
     /**
      * Set the find count.
      * @param {string} count The find count message to show. Can be the empty string to hide it.
      */
-    FindBar.prototype.showFindCount = function (count) {
+    public showFindCount(count) {
         this.$("#find-counter").text(count);
-    };
+    }
 
     /**
      * Show or hide the no-results indicator and optional message. This is also used to
@@ -572,24 +579,24 @@ define(function (require, exports, module) {
      * @param {boolean} showIndicator
      * @param {boolean} showMessage
      */
-    FindBar.prototype.showNoResults = function (showIndicator, showMessage) {
+    public showNoResults(showIndicator, showMessage?) {
         ViewUtils.toggleClass(this.$("#find-what"), "no-results", showIndicator);
 
-        var $msg = this.$(".no-results-message");
+        const $msg = this.$(".no-results-message");
         if (showMessage) {
             $msg.show();
         } else {
             $msg.hide();
         }
-    };
+    }
 
     /**
      * Returns the current replace text.
      * @return {string}
      */
-    FindBar.prototype.getReplaceText = function () {
+    public getReplaceText() {
         return this.$("#replace-with").val() || "";
-    };
+    }
 
     /**
      * Enables or disables the controls in the Find bar. Note that if enable is true, *all* controls will be
@@ -597,108 +604,109 @@ define(function (require, exports, module) {
      * will need to refresh their enable state after calling this.
      * @param {boolean} enable Whether to enable or disable the controls.
      */
-    FindBar.prototype.enable = function (enable) {
+    public enable(enable) {
         this.$("#find-what, #replace-with, #find-prev, #find-next, .find-toggle").prop("disabled", !enable);
         this._enabled = enable;
-    };
+    }
 
-    FindBar.prototype.focus = function (enable) {
+    public focus() {
         this.$("#find-what").focus();
-    };
+    }
 
     /**
      * @return {boolean} true if the FindBar is enabled.
      */
-    FindBar.prototype.isEnabled = function () {
+    public isEnabled() {
         return this._enabled;
-    };
+    }
 
     /**
      * @return {boolean} true if the Replace button is enabled.
      */
-    FindBar.prototype.isReplaceEnabled = function () {
+    public isReplaceEnabled() {
         return this.$("#replace-yes").is(":enabled");
-    };
+    }
 
     /**
      * Enable or disable the navigation controls if present. Note that if the Find bar is currently disabled
      * (i.e. isEnabled() returns false), this will have no effect.
      * @param {boolean} enable Whether to enable the controls.
      */
-    FindBar.prototype.enableNavigation = function (enable) {
+    public enableNavigation(enable) {
         if (this.isEnabled()) {
             this.$("#find-prev, #find-next").prop("disabled", !enable);
         }
-    };
+    }
 
     /**
      * Enable or disable the replace controls if present. Note that if the Find bar is currently disabled
      * (i.e. isEnabled() returns false), this will have no effect.
      * @param {boolean} enable Whether to enable the controls.
      */
-    FindBar.prototype.enableReplace = function (enable) {
+    public enableReplace(enable) {
         if (this.isEnabled) {
             this.$("#replace-yes, #replace-batch, #replace-all").prop("disabled", !enable);
         }
-    };
+    }
 
     /**
      * @private
      * Focus and select the contents of the given field.
      * @param {string} selector The selector for the field.
      */
-    FindBar.prototype._focus = function (selector) {
-        this.$(selector)
+    private _focus(selector) {
+        const input = this.$(selector)
             .focus()
-            .get(0).select();
-    };
+            .get(0) as HTMLInputElement;
+        input.select();
+    }
 
     /**
      * Sets focus to the query field and selects its text.
      */
-    FindBar.prototype.focusQuery = function () {
+    public focusQuery() {
         this._focus("#find-what");
-    };
+    }
 
     /**
      * Sets focus to the replace field and selects its text.
      */
-    FindBar.prototype.focusReplace = function () {
+    public focusReplace() {
         this._focus("#replace-with");
-    };
+    }
 
     /**
      * The indexing spinner is usually shown when node is indexing files
      */
-    FindBar.prototype.showIndexingSpinner = function () {
+    public showIndexingSpinner() {
         this.$("#indexing-spinner").removeClass("forced-hidden");
-    };
+    }
 
-    FindBar.prototype.hideIndexingSpinner = function () {
+    public hideIndexingSpinner() {
         this.$("#indexing-spinner").addClass("forced-hidden");
-    };
+    }
 
     /**
      * Force a search again
      */
-    FindBar.prototype.redoInstantSearch = function () {
-        this.trigger("doFind");
-    };
+    public redoInstantSearch() {
+        (this as unknown as EventDispatcher.DispatcherEvents).trigger("doFind");
+    }
 
     /*
-     * Returns the string used to prepopulate the find bar
-     * @param {!Editor} editor
-     * @return {string} first line of primary selection to populate the find bar
-     */
-    FindBar._getInitialQueryFromSelection = function (editor) {
-        var selectionText = editor.getSelectedText();
+    * Returns the string used to prepopulate the find bar
+    * @param {!Editor} editor
+    * @return {string} first line of primary selection to populate the find bar
+    */
+    private static _getInitialQueryFromSelection(editor) {
+        const selectionText = editor.getSelectedText();
         if (selectionText) {
             return selectionText
                 .replace(/^\n*/, "") // Trim possible newlines at the very beginning of the selection
                 .split("\n")[0];
         }
         return "";
-    };
+    }
 
     /**
      * Gets you the right query and replace text to prepopulate the Find Bar.
@@ -707,19 +715,19 @@ define(function (require, exports, module) {
      * @param {?Editor} The active editor, if any
      * @return {query: string, replaceText: string} Query and Replace text to prepopulate the Find Bar with
      */
-    FindBar.getInitialQuery = function (currentFindBar, editor) {
-        var query,
-            selection = editor ? FindBar._getInitialQueryFromSelection(editor) : "",
-            replaceText = "";
+    public static getInitialQuery(currentFindBar, editor) {
+        let query;
+        const selection = editor ? FindBar._getInitialQueryFromSelection(editor) : "";
+        let replaceText = "";
 
         if (currentFindBar && !currentFindBar.isClosed()) {
             // The modalBar was already up. When creating the new modalBar, copy the
             // current query instead of using the passed-in selected text.
-            var queryInfo = currentFindBar.getQueryInfo();
+            const queryInfo = currentFindBar.getQueryInfo();
             query = (!queryInfo.isRegexp && selection) || queryInfo.query;
             replaceText = currentFindBar.getReplaceText();
         } else {
-            var openedFindBar = FindBar._bars && _.find(FindBar._bars,
+            const openedFindBar = FindBar._bars && _.find(FindBar._bars,
                 function (bar) {
                     return !bar.isClosed();
                 }
@@ -734,15 +742,14 @@ define(function (require, exports, module) {
         }
 
         return {query: query, replaceText: replaceText};
-    };
+    }
+}
+EventDispatcher.makeEventDispatcher(FindBar.prototype);
 
-    PreferencesManager.stateManager.definePreference("caseSensitive", "boolean", false);
-    PreferencesManager.stateManager.definePreference("wholeWord", "boolean", false);
-    PreferencesManager.stateManager.definePreference("regexp", "boolean", false);
-    PreferencesManager.stateManager.definePreference("searchHistory", "array", []);
-    PreferencesManager.definePreference("maxSearchHistory", "number", 10, {
-        description: Strings.FIND_HISTORY_MAX_COUNT
-    });
-
-    exports.FindBar = FindBar;
+PreferencesManager.stateManager.definePreference("caseSensitive", "boolean", false);
+PreferencesManager.stateManager.definePreference("wholeWord", "boolean", false);
+PreferencesManager.stateManager.definePreference("regexp", "boolean", false);
+PreferencesManager.stateManager.definePreference("searchHistory", "array", []);
+PreferencesManager.definePreference("maxSearchHistory", "number", 10, {
+    description: Strings.FIND_HISTORY_MAX_COUNT
 });

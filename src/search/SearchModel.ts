@@ -22,97 +22,103 @@
  *
  */
 
-define(function (require, exports, module) {
-    "use strict";
+import * as FileUtils from "file/FileUtils";
+import * as EventDispatcher from "utils/EventDispatcher";
+import * as FindUtils from "search/FindUtils";
+import * as MainViewManager from "view/MainViewManager";
+import FileSystemEntry = require("filesystem/FileSystemEntry");
 
-    var FileUtils       = require("file/FileUtils"),
-        EventDispatcher = require("utils/EventDispatcher"),
-        FindUtils       = require("search/FindUtils"),
-        MainViewManager = require("view/MainViewManager");
+interface WorkingSetFileMap {
+    [key: string]: boolean;
+}
 
+/**
+ * @constructor
+ * Manages a set of search query and result data.
+ * Dispatches these events:
+ *      "change" - whenever the results have been updated. Note that it's up to people who
+ *      edit the model to call fireChange() when necessary - it doesn't automatically fire.
+ */
+export class SearchModel {
     /**
-     * @constructor
-     * Manages a set of search query and result data.
-     * Dispatches these events:
-     *      "change" - whenever the results have been updated. Note that it's up to people who
-     *      edit the model to call fireChange() when necessary - it doesn't automatically fire.
-     */
-    function SearchModel() {
-        this.clear();
-    }
-    EventDispatcher.makeEventDispatcher(SearchModel.prototype);
-
-    /** @const Constant used to define the maximum results found.
+     *  @const Constant used to define the maximum results found.
      *  Note that this is a soft limit - we'll likely go slightly over it since
      *  we always add all the searches in a given file.
      */
-    SearchModel.MAX_TOTAL_RESULTS = 100000;
+    public static MAX_TOTAL_RESULTS = 100000;
 
     /**
      * The current set of results.
      * @type {Object.<fullPath: string, {matches: Array.<Object>, collapsed: boolean, timestamp: Date}>}
      */
-    SearchModel.prototype.results = null;
+    public results;
 
     /**
      * The query that generated these results.
      * @type {{query: string, isCaseSensitive: boolean, isRegexp: boolean, isWholeWord: boolean}}
      */
-    SearchModel.prototype.queryInfo = null;
+    public queryInfo = null;
 
     /**
      * The compiled query, expressed as a regexp.
      * @type {RegExp}
      */
-    SearchModel.prototype.queryExpr = null;
+    public queryExpr = null;
 
     /**
      * Whether this is a find/replace query.
      * @type {boolean}
      */
-    SearchModel.prototype.isReplace = false;
+    public isReplace = false;
 
     /**
      * The replacement text specified for this query, if any.
      * @type {string}
      */
-    SearchModel.prototype.replaceText = null;
+    public replaceText = null;
 
     /**
      * The file/folder path representing the scope that this query was performed in.
      * @type {FileSystemEntry}
      */
-    SearchModel.prototype.scope = null;
+    public scope: FileSystemEntry | null = null;
 
     /**
      * A file filter (as returned from FileFilters) to apply within the main scope.
      * @type {string}
      */
-    SearchModel.prototype.filter = null;
+    public filter = null;
 
     /**
      * The total number of matches in the model.
      * @type {number}
      */
-    SearchModel.prototype.numMatches = 0;
+    public numMatches = 0;
 
     /**
      * Whether or not we hit the maximum number of results for the type of search we did.
      * @type {boolean}
      */
-    SearchModel.prototype.foundMaximum = false;
+    public foundMaximum = false;
 
     /**
      * Whether or not we exceeded the maximum number of results in the search we did.
      * @type {boolean}
      */
-    SearchModel.prototype.exceedsMaximum = false;
+    public exceedsMaximum = false;
+
+    public numFiles;
+    public allResultsAvailable: boolean;
+
+    constructor() {
+        this.clear();
+    }
 
     /**
      * Clears out the model to an empty state.
      */
-    SearchModel.prototype.clear = function () {
-        var numMatchesBefore = this.numMatches;
+    public clear() {
+        const numMatchesBefore = this.numMatches;
         this.results = {};
         this.queryInfo = null;
         this.queryExpr = null;
@@ -125,7 +131,7 @@ define(function (require, exports, module) {
         if (numMatchesBefore !== 0) {
             this.fireChanged();
         }
-    };
+    }
 
     /**
      * Sets the given query info and stores a compiled RegExp query in this.queryExpr.
@@ -133,8 +139,8 @@ define(function (require, exports, module) {
      * @return {boolean} true if the query was valid and properly set, false if it was
      *      invalid or empty.
      */
-    SearchModel.prototype.setQueryInfo = function (queryInfo) {
-        var parsedQuery = FindUtils.parseQueryInfo(queryInfo);
+    public setQueryInfo(queryInfo) {
+        const parsedQuery = FindUtils.parseQueryInfo(queryInfo);
         if (parsedQuery.valid) {
             this.queryInfo = queryInfo;
             this.queryExpr = parsedQuery.queryExpr;
@@ -142,7 +148,7 @@ define(function (require, exports, module) {
         }
 
         return false;
-    };
+    }
 
     /**
      * Sets the list of matches for the given path, removing the previous match info, if any, and updating
@@ -154,7 +160,7 @@ define(function (require, exports, module) {
      *      timestamp - The timestamp of the document at the time we searched it.
      *      collapsed - Optional: whether the results should be collapsed in the UI (default false).
      */
-    SearchModel.prototype.setResults = function (fullpath, resultInfo) {
+    public setResults(fullpath, resultInfo) {
         this.removeResults(fullpath);
 
         if (this.foundMaximum || !resultInfo.matches.length) {
@@ -177,33 +183,33 @@ define(function (require, exports, module) {
                 this.exceedsMaximum = true;
             }
         }
-    };
+    }
 
     /**
      * Removes the given result's matches from the search results and updates the total match count.
      * @param {string} fullpath Full path to the file containing the matches.
      */
-    SearchModel.prototype.removeResults = function (fullpath) {
+    public removeResults(fullpath) {
         if (this.results[fullpath]) {
             this.numMatches -= this.results[fullpath].matches.length;
             delete this.results[fullpath];
         }
-    };
+    }
 
     /**
      * @return {boolean} true if there are any results in this model.
      */
-    SearchModel.prototype.hasResults = function () {
+    public hasResults() {
         return Object.keys(this.results).length > 0;
-    };
+    }
 
     /**
      * Counts the total number of matches and files
      * @return {{files: number, matches: number}}
      */
-    SearchModel.prototype.countFilesMatches = function () {
+    public countFilesMatches() {
         return {files: (this.numFiles || Object.keys(this.results).length), matches: this.numMatches};
-    };
+    }
 
     /**
      * Prioritizes the open file and then the working set files to the starting of the list of files
@@ -212,13 +218,10 @@ define(function (require, exports, module) {
      * @param {?string} firstFile If specified, the path to the file that should be sorted to the top.
      * @return {Array.<string>}
      */
-    SearchModel.prototype.prioritizeOpenFile = function (firstFile) {
-        var workingSetFiles = MainViewManager.getWorkingSet(MainViewManager.ALL_PANES),
-            workingSetFileFound = {},
-            fileSetWithoutWorkingSet = [],
-            startingWorkingFileSet = [],
-            propertyName = "",
-            i = 0;
+    public prioritizeOpenFile(firstFile): Array<string> {
+        const workingSetFiles = MainViewManager.getWorkingSet(MainViewManager.ALL_PANES);
+        const workingSetFileFound: WorkingSetFileMap = {};
+        const startingWorkingFileSet: Array<string> = [];
 
         if (FindUtils.isNodeSearchDisabled()) {
             return Object.keys(this.results).sort(function (key1, key2) {
@@ -237,12 +240,12 @@ define(function (require, exports, module) {
         firstFile = firstFile || "";
 
         // Create a working set path map which indicates if a file in working set is found in file list
-        for (i = 0; i < workingSetFiles.length; i++) {
-            workingSetFileFound[workingSetFiles[i].fullPath] = false;
+        for (const workingSetFile of workingSetFiles) {
+            workingSetFileFound[workingSetFile.fullPath] = false;
         }
 
         // Remove all the working set files from the filtration list
-        fileSetWithoutWorkingSet = Object.keys(this.results).filter(function (key) {
+        const fileSetWithoutWorkingSet = Object.keys(this.results).filter(function (key) {
             if (workingSetFileFound[key] !== undefined) {
                 workingSetFileFound[key] = true;
                 return false;
@@ -250,19 +253,19 @@ define(function (require, exports, module) {
             return true;
         });
 
-        //push in the first file
+        // push in the first file
         if (workingSetFileFound[firstFile] === true) {
             startingWorkingFileSet.push(firstFile);
             workingSetFileFound[firstFile] = false;
         }
-        //push in the rest of working set files already present in file list
-        for (propertyName in workingSetFileFound) {
+        // push in the rest of working set files already present in file list
+        for (const propertyName in workingSetFileFound) {
             if (workingSetFileFound.hasOwnProperty(propertyName) && workingSetFileFound[propertyName]) {
                 startingWorkingFileSet.push(propertyName);
             }
         }
         return startingWorkingFileSet.concat(fileSetWithoutWorkingSet);
-    };
+    }
 
     /**
      * Notifies listeners that the set of results has changed. Must be called after the
@@ -270,10 +273,8 @@ define(function (require, exports, module) {
      * @param {boolean} quickChange Whether this type of change is one that might occur
      *      often, meaning that the view should buffer updates.
      */
-    SearchModel.prototype.fireChanged = function (quickChange) {
-        this.trigger("change", quickChange);
-    };
-
-    // Public API
-    exports.SearchModel = SearchModel;
-});
+    public fireChanged(quickChange?) {
+        (this as unknown as EventDispatcher.DispatcherEvents).trigger("change", quickChange);
+    }
+}
+EventDispatcher.makeEventDispatcher(SearchModel.prototype);

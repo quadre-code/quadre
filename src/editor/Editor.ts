@@ -1515,7 +1515,7 @@ export class Editor {
      *     by newlines) instead of just the primary selection. Default false.
      * @return {!string} The selected text.
      */
-    public getSelectedText(allSelections) {
+    public getSelectedText(allSelections?) {
         if (allSelections) {
             return this._codeMirror.getSelection();
         }

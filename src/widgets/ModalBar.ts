@@ -75,7 +75,7 @@ export class ModalBar {
     public static CLOSE_BLUR = "blur";
     public static CLOSE_API = "api";
 
-    constructor(template, autoClose, animate) {
+    constructor(template, autoClose, animate?) {
         if (animate === undefined) {
             animate = true;
         }
@@ -142,7 +142,7 @@ export class ModalBar {
      *     should do it immediately on return of this function (before the animation completes),
      *     because the editor will already have been resized.
      */
-    public prepareClose(restoreScrollPos) {
+    public prepareClose(restoreScrollPos?) {
         if (restoreScrollPos === undefined) {
             restoreScrollPos = true;
         }
@@ -183,7 +183,7 @@ export class ModalBar {
      * @param {string=} _reason For internal use only.
      * @return {$.Promise} promise resolved when close is finished
      */
-    public close(restoreScrollPos, animate, _reason) {
+    public close(restoreScrollPos?, animate?, _reason?) {
         const result = $.Deferred();
         const self = this;
 

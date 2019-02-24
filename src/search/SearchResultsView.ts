@@ -25,103 +25,111 @@
 /*
  * Panel showing search results for a Find/Replace in Files operation.
  */
-define(function (require, exports, module) {
-    "use strict";
 
-    var CommandManager        = require("command/CommandManager"),
-        EventDispatcher       = require("utils/EventDispatcher"),
-        Commands              = require("command/Commands"),
-        DocumentManager       = require("document/DocumentManager"),
-        EditorManager         = require("editor/EditorManager"),
-        ProjectManager        = require("project/ProjectManager"),
-        FileViewController    = require("project/FileViewController"),
-        FileUtils             = require("file/FileUtils"),
-        FindUtils             = require("search/FindUtils"),
-        WorkspaceManager      = require("view/WorkspaceManager"),
-        StringUtils           = require("utils/StringUtils"),
-        Strings               = require("strings"),
-        HealthLogger          = require("utils/HealthLogger"),
-        _                     = require("thirdparty/lodash"),
-        Mustache              = require("thirdparty/mustache/mustache"),
+import * as CommandManager from "command/CommandManager";
+import * as EventDispatcher from "utils/EventDispatcher";
+import * as Commands from "command/Commands";
+import * as DocumentManager from "document/DocumentManager";
+import * as EditorManager from "editor/EditorManager";
+import * as ProjectManager from "project/ProjectManager";
+import * as FileViewController from "project/FileViewController";
+import * as FileUtils from "file/FileUtils";
+import * as FindUtils from "search/FindUtils";
+import * as WorkspaceManager from "view/WorkspaceManager";
+import * as StringUtils from "utils/StringUtils";
+import * as Strings from "strings";
+import * as HealthLogger from "utils/HealthLogger";
+import * as _ from "thirdparty/lodash";
+import * as Mustache from "thirdparty/mustache/mustache";
 
-        searchPanelTemplate   = require("text!htmlContent/search-panel.html"),
-        searchResultsTemplate = require("text!htmlContent/search-results.html"),
-        searchSummaryTemplate = require("text!htmlContent/search-summary.html");
+import * as searchPanelTemplate from "text!htmlContent/search-panel.html";
+import * as searchResultsTemplate from "text!htmlContent/search-results.html";
+import * as searchSummaryTemplate from "text!htmlContent/search-summary.html";
 
+interface SearchItem {
+    fileIndex: number;
+    filename: string;
+    fullPath: string;
+    isChecked: boolean;
+    items: Array<any>;
+    // TODO: verify types, collapsed is correct here?
+    collapsed?: boolean;
+    isCollapsed: boolean;
+}
+
+/**
+ * @const
+ * The maximum results to show per page.
+ * @type {number}
+ */
+const RESULTS_PER_PAGE = 100;
+
+/**
+ * @const
+ * Debounce time for document changes updating the search results view.
+ * @type {number}
+ */
+const UPDATE_TIMEOUT   = 400;
+
+/**
+ * @constructor
+ * Handles the search results panel.
+ * Dispatches the following events:
+ *      replaceBatch - when the "Replace" button is clicked.
+ *      close - when the panel is closed.
+ *
+ * @param {SearchModel} model The model that this view is showing.
+ * @param {string} panelID The CSS ID to use for the panel.
+ * @param {string} panelName The name to use for the panel, as passed to WorkspaceManager.createBottomPanel().
+ */
+export class SearchResultsView {
+    /** @type {SearchModel} The search results model we're viewing. */
+    private _model;
 
     /**
-     * @const
-     * The maximum results to show per page.
-     * @type {number}
+     * Array with content used in the Results Panel
+     * @type {Array.<{fileIndex: number, filename: string, fullPath: string, items: Array.<Object>}>}
      */
-    var RESULTS_PER_PAGE = 100;
+    private _searchList: Array<SearchItem> = [];
 
-    /**
-     * @const
-     * Debounce time for document changes updating the search results view.
-     * @type {number}
-     */
-    var UPDATE_TIMEOUT   = 400;
+    /** @type {Panel} Bottom panel holding the search results */
+    private _panel;
 
-    /**
-     * @constructor
-     * Handles the search results panel.
-     * Dispatches the following events:
-     *      replaceBatch - when the "Replace" button is clicked.
-     *      close - when the panel is closed.
-     *
-     * @param {SearchModel} model The model that this view is showing.
-     * @param {string} panelID The CSS ID to use for the panel.
-     * @param {string} panelName The name to use for the panel, as passed to WorkspaceManager.createBottomPanel().
-     */
-    function SearchResultsView(model, panelID, panelName) {
-        var panelHtml  = Mustache.render(searchPanelTemplate, {panelID: panelID});
+    /** @type {?string} The full path of the file that was open in the main editor on the initial search */
+    private _initialFilePath = null;
+
+    /** @type {number} The index of the first result that is displayed */
+    private _currentStart = 0;
+
+    /** @type {boolean} Used to remake the replace all summary after it is changed */
+    private _allChecked = false;
+
+    /** @type {$.Element} The currently selected row */
+    private _$selectedRow: JQuery | null;
+
+    /** @type {$.Element} The element where the title is placed */
+    private _$summary;
+
+    /** @type {$.Element} The table that holds the results */
+    private _$table: JQuery;
+
+    /** @type {number} The ID we use for timeouts when handling model changes. */
+    private _timeoutID;
+
+    constructor(model, panelID, panelName) {
+        const panelHtml  = Mustache.render(searchPanelTemplate, {panelID: panelID});
 
         this._panel    = WorkspaceManager.createBottomPanel(panelName, $(panelHtml), 100);
         this._$summary = this._panel.$panel.find(".title");
         this._$table   = this._panel.$panel.find(".table-container");
         this._model    = model;
     }
-    EventDispatcher.makeEventDispatcher(SearchResultsView.prototype);
-
-    /** @type {SearchModel} The search results model we're viewing. */
-    SearchResultsView.prototype._model = null;
-
-    /**
-     * Array with content used in the Results Panel
-     * @type {Array.<{fileIndex: number, filename: string, fullPath: string, items: Array.<Object>}>}
-     */
-    SearchResultsView.prototype._searchList = [];
-
-    /** @type {Panel} Bottom panel holding the search results */
-    SearchResultsView.prototype._panel = null;
-
-    /** @type {?string} The full path of the file that was open in the main editor on the initial search */
-    SearchResultsView.prototype._initialFilePath = null;
-
-    /** @type {number} The index of the first result that is displayed */
-    SearchResultsView.prototype._currentStart = 0;
-
-    /** @type {boolean} Used to remake the replace all summary after it is changed */
-    SearchResultsView.prototype._allChecked = false;
-
-    /** @type {$.Element} The currently selected row */
-    SearchResultsView.prototype._$selectedRow = null;
-
-    /** @type {$.Element} The element where the title is placed */
-    SearchResultsView.prototype._$summary = null;
-
-    /** @type {$.Element} The table that holds the results */
-    SearchResultsView.prototype._$table = null;
-
-    /** @type {number} The ID we use for timeouts when handling model changes. */
-    SearchResultsView.prototype._timeoutID = null;
 
     /**
      * @private
      * Handles when model changes. Updates the view, buffering changes if necessary so as not to churn too much.
      */
-    SearchResultsView.prototype._handleModelChange = function (quickChange) {
+    private _handleModelChange(quickChange) {
         // If this is a replace, to avoid complications with updating, just close ourselves if we hear about
         // a results model change after we've already shown the results initially.
         // TODO: notify user, re-do search in file
@@ -130,7 +138,7 @@ define(function (require, exports, module) {
             return;
         }
 
-        var self = this;
+        const self = this;
         if (this._timeoutID) {
             window.clearTimeout(this._timeoutID);
         }
@@ -142,14 +150,14 @@ define(function (require, exports, module) {
         } else {
             this._updateResults();
         }
-    };
+    }
 
     /**
      * @private
      * Adds the listeners for close, prev, next, first, last and check all
      */
-    SearchResultsView.prototype._addPanelListeners = function () {
-        var self = this;
+    private _addPanelListeners() {
+        const self = this;
         this._panel.$panel
             .off(".searchResults")  // Remove the old events
             .on("click.searchResults", ".close", function () {
@@ -169,24 +177,24 @@ define(function (require, exports, module) {
             })
             // The link to go to the next page
             .on("click.searchResults", ".next-page:not(.disabled)", function () {
-                self.trigger("getNextPage");
+                (self as unknown as EventDispatcher.DispatcherEvents).trigger("getNextPage");
                 HealthLogger.searchDone(HealthLogger.SEARCH_NEXT_PAGE);
             })
             // The link to go to the last page
             .on("click.searchResults", ".last-page:not(.disabled)", function () {
-                self.trigger("getLastPage");
+                (self as unknown as EventDispatcher.DispatcherEvents).trigger("getLastPage");
                 HealthLogger.searchDone(HealthLogger.SEARCH_LAST_PAGE);
             })
 
             // Add the file to the working set on double click
-            .on("dblclick.searchResults", ".table-container tr:not(.file-section)", function (e) {
-                var item = self._searchList[$(this).data("file-index")];
+            .on("dblclick.searchResults", ".table-container tr:not(.file-section)", function (this: any, e) {
+                const item = self._searchList[$(this).data("file-index")];
                 FileViewController.openFileAndAddToWorkingSet(item.fullPath);
             })
 
             // Add the click event listener directly on the table parent
             .on("click.searchResults .table-container", function (e) {
-                var $row = $(e.target).closest("tr");
+                const $row = $(e.target).closest("tr");
 
                 if ($row.length) {
                     if (self._$selectedRow) {
@@ -195,22 +203,22 @@ define(function (require, exports, module) {
                     $row.addClass("selected");
                     self._$selectedRow = $row;
 
-                    var searchItem = self._searchList[$row.data("file-index")],
-                        fullPath   = searchItem.fullPath;
+                    let searchItem = self._searchList[$row.data("file-index")];
+                    let fullPath   = searchItem.fullPath;
 
                     // This is a file title row, expand/collapse on click
                     if ($row.hasClass("file-section")) {
-                        var $titleRows,
-                            collapsed = !self._model.results[fullPath].collapsed;
+                        let $titleRows;
+                        const collapsed = !self._model.results[fullPath].collapsed;
 
-                        if (e.metaKey || e.ctrlKey) { //Expand all / Collapse all
+                        if (e.metaKey || e.ctrlKey) { // Expand all / Collapse all
                             $titleRows = $(e.target).closest("table").find(".file-section");
                         } else {
                             // Clicking the file section header collapses/expands result rows for that file
                             $titleRows = $row;
                         }
 
-                        $titleRows.each(function () {
+                        $titleRows.each(function (this: any) {
                             fullPath   = self._searchList[$(this).data("file-index")].fullPath;
                             searchItem = self._model.results[fullPath];
 
@@ -221,7 +229,7 @@ define(function (require, exports, module) {
                             }
                         });
 
-                        //In Expand/Collapse all, reset all search results 'collapsed' flag to same value(true/false).
+                        // In Expand/Collapse all, reset all search results 'collapsed' flag to same value(true/false).
                         if (e.metaKey || e.ctrlKey) {
                             FindUtils.setCollapseResults(collapsed);
                             _.forEach(self._model.results, function (item) {
@@ -232,7 +240,7 @@ define(function (require, exports, module) {
                     // This is a file row, show the result on click
                     } else {
                         // Grab the required item data
-                        var item = searchItem.items[$row.data("item-index")];
+                        const item = searchItem.items[$row.data("item-index")];
 
                         CommandManager.execute(Commands.FILE_OPEN, {fullPath: fullPath})
                             .done(function (doc) {
@@ -244,27 +252,27 @@ define(function (require, exports, module) {
             });
 
         function updateHeaderCheckbox($checkAll) {
-            var $allFileRows     = self._panel.$panel.find(".file-section"),
-                $checkedFileRows = $allFileRows.filter(function (index) {
-                    return $(this).find(".check-one-file").is(":checked");
-                });
+            const $allFileRows     = self._panel.$panel.find(".file-section");
+            const $checkedFileRows = $allFileRows.filter(function (this: any, index) {
+                return $(this).find(".check-one-file").is(":checked");
+            });
             if ($checkedFileRows.length === $allFileRows.length) {
                 $checkAll.prop("checked", true);
             }
         }
 
         function updateFileAndHeaderCheckboxes($clickedRow, isChecked) {
-            var $firstMatch = ($clickedRow.data("item-index") === 0)
-                    ? $clickedRow
-                    : $clickedRow.prevUntil(".file-section").last(),
-                $fileRow = $firstMatch.prev(),
-                $siblingRows = $fileRow.nextUntil(".file-section"),
-                $fileCheckbox = $fileRow.find(".check-one-file"),
-                $checkAll = self._panel.$panel.find(".check-all");
+            const $firstMatch = ($clickedRow.data("item-index") === 0)
+                ? $clickedRow
+                : $clickedRow.prevUntil(".file-section").last();
+            const $fileRow = $firstMatch.prev();
+            const $siblingRows = $fileRow.nextUntil(".file-section");
+            const $fileCheckbox = $fileRow.find(".check-one-file");
+            const $checkAll = self._panel.$panel.find(".check-all");
 
             if (isChecked) {
                 if (!$fileCheckbox.is(":checked")) {
-                    var $checkedSibilings = $siblingRows.filter(function (index) {
+                    const $checkedSibilings = $siblingRows.filter(function (this: any, index) {
                         return $(this).find(".check-one").is(":checked");
                     });
                     if ($checkedSibilings.length === $siblingRows.length) {
@@ -287,8 +295,8 @@ define(function (require, exports, module) {
         // Add the Click handlers for replace functionality if required
         if (this._model.isReplace) {
             this._panel.$panel
-                .on("click.searchResults", ".check-all", function (e) {
-                    var isChecked = $(this).is(":checked");
+                .on("click.searchResults", ".check-all", function (this: any, e) {
+                    const isChecked = $(this).is(":checked");
                     _.forEach(self._model.results, function (results) {
                         results.matches.forEach(function (match) {
                             match.isChecked = isChecked;
@@ -298,12 +306,12 @@ define(function (require, exports, module) {
                     self._$table.find(".check-one-file").prop("checked", isChecked);
                     self._allChecked = isChecked;
                 })
-                .on("click.searchResults", ".check-one-file", function (e) {
-                    var isChecked = $(this).is(":checked"),
-                        $row = $(e.target).closest("tr"),
-                        item = self._searchList[$row.data("file-index")],
-                        $matchRows = $row.nextUntil(".file-section"),
-                        $checkAll = self._panel.$panel.find(".check-all");
+                .on("click.searchResults", ".check-one-file", function (this: any, e) {
+                    const isChecked = $(this).is(":checked");
+                    const $row = $(e.target).closest("tr");
+                    const item = self._searchList[$row.data("file-index")];
+                    const $matchRows = $row.nextUntil(".file-section");
+                    const $checkAll = self._panel.$panel.find(".check-all");
 
                     if (item) {
                         self._model.results[item.fullPath].matches.forEach(function (match) {
@@ -320,40 +328,38 @@ define(function (require, exports, module) {
                     }
                     e.stopPropagation();
                 })
-                .on("click.searchResults", ".check-one", function (e) {
-                    var $row = $(e.target).closest("tr"),
-                        item = self._searchList[$row.data("file-index")],
-                        match = self._model.results[item.fullPath].matches[$row.data("match-index")];
+                .on("click.searchResults", ".check-one", function (this: any, e) {
+                    const $row = $(e.target).closest("tr");
+                    const item = self._searchList[$row.data("file-index")];
+                    const match = self._model.results[item.fullPath].matches[$row.data("match-index")];
 
                     match.isChecked = $(this).is(":checked");
                     updateFileAndHeaderCheckboxes($row, match.isChecked);
                     e.stopPropagation();
                 })
                 .on("click.searchResults", ".replace-checked", function (e) {
-                    self.trigger("replaceBatch");
+                    (self as unknown as EventDispatcher.DispatcherEvents).trigger("replaceBatch");
                 });
         }
-    };
+    }
 
 
     /**
      * @private
      * Shows the Results Summary
      */
-    SearchResultsView.prototype._showSummary = function () {
-        var count     = this._model.countFilesMatches(),
-            lastIndex = this._getLastIndex(count.matches),
-            filesStr,
-            summary;
+    private _showSummary() {
+        const count     = this._model.countFilesMatches();
+        const lastIndex = this._getLastIndex(count.matches);
 
-        filesStr = StringUtils.format(
+        const filesStr = StringUtils.format(
             Strings.FIND_NUM_FILES,
             count.files,
             (count.files > 1 ? Strings.FIND_IN_FILES_FILES : Strings.FIND_IN_FILES_FILE)
         );
 
         // This text contains some formatting, so all the strings are assumed to be already escaped
-        summary = StringUtils.format(
+        const summary = StringUtils.format(
             Strings.FIND_TITLE_SUMMARY,
             this._model.exceedsMaximum ? Strings.FIND_IN_FILES_MORE_THAN : "",
             String(count.matches),
@@ -375,21 +381,25 @@ define(function (require, exports, module) {
             replace:     this._model.isReplace,
             Strings:     Strings
         }));
-    };
+    }
 
     /**
      * @private
      * Shows the current set of results.
      */
-    SearchResultsView.prototype._render = function () {
-        var searchItems, match, i, item, multiLine,
-            count            = this._model.countFilesMatches(),
-            searchFiles      = this._model.prioritizeOpenFile(this._initialFilePath),
-            lastIndex        = this._getLastIndex(count.matches),
-            matchesCounter   = 0,
-            showMatches      = false,
-            allInFileChecked = true,
-            self             = this;
+    private _render() {
+        let searchItems;
+        let match;
+        let i;
+        let item;
+        let multiLine;
+        const count            = this._model.countFilesMatches();
+        const searchFiles      = this._model.prioritizeOpenFile(this._initialFilePath);
+        const lastIndex        = this._getLastIndex(count.matches);
+        let matchesCounter   = 0;
+        let showMatches      = false;
+        let allInFileChecked = true;
+        const self             = this;
 
         this._showSummary();
         this._searchList = [];
@@ -454,14 +464,14 @@ define(function (require, exports, module) {
                 }
 
                 // Add a row for each file
-                var relativePath    = FileUtils.getDirectoryPath(ProjectManager.makeProjectRelativeIfPossible(fullPath)),
-                    directoryPath   = FileUtils.getDirectoryPath(relativePath),
-                    displayFileName = StringUtils.format(
-                        Strings.FIND_IN_FILES_FILE_PATH,
-                        StringUtils.breakableUrl(FileUtils.getBaseName(fullPath)),
-                        StringUtils.breakableUrl(directoryPath),
-                        directoryPath ? "&mdash;" : ""
-                    );
+                const relativePath    = FileUtils.getDirectoryPath(ProjectManager.makeProjectRelativeIfPossible(fullPath));
+                const directoryPath   = FileUtils.getDirectoryPath(relativePath);
+                const displayFileName = StringUtils.format(
+                    Strings.FIND_IN_FILES_FILE_PATH,
+                    StringUtils.breakableUrl(FileUtils.getBaseName(fullPath)),
+                    StringUtils.breakableUrl(directoryPath),
+                    directoryPath ? "&mdash;" : ""
+                );
 
                 self._searchList.push({
                     fileIndex:   self._searchList.length,
@@ -472,6 +482,8 @@ define(function (require, exports, module) {
                     isCollapsed: item.collapsed
                 });
             }
+
+            return undefined;
         });
 
 
@@ -491,18 +503,18 @@ define(function (require, exports, module) {
 
         this._panel.show();
         this._$table.scrollTop(0); // Otherwise scroll pos from previous contents is remembered
-    };
+    }
 
     /**
      * Updates the results view after a model change, preserving scroll position and selection.
      */
-    SearchResultsView.prototype._updateResults = function () {
+    private _updateResults() {
         // In general this shouldn't get called if the panel is closed, but in case some
         // asynchronous process kicks this (e.g. a debounced model change), we double-check.
         if (this._panel.isVisible()) {
-            var scrollTop  = this._$table.scrollTop(),
-                index      = this._$selectedRow ? this._$selectedRow.index() : null,
-                numMatches = this._model.countFilesMatches().matches;
+            const scrollTop  = this._$table.scrollTop();
+            const index      = this._$selectedRow ? this._$selectedRow.index() : null;
+            const numMatches = this._model.countFilesMatches().matches;
 
             if (this._currentStart > numMatches) {
                 this._currentStart = this._getLastCurrentStart(numMatches);
@@ -516,7 +528,7 @@ define(function (require, exports, module) {
                 this._$selectedRow.addClass("selected");
             }
         }
-    };
+    }
 
     /**
      * @private
@@ -524,25 +536,25 @@ define(function (require, exports, module) {
      * @param {number} numMatches
      * @return {number}
      */
-    SearchResultsView.prototype._getLastIndex = function (numMatches) {
+    private _getLastIndex(numMatches) {
         return Math.min(this._currentStart + RESULTS_PER_PAGE, numMatches);
-    };
+    }
 
     /**
      * Shows the next page of the resultrs view if possible
      */
-    SearchResultsView.prototype.showNextPage = function () {
+    public showNextPage() {
         this._currentStart += RESULTS_PER_PAGE;
         this._render();
-    };
+    }
 
     /**
      * Shows the last page of the results view.
      */
-    SearchResultsView.prototype.showLastPage = function () {
+    public showLastPage() {
         this._currentStart = this._getLastCurrentStart();
         this._render();
-    };
+    }
 
     /**
      * @private
@@ -550,22 +562,22 @@ define(function (require, exports, module) {
      * @param {number=} numMatches
      * @return {number}
      */
-    SearchResultsView.prototype._getLastCurrentStart = function (numMatches) {
+    private _getLastCurrentStart(numMatches?) {
         numMatches = numMatches || this._model.countFilesMatches().matches;
         return Math.floor((numMatches - 1) / RESULTS_PER_PAGE) * RESULTS_PER_PAGE;
-    };
+    }
 
     /**
      * Opens the results panel and displays the current set of results from the model.
      */
-    SearchResultsView.prototype.open = function () {
+    public open() {
         // Clear out any paging/selection state.
         this._currentStart  = 0;
         this._$selectedRow  = null;
         this._allChecked    = true;
 
         // Save the currently open document's fullpath, if any, so we can sort it to the top of the result list.
-        var currentDoc = DocumentManager.getCurrentDocument();
+        const currentDoc = DocumentManager.getCurrentDocument();
         this._initialFilePath = currentDoc ? currentDoc.file.fullPath : null;
 
         this._render();
@@ -573,21 +585,19 @@ define(function (require, exports, module) {
         // Listen for user interaction events with the panel and change events from the model.
         this._addPanelListeners();
         this._model.on("change.SearchResultsView", this._handleModelChange.bind(this));
-    };
+    }
 
     /**
      * Hides the Search Results Panel and unregisters listeners.
      */
-    SearchResultsView.prototype.close = function () {
+    public close() {
         if (this._panel && this._panel.isVisible()) {
             this._$table.empty();
             this._panel.hide();
             this._panel.$panel.off(".searchResults");
             this._model.off("change.SearchResultsView");
-            this.trigger("close");
+            (this as unknown as EventDispatcher.DispatcherEvents).trigger("close");
         }
-    };
-
-    // Public API
-    exports.SearchResultsView = SearchResultsView;
-});
+    }
+}
+EventDispatcher.makeEventDispatcher(SearchResultsView.prototype);

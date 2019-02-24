@@ -22,48 +22,40 @@
  *
  */
 
-define(function (require, exports, module) {
-    "use strict";
+import * as EditorManager from "editor/EditorManager";
 
-    var EditorManager       = require("editor/EditorManager");
+/**
+ * @param {string} query what the user is searching for
+ * @param {boolean} returns true if this plug-in wants to provide results for this query
+ */
+export function match(query) {
+    return (query[0] === "@");
+}
 
-    /**
-     * @param {string} query what the user is searching for
-     * @param {boolean} returns true if this plug-in wants to provide results for this query
-     */
-    function match(query) {
-        return (query[0] === "@");
+/**
+ * Scroll to the selected item in the current document (unless no query string entered yet,
+ * in which case the topmost list item is irrelevant)
+ * @param {?SearchResult} selectedItem
+ * @param {string} query
+ * @param {boolean} explicit False if this is only highlighted due to being at top of list after search()
+ */
+export function itemFocus(selectedItem, query, explicit) {
+    if (!selectedItem || (query.length < 2 && !explicit)) {
+        return;
     }
+    const fileLocation = selectedItem.fileLocation;
 
-    /**
-     * Scroll to the selected item in the current document (unless no query string entered yet,
-     * in which case the topmost list item is irrelevant)
-     * @param {?SearchResult} selectedItem
-     * @param {string} query
-     * @param {boolean} explicit False if this is only highlighted due to being at top of list after search()
-     */
-    function itemFocus(selectedItem, query, explicit) {
-        if (!selectedItem || (query.length < 2 && !explicit)) {
-            return;
-        }
-        var fileLocation = selectedItem.fileLocation;
+    const from = {line: fileLocation.line, ch: fileLocation.chFrom};
+    const to = {line: fileLocation.line, ch: fileLocation.chTo};
+    EditorManager.getCurrentFullEditor().setSelection(from, to, true);
+}
 
-        var from = {line: fileLocation.line, ch: fileLocation.chFrom};
-        var to = {line: fileLocation.line, ch: fileLocation.chTo};
-        EditorManager.getCurrentFullEditor().setSelection(from, to, true);
-    }
-
-    /**
-     * Scroll to the selected item in the current document (unless no query string entered yet,
-     * in which case the topmost list item is irrelevant)
-     * @param {?SearchResult} selectedItem
-     * @param {string} query
-     */
-    function itemSelect(selectedItem, query) {
-        itemFocus(selectedItem, query, true);
-    }
-
-    exports.match      = match;
-    exports.itemFocus  = itemFocus;
-    exports.itemSelect = itemSelect;
-});
+/**
+ * Scroll to the selected item in the current document (unless no query string entered yet,
+ * in which case the topmost list item is irrelevant)
+ * @param {?SearchResult} selectedItem
+ * @param {string} query
+ */
+export function itemSelect(selectedItem, query) {
+    itemFocus(selectedItem, query, true);
+}
