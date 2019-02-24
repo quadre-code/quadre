@@ -31,49 +31,642 @@
  * helpful for composability. Many of the methods commit the new treeData and send a
  * change event when they're done whereas the functions do not do this.
  */
-define(function (require, exports, module) {
-    "use strict";
 
-    var Immutable           = require("thirdparty/immutable"),
-        _                   = require("thirdparty/lodash"),
-        EventDispatcher     = require("utils/EventDispatcher"),
-        FileUtils           = require("file/FileUtils");
+import * as Immutable from "thirdparty/immutable";
+import * as _ from "thirdparty/lodash";
+import * as EventDispatcher from "utils/EventDispatcher";
+import * as FileUtils from "file/FileUtils";
+import FileSystemEntry = require("filesystem/FileSystemEntry");
 
-    // Constants
-    var EVENT_CHANGE = "change";
+// Constants
+export const EVENT_CHANGE = "change";
 
-    /**
-     * Determine if an entry from the treeData map is a file.
-     *
-     * @param {Immutable.Map} entry entry to test
-     * @return {boolean} true if this is a file and not a directory
-     */
-    function isFile(entry) {
-        return entry.get("children") === undefined;
+/**
+ * Determine if an entry from the treeData map is a file.
+ *
+ * @param {Immutable.Map} entry entry to test
+ * @return {boolean} true if this is a file and not a directory
+ */
+export function isFile(entry) {
+    return entry.get("children") === undefined;
+}
+
+/**
+ * @private
+ *
+ * Converts a project-relative file path into an object path array suitable for
+ * `Immutable.Map.getIn` and `Immutable.Map.updateIn`.
+ *
+ * The root path is "".
+ *
+ * @param {Immutable.Map} treeData
+ * @param {string} path project relative path to the file or directory. Can include trailing slash.
+ * @return {Array.<string>|null} Returns null if the path can't be found in the tree, otherwise an array of strings representing the path through the object.
+ */
+export function _filePathToObjectPath(treeData, path): Array<string> | null {
+    if (path === null) {
+        return null;
     }
 
-    /**
-     * @constructor
-     *
-     * Contains the treeData used to generate the file tree and methods used to update that
-     * treeData.
-     *
-     * Instances dispatch the following events:
-     * - "change" (FileTreeViewModel.EVENT_CHANGE constant): Fired any time there's a change that should be reflected in the view.
-     */
-    function FileTreeViewModel() {
-        // For convenience in callbacks, make a bound version of this method so that we can
-        // just refer to it as this._commit when passing in a callback.
-        this._commit = this._commit.bind(this);
+    if (path === "") {
+        return [];
     }
-    EventDispatcher.makeEventDispatcher(FileTreeViewModel.prototype);
 
+    const parts = path.split("/");
+    let part = parts.shift();
+    const result: Array<string> = [];
+    let node;
+
+    // Step through the parts of the path and the treeData object simultaneously
+    while (part) {
+        // We hit the end of the tree without finding our object, so return null
+        if (!treeData) {
+            return null;
+        }
+
+        node = treeData.get(part);
+
+        // The name represented by `part` isn't in the tree, so return null.
+        if (node === undefined) {
+            return null;
+        }
+
+        // We've verified this part, so store it.
+        result.push(part);
+
+        // Pull the next part of the path
+        part = parts.shift();
+
+        // If we haven't passed the end of the path string, then the object we've got in hand
+        // *should* be a directory. Confirm that and add `children` to the path to move down
+        // to the next directory level.
+        if (part) {
+            treeData = node.get("children");
+            if (treeData) {
+                result.push("children");
+            }
+        }
+    }
+
+    return result;
+}
+
+/**
+ * @private
+ *
+ * See `FileTreeViewModel.isFilePathVisible`
+ */
+export function _isFilePathVisible(treeData, path): boolean | null {
+    if (path === null) {
+        return null;
+    }
+
+    if (path === "") {
+        return true;
+    }
+
+    const parts = path.split("/");
+    let part = parts.shift();
+    const result: Array<string> = [];
+    let node;
+
+    while (part) {
+        if (treeData === null) {
+            return false;
+        }
+        node = treeData.get(part);
+        if (node === undefined) {
+            return null;
+        }
+        result.push(part);
+        part = parts.shift();
+        if (part) {
+            if (!node.get("open")) {
+                return false;
+            }
+            treeData = node.get("children");
+            if (treeData) {
+                result.push("children");
+            }
+        }
+    }
+
+    return true;
+}
+
+/**
+ * @private
+ *
+ * See `FileTreeViewModel.getOpenNodes`.
+ */
+function _getOpenNodes(treeData, projectRootPath) {
+    const openNodes: Array<Array<string>> = [];
+
+    function addNodesAtDepth(treeData, parent, depth) {
+        if (!treeData) {
+            return;
+        }
+
+        treeData.forEach(function (value, key) {
+            if (isFile(value)) {
+                return;
+            }
+
+            const directoryPath = parent + key + "/";
+
+            if (value.get("open")) {
+                let nodeList = openNodes[depth];
+                if (!nodeList) {
+                    nodeList = openNodes[depth] = [];
+                }
+                nodeList.push(directoryPath);
+                addNodesAtDepth(value.get("children"), directoryPath, depth + 1);
+            }
+        });
+    }
+
+    // start at the top of the tree and the first array element
+    addNodesAtDepth(treeData, projectRootPath, 0);
+    return openNodes;
+}
+
+/**
+ * @private
+ * TODO: merge with _getOpenNodes?!
+ * See `FileTreeViewModel.getChildNodes`.
+ */
+function _getChildDirectories(treeData, projectRootPath) {
+    const childDirectories: Array<string> = [];
+
+    function addNodesAtDepth(treeData, parent, depth) {
+        if (!treeData) {
+            return;
+        }
+
+        treeData.forEach(function (value, key) {
+            if (!isFile(value)) {
+                const directoryPath = key + "/";
+
+                childDirectories.push(directoryPath);
+            }
+        });
+    }
+
+    // start at the top of the tree and the first array element
+    addNodesAtDepth(treeData, projectRootPath, 0);
+    return childDirectories;
+}
+
+/**
+ * @private
+ *
+ * The Immutable package does not have a `setIn` method, which is what this effectively
+ * provides. This is a simple function that does an `updateIn` on treeData, replacing
+ * the current value with the new one.
+ *
+ * @param {Immutable.Map} treeData
+ * @param {Array.<string>} objectPath path to object that should be replaced
+ * @param {Immutable.Map} newValue new value to provide at that path
+ * @return {Immutable.Map} updated treeData
+ */
+function _setIn(treeData, objectPath, newValue) {
+    return treeData.updateIn(objectPath, function (oldValue) {
+        return newValue;
+    });
+}
+
+/**
+ * @private
+ *
+ * See `FileTreeViewModel.moveMarker`
+ */
+function _moveMarker(treeData, markerName, oldPath, newPath) {
+    let objectPath;
+
+    if (newPath) {
+        objectPath = _filePathToObjectPath(treeData, newPath);
+    }
+
+    let newTreeData = treeData;
+
+    if (oldPath && oldPath !== newPath) {
+        const lastObjectPath = _filePathToObjectPath(treeData, oldPath);
+        if (lastObjectPath) {
+            newTreeData = newTreeData.updateIn(lastObjectPath, function (entry) {
+                return entry.delete(markerName);
+            });
+        }
+    }
+
+    if (newPath && objectPath && objectPath.length !== 0) {
+        newTreeData = newTreeData.updateIn(objectPath, function (entry) {
+            return entry.set(markerName, true);
+        });
+    }
+
+    return newTreeData;
+}
+
+/**
+ * @private
+ *
+ * See `FileTreeViewModel.setDirectoryOpen`
+ */
+function _setDirectoryOpen(treeData, path, open) {
+    const objectPath = _filePathToObjectPath(treeData, path);
+    const directory = treeData.getIn(objectPath);
+
+    if (!objectPath) {
+        return {
+            needsLoading: true,
+            treeData: treeData
+        };
+    }
+
+    if (isFile(directory)) {
+        return;
+    }
+
+    const alreadyOpen = directory.get("open") === true;
+
+    if ((alreadyOpen && open) || (!alreadyOpen && !open)) {
+        return;
+    }
+
+    treeData = treeData.updateIn(objectPath, function (directory) {
+        if (open) {
+            return directory.set("open", true);
+        }
+
+        return directory.delete("open");
+    });
+
+    if (open && (directory.get("children") === null || directory.get("notFullyLoaded"))) {
+        return {
+            needsLoading: true,
+            treeData: treeData
+        };
+    }
+    return {
+        needsLoading: false,
+        treeData: treeData
+    };
+}
+
+/**
+ * Closes a subtree path, given by an object path.
+ *
+ * @param {Immutable.Map} directory Current directory
+ * @return {Immutable.Map} new directory
+ */
+function _closeSubtree(directory) {
+    directory = directory.delete("open");
+
+    let children = directory.get("children");
+    if (children) {
+        children.keySeq().forEach(function (name) {
+            let subdir = children.get(name);
+            if (!isFile(subdir)) {
+                subdir = _closeSubtree(subdir);
+                children = children.set(name, subdir);
+            }
+        });
+    }
+
+    directory = directory.set("children", children);
+    return directory;
+}
+
+/**
+ * @private
+ *
+ * Takes an array of file system entries and merges them into the children map
+ * of a directory in the view model treeData.
+ *
+ * @param {Immutable.Map} children current children in the directory
+ * @param {Array.<FileSystemEntry>} contents FileSystemEntry objects currently in the directory
+ * @return {Immutable.Map} updated children
+ */
+function _mergeContentsIntoChildren(children, contents: Array<FileSystemEntry>) {
+
+    // We keep track of the names we've seen among the current directory entries to make
+    // it easy to spot the names that we *haven't* seen (in other words, files that have
+    // been deleted).
+    const keysSeen: Array<string> = [];
+
+    children = children.withMutations(function (children) {
+
+        // Loop through the directory entries
+        contents.forEach(function (entry) {
+            keysSeen.push(entry.name);
+
+            let match = children.get(entry.name);
+            if (match) {
+                // Confirm that a name that used to represent a file and now represents a
+                // directory (or vice versa) isn't what we've encountered here. If we have
+                // hit this situation, pretend the current child of treeData doesn't exist
+                // so we can replace it.
+                const matchIsFile = isFile(match);
+                if (matchIsFile !== entry.isFile) {
+                    match = undefined;
+                }
+            }
+
+            // We've got a new entry that we need to add.
+            if (!match) {
+                if (entry.isFile) {
+                    children.set(entry.name, Immutable.Map());
+                } else {
+                    children.set(entry.name, Immutable.Map({
+                        children: null
+                    }));
+                }
+            }
+        });
+
+        // Look at the list of names that we currently have in the treeData that no longer
+        // appear in the directory and delete those.
+        const currentEntries = children.keySeq().toJS();
+        const deletedEntries = _.difference(currentEntries, keysSeen);
+
+        deletedEntries.forEach(function (name) {
+            children.delete(name);
+        });
+    });
+    return children;
+}
+
+/**
+ * @private
+ *
+ * Creates a directory object (or updates an existing directory object) to look like one
+ * that has not yet been loaded, but in which we want to start displaying entries.
+ * @param {Immutable.Map=} directory Directory entry to update
+ * @return {Immutable.Map} New or updated directory object
+ */
+function _createNotFullyLoadedDirectory(directory) {
+    if (!directory) {
+        return Immutable.Map({
+            notFullyLoaded: true,
+            children: Immutable.Map()
+        });
+    }
+    return directory.merge({
+        notFullyLoaded: true,
+        children: Immutable.Map()
+    });
+}
+
+/**
+ * @private
+ *
+ * Creates the directories necessary to display the given path, even if those directories
+ * do not yet exist in the tree and have not been loaded.
+ *
+ * @param {Immutable.Map} treeData
+ * @param {string} path Path to the final directory to be added in the tree
+ * @return {{treeData: Immutable.Map, objectPath: Array.<string>}} updated treeData and object path to the created object
+ */
+function _createIntermediateDirectories(treeData, path) {
+    const objectPath: Array<string> = [];
+    const result = {
+        objectPath: objectPath,
+        treeData: treeData
+    };
+    let treePointer = treeData;
+
+    if (path === "") {
+        return result;
+    }
+
+    const parts = path.split("/");
+    let part = parts.shift();
+    let node;
+
+    while (part) {
+        if (treePointer === null) {
+            return null;
+        }
+        node = treePointer.get(part);
+        objectPath.push(part);
+
+        // This directory is missing, so create it.
+        if (node === undefined) {
+            treeData = treeData.updateIn(objectPath, _createNotFullyLoadedDirectory);
+            node = treeData.getIn(objectPath);
+        }
+
+        part = parts.shift();
+        if (part) {
+            treePointer = node.get("children");
+
+            if (treePointer) {
+                objectPath.push("children");
+            } else {
+
+                // The directory is there, but the directory hasn't been loaded.
+                // Update the directory to be a `notFullyLoaded` directory.
+                treeData = treeData.updateIn(objectPath, _createNotFullyLoadedDirectory);
+                objectPath.push("children");
+                treePointer = treeData.getIn(objectPath);
+            }
+        }
+    }
+
+    result.treeData = treeData;
+    return result;
+}
+
+/**
+ * @private
+ *
+ * Opens the directories along the provided path.
+ *
+ * @param {Immutable.Map} treeData
+ * @param {string} path Path to open
+ */
+function _openPath(treeData, path) {
+    const objectPath = _filePathToObjectPath(treeData, path);
+
+    function setOpen(node) {
+        return node.set("open", true);
+    }
+
+    while (objectPath && objectPath.length) {
+        const node = treeData.getIn(objectPath);
+        if (isFile(node)) {
+            objectPath.pop();
+        } else {
+            if (!node.get("open")) {
+                treeData = treeData.updateIn(objectPath, setOpen);
+            }
+            objectPath.pop();
+            if (objectPath.length) {
+                objectPath.pop();
+            }
+        }
+    }
+
+    return treeData;
+}
+
+/**
+ * @private
+ *
+ * See FileTreeViewModel.createPlaceholder
+ */
+export function _createPlaceholder(treeData, basedir, name, isFolder, options?) {
+    options = options || {};
+    const parentPath = _filePathToObjectPath(treeData, basedir);
+
+    if (!parentPath) {
+        return;
+    }
+
+    const newObject: any = {
+    };
+
+    if (!options.notInCreateMode) {
+        newObject.creating = true;
+    }
+
+    if (isFolder) {
+        // If we're creating a folder, then we know it's empty.
+        // But if we're not in create mode, (we're adding a folder based on an
+        // FS event), we don't know anything about the new directory's children.
+        if (options.notInCreateMode) {
+            newObject.children = null;
+        } else {
+            newObject.children = Immutable.Map();
+        }
+    }
+
+    const newFile = Immutable.Map(newObject);
+
+    if (!options.doNotOpen) {
+        treeData = _openPath(treeData, basedir);
+    }
+    if (parentPath.length > 0) {
+        const childrenPath = _.clone(parentPath);
+        childrenPath.push("children");
+
+        treeData = treeData.updateIn(childrenPath, function (children) {
+            return children.set(name, newFile);
+        });
+    } else {
+        treeData = treeData.set(name, newFile);
+    }
+    return treeData;
+}
+
+/**
+ * @private
+ *
+ * See FileTreeViewModel.deleteAtPath
+ */
+function _deleteAtPath(treeData, path) {
+    const objectPath = _filePathToObjectPath(treeData, path);
+
+    if (!objectPath) {
+        return;
+    }
+
+    const originalName = _.last(objectPath);
+
+    // Back up to the parent directory
+    objectPath.pop();
+
+    treeData = treeData.updateIn(objectPath, function (directory) {
+        directory = directory.delete(originalName);
+        return directory;
+    });
+
+    return treeData;
+}
+
+/**
+ * @private
+ *
+ * Adds a timestamp to an entry (much like the "touch" command) to force a given entry
+ * to rerender.
+ */
+function _addTimestamp(item) {
+    return item.set("_timestamp", new Date().getTime());
+}
+
+/**
+ * @private
+ *
+ * Sets/updates the timestamp on the file paths listed in the `changed` array.
+ *
+ * @param {Immutable.Map} treeData
+ * @param {Array.<string>} changed list of changed project-relative file paths
+ * @return {Immutable.Map} revised treeData
+ */
+function _markAsChanged(treeData, changed) {
+    changed.forEach(function (filePath) {
+        const objectPath = _filePathToObjectPath(treeData, filePath);
+        if (objectPath) {
+            treeData = treeData.updateIn(objectPath, _addTimestamp);
+        }
+    });
+    return treeData;
+}
+
+/**
+ * @private
+ *
+ * Adds entries at the paths listed in the `added` array. Directories should have a trailing slash.
+ *
+ * @param {Immutable.Map} treeData
+ * @param {Array.<string>} added list of new project-relative file paths
+ * @return {Immutable.Map} revised treeData
+ */
+function _addNewEntries(treeData, added) {
+    added.forEach(function (filePath) {
+        const isFolder = _.last(filePath) === "/";
+
+        filePath = isFolder ? filePath.substr(0, filePath.length - 1) : filePath;
+
+        const parentPath = FileUtils.getDirectoryPath(filePath);
+        const parentObjectPath = _filePathToObjectPath(treeData, parentPath);
+        const basename = FileUtils.getBaseName(filePath);
+
+        if (parentObjectPath) {
+            // Verify that the children are loaded
+            const childrenPath = _.clone(parentObjectPath);
+            childrenPath.push("children");
+            if (treeData.getIn(childrenPath) === null) {
+                return;
+            }
+
+            treeData = _createPlaceholder(treeData, parentPath, basename, isFolder, {
+                notInCreateMode: true,
+                doNotOpen: true
+            });
+        }
+    });
+
+    return treeData;
+}
+
+
+/**
+ * @constructor
+ *
+ * Contains the treeData used to generate the file tree and methods used to update that
+ * treeData.
+ *
+ * Instances dispatch the following events:
+ * - "change" (FileTreeViewModel.EVENT_CHANGE constant): Fired any time there's a change that should be reflected in the view.
+ */
+export class FileTreeViewModel {
     /**
      * @type {boolean}
      *
      * Preference for whether directories should all be sorted to the top of listings
      */
-    FileTreeViewModel.prototype.sortDirectoriesFirst = false;
+    public sortDirectoriesFirst = false;
 
     /**
      * @type {Immutable.Map}
@@ -88,13 +681,7 @@ define(function (require, exports, module) {
      * * Most file entries are just empty maps
      *     * They can have flags like selected, context, rename, create with state information for the tree
      */
-    FileTreeViewModel.prototype._treeData = Immutable.Map();
-
-    Object.defineProperty(FileTreeViewModel.prototype, "treeData", {
-        get: function () {
-            return this._treeData;
-        }
-    });
+    private _treeData = Immutable.Map();
 
     /**
      * @private
@@ -108,7 +695,7 @@ define(function (require, exports, module) {
      * * hasSelection: is the selection bar visible?
      * * hasContext: is the context bar visible?
      */
-    FileTreeViewModel.prototype._selectionViewInfo = Immutable.Map({
+    private _selectionViewInfo = Immutable.Map({
         width: 0,
         scrollTop: 0,
         scrollLeft: 0,
@@ -117,20 +704,28 @@ define(function (require, exports, module) {
         hasSelection: false
     });
 
-    Object.defineProperty(FileTreeViewModel.prototype, "selectionViewInfo", {
-        get: function () {
-            return this._selectionViewInfo;
-        }
-    });
+    constructor() {
+        // For convenience in callbacks, make a bound version of this method so that we can
+        // just refer to it as this._commit when passing in a callback.
+        this._commit = this._commit.bind(this);
+    }
+
+    public get treeData() {
+        return this._treeData;
+    }
+
+    public get selectionViewInfo() {
+        return this._selectionViewInfo;
+    }
 
     /**
      * @private
      *
      * If the project root changes, we reset the tree data so that everything will be re-read.
      */
-    FileTreeViewModel.prototype._rootChanged = function () {
+    public _rootChanged() {
         this._treeData = Immutable.Map();
-    };
+    }
 
     /**
      * @private
@@ -142,8 +737,8 @@ define(function (require, exports, module) {
      * @param {?Immutable.Map} treeData new treeData state
      * @param {?Immutable.Map} selectionViewInfo updated information for the selection/context bars
      */
-    FileTreeViewModel.prototype._commit = function (treeData, selectionViewInfo) {
-        var changed = false;
+    private _commit(treeData, selectionViewInfo?) {
+        let changed = false;
         if (treeData && treeData !== this._treeData) {
             this._treeData = treeData;
             changed = true;
@@ -154,111 +749,8 @@ define(function (require, exports, module) {
             changed = true;
         }
         if (changed) {
-            this.trigger(EVENT_CHANGE);
+            (this as unknown as EventDispatcher.DispatcherEvents).trigger(EVENT_CHANGE);
         }
-    };
-
-    /**
-     * @private
-     *
-     * Converts a project-relative file path into an object path array suitable for
-     * `Immutable.Map.getIn` and `Immutable.Map.updateIn`.
-     *
-     * The root path is "".
-     *
-     * @param {Immutable.Map} treeData
-     * @param {string} path project relative path to the file or directory. Can include trailing slash.
-     * @return {Array.<string>|null} Returns null if the path can't be found in the tree, otherwise an array of strings representing the path through the object.
-     */
-    function _filePathToObjectPath(treeData, path) {
-        if (path === null) {
-            return null;
-        }
-
-        if (path === "") {
-            return [];
-        }
-
-        var parts = path.split("/"),
-            part = parts.shift(),
-            result = [],
-            node;
-
-        // Step through the parts of the path and the treeData object simultaneously
-        while (part) {
-            // We hit the end of the tree without finding our object, so return null
-            if (!treeData) {
-                return null;
-            }
-
-            node = treeData.get(part);
-
-            // The name represented by `part` isn't in the tree, so return null.
-            if (node === undefined) {
-                return null;
-            }
-
-            // We've verified this part, so store it.
-            result.push(part);
-
-            // Pull the next part of the path
-            part = parts.shift();
-
-            // If we haven't passed the end of the path string, then the object we've got in hand
-            // *should* be a directory. Confirm that and add `children` to the path to move down
-            // to the next directory level.
-            if (part) {
-                treeData = node.get("children");
-                if (treeData) {
-                    result.push("children");
-                }
-            }
-        }
-
-        return result;
-    }
-
-    /**
-     * @private
-     *
-     * See `FileTreeViewModel.isFilePathVisible`
-     */
-    function _isFilePathVisible(treeData, path) {
-        if (path === null) {
-            return null;
-        }
-
-        if (path === "") {
-            return true;
-        }
-
-        var parts = path.split("/"),
-            part = parts.shift(),
-            result = [],
-            node;
-
-        while (part) {
-            if (treeData === null) {
-                return false;
-            }
-            node = treeData.get(part);
-            if (node === undefined) {
-                return null;
-            }
-            result.push(part);
-            part = parts.shift();
-            if (part) {
-                if (!node.get("open")) {
-                    return false;
-                }
-                treeData = node.get("children");
-                if (treeData) {
-                    result.push("children");
-                }
-            }
-        }
-
-        return true;
     }
 
     /**
@@ -271,9 +763,9 @@ define(function (require, exports, module) {
      * @param {string} path project relative file path
      * @return {boolean|null} true if the given path is currently visible in the tree, null if the given path is not present in the tree.
      */
-    FileTreeViewModel.prototype.isFilePathVisible = function (path) {
+    public isFilePathVisible(path) {
         return _isFilePathVisible(this._treeData, path);
-    };
+    }
 
     /**
      * Determines if a given path has been loaded.
@@ -281,8 +773,8 @@ define(function (require, exports, module) {
      * @param {string} path project relative file or directory path
      * @return {boolean} true if the path has been loaded
      */
-    FileTreeViewModel.prototype.isPathLoaded = function (path) {
-        var objectPath = _filePathToObjectPath(this._treeData, path);
+    public isPathLoaded(path) {
+        const objectPath = _filePathToObjectPath(this._treeData, path);
 
         if (!objectPath) {
             return false;
@@ -290,76 +782,13 @@ define(function (require, exports, module) {
 
         // If it's a directory, make sure that its children are loaded
         if (_.last(path) === "/") {
-            var directory = this._treeData.getIn(objectPath);
+            const directory = this._treeData.getIn(objectPath);
             if (!directory.get("children") || directory.get("notFullyLoaded")) {
                 return false;
             }
         }
 
         return true;
-    };
-
-    /**
-     * @private
-     *
-     * See `FileTreeViewModel.getOpenNodes`.
-     */
-    function _getOpenNodes(treeData, projectRootPath) {
-        var openNodes = [];
-
-        function addNodesAtDepth(treeData, parent, depth) {
-            if (!treeData) {
-                return;
-            }
-
-            treeData.forEach(function (value, key) {
-                if (isFile(value)) {
-                    return;
-                }
-
-                var directoryPath = parent + key + "/";
-
-                if (value.get("open")) {
-                    var nodeList = openNodes[depth];
-                    if (!nodeList) {
-                        nodeList = openNodes[depth] = [];
-                    }
-                    nodeList.push(directoryPath);
-                    addNodesAtDepth(value.get("children"), directoryPath, depth + 1);
-                }
-            });
-        }
-
-        // start at the top of the tree and the first array element
-        addNodesAtDepth(treeData, projectRootPath, 0);
-        return openNodes;
-    }
-
-    /**
-     * @private
-     * TODO: merge with _getOpenNodes?!
-     * See `FileTreeViewModel.getChildNodes`.
-     */
-    function _getChildDirectories(treeData, projectRootPath) {
-        var childDirectories = [];
-
-        function addNodesAtDepth(treeData, parent, depth) {
-            if (!treeData) {
-                return;
-            }
-
-            treeData.forEach(function (value, key) {
-                if (!isFile(value)) {
-                    var directoryPath = key + "/";
-
-                    childDirectories.push(directoryPath);
-                }
-            });
-        }
-
-        // start at the top of the tree and the first array element
-        addNodesAtDepth(treeData, projectRootPath, 0);
-        return childDirectories;
     }
 
     /**
@@ -372,19 +801,19 @@ define(function (require, exports, module) {
      * @param {string} projectRootPath Full path to the project root
      * @return {Array.<Array.<string>>} Array of array of full paths, organized by depth in the tree.
      */
-    FileTreeViewModel.prototype.getOpenNodes = function (projectRootPath) {
+    public getOpenNodes(projectRootPath) {
         return _getOpenNodes(this._treeData, projectRootPath);
-    };
+    }
 
-    FileTreeViewModel.prototype.getChildDirectories = function (parent) {
-        var treeData = this._treeData,
-            objectPath = _filePathToObjectPath(treeData, parent);
+    public getChildDirectories(parent) {
+        const treeData = this._treeData;
+        const objectPath = _filePathToObjectPath(treeData, parent);
 
         if (!objectPath) {
             return;
         }
 
-        var children;
+        let children;
         if (objectPath.length === 0) {
             // this is the root of the tree
             children = this._treeData;
@@ -394,56 +823,6 @@ define(function (require, exports, module) {
         }
 
         return _getChildDirectories(children, parent);
-    };
-
-    /**
-     * @private
-     *
-     * The Immutable package does not have a `setIn` method, which is what this effectively
-     * provides. This is a simple function that does an `updateIn` on treeData, replacing
-     * the current value with the new one.
-     *
-     * @param {Immutable.Map} treeData
-     * @param {Array.<string>} objectPath path to object that should be replaced
-     * @param {Immutable.Map} newValue new value to provide at that path
-     * @return {Immutable.Map} updated treeData
-     */
-    function _setIn(treeData, objectPath, newValue) {
-        return treeData.updateIn(objectPath, function (oldValue) {
-            return newValue;
-        });
-    }
-
-    /**
-     * @private
-     *
-     * See `FileTreeViewModel.moveMarker`
-     */
-    function _moveMarker(treeData, markerName, oldPath, newPath) {
-        var objectPath;
-
-        if (newPath) {
-            objectPath = _filePathToObjectPath(treeData, newPath);
-        }
-
-        var newTreeData = treeData;
-
-        if (oldPath && oldPath !== newPath) {
-            var lastObjectPath = _filePathToObjectPath(treeData, oldPath);
-            if (lastObjectPath) {
-                newTreeData = newTreeData.updateIn(lastObjectPath, function (entry) {
-                    return entry.delete(markerName);
-                });
-            }
-        }
-
-        if (newPath && objectPath && objectPath.length !== 0) {
-            newTreeData = newTreeData.updateIn(objectPath, function (entry) {
-                return entry.set(markerName, true);
-            });
-        }
-
-        return newTreeData;
     }
 
     /**
@@ -453,9 +832,9 @@ define(function (require, exports, module) {
      * @param {string|null} oldPath Project relative file path with the location of the marker to move, or null if it's not being moved from elsewhere in the tree
      * @param {string|null} newPath Project relative file path with where to place the marker, or null if the marker is being removed from the tree
      */
-    FileTreeViewModel.prototype.moveMarker = function (markerName, oldPath, newPath) {
-        var newTreeData = _moveMarker(this._treeData, markerName, oldPath, newPath),
-            selectionViewInfo = this._selectionViewInfo;
+    public moveMarker(markerName, oldPath, newPath) {
+        const newTreeData = _moveMarker(this._treeData, markerName, oldPath, newPath);
+        let selectionViewInfo = this._selectionViewInfo;
 
         if (markerName === "selected") {
             selectionViewInfo = selectionViewInfo.set("hasSelection", !!newPath);
@@ -463,7 +842,7 @@ define(function (require, exports, module) {
             selectionViewInfo = selectionViewInfo.set("hasContext", !!newPath);
         }
         this._commit(newTreeData, selectionViewInfo);
-    };
+    }
 
     /**
      * Changes the name of the item at the `currentPath` to `newName`.
@@ -471,16 +850,16 @@ define(function (require, exports, module) {
      * @param {string} currentPath project relative file path to the current item
      * @param {string} newName Name to give the item
      */
-    FileTreeViewModel.prototype.renameItem = function (currentPath, newName) {
-        var treeData = this._treeData,
-            objectPath = _filePathToObjectPath(treeData, currentPath);
+    public renameItem(currentPath, newName) {
+        let treeData = this._treeData;
+        const objectPath = _filePathToObjectPath(treeData, currentPath);
 
         if (!objectPath) {
             return;
         }
 
-        var originalName = _.last(objectPath),
-            currentObject = treeData.getIn(objectPath);
+        const originalName = _.last(objectPath);
+        const currentObject = treeData.getIn(objectPath);
 
         // Back up to the parent directory
         objectPath.pop();
@@ -492,52 +871,6 @@ define(function (require, exports, module) {
         });
 
         this._commit(treeData);
-    };
-
-    /**
-     * @private
-     *
-     * See `FileTreeViewModel.setDirectoryOpen`
-     */
-    function _setDirectoryOpen(treeData, path, open) {
-        var objectPath = _filePathToObjectPath(treeData, path),
-            directory = treeData.getIn(objectPath);
-
-        if (!objectPath) {
-            return {
-                needsLoading: true,
-                treeData: treeData
-            };
-        }
-
-        if (isFile(directory)) {
-            return;
-        }
-
-        var alreadyOpen = directory.get("open") === true;
-
-        if ((alreadyOpen && open) || (!alreadyOpen && !open)) {
-            return;
-        }
-
-        treeData = treeData.updateIn(objectPath, function (directory) {
-            if (open) {
-                return directory.set("open", true);
-            }
-
-            return directory.delete("open");
-        });
-
-        if (open && (directory.get("children") === null || directory.get("notFullyLoaded"))) {
-            return {
-                needsLoading: true,
-                treeData: treeData
-            };
-        }
-        return {
-            needsLoading: false,
-            treeData: treeData
-        };
     }
 
     /**
@@ -548,13 +881,13 @@ define(function (require, exports, module) {
      * @param {boolean} open True to open the directory
      * @return {boolean} true if the directory contents need to be loaded.
      */
-    FileTreeViewModel.prototype.setDirectoryOpen = function (path, open) {
-        var result = _setDirectoryOpen(this._treeData, path, open);
+    public setDirectoryOpen(path, open) {
+        const result = _setDirectoryOpen(this._treeData, path, open);
         if (result && result.treeData) {
             this._commit(result.treeData);
         }
         return result ? result.needsLoading : false;
-    };
+    }
 
     /**
      * Returns the object at the given file path.
@@ -562,36 +895,12 @@ define(function (require, exports, module) {
      * @param {string} path Path to the object
      * @return {Immutable.Map=} directory or file object from the tree. Null if it's not found.
      */
-    FileTreeViewModel.prototype._getObject = function (path) {
-        var objectPath = _filePathToObjectPath(this._treeData, path);
+    public _getObject(path) {
+        const objectPath = _filePathToObjectPath(this._treeData, path);
         if (!objectPath) {
             return null;
         }
         return this._treeData.getIn(objectPath);
-    };
-
-    /**
-     * Closes a subtree path, given by an object path.
-     *
-     * @param {Immutable.Map} directory Current directory
-     * @return {Immutable.Map} new directory
-     */
-    function _closeSubtree(directory) {
-        directory = directory.delete("open");
-
-        var children = directory.get("children");
-        if (children) {
-            children.keySeq().forEach(function (name) {
-                var subdir = children.get(name);
-                if (!isFile(subdir)) {
-                    subdir = _closeSubtree(subdir);
-                    children = children.set(name, subdir);
-                }
-            });
-        }
-
-        directory = directory.set("children", children);
-        return directory;
     }
 
     /**
@@ -599,159 +908,19 @@ define(function (require, exports, module) {
      *
      * @param {string} path Path of subtree to close
      */
-    FileTreeViewModel.prototype.closeSubtree = function (path) {
-        var treeData = this._treeData,
-            subtreePath = _filePathToObjectPath(treeData, path);
+    public closeSubtree(path) {
+        let treeData = this._treeData;
+        const subtreePath = _filePathToObjectPath(treeData, path);
 
         if (!subtreePath) {
             return;
         }
 
-        var directory = treeData.getIn(subtreePath);
+        let directory = treeData.getIn(subtreePath);
 
         directory = _closeSubtree(directory);
         treeData = _setIn(treeData, subtreePath, directory);
         this._commit(treeData);
-    };
-
-    /**
-     * @private
-     *
-     * Takes an array of file system entries and merges them into the children map
-     * of a directory in the view model treeData.
-     *
-     * @param {Immutable.Map} children current children in the directory
-     * @param {Array.<FileSystemEntry>} contents FileSystemEntry objects currently in the directory
-     * @return {Immutable.Map} updated children
-     */
-    function _mergeContentsIntoChildren(children, contents) {
-
-        // We keep track of the names we've seen among the current directory entries to make
-        // it easy to spot the names that we *haven't* seen (in other words, files that have
-        // been deleted).
-        var keysSeen = [];
-
-        children = children.withMutations(function (children) {
-
-            // Loop through the directory entries
-            contents.forEach(function (entry) {
-                keysSeen.push(entry.name);
-
-                var match = children.get(entry.name);
-                if (match) {
-                    // Confirm that a name that used to represent a file and now represents a
-                    // directory (or vice versa) isn't what we've encountered here. If we have
-                    // hit this situation, pretend the current child of treeData doesn't exist
-                    // so we can replace it.
-                    var matchIsFile = isFile(match);
-                    if (matchIsFile !== entry.isFile) {
-                        match = undefined;
-                    }
-                }
-
-                // We've got a new entry that we need to add.
-                if (!match) {
-                    if (entry.isFile) {
-                        children.set(entry.name, Immutable.Map());
-                    } else {
-                        children.set(entry.name, Immutable.Map({
-                            children: null
-                        }));
-                    }
-                }
-            });
-
-            // Look at the list of names that we currently have in the treeData that no longer
-            // appear in the directory and delete those.
-            var currentEntries = children.keySeq().toJS(),
-                deletedEntries = _.difference(currentEntries, keysSeen);
-
-            deletedEntries.forEach(function (name) {
-                children.delete(name);
-            });
-        });
-        return children;
-    }
-
-    /**
-     * @private
-     *
-     * Creates a directory object (or updates an existing directory object) to look like one
-     * that has not yet been loaded, but in which we want to start displaying entries.
-     * @param {Immutable.Map=} directory Directory entry to update
-     * @return {Immutable.Map} New or updated directory object
-     */
-    function _createNotFullyLoadedDirectory(directory) {
-        if (!directory) {
-            return Immutable.Map({
-                notFullyLoaded: true,
-                children: Immutable.Map()
-            });
-        }
-        return directory.merge({
-            notFullyLoaded: true,
-            children: Immutable.Map()
-        });
-    }
-
-    /**
-     * @private
-     *
-     * Creates the directories necessary to display the given path, even if those directories
-     * do not yet exist in the tree and have not been loaded.
-     *
-     * @param {Immutable.Map} treeData
-     * @param {string} path Path to the final directory to be added in the tree
-     * @return {{treeData: Immutable.Map, objectPath: Array.<string>}} updated treeData and object path to the created object
-     */
-    function _createIntermediateDirectories(treeData, path) {
-        var objectPath = [],
-            result = {
-                objectPath: objectPath,
-                treeData: treeData
-            },
-            treePointer = treeData;
-
-        if (path === "") {
-            return result;
-        }
-
-        var parts = path.split("/"),
-            part = parts.shift(),
-            node;
-
-        while (part) {
-            if (treePointer === null) {
-                return null;
-            }
-            node = treePointer.get(part);
-            objectPath.push(part);
-
-            // This directory is missing, so create it.
-            if (node === undefined) {
-                treeData = treeData.updateIn(objectPath, _createNotFullyLoadedDirectory);
-                node = treeData.getIn(objectPath);
-            }
-
-            part = parts.shift();
-            if (part) {
-                treePointer = node.get("children");
-
-                if (treePointer) {
-                    objectPath.push("children");
-                } else {
-
-                    // The directory is there, but the directory hasn't been loaded.
-                    // Update the directory to be a `notFullyLoaded` directory.
-                    treeData = treeData.updateIn(objectPath, _createNotFullyLoadedDirectory);
-                    objectPath.push("children");
-                    treePointer = treeData.getIn(objectPath);
-                }
-            }
-        }
-
-        result.treeData = treeData;
-        return result;
     }
 
     /**
@@ -762,19 +931,19 @@ define(function (require, exports, module) {
      * @param {string} Project relative path to the directory that is being updated.
      * @param {Array.<FileSystemEntry>} Current contents of the directory
      */
-    FileTreeViewModel.prototype.setDirectoryContents = function (path, contents) {
+    public setDirectoryContents(path, contents) {
         path = FileUtils.stripTrailingSlash(path);
 
-        var intermediate = _createIntermediateDirectories(this._treeData, path),
-            objectPath = intermediate.objectPath,
-            treeData = intermediate.treeData;
+        const intermediate = _createIntermediateDirectories(this._treeData, path)!;
+        const objectPath = intermediate.objectPath;
+        let treeData = intermediate.treeData;
 
         if (objectPath === null) {
             return;
         }
 
-        var directory = treeData.getIn(objectPath),
-            children = directory;
+        let directory = treeData.getIn(objectPath);
+        let children = directory;
 
         // The root directory doesn't need this special handling.
         if (path !== "") {
@@ -804,39 +973,6 @@ define(function (require, exports, module) {
         children = _mergeContentsIntoChildren(children, contents);
         treeData = _setIn(treeData, objectPath, children);
         this._commit(treeData);
-    };
-
-    /**
-     * @private
-     *
-     * Opens the directories along the provided path.
-     *
-     * @param {Immutable.Map} treeData
-     * @param {string} path Path to open
-     */
-    function _openPath(treeData, path) {
-        var objectPath = _filePathToObjectPath(treeData, path);
-
-        function setOpen(node) {
-            return node.set("open", true);
-        }
-
-        while (objectPath && objectPath.length) {
-            var node = treeData.getIn(objectPath);
-            if (isFile(node)) {
-                objectPath.pop();
-            } else {
-                if (!node.get("open")) {
-                    treeData = treeData.updateIn(objectPath, setOpen);
-                }
-                objectPath.pop();
-                if (objectPath.length) {
-                    objectPath.pop();
-                }
-            }
-        }
-
-        return treeData;
     }
 
     /**
@@ -844,57 +980,8 @@ define(function (require, exports, module) {
      *
      * @param {string} path Project-relative path
      */
-    FileTreeViewModel.prototype.openPath = function (path) {
+    public openPath(path) {
         this._commit(_openPath(this._treeData, path));
-    };
-
-    /**
-     * @private
-     *
-     * See FileTreeViewModel.createPlaceholder
-     */
-    function _createPlaceholder(treeData, basedir, name, isFolder, options) {
-        options = options || {};
-        var parentPath = _filePathToObjectPath(treeData, basedir);
-
-        if (!parentPath) {
-            return;
-        }
-
-        var newObject = {
-        };
-
-        if (!options.notInCreateMode) {
-            newObject.creating = true;
-        }
-
-        if (isFolder) {
-            // If we're creating a folder, then we know it's empty.
-            // But if we're not in create mode, (we're adding a folder based on an
-            // FS event), we don't know anything about the new directory's children.
-            if (options.notInCreateMode) {
-                newObject.children = null;
-            } else {
-                newObject.children = Immutable.Map();
-            }
-        }
-
-        var newFile = Immutable.Map(newObject);
-
-        if (!options.doNotOpen) {
-            treeData = _openPath(treeData, basedir);
-        }
-        if (parentPath.length > 0) {
-            var childrenPath = _.clone(parentPath);
-            childrenPath.push("children");
-
-            treeData = treeData.updateIn(childrenPath, function (children) {
-                return children.set(name, newFile);
-            });
-        } else {
-            treeData = treeData.set(name, newFile);
-        }
-        return treeData;
     }
 
     /**
@@ -905,34 +992,9 @@ define(function (require, exports, module) {
      * @param {string} name Initial name to give the new entry
      * @param {boolean} isFolder true if the entry being created is a folder
      */
-    FileTreeViewModel.prototype.createPlaceholder = function (basedir, name, isFolder) {
-        var treeData = _createPlaceholder(this._treeData, basedir, name, isFolder);
+    public createPlaceholder(basedir, name, isFolder) {
+        const treeData = _createPlaceholder(this._treeData, basedir, name, isFolder);
         this._commit(treeData);
-    };
-
-    /**
-     * @private
-     *
-     * See FileTreeViewModel.deleteAtPath
-     */
-    function _deleteAtPath(treeData, path) {
-        var objectPath = _filePathToObjectPath(treeData, path);
-
-        if (!objectPath) {
-            return;
-        }
-
-        var originalName = _.last(objectPath);
-
-        // Back up to the parent directory
-        objectPath.pop();
-
-        treeData = treeData.updateIn(objectPath, function (directory) {
-            directory = directory.delete(originalName);
-            return directory;
-        });
-
-        return treeData;
     }
 
     /**
@@ -940,77 +1002,11 @@ define(function (require, exports, module) {
      *
      * @param {string} path Project-relative path to delete
      */
-    FileTreeViewModel.prototype.deleteAtPath = function (path) {
-        var treeData = _deleteAtPath(this._treeData, path);
+    public deleteAtPath(path) {
+        const treeData = _deleteAtPath(this._treeData, path);
         if (treeData) {
             this._commit(treeData);
         }
-    };
-
-    /**
-     * @private
-     *
-     * Adds a timestamp to an entry (much like the "touch" command) to force a given entry
-     * to rerender.
-     */
-    function _addTimestamp(item) {
-        return item.set("_timestamp", new Date().getTime());
-    }
-
-    /**
-     * @private
-     *
-     * Sets/updates the timestamp on the file paths listed in the `changed` array.
-     *
-     * @param {Immutable.Map} treeData
-     * @param {Array.<string>} changed list of changed project-relative file paths
-     * @return {Immutable.Map} revised treeData
-     */
-    function _markAsChanged(treeData, changed) {
-        changed.forEach(function (filePath) {
-            var objectPath = _filePathToObjectPath(treeData, filePath);
-            if (objectPath) {
-                treeData = treeData.updateIn(objectPath, _addTimestamp);
-            }
-        });
-        return treeData;
-    }
-
-    /**
-     * @private
-     *
-     * Adds entries at the paths listed in the `added` array. Directories should have a trailing slash.
-     *
-     * @param {Immutable.Map} treeData
-     * @param {Array.<string>} added list of new project-relative file paths
-     * @return {Immutable.Map} revised treeData
-     */
-    function _addNewEntries(treeData, added) {
-        added.forEach(function (filePath) {
-            var isFolder = _.last(filePath) === "/";
-
-            filePath = isFolder ? filePath.substr(0, filePath.length - 1) : filePath;
-
-            var parentPath = FileUtils.getDirectoryPath(filePath),
-                parentObjectPath = _filePathToObjectPath(treeData, parentPath),
-                basename = FileUtils.getBaseName(filePath);
-
-            if (parentObjectPath) {
-                // Verify that the children are loaded
-                var childrenPath = _.clone(parentObjectPath);
-                childrenPath.push("children");
-                if (treeData.getIn(childrenPath) === null) {
-                    return;
-                }
-
-                treeData = _createPlaceholder(treeData, parentPath, basename, isFolder, {
-                    notInCreateMode: true,
-                    doNotOpen: true
-                });
-            }
-        });
-
-        return treeData;
     }
 
     /**
@@ -1023,8 +1019,8 @@ define(function (require, exports, module) {
      *
      * @param {{changed: Array.<string>=, added: Array.<string>=, removed: Array.<string>=}}
      */
-    FileTreeViewModel.prototype.processChanges = function (changes) {
-        var treeData = this._treeData;
+    public processChanges(changes) {
+        let treeData = this._treeData;
 
         if (changes.changed) {
             treeData = _markAsChanged(treeData, changes.changed);
@@ -1041,7 +1037,7 @@ define(function (require, exports, module) {
         }
 
         this._commit(treeData);
-    };
+    }
 
     /**
      * Makes sure that the directory exists. This will create a directory object (unloaded)
@@ -1052,12 +1048,12 @@ define(function (require, exports, module) {
      *
      * @param {string} path Project-relative path to the directory
      */
-    FileTreeViewModel.prototype.ensureDirectoryExists = function (path) {
-        var treeData          = this._treeData,
-            pathWithoutSlash  = FileUtils.stripTrailingSlash(path),
-            parentPath        = FileUtils.getDirectoryPath(pathWithoutSlash),
-            name              = pathWithoutSlash.substr(parentPath.length),
-            targetPath        = [];
+    public ensureDirectoryExists(path) {
+        let treeData          = this._treeData;
+        const pathWithoutSlash  = FileUtils.stripTrailingSlash(path);
+        const parentPath        = FileUtils.getDirectoryPath(pathWithoutSlash);
+        const name              = pathWithoutSlash.substr(parentPath.length);
+        let targetPath: Array<string> | null = [];
 
         if (parentPath) {
             targetPath = _filePathToObjectPath(treeData, parentPath);
@@ -1081,7 +1077,7 @@ define(function (require, exports, module) {
         }));
 
         this._commit(treeData);
-    };
+    }
 
     /**
      * Sets the value of the `sortDirectoriesFirst` flag which tells to view that directories
@@ -1089,23 +1085,23 @@ define(function (require, exports, module) {
      *
      * @param {boolean} sortDirectoriesFirst True if directories should be displayed first
      */
-    FileTreeViewModel.prototype.setSortDirectoriesFirst = function (sortDirectoriesFirst) {
+    public setSortDirectoriesFirst(sortDirectoriesFirst) {
         if (sortDirectoriesFirst !== this.sortDirectoriesFirst) {
             this.sortDirectoriesFirst = sortDirectoriesFirst;
-            this.trigger(EVENT_CHANGE);
+            (this as unknown as EventDispatcher.DispatcherEvents).trigger(EVENT_CHANGE);
         }
-    };
+    }
 
     /**
      * Sets the width of the selection bar.
      *
      * @param {int} width New width
      */
-    FileTreeViewModel.prototype.setSelectionWidth = function (width) {
-        var selectionViewInfo = this._selectionViewInfo;
+    public setSelectionWidth(width) {
+        let selectionViewInfo = this._selectionViewInfo;
         selectionViewInfo = selectionViewInfo.set("width", width);
         this._commit(null, selectionViewInfo);
-    };
+    }
 
     /**
      * Sets the scroll position of the file tree to help position the selection bar.
@@ -1117,7 +1113,7 @@ define(function (require, exports, module) {
      * @param {int=} scrollLeft Horizontal scroll position
      * @param {int=} offsetTop top of the scroller
      */
-    FileTreeViewModel.prototype.setSelectionScrollerInfo = function (scrollWidth, scrollTop, scrollLeft, offsetTop) {
+    public setSelectionScrollerInfo(scrollWidth, scrollTop, scrollLeft, offsetTop) {
         this._selectionViewInfo = this._selectionViewInfo.set("scrollWidth", scrollWidth);
         this._selectionViewInfo = this._selectionViewInfo.set("scrollTop", scrollTop);
 
@@ -1129,15 +1125,6 @@ define(function (require, exports, module) {
             this._selectionViewInfo = this._selectionViewInfo.set("offsetTop", offsetTop);
         }
         // Does not emit change event. See SPECIAL CASE NOTE in docstring above.
-    };
-
-    // Private API
-    exports.EVENT_CHANGE          = EVENT_CHANGE;
-    exports._filePathToObjectPath = _filePathToObjectPath;
-    exports._isFilePathVisible    = _isFilePathVisible;
-    exports._createPlaceholder    = _createPlaceholder;
-
-    // Public API
-    exports.isFile            = isFile;
-    exports.FileTreeViewModel = FileTreeViewModel;
-});
+    }
+}
+EventDispatcher.makeEventDispatcher(FileTreeViewModel.prototype);

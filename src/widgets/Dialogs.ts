@@ -256,7 +256,6 @@ class Dialog {
     }
 }
 
-
 /**
  * Don't allow dialog to exceed viewport size
  */
@@ -286,7 +285,7 @@ function setDialogMaxSize() {
  *      key, and dismiss the dialog yourself when ready by calling `close()` on the returned dialog.
  * @return {Dialog}
  */
-export function showModalDialogUsingTemplate(template, autoDismiss?) {
+export function showModalDialogUsingTemplate(template, autoDismiss?): Dialog {
     if (autoDismiss === undefined) {
         autoDismiss = true;
     }
@@ -377,7 +376,7 @@ export function showModalDialogUsingTemplate(template, autoDismiss?) {
 
     zIndex += 2;
 
-    return (new Dialog($dlg, promise));
+    return new Dialog($dlg, promise);
 }
 
 
@@ -396,7 +395,7 @@ export function showModalDialogUsingTemplate(template, autoDismiss?) {
  *      key, and dismiss the dialog yourself when ready by calling `close()` on the returned dialog.
  * @return {Dialog}
  */
-export function showModalDialog(dlgClass, title, message, buttons?, autoDismiss?) {
+export function showModalDialog(dlgClass, title, message, buttons?, autoDismiss?): Dialog {
     const templateVars = {
         dlgClass: dlgClass,
         title:    title   || "",
@@ -414,7 +413,7 @@ export function showModalDialog(dlgClass, title, message, buttons?, autoDismiss?
  * @param {string} dlgClass The class name identifier for the dialog.
  * @param {string=} buttonId The button id to use when closing the dialog. Defaults to DIALOG_CANCELED
  */
-export function cancelModalDialogIfOpen(dlgClass, buttonId) {
+export function cancelModalDialogIfOpen(dlgClass, buttonId?) {
     $("." + dlgClass + ".instance").each(function (this: any) {
         if ($(this).is(":visible")) {   // Bootstrap breaks if try to hide dialog that's already hidden
             _dismissDialog($(this), buttonId || DIALOG_CANCELED);

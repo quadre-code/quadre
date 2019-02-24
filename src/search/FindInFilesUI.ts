@@ -478,7 +478,7 @@ AppInit.htmlReady(function () {
 });
 
 // Initialize: register listeners
-ProjectManager.on("beforeProjectClose", function () { _resultsView.close(); });
+(ProjectManager as unknown as DispatcherEvents).on("beforeProjectClose", function () { _resultsView.close(); });
 
 // Initialize: command handlers
 CommandManager.register(Strings.CMD_FIND_IN_FILES,       Commands.CMD_FIND_IN_FILES,       _showFindBar);

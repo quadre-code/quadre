@@ -98,7 +98,7 @@ export function readAsText(file): JQueryPromise<string> {
  * @return {$.Promise} a jQuery promise that will be resolved when
  * file writing completes, or rejected with a FileSystemError string constant.
  */
-export function writeText(file, text, allowBlindWrite) {
+export function writeText(file, text, allowBlindWrite?) {
     const result = $.Deferred();
     const options: any = {};
 

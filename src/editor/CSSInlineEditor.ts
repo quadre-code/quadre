@@ -47,7 +47,7 @@ interface RuleHandler {
 
 const _newRuleHandlers: Array<RuleHandler> = [];
 
-function _getCSSFilesInProject() {
+function _getCSSFilesInProject(): JQueryPromise<Array<File>> {
     return ProjectManager.getAllFiles(ProjectManager.getLanguageFilter(["css", "less", "scss"]));
 }
 
@@ -208,7 +208,7 @@ function htmlToCSSProvider(hostEditor, pos) {
      */
     function _getNoRulesMsg() {
         const result = $.Deferred();
-        _getCSSFilesInProject().done(function (fileInfos) {
+        _getCSSFilesInProject().done(function (fileInfos: Array<File>) {
             result.resolve(fileInfos.length ? Strings.CSS_QUICK_EDIT_NO_MATCHES : Strings.CSS_QUICK_EDIT_NO_STYLESHEETS);
         });
         return result;

@@ -158,7 +158,7 @@ export function doInParallel(items, beginProcessItem, failFast?) {
  * @param {!boolean} failAndStopFast
  * @return {$.Promise}
  */
-export function doSequentially(items, beginProcessItem, failAndStopFast) {
+export function doSequentially(items, beginProcessItem, failAndStopFast?) {
 
     const masterDeferred = $.Deferred();
     let hasFailed = false;

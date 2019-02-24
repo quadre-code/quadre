@@ -427,7 +427,7 @@ function _inSearchScope(file) {
     } else {
         // Still need to make sure it's within project or working set
         // In getCandidateFiles(), this is covered by the baseline getAllFiles() itself
-        if (file.fullPath.indexOf(ProjectManager.getProjectRoot().fullPath) !== 0) {
+        if (file.fullPath.indexOf(ProjectManager.getProjectRoot()!.fullPath) !== 0) {
             if (MainViewManager.findInWorkingSet(MainViewManager.ALL_PANES, file.fullPath) === -1) {
                 return false;
             }
@@ -539,7 +539,7 @@ function _doSearch(queryInfo, candidateFilesPromise, filter) {
         return null;
     }
 
-    const scopeName = searchModel.scope ? searchModel.scope!.fullPath : ProjectManager.getProjectRoot().fullPath;
+    const scopeName = searchModel.scope ? searchModel.scope!.fullPath : ProjectManager.getProjectRoot()!.fullPath;
     const perfTimer = PerfUtils.markStart("FindIn: " + scopeName + " - " + queryInfo.query);
 
     findOrReplaceInProgress = true;
@@ -975,18 +975,18 @@ const _initCache = function () {
     }
     ProjectManager.getAllFiles(filter, true, true)
         .done(function (fileListResult) {
-            let files = fileListResult;
+            let files = fileListResult!;
             const filter = FileFilters.getActiveFilter();
             if (filter && filter.patterns.length > 0) {
                 files = FileFilters.filterFileList(FileFilters.compile(filter.patterns), files);
             }
-            files = files.filter(function (entry) {
+            const filesPath = files.filter(function (entry) {
                 return entry.isFile && _isReadableText(entry.fullPath);
             }).map(function (entry) {
                 return entry.fullPath;
             });
             FindUtils.notifyIndexingStarted();
-            searchDomain.exec("initCache", files);
+            searchDomain.exec("initCache", filesPath);
         });
     _searchScopeChanged();
 };
@@ -1053,7 +1053,7 @@ export function getAllSearchResults() {
     return searchDeferred.promise();
 }
 
-ProjectManager.on("projectOpen", _initCache);
+(ProjectManager as unknown as DispatcherEvents).on("projectOpen", _initCache);
 (FindUtils as unknown as DispatcherEvents).on(FindUtils.SEARCH_FILE_FILTERS_CHANGED, _searchScopeChanged);
 (FindUtils as unknown as DispatcherEvents).on(FindUtils.SEARCH_SCOPE_CHANGED, _searchScopeChanged);
 (FindUtils as unknown as DispatcherEvents).on(FindUtils.SEARCH_COLLAPSE_RESULTS, _searchcollapseResults);

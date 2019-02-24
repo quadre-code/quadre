@@ -73,7 +73,7 @@ export function _validateBaseUrl(url) {
  * @return {Dialog} A Dialog object with an internal promise that will be resolved with the ID
  *      of the clicked button when the dialog is dismissed. Never rejected.
  */
-export function showProjectPreferencesDialog(baseUrl, errorMessage) {
+export function showProjectPreferencesDialog(baseUrl, errorMessage?) {
     // Title
     let projectName = "";
     const projectRoot = ProjectManager.getProjectRoot();

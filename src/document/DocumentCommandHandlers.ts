@@ -358,7 +358,7 @@ function _doOpen(fullPath, silent, paneId, options) {
  * @private
  * Used to track the default directory for the file open dialog
  */
-let _defaultOpenDialogFullPath = null;
+let _defaultOpenDialogFullPath: string | null = null;
 
 /**
  * @private
@@ -380,7 +380,7 @@ function _doOpenWithOptionalPath(fullPath, silent, paneId, options) {
 
         // first time through, default to the current project path
         if (!_defaultOpenDialogFullPath) {
-            _defaultOpenDialogFullPath = ProjectManager.getProjectRoot().fullPath;
+            _defaultOpenDialogFullPath = ProjectManager.getProjectRoot()!.fullPath;
         }
         // Prompt the user with a dialog
         FileSystem.showOpenDialog(true, false, Strings.OPEN_FILE, _defaultOpenDialogFullPath, null, function (err, paths) {
@@ -976,7 +976,7 @@ function _doSaveAs(doc, settings): JQueryPromise<File> {
             }
 
             // If the document is untitled, default to project root.
-            saveAsDefaultPath = ProjectManager.getProjectRoot().fullPath;
+            saveAsDefaultPath = ProjectManager.getProjectRoot()!.fullPath;
         } else {
             saveAsDefaultPath = FileUtils.getDirectoryPath(origPath);
         }
@@ -1410,7 +1410,7 @@ function _handleWindowGoingAway(commandData, postCloseHandler, failHandler?) {
 
             // give everyone a chance to save their state - but don't let any problems block us from quitting
             try {
-                ProjectManager.trigger("beforeAppClose");
+                (ProjectManager as unknown as DispatcherEvents).trigger("beforeAppClose");
             } catch (ex) {
                 console.error(ex);
             }
@@ -1685,7 +1685,7 @@ function browserReload(href) {
 
         // Give everyone a chance to save their state - but don't let any problems block us from quitting
         try {
-            ProjectManager.trigger("beforeAppClose");
+            (ProjectManager as unknown as DispatcherEvents).trigger("beforeAppClose");
         } catch (ex) {
             console.error(ex);
         }
@@ -1830,10 +1830,10 @@ CommandManager.registerInternal(Commands.APP_RELOAD,                handleReload
 CommandManager.registerInternal(Commands.APP_RELOAD_WITHOUT_EXTS,   handleReloadWithoutExts);
 
 // Listen for changes that require updating the editor titlebar
-ProjectManager.on("projectOpen", _updateTitle);
+(ProjectManager as unknown as DispatcherEvents).on("projectOpen", _updateTitle);
 (DocumentManager as unknown as DispatcherEvents).on("dirtyFlagChange", handleDirtyChange);
 (DocumentManager as unknown as DispatcherEvents).on("fileNameChange", handleCurrentFileChange);
 (MainViewManager as unknown as DispatcherEvents).on("currentFileChange", handleCurrentFileChange);
 
 // Reset the untitled document counter before changing projects
-ProjectManager.on("beforeProjectClose", function () { _nextUntitledIndexToUse = 1; });
+(ProjectManager as unknown as DispatcherEvents).on("beforeProjectClose", function () { _nextUntitledIndexToUse = 1; });

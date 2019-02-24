@@ -752,7 +752,7 @@ function doDefinitionSearch() {
 }
 
 // Listen for a change of project to invalidate our file list
-ProjectManager.on("projectOpen", function () {
+(ProjectManager as unknown as DispatcherEvents).on("projectOpen", function () {
     fileList = null;
 });
 

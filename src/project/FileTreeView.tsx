@@ -1240,7 +1240,7 @@ class FileTreeView extends React.Component<IFileTreeViewProps, {}> {
  *   (useful if an extension has new data that it needs rendered)
  * @param {string} platform mac, win, linux
  */
-function render(element, viewModel, projectRoot, actions, forceRender, platform) {
+export function render(element, viewModel, projectRoot, actions, forceRender, platform) {
     if (!projectRoot) {
         return;
     }
@@ -1284,32 +1284,27 @@ function _addExtension(category, callback) {
 /**
  * @see {@link ProjectManager::#addIconProvider}
  */
-function addIconProvider(callback) {
+export function addIconProvider(callback) {
     _addExtension("icons", callback);
 }
 
 /**
  * @see {@link ProjectManager::#addClassesProvider}
  */
-function addClassesProvider(callback) {
+export function addClassesProvider(callback) {
     _addExtension("addClass", callback);
 }
 
 // Private API for testing
-exports._fullPath = fullPath;
-exports._sortFormattedDirectory = _sortDirectoryContents;
-exports._fileNode = function (props) {
+export const _fullPath = fullPath;
+export const _sortFormattedDirectory = _sortDirectoryContents;
+export const _fileNode = function (props) {
     const WithContextSettable = withContextSettable(FileNode);
     return <WithContextSettable {...props}></WithContextSettable>;
 };
-exports._directoryNode = function (props) {
+export const _directoryNode = function (props) {
     const WithContextSettable = withContextSettable(DirectoryNode);
     return <WithContextSettable {...props}></WithContextSettable>;
 };
-exports._directoryContents = React.createFactory(DirectoryContents);
-exports._fileTreeView = React.createFactory(FileTreeView);
-
-// Public API
-exports.addIconProvider = addIconProvider;
-exports.addClassesProvider = addClassesProvider;
-exports.render = render;
+export const _directoryContents = React.createFactory(DirectoryContents);
+export const _fileTreeView = React.createFactory(FileTreeView);

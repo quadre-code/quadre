@@ -106,7 +106,7 @@ function _toggleProjectScope() {
  *
  * @param {string} settingsFile Full path to the project's settings file
  */
-export function _setProjectSettingsFile(settingsFile) {
+export function _setProjectSettingsFile(settingsFile?) {
     projectDirectory = FileUtils.getDirectoryPath(settingsFile);
     _toggleProjectScope();
     PreferencesImpl.projectPathLayer.setPrefFilePath(settingsFile);
@@ -299,7 +299,7 @@ CommandManager.register(Strings.CMD_OPEN_PREFERENCES, Commands.FILE_OPEN_PREFERE
  * @param {string} id preference to get
  * @param {?Object} context Optional additional information about the request
  */
-export function getViewState(id, context?) {
+export function getViewState(id: string, context?) {
     return PreferencesImpl.stateManager.get(id, context);
 }
 

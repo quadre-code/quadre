@@ -101,7 +101,7 @@ function getOrCreateShadow($displayElement, position, isPositionFixed) {
  *  when the element is scrolled. If null, the displayElement is used.
  * @param {?boolean} showBottom optionally show the bottom shadow
  */
-export function addScrollerShadow(displayElement, scrollElement, showBottom) {
+export function addScrollerShadow(displayElement, scrollElement?, showBottom?) {
     // use fixed positioning when the display and scroll elements are the same
     let isPositionFixed = false;
 
@@ -181,7 +181,7 @@ export function toggleClass($domElement, className, addClass) {
  * @param {!DOMElement} scrollElement A DOMElement containing a ul list element
  * @param {!string} selectedClassName A CSS class name on at most one list item in the contained list
  */
-export function sidebarList($scrollerElement, selectedClassName, leafClassName) {
+export function sidebarList($scrollerElement, selectedClassName?, leafClassName?) {
     const $listElement = $scrollerElement.find("ul");
     const $sidebar = $("#sidebar");
     let showExtension = true;
