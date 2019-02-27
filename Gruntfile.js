@@ -308,7 +308,7 @@ module.exports = function (grunt) {
 
     // task: install
     grunt.registerTask("install", [
-        "write-config:dist",
+        //"write-config:dist",
         "less",
         "npm-download-default-extensions"
         // "npm-install-source",
@@ -322,25 +322,4 @@ module.exports = function (grunt) {
         "copy:thirdparty",
         "webpack-browser-dependencies"
     ]);
-
-    // task: optimize - optimize contents of dist folder
-    grunt.registerTask("optimize", [
-        // "eslint:src",
-        // "clean",
-        // "less",
-        // "targethtml",
-        // "useminPrepare",
-        // "htmlmin",
-        // "requirejs",
-        // "concat",
-        // "cssmin",
-        // "uglify",
-        // "copy:dist",
-        // "cleanempty",
-        // "usemin",
-        "build-config"
-    ]);
-
-    // Default task.
-    grunt.registerTask("default", ["test"]);
 };

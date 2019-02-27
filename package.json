@@ -49,10 +49,10 @@
     }
   },
   "scripts": {
-    "postinstall": "grunt install && npm run build",
+    "postinstall": "gulp write-config:dist && grunt install && npm run build",
     "tsc": "tsc --project app && tsc --project src",
     "build": "rimraf ./dist && gulp copy-src-dist && grunt build && npm run tsc",
-    "build-optimized": "npm run build && grunt optimize",
+    "build-optimized": "npm run build && gulp optimize",
     "test": "npm run tslint",
     "tslint:app": "tslint -c tslint.json --project app/tsconfig.json -t stylish",
     "tslint:src": "tslint -c src/tslint.json --project src/tsconfig.json -t stylish",

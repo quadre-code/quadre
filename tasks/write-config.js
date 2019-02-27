@@ -24,50 +24,65 @@
 
 "use strict";
 
+const gulp = require("gulp");
+const log = require("fancy-log");
+const PluginError = require("plugin-error");
 const common = require("./lib/common");
 const file = require("./lib/file");
 const gitInfo = require("./lib/git-info");
 
-module.exports = function (grunt) {
-
-    // task: write-config
-    grunt.registerTask("write-config", "Merge package.json and src/brackets.config.json into src/config.json", function () {
-        let name = "dev";
-        if (this.flags.dist === true) {
-            name = "dist";
+function doWriteConfig(name, cb) {
+    const appConfigJSON = file.readJSON("src/brackets.config.json");
+    const appConfigEnvJSON = file.readJSON("src/brackets.config." + name + ".json");
+    for (const key in appConfigEnvJSON) {
+        if (appConfigEnvJSON.hasOwnProperty(key)) {
+            appConfigJSON.config[key] = appConfigEnvJSON[key];
         }
+    }
 
-        const appConfigJSON = file.readJSON("src/brackets.config.json");
-        const appConfigEnvJSON = file.readJSON("src/brackets.config." + name + ".json");
-        for (const key in appConfigEnvJSON) {
-            if (appConfigEnvJSON.hasOwnProperty(key)) {
-                appConfigJSON.config[key] = appConfigEnvJSON[key];
-            }
+    const packageJSON = file.readJSON("package.json");
+    Object.keys(packageJSON).forEach(function (key) {
+        if (appConfigJSON[key] === undefined) {
+            appConfigJSON[key] = packageJSON[key];
         }
-
-        const packageJSON = file.readJSON("package.json");
-        Object.keys(packageJSON).forEach(function (key) {
-            if (appConfigJSON[key] === undefined) {
-                appConfigJSON[key] = packageJSON[key];
-            }
-        });
-        common.writeJSON("src/config.json", appConfigJSON);
     });
+    common.writeJSON("src/config.json", appConfigJSON);
+    cb();
+}
 
-    // task: build-config
-    grunt.registerTask("build-config", "Update config.json with the build timestamp, branch and SHA being built", function () {
-        const done = this.async();
-        const distConfig = file.readJSON("src/config.json");
+function writeConfig(cb) {
+    doWriteConfig("dev", cb);
+}
+writeConfig.description = "Merge package.json and src/brackets.config.json into src/config.json";
+writeConfig.displayName = "write-config";
 
-        gitInfo.getGitInfo(process.cwd()).then(function (info) {
-            distConfig.repository.SHA = info.sha;
-            distConfig.repository.branch = info.branch;
-            distConfig.config.build_timestamp = new Date().toString().split("(")[0].trim();
-            common.writeJSON("dist/www/config.json", distConfig);
-            done();
-        }, function (err) {
-            grunt.log.writeln(err);
-            done(false);
-        });
+gulp.task(writeConfig);
+
+
+function writeConfigDist(cb) {
+    doWriteConfig("dist", cb);
+}
+writeConfigDist.description = "Merge package.json and src/brackets.config.json into src/config.json";
+writeConfigDist.displayName = "write-config:dist";
+
+gulp.task(writeConfigDist);
+
+
+function buildConfig(cb) {
+    const distConfig = file.readJSON("src/config.json");
+
+    gitInfo.getGitInfo(process.cwd()).then(function (info) {
+        distConfig.repository.SHA = info.sha;
+        distConfig.repository.branch = info.branch;
+        distConfig.config.build_timestamp = new Date().toString().split("(")[0].trim();
+        common.writeJSON("dist/www/config.json", distConfig);
+        cb();
+    }, function (err) {
+        log.error(err);
+        const errPlugin = new PluginError("build-config", err, { showStack: true });
+        cb(errPlugin);
     });
-};
+}
+buildConfig.description = "Update config.json with the build timestamp, branch and SHA being built";
+
+gulp.task("build-config", buildConfig);
