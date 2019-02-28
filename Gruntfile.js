@@ -309,8 +309,8 @@ module.exports = function (grunt) {
     // task: install
     grunt.registerTask("install", [
         //"write-config:dist",
-        "less",
-        "npm-download-default-extensions"
+        "less"
+        //"npm-download-default-extensions"
         // "npm-install-source",
         // "pack-web-dependencies"
     ]);

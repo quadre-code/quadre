@@ -72,7 +72,7 @@
         }
     },
     "scripts": {
-        "postinstall": "gulp write-config:dist && grunt install && npm run build",
+        "postinstall": "gulp install && grunt install && npm run build",
         "tsc": "tsc --project app && tsc --project src",
         "build": "rimraf ./dist && gulp copy-src-dist && grunt build && npm run tsc",
         "build-optimized": "npm run build && gulp optimize",
