@@ -7,6 +7,7 @@ const gulp = require("gulp");
     "./tasks/nls-check",
     "./tasks/eslint",
     "./tasks/less",
+    "./tasks/npm-install",
     "./tasks/test",
     "./tasks/watch",
     "./tasks/write-config"
@@ -18,9 +19,16 @@ const gulp = require("gulp");
 gulp.task("install", gulp.series(
     "write-config:dist",
     "less",
-    "npm-download-default-extensions"
-    // "npm-install-source",
+    "npm-download-default-extensions",
+    "npm-install-source"
     // "pack-web-dependencies"
+));
+
+gulp.task("build", gulp.series(
+    "npm-install-dist",
+    "npm-install-extensions-dist"
+    // "copy:thirdparty",
+    // "webpack-browser-dependencies"
 ));
 
 // task: optimize - optimize contents of dist folder

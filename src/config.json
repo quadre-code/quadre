@@ -72,9 +72,9 @@
         }
     },
     "scripts": {
-        "postinstall": "gulp install && npm run build",
+        "postinstall": "gulp install",
         "tsc": "tsc --project app && tsc --project src",
-        "build": "rimraf ./dist && gulp copy-src-dist && grunt build && npm run tsc",
+        "build": "rimraf ./dist && gulp copy-src-dist && gulp build && grunt build && npm run tsc",
         "build-optimized": "npm run build && gulp optimize",
         "test": "npm run tslint",
         "tslint:app": "tslint -c tslint.json --project app/tsconfig.json -t stylish",
@@ -109,7 +109,7 @@
         "fs-extra": "^7.0.1",
         "isbinaryfile": "3.0.2",
         "lodash": "^4.17.11",
-        "npm": "3.10.9",
+        "npm": "^6.8.0",
         "opn": "4.0.2",
         "portscanner": "^2.2.0",
         "request": "^2.88.0",

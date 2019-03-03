@@ -293,8 +293,8 @@ module.exports = function (grunt) {
 
     // task: build - build stuff into dist folder
     grunt.registerTask("build", [
-        "npm-install-dist",
-        "npm-install-extensions-dist",
+        // "npm-install-dist",
+        // "npm-install-extensions-dist",
         "copy:thirdparty",
         "webpack-browser-dependencies"
     ]);

@@ -25,6 +25,7 @@ install:
   - node --version
   - npm --version
   - npm install
+  - npm run build
 
 build_script:
   - IF "%APPVEYOR_PULL_REQUEST_NUMBER%"=="" (
