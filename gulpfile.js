@@ -6,6 +6,7 @@ const gulp = require("gulp");
     "./tasks/download-default-extensions",
     "./tasks/nls-check",
     "./tasks/eslint",
+    "./tasks/less",
     "./tasks/test",
     "./tasks/watch",
     "./tasks/write-config"
@@ -16,7 +17,7 @@ const gulp = require("gulp");
 
 gulp.task("install", gulp.series(
     "write-config:dist",
-    //"less",
+    "less",
     "npm-download-default-extensions"
     // "npm-install-source",
     // "pack-web-dependencies"

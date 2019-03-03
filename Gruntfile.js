@@ -215,21 +215,6 @@ module.exports = function (grunt) {
             },
             src: ["dist/**/*"]
         },
-        less: {
-            dist: {
-                files: {
-                    "src/styles/brackets.min.css": "src/styles/brackets.less"
-                },
-                options: {
-                    compress: true,
-                    sourceMap: true,
-                    sourceMapFilename: "src/styles/brackets.min.css.map",
-                    outputSourceFiles: true,
-                    sourceMapRootpath: "",
-                    sourceMapBasepath: "src/styles"
-                }
-            }
-        },
         requirejs: {
             dist: {
                 // Options: https://github.com/jrburke/r.js/blob/master/build/example.build.js
@@ -305,15 +290,6 @@ module.exports = function (grunt) {
             linux: "<%= shell.repo %>/installer/linux/debian/package-root/opt/brackets/brackets"
         }
     });
-
-    // task: install
-    grunt.registerTask("install", [
-        //"write-config:dist",
-        "less"
-        //"npm-download-default-extensions"
-        // "npm-install-source",
-        // "pack-web-dependencies"
-    ]);
 
     // task: build - build stuff into dist folder
     grunt.registerTask("build", [
