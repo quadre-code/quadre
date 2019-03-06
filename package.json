@@ -101,12 +101,7 @@
   },
   "devDependencies": {
     "@types/fs-extra": "^5.0.5",
-    "@types/jquery": "2.0.41",
-    "@types/less": "0.0.34",
     "@types/lodash": "^4.14.121",
-    "@types/react": "16.0.38",
-    "@types/react-dom": "16.0.4",
-    "@types/requirejs": "^2.1.31",
     "@types/ws": "0.0.40",
     "@types/yargs": "^12.0.9",
     "concurrently": "^4.1.0",

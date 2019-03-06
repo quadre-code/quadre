@@ -175,7 +175,7 @@ gulp.task("npm-install-dist", npmInstallDist);
 
 
 function npmInstallSrc(cb) {
-    runNpmInstall("src", function (err) {
+    runNpmInstall("src", false, function (err) {
         if (err) {
             log.error(err);
             const errPlugin = new PluginError("npm-install-src", err, { showStack: true });
@@ -229,10 +229,10 @@ function npmInstallExtensions(globs, filterOutNodeModules = true, runProduction 
 
 function npmInstallExtensionsSrc(cb) {
     npmInstallExtensions([
-        "src/www/+(extensibility|extensions|LiveDevelopment)/**/package.json"
+        "src/+(extensibility|extensions|LiveDevelopment)/**/package.json"
     ]).then(function (err) {
         if (err) {
-            const errPlugin = new PluginError("npm-install-src", err, { showStack: true });
+            const errPlugin = new PluginError("npm-install-extensions-src", err, { showStack: true });
             return cb(errPlugin);
         }
 

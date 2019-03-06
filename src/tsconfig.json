@@ -8,8 +8,7 @@
         "baseUrl": ".",
         "paths": {
             "fileSystemImpl": [
-                "filesystem/impls/appshell/AppshellFileSystem",
-                "../dist/www/filesystem/impls/appshell/AppshellFileSystem"
+                "filesystem/impls/appshell/AppshellFileSystem"
             ],
             "thirdparty/*": [
                 "*",
@@ -31,7 +30,7 @@
     },
     "include": [
         "./**/*",
-        "../node_modules/@types/**/*",
+        "./node_modules/@types/**/*",
         "../node_modules/electron/electron.d.ts"
     ],
     "exclude": [
