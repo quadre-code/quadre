@@ -26,7 +26,6 @@
 /*jslint node: true */
 "use strict";
 
-const pathLib = require("path");
 const file    = require("./tasks/lib/file");
 
 module.exports = function (grunt) {
@@ -118,94 +117,6 @@ module.exports = function (grunt) {
                         src: ["jsTreeTheme.css", "fonts/{,*/}*.*", "images/*", "brackets.min.css*"]
                     }
                 ]
-            },
-            thirdparty: {
-                files: [
-                    {
-                        expand: true,
-                        dest: "dist/www/thirdparty/CodeMirror",
-                        cwd: "dist/www/node_modules/codemirror",
-                        src: [
-                            "addon/{,*/}*",
-                            "keymap/{,*/}*",
-                            "lib/{,*/}*",
-                            "mode/{,*/}*",
-                            "theme/{,*/}*"
-                        ]
-                    },
-                    {
-                        expand: true,
-                        flatten: true,
-                        dest: "dist/www/thirdparty",
-                        cwd: "dist/www/node_modules",
-                        src: [
-                            "less/dist/less.min.js"
-                        ]
-                    },
-                    {
-                        expand: true,
-                        dest: "dist/www/thirdparty/acorn",
-                        cwd: "dist/www/node_modules/acorn",
-                        src: [
-                            "dist/{,*/}*"
-                        ]
-                    },
-                    {
-                        expand: true,
-                        flatten: true,
-                        dest: "dist/www/thirdparty",
-                        cwd: "dist/www/node_modules",
-                        src: [
-                            "immutable/dist/immutable.js"
-                        ]
-                    },
-                    {
-                        expand: true,
-                        flatten: true,
-                        dest: "dist/www/thirdparty",
-                        cwd: "dist/www/node_modules",
-                        src: [
-                            "react/umd/react.development.js"
-                        ],
-                        rename: function (path, name) {
-                            name = name.replace(".development", "");
-                            return pathLib.join(path, name);
-                        }
-                    },
-                    {
-                        expand: true,
-                        flatten: true,
-                        dest: "dist/www/thirdparty",
-                        cwd: "dist/www/node_modules",
-                        src: [
-                            "react-dom/umd/react-dom.development.js",
-                            "react-dom/umd/react-dom-test-utils.development.js"
-                        ],
-                        rename: function (path, name) {
-                            name = name.replace(".development", "");
-                            return pathLib.join(path, name);
-                        }
-                    },
-                    {
-                        expand: true,
-                        flatten: true,
-                        dest: "dist/www/thirdparty",
-                        cwd: "dist/www/node_modules",
-                        src: [
-                            "create-react-class/create-react-class.js"
-                        ]
-                    },
-                    {
-                        expand: true,
-                        dest: "dist/www/thirdparty/codemirror-addon-toggle-comment",
-                        cwd: "dist/www/node_modules/codemirror-addon-toggle-comment/dist",
-                        src: [
-                            "toggle-comment-simple.js",
-                            "toggle-comment-simple.min.js",
-                            "toggle-comment-simple.js.map"
-                        ]
-                    }
-                ]
             }
         },
         cleanempty: {
@@ -295,7 +206,7 @@ module.exports = function (grunt) {
     grunt.registerTask("build", [
         // "npm-install-dist",
         // "npm-install-extensions-dist",
-        "copy:thirdparty",
+        // "copy:thirdparty",
         "webpack-browser-dependencies"
     ]);
 };

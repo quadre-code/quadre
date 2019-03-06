@@ -27,9 +27,9 @@
  */
 
 import * as _ from "thirdparty/lodash";
-import * as Acorn from "thirdparty/acorn/dist/acorn";
-import * as AcornLoose from "thirdparty/acorn/dist/acorn_loose";
-import * as ASTWalker from "thirdparty/acorn/dist/walk";
+import * as Acorn from "thirdparty/acorn/acorn";
+import * as AcornLoose from "thirdparty/acorn/acorn_loose";
+import * as ASTWalker from "thirdparty/acorn/walk";
 
 // Load brackets modules
 import * as CodeMirror from "thirdparty/CodeMirror/lib/codemirror";

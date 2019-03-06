@@ -3,6 +3,7 @@
 const gulp = require("gulp");
 
 [
+    "./tasks/copy",
     "./tasks/download-default-extensions",
     "./tasks/nls-check",
     "./tasks/eslint",

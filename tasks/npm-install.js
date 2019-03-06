@@ -268,7 +268,7 @@ gulp.task("npm-install-extensions-dist", npmInstallExtensionsDist);
 
 
 gulp.task("npm-install-source", gulp.series(
-    "npm-install-src"
-    //"copy:thirdparty"
+    "npm-install-src",
+    "copy-thirdparty"
     //"npm-install-extensions-src"
 ));

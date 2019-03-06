@@ -17,6 +17,12 @@ package-lock.json
 /src/thirdparty/CodeMirror
 /src/thirdparty/codemirror-addon-toggle-comment
 /src/thirdparty/less.min.js
+/src/thirdparty/acorn
+/src/thirdparty/create-react-class.js
+/src/thirdparty/immutable.js
+/src/thirdparty/react-dom-test-utils.js
+/src/thirdparty/react-dom.js
+/src/thirdparty/react.js
 
 # ignore compiled files
 /dist/
