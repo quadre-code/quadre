@@ -14,6 +14,7 @@ import * as Strings from "strings";
 import * as UpdateDialogTemplate from "text!htmlContent/update-dialog.html";
 import * as UpdateListTemplate from "text!htmlContent/update-list.html";
 import * as Mustache from "thirdparty/mustache/mustache";
+import { DispatcherEvents } from "utils/EventDispatcher";
 
 // make sure the global brackets variable is loaded
 import "utils/Global";
@@ -375,4 +376,4 @@ export function launchAutomaticUpdate() {
 }
 
 // Events listeners
-ExtensionManager.on("registryDownload", _onRegistryDownloaded);
+(ExtensionManager as unknown as DispatcherEvents).on("registryDownload", _onRegistryDownloaded);

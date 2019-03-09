@@ -24,36 +24,78 @@
 
 /*unittests: ExtensionManager*/
 
-define(function (require, exports, module) {
-    "use strict";
+import * as Strings from "strings";
+import * as EventDispatcher from "utils/EventDispatcher";
+import * as StringUtils from "utils/StringUtils";
+import * as ExtensionManager from "extensibility/ExtensionManager";
+import * as registryUtils from "extensibility/registry_utils";
+import * as InstallExtensionDialog from "extensibility/InstallExtensionDialog";
+import * as LocalizationUtils from "utils/LocalizationUtils";
+import * as LanguageManager from "language/LanguageManager";
+import * as Mustache from "thirdparty/mustache/mustache";
+import * as PathUtils from "thirdparty/path-utils/path-utils";
+import * as itemTemplate from "text!htmlContent/extension-manager-view-item.html";
+import * as PreferencesManager from "preferences/PreferencesManager";
+import { ExtensionManagerViewModel } from "extensibility/ExtensionManagerViewModel";
 
-    var Strings                   = require("strings"),
-        EventDispatcher           = require("utils/EventDispatcher"),
-        StringUtils               = require("utils/StringUtils"),
-        ExtensionManager          = require("extensibility/ExtensionManager"),
-        registryUtils             = require("extensibility/registry_utils"),
-        InstallExtensionDialog    = require("extensibility/InstallExtensionDialog"),
-        LocalizationUtils         = require("utils/LocalizationUtils"),
-        LanguageManager           = require("language/LanguageManager"),
-        Mustache                  = require("thirdparty/mustache/mustache"),
-        PathUtils                 = require("thirdparty/path-utils/path-utils"),
-        itemTemplate              = require("text!htmlContent/extension-manager-view-item.html"),
-        PreferencesManager        = require("preferences/PreferencesManager");
+interface ItemViewMap {
+    [extensionId: string]: JQuery;
+}
+
+/**
+ * Create a detached link element, so that we can use it later to extract url details like 'protocol'
+ */
+const _tmpLink = window.document.createElement("a");
+
+/**
+ * Creates a view enabling the user to install and manage extensions. Must be initialized
+ * with initialize(). When the view is closed, dispose() must be called.
+ * @constructor
+ */
+export class ExtensionManagerView {
+    /**
+     * @type {jQueryObject}
+     * The root of the view's DOM tree.
+     */
+    public $el: JQuery;
 
     /**
-     * Create a detached link element, so that we can use it later to extract url details like 'protocol'
+     * @type {Model}
+     * The view's model. Handles sorting and filtering of items in the view.
      */
-    var _tmpLink = window.document.createElement("a");
+    public model: ExtensionManagerViewModel;
 
     /**
-     * Creates a view enabling the user to install and manage extensions. Must be initialized
-     * with initialize(). When the view is closed, dispose() must be called.
-     * @constructor
+     * @type {jQueryObject}
+     * Element showing a message when there are no extensions.
      */
-    function ExtensionManagerView() {
+    private _$emptyMessage: JQuery;
+
+    /**
+     * @private
+     * @type {jQueryObject}
+     * The root of the table inside the view.
+     */
+    private _$table: JQuery;
+
+    /**
+     * @private
+     * @type {function} The compiled template we use for rendering items in the extension list.
+     */
+    private _itemTemplate;
+
+    /**
+     * @private
+     * @type {Object.<string, jQueryObject>}
+     * The individual views for each item, keyed by the extension ID.
+     */
+    private _itemViews: ItemViewMap;
+
+    private _$infoMessage: JQuery;
+
+    constructor() {
         // Do nothing.
     }
-    EventDispatcher.makeEventDispatcher(ExtensionManagerView.prototype);
 
     /**
      * Initializes the view to show a set of extensions.
@@ -61,9 +103,9 @@ define(function (require, exports, module) {
      * @return {$.Promise} a promise that's resolved once the view has been initialized. Never
      *     rejected.
      */
-    ExtensionManagerView.prototype.initialize = function (model) {
-        var self = this,
-            result = new $.Deferred();
+    public initialize(model: ExtensionManagerViewModel) {
+        const self = this;
+        const result = $.Deferred();
         this.model = model;
         this._itemTemplate = Mustache.compile(itemTemplate);
         this._itemViews = {};
@@ -83,45 +125,7 @@ define(function (require, exports, module) {
         });
 
         return result.promise();
-    };
-
-    /**
-     * @type {jQueryObject}
-     * The root of the view's DOM tree.
-     */
-    ExtensionManagerView.prototype.$el = null;
-
-    /**
-     * @type {Model}
-     * The view's model. Handles sorting and filtering of items in the view.
-     */
-    ExtensionManagerView.prototype.model = null;
-
-    /**
-     * @type {jQueryObject}
-     * Element showing a message when there are no extensions.
-     */
-    ExtensionManagerView.prototype._$emptyMessage = null;
-
-    /**
-     * @private
-     * @type {jQueryObject}
-     * The root of the table inside the view.
-     */
-    ExtensionManagerView.prototype._$table = null;
-
-    /**
-     * @private
-     * @type {function} The compiled template we use for rendering items in the extension list.
-     */
-    ExtensionManagerView.prototype._itemTemplate = null;
-
-    /**
-     * @private
-     * @type {Object.<string, jQueryObject>}
-     * The individual views for each item, keyed by the extension ID.
-     */
-    ExtensionManagerView.prototype._itemViews = null;
+    }
 
     /**
      * Toggles between truncated and full length extension descriptions
@@ -129,9 +133,10 @@ define(function (require, exports, module) {
      * @param {JQueryElement} $element The DOM element of the extension clicked
      * @param {boolean} showFull true if full length description should be shown, false for shortened version.
      */
-    ExtensionManagerView.prototype._toggleDescription = function (id, $element, showFull) {
-        var description, linkTitle,
-            info = this.model._getEntry(id);
+    private _toggleDescription(id, $element, showFull) {
+        let description;
+        let linkTitle;
+        const info = this.model._getEntry(id);
 
         // Toggle between appropriate descriptions and link title,
         // depending on if extension is installed or not
@@ -146,23 +151,23 @@ define(function (require, exports, module) {
         $element.data("toggle-desc", showFull ? "trunc-desc" : "expand-desc")
             .attr("title", linkTitle)
             .prev(".ext-full-description").text(description);
-    };
+    }
 
     /**
      * @private
      * Attaches our event handlers. We wait to do this until we've fully fetched the extension list.
      */
-    ExtensionManagerView.prototype._setupEventHandlers = function () {
-        var self = this;
+    private _setupEventHandlers() {
+        const self = this;
 
         // Listen for model data and filter changes.
-        this.model
+        (this.model as unknown as EventDispatcher.DispatcherEvents)
             .on("filter", function () {
                 self._render();
             })
             .on("change", function (e, id) {
-                var extensions = self.model.extensions,
-                    $oldItem = self._itemViews[id];
+                const extensions = self.model.extensions;
+                const $oldItem = self._itemViews[id];
                 self._updateMessage();
                 if (self.model.filterSet.indexOf(id) === -1) {
                     // This extension is not in the filter set. Remove it from the view if we
@@ -173,7 +178,7 @@ define(function (require, exports, module) {
                     }
                 } else {
                     // Render the item, replacing the old item if we had previously rendered it.
-                    var $newItem = self._renderItem(extensions[id], self.model._getEntry(id));
+                    const $newItem = self._renderItem(extensions[id], self.model._getEntry(id));
                     if ($oldItem) {
                         $oldItem.replaceWith($newItem);
                         self._itemViews[id] = $newItem;
@@ -183,8 +188,8 @@ define(function (require, exports, module) {
 
         // UI event handlers
         this.$el
-            .on("click", "a", function (e) {
-                var $target = $(e.target);
+            .on("click", "a", function (this: ExtensionManagerView, e) {
+                const $target = $(e.target);
                 if ($target.hasClass("undo-remove")) {
                     ExtensionManager.markForRemoval($target.attr("data-extension-id"), false);
                 } else if ($target.hasClass("remove")) {
@@ -214,7 +219,7 @@ define(function (require, exports, module) {
             .on("click", "button.enable", function (e) {
                 ExtensionManager.enable($(e.target).attr("data-extension-id"));
             });
-    };
+    }
 
     /**
      * @private
@@ -223,12 +228,12 @@ define(function (require, exports, module) {
      * @param {Object} info The extension's metadata.
      * @return {jQueryObject} The rendered node as a jQuery object.
      */
-    ExtensionManagerView.prototype._renderItem = function (entry, info) {
+    private _renderItem(entry, info) {
         // Create a Mustache context object containing the entry data and our helper functions.
 
         // Start with the basic info from the given entry, either the installation info or the
         // registry info depending on what we're listing.
-        var context = $.extend({}, info);
+        const context = $.extend({}, info);
 
         // Normally we would merge the strings into the context we're passing into the template,
         // but since we're instantiating the template for every item, it seems wrong to take the hit
@@ -243,12 +248,12 @@ define(function (require, exports, module) {
         context.hasVersionInfo = !!info.versions;
 
         if (entry.registryInfo) {
-            var latestVerCompatInfo = ExtensionManager.getCompatibilityInfo(entry.registryInfo, brackets.metadata.apiVersion);
+            const latestVerCompatInfo = ExtensionManager.getCompatibilityInfo(entry.registryInfo, brackets.metadata.apiVersion);
             context.isCompatible = latestVerCompatInfo.isCompatible;
             context.requiresNewer = latestVerCompatInfo.requiresNewer;
             context.isCompatibleLatest = latestVerCompatInfo.isLatestVersion;
             if (!context.isCompatibleLatest) {
-                var installWarningBase = context.requiresNewer ? Strings.EXTENSION_LATEST_INCOMPATIBLE_NEWER : Strings.EXTENSION_LATEST_INCOMPATIBLE_OLDER;
+                const installWarningBase = context.requiresNewer ? Strings.EXTENSION_LATEST_INCOMPATIBLE_NEWER : Strings.EXTENSION_LATEST_INCOMPATIBLE_OLDER;
                 context.installWarning = StringUtils.format(installWarningBase, entry.registryInfo.versions[entry.registryInfo.versions.length - 1].version, latestVerCompatInfo.compatibleVersion);
             }
             context.downloadCount = entry.registryInfo.totalDownloads;
@@ -259,8 +264,8 @@ define(function (require, exports, module) {
         }
 
         // Check if extension metadata contains localized content.
-        var lang            = brackets.getLocale(),
-            shortLang       = lang.split("-")[0];
+        const lang            = brackets.getLocale();
+        const shortLang       = lang.split("-")[0];
         if (info.metadata["package-i18n"]) {
             [shortLang, lang].forEach(function (locale) {
                 if (info.metadata["package-i18n"].hasOwnProperty(locale)) {
@@ -281,7 +286,7 @@ define(function (require, exports, module) {
         context.isMarkedForRemoval = ExtensionManager.isMarkedForRemoval(info.metadata.name);
         context.isMarkedForDisabling = ExtensionManager.isMarkedForDisabling(info.metadata.name);
         context.isMarkedForUpdate = ExtensionManager.isMarkedForUpdate(info.metadata.name);
-        var hasPendingAction = context.isMarkedForDisabling || context.isMarkedForRemoval || context.isMarkedForUpdate;
+        const hasPendingAction = context.isMarkedForDisabling || context.isMarkedForRemoval || context.isMarkedForUpdate;
 
         context.showInstallButton = (this.model.source === this.model.SOURCE_REGISTRY || this.model.source === this.model.SOURCE_THEMES) && !context.updateAvailable;
         context.showUpdateButton = context.updateAvailable && !context.isMarkedForUpdate && !context.isMarkedForRemoval;
@@ -299,8 +304,8 @@ define(function (require, exports, module) {
                 })
                     .sort(function (lang1, lang2) {
                     // List users language first
-                        var locales         = [lang1.locale, lang2.locale],
-                            userLangIndex   = locales.indexOf(lang);
+                        const locales       = [lang1.locale, lang2.locale];
+                        let userLangIndex   = locales.indexOf(lang);
                         if (userLangIndex > -1) {
                             return userLangIndex;
                         }
@@ -319,7 +324,7 @@ define(function (require, exports, module) {
 
             // If the selected language is System Default, match both the short (2-char) language code
             // and the long one
-            var translatedIntoUserLang =
+            const translatedIntoUserLang =
                 (brackets.isLocaleDefault() && info.metadata.i18n.indexOf(shortLang) > -1) ||
                 info.metadata.i18n.indexOf(lang) > -1;
             context.extensionTranslated = StringUtils.format(
@@ -328,7 +333,7 @@ define(function (require, exports, module) {
             );
         }
 
-        var isInstalledInUserFolder = (entry.installInfo && entry.installInfo.locationType === ExtensionManager.LOCATION_USER);
+        const isInstalledInUserFolder = (entry.installInfo && entry.installInfo.locationType === ExtensionManager.LOCATION_USER);
         context.allowRemove = isInstalledInUserFolder;
         context.allowUpdate = context.showUpdateButton && context.isCompatible && context.updateCompatible && isInstalledInUserFolder;
         if (!context.allowUpdate) {
@@ -337,8 +342,8 @@ define(function (require, exports, module) {
 
         context.removalAllowed = this.model.source === "installed" &&
             !context.failedToStart && !hasPendingAction;
-        var isDefaultOrInstalled = this.model.source === "default" || this.model.source === "installed";
-        var isDefaultAndTheme = this.model.source === "default" && context.metadata.theme;
+        const isDefaultOrInstalled = this.model.source === "default" || this.model.source === "installed";
+        const isDefaultAndTheme = this.model.source === "default" && context.metadata.theme;
         context.disablingAllowed = isDefaultOrInstalled && !isDefaultAndTheme && !context.disabled && !hasPendingAction;
         context.enablingAllowed = isDefaultOrInstalled && !isDefaultAndTheme && context.disabled && !hasPendingAction;
 
@@ -349,7 +354,7 @@ define(function (require, exports, module) {
 
         // Do some extra validation on homepage url to make sure we don't end up executing local binary
         if (context.metadata.homepage) {
-            var parsed = PathUtils.parseUrl(context.metadata.homepage);
+            const parsed = PathUtils.parseUrl(context.metadata.homepage);
 
             // We can't rely on path-utils because of known problems with protocol identification
             // Falling back to Browsers protocol identification mechanism
@@ -357,7 +362,7 @@ define(function (require, exports, module) {
 
             // Check if the homepage refers to a local resource
             if (_tmpLink.protocol === "file:") {
-                var language = LanguageManager.getLanguageForExtension(parsed.filenameExtension.replace(/^\./, ""));
+                const language = LanguageManager.getLanguageForExtension(parsed.filenameExtension.replace(/^\./, ""));
                 // If identified language for the local resource is binary, don't list it
                 if (language && language.isBinary()) {
                     delete context.metadata.homepage;
@@ -366,14 +371,14 @@ define(function (require, exports, module) {
         }
 
         return $(this._itemTemplate(context));
-    };
+    }
 
     /**
      * @private
      * Display an optional message (hiding the extension list if displayed)
      * @return {boolean} Returns true if a message is displayed
      */
-    ExtensionManagerView.prototype._updateMessage = function () {
+    private _updateMessage() {
         if (this.model.message) {
             this._$emptyMessage.css("display", "block");
             this._$emptyMessage.html(this.model.message);
@@ -388,21 +393,21 @@ define(function (require, exports, module) {
         this._$table.css("display", "");
 
         return false;
-    };
+    }
 
     /**
      * @private
      * Renders the extension entry table based on the model's current filter set. Will create
      * new items for entries that haven't yet been rendered, but will not re-render existing items.
      */
-    ExtensionManagerView.prototype._render = function () {
-        var self = this;
+    private _render() {
+        const self = this;
 
         this._$table.empty();
         this._updateMessage();
 
         this.model.filterSet.forEach(function (id) {
-            var $item = self._itemViews[id];
+            let $item = self._itemViews[id];
             if (!$item) {
                 $item = self._renderItem(self.model.extensions[id], self.model._getEntry(id));
                 self._itemViews[id] = $item;
@@ -410,19 +415,19 @@ define(function (require, exports, module) {
             $item.appendTo(self._$table);
         });
 
-        this.trigger("render");
-    };
+        (this as unknown as EventDispatcher.DispatcherEvents).trigger("render");
+    }
 
     /**
      * @private
      * Install the extension with the given ID using the install dialog.
      * @param {string} id ID of the extension to install.
      */
-    ExtensionManagerView.prototype._installUsingDialog = function (id, _isUpdate) {
-        var entry = this.model.extensions[id];
+    private _installUsingDialog(id, _isUpdate?) {
+        const entry = this.model.extensions[id];
         if (entry && entry.registryInfo) {
-            var compatInfo = ExtensionManager.getCompatibilityInfo(entry.registryInfo, brackets.metadata.apiVersion),
-                url = ExtensionManager.getExtensionURL(id, compatInfo.compatibleVersion);
+            const compatInfo = ExtensionManager.getCompatibilityInfo(entry.registryInfo, brackets.metadata.apiVersion);
+            const url = ExtensionManager.getExtensionURL(id, compatInfo.compatibleVersion);
 
             // TODO: this should set .done on the returned promise
             if (_isUpdate) {
@@ -431,15 +436,14 @@ define(function (require, exports, module) {
                 InstallExtensionDialog.installUsingDialog(url);
             }
         }
-    };
+    }
 
     /**
      * Filters the contents of the view.
      * @param {string} query The query to filter by.
      */
-    ExtensionManagerView.prototype.filter = function (query) {
+    public filter(query) {
         this.model.filter(query);
-    };
-
-    exports.ExtensionManagerView = ExtensionManagerView;
-});
+    }
+}
+EventDispatcher.makeEventDispatcher(ExtensionManagerView.prototype);

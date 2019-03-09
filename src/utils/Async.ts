@@ -39,6 +39,11 @@
 //    to catch exceptions, and then understand which Deferred(s) the code *would* have resolved/
 //    rejected had it run to completion.
 
+export interface Error {
+    item: any;
+    error: any;
+}
+
 
 /**
  * Executes a series of tasks in parallel, returning a "master" Promise that is resolved once
@@ -279,8 +284,8 @@ export function firstSequentially(items, beginProcessItem) {
  * @param {!function(*, number):Promise} beginProcessItem
  * @return {$.Promise}
  */
-export function doInParallel_aggregateErrors(items, beginProcessItem) { // eslint-disable-line @typescript-eslint/camelcase
-    const errors: Array<{ item: any, error: any }> = [];
+export function doInParallel_aggregateErrors(items, beginProcessItem): JQueryPromise<any> { // eslint-disable-line @typescript-eslint/camelcase
+    const errors: Array<Error> = [];
 
     const masterDeferred = $.Deferred();
 

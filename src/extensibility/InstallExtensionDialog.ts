@@ -24,39 +24,110 @@
 
 /*unittests: Install Extension Dialog*/
 
-define(function (require, exports, module) {
-    "use strict";
+import * as Dialogs from "widgets/Dialogs";
+import File = require("filesystem/File");
+import * as StringUtils from "utils/StringUtils";
+import * as Strings from "strings";
+import * as FileSystem from "filesystem/FileSystem";
+import * as KeyEvent from "utils/KeyEvent";
+import * as Package from "extensibility/Package";
+import * as NativeApp from "utils/NativeApp";
+import * as InstallDialogTemplate from "text!htmlContent/install-extension-dialog.html";
+import * as Mustache from "thirdparty/mustache/mustache";
 
-    var Dialogs                = require("widgets/Dialogs"),
-        File                   = require("filesystem/File"),
-        StringUtils            = require("utils/StringUtils"),
-        Strings                = require("strings"),
-        FileSystem             = require("filesystem/FileSystem"),
-        KeyEvent               = require("utils/KeyEvent"),
-        Package                = require("extensibility/Package"),
-        NativeApp              = require("utils/NativeApp"),
-        InstallDialogTemplate  = require("text!htmlContent/install-extension-dialog.html"),
-        Mustache               = require("thirdparty/mustache/mustache");
+const STATE_CLOSED              = 0;
+const STATE_START               = 1;
+const STATE_VALID_URL           = 2;
+const STATE_INSTALLING          = 3;
+const STATE_INSTALLED           = 4;
+const STATE_INSTALL_FAILED      = 5;
+const STATE_CANCELING_INSTALL   = 6;
+const STATE_CANCELING_HUNG      = 7;
+const STATE_INSTALL_CANCELED    = 8;
+const STATE_ALREADY_INSTALLED   = 9;
+const STATE_OVERWRITE_CONFIRMED = 10;
+const STATE_NEEDS_UPDATE        = 11;
 
-    var STATE_CLOSED              = 0,
-        STATE_START               = 1,
-        STATE_VALID_URL           = 2,
-        STATE_INSTALLING          = 3,
-        STATE_INSTALLED           = 4,
-        STATE_INSTALL_FAILED      = 5,
-        STATE_CANCELING_INSTALL   = 6,
-        STATE_CANCELING_HUNG      = 7,
-        STATE_INSTALL_CANCELED    = 8,
-        STATE_ALREADY_INSTALLED   = 9,
-        STATE_OVERWRITE_CONFIRMED = 10,
-        STATE_NEEDS_UPDATE        = 11;
+/**
+ * Creates a new extension installer dialog.
+ * @constructor
+ * @param {{install: function(url), cancel: function()}} installer The installer backend to use.
+ */
+class InstallExtensionDialog {
+    /**
+     * The dialog root.
+     * @type {jQuery}
+     */
+    public $dlg: JQuery;
 
     /**
-     * Creates a new extension installer dialog.
-     * @constructor
-     * @param {{install: function(url), cancel: function()}} installer The installer backend to use.
+     * The url input field.
+     * @type {jQuery}
      */
-    function InstallExtensionDialog(installer, _isUpdate) {
+    public $url: JQuery;
+
+    /**
+     * The ok button.
+     * @type {jQuery}
+     */
+    public $okButton: JQuery;
+
+    /**
+     * The cancel button.
+     * @type {jQuery}
+     */
+    public $cancelButton: JQuery;
+
+    /**
+     * The area containing the url input label and field.
+     * @type {jQuery}
+     */
+    public $inputArea: JQuery;
+
+    /**
+     * The area containing the installation message and spinner.
+     * @type {jQuery}
+     */
+    public $msgArea: JQuery;
+
+    /**
+     * The span containing the installation message.
+     * @type {jQuery}
+     */
+    public $msg: JQuery;
+
+    /**
+     * The "Browse Extensions" button.
+     * @type {jQuery}
+     */
+    public $browseExtensionsButton: JQuery;
+
+    /**
+     * A deferred that's resolved/rejected when the dialog is closed and
+     * something has/hasn't been installed successfully.
+     * @type {$.Deferred}
+     */
+    private _dialogDeferred: JQueryDeferred<any>;
+
+
+    /**
+     * installer The installer backend for this dialog.
+     * @type {{install: function(url), cancel: function()}}
+     */
+    private _installer: InstallerFacade;
+
+    /**
+     * The current state of the dialog; one of the STATE_* constants above.
+     * @type {number}
+     */
+    private _state;
+
+    private _installResult;
+    private _isUpdate;
+    private _cancelTimeout;
+    private _errorMessage;
+
+    constructor(installer: InstallerFacade, _isUpdate?) {
         this._installer = installer;
         this._state = STATE_CLOSED;
         this._installResult = null;
@@ -68,83 +139,15 @@ define(function (require, exports, module) {
     }
 
     /**
-     * The dialog root.
-     * @type {jQuery}
-     */
-    InstallExtensionDialog.prototype.$dlg = null;
-
-    /**
-     * The url input field.
-     * @type {jQuery}
-     */
-    InstallExtensionDialog.prototype.$url = null;
-
-    /**
-     * The ok button.
-     * @type {jQuery}
-     */
-    InstallExtensionDialog.prototype.$okButton = null;
-
-    /**
-     * The cancel button.
-     * @type {jQuery}
-     */
-    InstallExtensionDialog.prototype.$cancelButton = null;
-
-    /**
-     * The area containing the url input label and field.
-     * @type {jQuery}
-     */
-    InstallExtensionDialog.prototype.$inputArea = null;
-
-    /**
-     * The area containing the installation message and spinner.
-     * @type {jQuery}
-     */
-    InstallExtensionDialog.prototype.$msgArea = null;
-
-    /**
-     * The span containing the installation message.
-     * @type {jQuery}
-     */
-    InstallExtensionDialog.prototype.$msg = null;
-
-    /**
-     * The "Browse Extensions" button.
-     * @type {jQuery}
-     */
-    InstallExtensionDialog.prototype.$browseExtensionsButton = null;
-
-    /**
-     * A deferred that's resolved/rejected when the dialog is closed and
-     * something has/hasn't been installed successfully.
-     * @type {$.Deferred}
-     */
-    InstallExtensionDialog.prototype._dialogDeferred = null;
-
-
-    /**
-     * installer The installer backend for this dialog.
-     * @type {{install: function(url), cancel: function()}}
-     */
-    InstallExtensionDialog.prototype._installer = null;
-
-    /**
-     * The current state of the dialog; one of the STATE_* constants above.
-     * @type {number}
-     */
-    InstallExtensionDialog.prototype._state = null;
-
-    /**
      * @private
      * Transitions the dialog into a new state as the installation proceeds.
      * @param {number} newState The state to transition into; one of the STATE_* variables.
      */
-    InstallExtensionDialog.prototype._enterState = function (newState) {
-        var url,
-            msg,
-            self = this,
-            prevState = this._state;
+    private _enterState(newState) {
+        let url;
+        let msg;
+        const self = this;
+        const prevState = this._state;
 
         // Store the new state up front in case some of the processing below ends up changing
         // the state again immediately.
@@ -231,7 +234,7 @@ define(function (require, exports, module) {
                 } else {
                     msg = Strings.INSTALL_CANCELED;
                 }
-                this.$msg.html($("<strong/>").text(msg));
+                this.$msg.html($("<strong/>").text(msg) as any);
                 if (this._errorMessage) {
                     this.$msg.append($("<p/>").text(this._errorMessage));
                 }
@@ -241,10 +244,10 @@ define(function (require, exports, module) {
                 this.$cancelButton.hide();
                 break;
 
-            case STATE_ALREADY_INSTALLED:
-                var installResult = this._installResult;
-                var status = installResult.installationStatus;
-                var msgText = Strings["EXTENSION_" + status];
+            case STATE_ALREADY_INSTALLED: {
+                const installResult = this._installResult;
+                const status = installResult.installationStatus;
+                let msgText = Strings["EXTENSION_" + status];
                 if (status === Package.InstallationStatuses.OLDER_VERSION) {
                     msgText = StringUtils.format(msgText, installResult.metadata.version, installResult.installedVersion);
                 }
@@ -253,6 +256,7 @@ define(function (require, exports, module) {
                     .prop("disabled", false)
                     .text(Strings.OVERWRITE);
                 break;
+            }
 
             case STATE_OVERWRITE_CONFIRMED:
                 this._enterState(STATE_CLOSED);
@@ -271,35 +275,35 @@ define(function (require, exports, module) {
                 }
                 break;
         }
-    };
+    }
 
     /**
      * @private
      * Handle a click on the Cancel button, which either cancels an ongoing installation (leaving
      * the dialog open), or closes the dialog if no installation is in progress.
      */
-    InstallExtensionDialog.prototype._handleCancel = function () {
+    private _handleCancel() {
         if (this._state === STATE_INSTALLING) {
             this._enterState(STATE_CANCELING_INSTALL);
         } else if (this._state === STATE_ALREADY_INSTALLED) {
             // If we were prompting the user about overwriting a previous installation,
             // and the user cancels, we can delete the downloaded file.
             if (this._installResult && this._installResult.localPath && !this._installResult.keepFile) {
-                var filename = this._installResult.localPath;
+                const filename = this._installResult.localPath;
                 FileSystem.getFileForPath(filename).unlink();
             }
             this._enterState(STATE_CLOSED);
         } else if (this._state !== STATE_CANCELING_INSTALL) {
             this._enterState(STATE_CLOSED);
         }
-    };
+    }
 
     /**
      * @private
      * Handle a click on the default button, which is "Install" while we're waiting for the
      * user to enter a URL, and "Close" once we've successfully finished installation.
      */
-    InstallExtensionDialog.prototype._handleOk = function () {
+    private _handleOk() {
         if (this._state === STATE_INSTALLED ||
                 this._state === STATE_INSTALL_FAILED ||
                 this._state === STATE_INSTALL_CANCELED ||
@@ -313,41 +317,41 @@ define(function (require, exports, module) {
         } else if (this._state === STATE_ALREADY_INSTALLED) {
             this._enterState(STATE_OVERWRITE_CONFIRMED);
         }
-    };
+    }
 
     /**
      * @private
      * Handle key up events on the document. We use this to detect the Esc key.
      */
-    InstallExtensionDialog.prototype._handleKeyUp = function (e) {
+    private _handleKeyUp(e) {
         if (e.keyCode === KeyEvent.DOM_VK_ESCAPE) {
             this._handleCancel();
         }
-    };
+    }
 
     /**
      * @private
      * Handle typing in the URL field.
      */
-    InstallExtensionDialog.prototype._handleUrlInput = function (e) {
-        var url     = this.$url.val().trim(),
-            valid   = (url !== "");
+    private _handleUrlInput(e) {
+        const url     = this.$url.val().trim();
+        const valid   = (url !== "");
         if (!valid && this._state === STATE_VALID_URL) {
             this._enterState(STATE_START);
         } else if (valid && this._state === STATE_START) {
             this._enterState(STATE_VALID_URL);
         }
-    };
+    }
 
     /**
      * @private
      * Closes the dialog if it's not already closed. For unit testing only.
      */
-    InstallExtensionDialog.prototype._close = function () {
+    public _close() {
         if (this._state !== STATE_CLOSED) {
             this._enterState(STATE_CLOSED);
         }
-    };
+    }
 
     /**
      * Initialize and show the dialog.
@@ -356,13 +360,13 @@ define(function (require, exports, module) {
      * @return {$.Promise} A promise object that will be resolved when the selected extension
      *     has finished installing, or rejected if the dialog is cancelled.
      */
-    InstallExtensionDialog.prototype.show = function (urlToInstall) {
+    public show(urlToInstall?) {
         if (this._state !== STATE_CLOSED) {
             // Somehow the dialog got invoked twice. Just ignore this.
             return this._dialogDeferred.promise();
         }
 
-        var context = {
+        const context = {
             Strings: Strings,
             isUpdate: this._isUpdate,
             includeBrowseExtensions: !!brackets.config.extension_listing_url
@@ -397,24 +401,29 @@ define(function (require, exports, module) {
             this._enterState(STATE_INSTALLING);
         }
 
-        this._dialogDeferred = new $.Deferred();
+        this._dialogDeferred = $.Deferred();
         return this._dialogDeferred.promise();
-    };
+    }
+}
 
 
-    /** Mediates between this module and the Package extension-installation utils. Mockable for unit-testing. */
-    function InstallerFacade(isLocalFile) {
+/** Mediates between this module and the Package extension-installation utils. Mockable for unit-testing. */
+class InstallerFacade {
+    private _isLocalFile;
+    public pendingInstall;
+
+    constructor(isLocalFile?) {
         this._isLocalFile = isLocalFile;
     }
 
-    InstallerFacade.prototype.install = function (url) {
+    public install(url) {
         if (this.pendingInstall) {
             console.error("Extension installation already pending");
-            return new $.Deferred().reject("DOWNLOAD_ID_IN_USE").promise();
+            return $.Deferred().reject("DOWNLOAD_ID_IN_USE").promise();
         }
 
         if (this._isLocalFile) {
-            var deferred = new $.Deferred();
+            const deferred = $.Deferred();
 
             this.pendingInstall = {
                 promise: deferred.promise(),
@@ -423,7 +432,7 @@ define(function (require, exports, module) {
                 }
             };
 
-            Package.installFromPath(url).then(function (installationResult) {
+            Package.installFromPath(url).then(function (installationResult: any) {
                 // Flag to keep zip files for local file installation
                 installationResult.keepFile = true;
                 deferred.resolve(installationResult);
@@ -433,60 +442,58 @@ define(function (require, exports, module) {
         }
 
         // Store now since we'll null pendingInstall immediately if the promise was resolved synchronously
-        var promise = this.pendingInstall.promise;
+        const promise = this.pendingInstall.promise;
 
-        var self = this;
+        const self = this;
         this.pendingInstall.promise.always(function () {
             self.pendingInstall = null;
         });
 
         return promise;
-    };
-    InstallerFacade.prototype.cancel = function () {
+    }
+
+    public cancel() {
         this.pendingInstall.cancel();
-    };
-
-    /**
-     * @private
-     * Show a dialog that allows the user to enter the URL of an extension ZIP file to install.
-     * @return {$.Promise} A promise object that will be resolved when the selected extension
-     *     has finished installing, or rejected if the dialog is cancelled.
-     */
-    function showDialog() {
-        var dlg = new InstallExtensionDialog(new InstallerFacade());
-        return dlg.show();
     }
+}
 
-    /**
-     * @private
-     * Show the installation dialog and automatically begin installing the given URL.
-     * @param {(string|File)=} urlOrFileToInstall If specified, immediately starts installing the given file as if the user had
-     *     specified it.
-     * @return {$.Promise} A promise object that will be resolved when the selected extension
-     *     has finished installing, or rejected if the dialog is cancelled.
-     */
-    function installUsingDialog(urlOrFileToInstall, _isUpdate) {
-        var isLocalFile = (urlOrFileToInstall instanceof File),
-            dlg = new InstallExtensionDialog(new InstallerFacade(isLocalFile), _isUpdate);
 
-        return dlg.show(urlOrFileToInstall.fullPath || urlOrFileToInstall);
-    }
+/**
+ * @private
+ * Show a dialog that allows the user to enter the URL of an extension ZIP file to install.
+ * @return {$.Promise} A promise object that will be resolved when the selected extension
+ *     has finished installing, or rejected if the dialog is cancelled.
+ */
+export function showDialog() {
+    const dlg = new InstallExtensionDialog(new InstallerFacade());
+    return dlg.show();
+}
 
-    /**
-     * @private
-     * Show the update dialog and automatically begin downloading the update from the given URL.
-     * @param {string} urlToUpdate URL to download
-     * @return {$.Promise} A promise object that will be resolved when the selected extension
-     *     has finished downloading, or rejected if the dialog is cancelled.
-     */
-    function updateUsingDialog(urlToUpdate) {
-        return installUsingDialog(urlToUpdate, true);
-    }
+/**
+ * @private
+ * Show the installation dialog and automatically begin installing the given URL.
+ * @param {(string|File)=} urlOrFileToInstall If specified, immediately starts installing the given file as if the user had
+ *     specified it.
+ * @return {$.Promise} A promise object that will be resolved when the selected extension
+ *     has finished installing, or rejected if the dialog is cancelled.
+ */
+export function installUsingDialog(urlOrFileToInstall, _isUpdate?) {
+    const isLocalFile = (urlOrFileToInstall instanceof File);
+    const dlg = new InstallExtensionDialog(new InstallerFacade(isLocalFile), _isUpdate);
 
-    exports.showDialog          = showDialog;
-    exports.installUsingDialog  = installUsingDialog;
-    exports.updateUsingDialog   = updateUsingDialog;
+    return dlg.show(urlOrFileToInstall.fullPath || urlOrFileToInstall);
+}
 
-    // Exposed for unit testing only
-    exports._Dialog = InstallExtensionDialog;
-});
+/**
+ * @private
+ * Show the update dialog and automatically begin downloading the update from the given URL.
+ * @param {string} urlToUpdate URL to download
+ * @return {$.Promise} A promise object that will be resolved when the selected extension
+ *     has finished downloading, or rejected if the dialog is cancelled.
+ */
+export function updateUsingDialog(urlToUpdate) {
+    return installUsingDialog(urlToUpdate, true);
+}
+
+// Exposed for unit testing only
+exports._Dialog = InstallExtensionDialog;
