@@ -76,7 +76,7 @@
 
 /*eslint-disable max-len, no-shadow, no-console*/
 
-import * as _ from "thirdparty/lodash";
+import * as _ from "lodash";
 import * as EventDispatcher from "utils/EventDispatcher";
 import * as Strings from "strings";
 import * as AppInit from "utils/AppInit";
@@ -429,7 +429,8 @@ function _getPaneFromElement($el: JQuery): Pane {
         if (pane.$el[0] === $el[0]) {
             return pane;
         }
-    });
+        return false;
+    })!;
 }
 
 /**
@@ -1257,7 +1258,7 @@ export function _open(paneId: string, file, optionsIn?) {
 
 
     // See if there is already a view for the file
-    const pane = _getPane(paneId);
+    const pane = _getPane(paneId)!;
 
     // See if there is a factory to create a view for this file
     //  we want to do this first because, we don't want our internal
@@ -1526,7 +1527,7 @@ function _loadViewState(e) {
         const panes = Object.keys(state.panes);
         _orientation = (panes.length > 1) ? state.orientation : null;
 
-        _.forEach(state.panes, function (paneState, paneId) {
+        _.forEach(state.panes, function (paneState, paneId: string) {
             _createPaneIfNecessary(paneId);
             promises.push(_panes[paneId].loadState(paneState));
         });

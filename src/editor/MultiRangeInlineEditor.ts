@@ -34,7 +34,7 @@
  * This module does not dispatch any events.
  */
 
-import * as _ from "thirdparty/lodash";
+import * as _ from "lodash";
 
 // Load dependent modules
 import { TextRange } from "document/TextRange";

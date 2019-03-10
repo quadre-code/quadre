@@ -24,7 +24,7 @@
 
 /*unittests: StringMatch */
 
-import * as _ from "thirdparty/lodash";
+import * as _ from "lodash";
 
 interface Range {
     text: string;

@@ -40,9 +40,10 @@ import * as ViewUtils from "utils/ViewUtils";
 import * as KeyEvent from "utils/KeyEvent";
 import * as paneListTemplate from "text!htmlContent/working-set.html";
 import * as Strings from "strings";
-import * as _ from "thirdparty/lodash";
+import * as _ from "lodash";
 import * as Mustache from "thirdparty/mustache/mustache";
 import { DispatcherEvents } from "utils/EventDispatcher";
+import File = require("filesystem/File");
 
 interface ViewMap {
     [key: string]: WorkingSetView;
@@ -66,6 +67,10 @@ interface IconProviderData {
     isFile: boolean;
 }
 type IconProvider = (IconProviderData) => string | JQuery | HTMLElement;
+
+interface FileNameMap {
+    [fileNameDisplayHtml: string]: Array<File>;
+}
 
 /**
  * Open view dictionary
@@ -223,7 +228,7 @@ function _deactivateAllViews(deactivate) {
         if (deactivate) {
             if (view.$el.hasClass("active")) {
                 view.$el.removeClass("active").addClass("reactivate");
-                view.$openFilesList.trigger("selectionHide");
+                view.$openFilesList!.trigger("selectionHide");
             }
         } else {
             if (view.$el.hasClass("reactivate")) {
@@ -876,10 +881,10 @@ function _makeDraggable($el) {
  */
 class WorkingSetView {
     public $header: JQuery | null;
-    private $openFilesList: JQuery | null;
+    public $openFilesList: JQuery | null;
     public $container: JQuery;
-    private $el: JQuery;
-    private suppressSortRedraw: boolean;
+    public $el: JQuery;
+    public suppressSortRedraw: boolean;
     public paneId: string;
 
     public $openFilesContainer: JQuery;
@@ -989,7 +994,7 @@ class WorkingSetView {
      * @param {boolean=} scrollIntoView = Scrolls the selected item into view (the default behavior)
      * @private
      */
-    private _fireSelectionChanged(scrollIntoView?) {
+    public _fireSelectionChanged(scrollIntoView?) {
         const reveal = (scrollIntoView === undefined || scrollIntoView === true);
 
         if (reveal) {
@@ -1055,7 +1060,7 @@ class WorkingSetView {
      */
     private _checkForDuplicatesInWorkingTree() {
         const self = this;
-        const map = {};
+        const map: FileNameMap = {};
         const fileList = MainViewManager.getWorkingSet(MainViewManager.ALL_PANES);
 
         // We need to always clear current directories as files could be removed from working tree.
@@ -1084,7 +1089,7 @@ class WorkingSetView {
      * Shows/Hides open files list based on working set content.
      * @private
      */
-    private _redraw() {
+    public _redraw() {
         this._updateViewState();
         this._updateVisibility();
         this._updateItemClasses();
@@ -1206,7 +1211,7 @@ class WorkingSetView {
      * Deletes all the list items in the view and rebuilds them from the working set model
      * @private
      */
-    private _rebuildViewList(forceRedraw) {
+    public _rebuildViewList(forceRedraw) {
         const self = this;
         const fileList = MainViewManager.getWorkingSet(this.paneId);
 

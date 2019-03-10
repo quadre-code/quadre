@@ -42,7 +42,7 @@
 
 import "utils/Global";
 
-import * as _ from "thirdparty/lodash";
+import * as _ from "lodash";
 
 // Load dependent modules
 import * as AppInit from "utils/AppInit";
@@ -722,7 +722,7 @@ export function getInitialProjectPath() {
     const shellArgv = appshell.shell.getProcessArgv();
     if (shellArgv.length > 1) {
         try {
-            let path = _.last(shellArgv);
+            let path: string = _.last(shellArgv);
             const stats = appshell.fs.statSync(path);
             path = FileUtils.convertWindowsPathToUnixPath(path);
             if (stats.isFile()) {

@@ -53,7 +53,7 @@
 import * as DocumentManager from "document/DocumentManager";
 import * as HTMLSimpleDOM from "language/HTMLSimpleDOM";
 import * as HTMLDOMDiff from "language/HTMLDOMDiff";
-import * as _ from "thirdparty/lodash";
+import * as _ from "lodash";
 import { DispatcherEvents } from "utils/EventDispatcher";
 import { Editor } from "editor/Editor";
 import * as CodeMirror from "thirdparty/CodeMirror/lib/codemirror";
@@ -101,7 +101,7 @@ function _posEq(pos1, pos2) {
 function getPositionFromTagId(editor, tagId) {
     const marks = editor._codeMirror.getAllMarks();
 
-    const markFound = _.find(marks, function (mark) {
+    const markFound = _.find(marks, function (mark: any) {
         return (mark.tagID === tagId);
     });
     if (markFound) {

@@ -33,7 +33,7 @@ import * as PreferencesManager from "preferences/PreferencesManager";
 import * as FileUtils from "file/FileUtils";
 import * as AppInit from "utils/AppInit";
 import * as Strings from "strings";
-import * as _ from "thirdparty/lodash";
+import * as _ from "lodash";
 import { DispatcherEvents } from "utils/EventDispatcher";
 
 /**

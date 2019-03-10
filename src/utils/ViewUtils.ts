@@ -22,7 +22,7 @@
  *
  */
 
-import * as _ from "thirdparty/lodash";
+import * as _ from "lodash";
 import * as LanguageManager from "language/LanguageManager";
 
 export const SCROLL_SHADOW_HEIGHT = 5;
@@ -437,7 +437,7 @@ export function getDirNamesForDuplicateFiles(files) {
     // This function is used to loop through map and resolve duplicate names
     const processMap = function (map) {
         let didSomething = false;
-        _.forEach(map, function (arr, key) {
+        _.forEach(map, function (arr, key: string) {
             // length > 1 means we have duplicates that need to be resolved
             if (arr.length > 1) {
                 arr.forEach(function (index) {

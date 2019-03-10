@@ -34,7 +34,7 @@
  * by recalling the cached state.  Views determine what data is store in the view state and how to restore it.
  */
 
-import * as _ from "thirdparty/lodash";
+import * as _ from "lodash";
 
 /**
  * The view state cache.

@@ -101,7 +101,7 @@ class FileSystemEntry {
      * The path of this entry.
      * @type {string}
      */
-    protected _path: string;
+    public _path: string;
 
     /**
      * The name of this entry.

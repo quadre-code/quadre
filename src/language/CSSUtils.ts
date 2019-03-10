@@ -36,7 +36,7 @@ import * as HTMLUtils from "language/HTMLUtils";
 import * as LanguageManager from "language/LanguageManager";
 import * as ProjectManager from "project/ProjectManager";
 import * as TokenUtils from "utils/TokenUtils";
-import * as _ from "thirdparty/lodash";
+import * as _ from "lodash";
 import { Document } from "document/Document";
 
 // Use CodeMirror types instead?
@@ -1422,7 +1422,7 @@ function _stripAtRules(selector) {
 function _getSelectorInFinalCSSForm(selectorArray: Array<string>): string {
     let finalSelectorArray = [""];
     let parentSelectorArray: Array<string> = [];
-    let group = [];
+    let group: Array<string> = [];
     _.forEach(selectorArray, function (selector) {
         selector = _stripAtRules(selector);
         group = selector.split(",");

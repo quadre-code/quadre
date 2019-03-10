@@ -28,7 +28,7 @@
 
 /// <amd-dependency path="module" name="module"/>
 
-import * as _ from "thirdparty/lodash";
+import * as _ from "lodash";
 import * as FileFilters from "search/FileFilters";
 import * as Async from "utils/Async";
 import * as StringUtils from "utils/StringUtils";
@@ -761,7 +761,7 @@ export const _fileNameChangeHandler = function (event, oldName, newName) {
     let resultsChanged = false;
 
     // Update the search results
-    _.forEach(searchModel.results, function (item, fullPath) {
+    _.forEach(searchModel.results, function (item, fullPath: string) {
         if (fullPath.indexOf(oldName) === 0) {
             // node search : inform node about the rename
             filesRemoved([fullPath]);

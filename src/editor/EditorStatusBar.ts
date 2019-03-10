@@ -27,7 +27,7 @@
  */
 
 // Load dependent modules
-import * as _ from "thirdparty/lodash";
+import * as _ from "lodash";
 import * as AnimationUtils from "utils/AnimationUtils";
 import * as AppInit from "utils/AppInit";
 import { DropdownButton } from "widgets/DropdownButton";
@@ -289,7 +289,7 @@ function _onActiveEditorChange(event, current, previous) {
  */
 function _populateLanguageDropdown() {
     // Get all non-binary languages
-    const languages = _.values(LanguageManager.getLanguages()).filter(function (language) {
+    const languages: Array<LanguageManager.Language> = _.values<LanguageManager.Language>(LanguageManager.getLanguages()).filter(function (language) {
         return !language.isBinary();
     });
 

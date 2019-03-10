@@ -48,7 +48,7 @@ import * as StatusBar from "widgets/StatusBar";
 import * as Strings from "strings";
 import * as StringUtils from "utils/StringUtils";
 import * as HealthLogger from "utils/HealthLogger";
-import * as _ from "thirdparty/lodash";
+import * as _ from "lodash";
 import { DispatcherEvents } from "utils/EventDispatcher";
 
 
@@ -185,7 +185,7 @@ export function _showFindBar(scope, showReplace?) {
     // TODO Should push this state into ModalBar (via a FindBar API) instead of installing a callback like this.
     // Custom closing behavior: if in the middle of executing search, blur shouldn't close ModalBar yet. And
     // don't close bar when opening Edit Filter dialog either.
-    _findBar._modalBar.isLockedOpen = function () {
+    _findBar._modalBar!.isLockedOpen = function () {
         // TODO: should have state for whether the search is executing instead of looking at find bar state
         // TODO: should have API on filterPicker to figure out if dialog is open
         return !_findBar!.isEnabled() || $(".modal.instance .exclusions-editor").length > 0;
@@ -264,7 +264,7 @@ export function _showFindBar(scope, showReplace?) {
         (_findBar as unknown as DispatcherEvents).on("doReplaceBatch.FindInFiles", startReplace);
     }
 
-    const oldModalBarHeight = _findBar._modalBar.height();
+    const oldModalBarHeight = _findBar._modalBar!.height();
 
     // Show file-exclusion UI *unless* search scope is just a single file
     if (!scope || scope.isDirectory) {
@@ -275,7 +275,7 @@ export function _showFindBar(scope, showReplace?) {
 
         filterPicker = FileFilters.createFilterPicker(exclusionsContext);
         // TODO: include in FindBar? (and disable it when FindBar is disabled)
-        _findBar._modalBar.getRoot().find(".scope-group").append(filterPicker);
+        _findBar._modalBar!.getRoot().find(".scope-group").append(filterPicker);
     }
 
     handleQueryChange();
@@ -291,7 +291,7 @@ export function _showFindBar(scope, showReplace?) {
     }
     WorkspaceManager.recomputeLayout();
     if (fullEditor) {
-        fullEditor._codeMirror.scrollTo(scrollPos.x, scrollPos.y + _findBar._modalBar.height());
+        fullEditor._codeMirror.scrollTo(scrollPos.x, scrollPos.y + _findBar._modalBar!.height());
     }
 }
 

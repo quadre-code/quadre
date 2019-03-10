@@ -28,7 +28,7 @@
  * It is assumed that markers are always clear()ed when switching editors.
  */
 
-import * as _ from "thirdparty/lodash";
+import * as _ from "lodash";
 
 import * as WorkspaceManager from "view/WorkspaceManager";
 import { DispatcherEvents } from "utils/EventDispatcher";

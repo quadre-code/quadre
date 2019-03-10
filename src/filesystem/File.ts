@@ -58,6 +58,8 @@ class File extends FileSystemEntry {
      */
     private _hash = null;
 
+    public subDirStr: string;
+
     constructor(fullPath, fileSystem) {
         super(fullPath, fileSystem, EntryKind.File);
         this._isFile = true;

@@ -27,7 +27,7 @@
  * light parsing that can rely purely on information gathered by the code coloring mechanism.
  */
 
-import * as  _ from "thirdparty/lodash";
+import * as  _ from "lodash";
 import * as  CodeMirror from "thirdparty/CodeMirror/lib/codemirror";
 
 let cache;

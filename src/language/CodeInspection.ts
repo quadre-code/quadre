@@ -34,7 +34,7 @@
  * (e.g. a full-project compiler).
  */
 
-import * as _ from "thirdparty/lodash";
+import * as _ from "lodash";
 
 // Load dependent modules
 import * as Commands from "command/Commands";
@@ -77,6 +77,10 @@ interface Report {
     isExpanded: boolean;
     providerName: string;
     results: Array<any>;
+}
+
+interface ProviderMap {
+    [languageId: string]: Array<Provider>;
 }
 
 const INDICATOR_ID = "status-inspection";
@@ -139,7 +143,7 @@ let _gotoEnabled = false;
  * @private
  * @type {{languageId:string, Array.<{name:string, scanFileAsync:?function(string, string):!{$.Promise}, scanFile:?function(string, string):Object}>}}
  */
-let _providers = {};
+let _providers: ProviderMap = {};
 
 /**
  * @private
@@ -538,7 +542,7 @@ export function register(languageId, provider) {
  * Returns a list of providers registered for given languageId through register function
  */
 function getProvidersForLanguageId(languageId) {
-    let result = [];
+    let result: Array<Provider> = [];
     if (_providers[languageId]) {
         result = result.concat(_providers[languageId]);
     }

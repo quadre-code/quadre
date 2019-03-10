@@ -55,7 +55,7 @@ import { UrlParams } from "utils/UrlParams";
 import * as StatusBar from "widgets/StatusBar";
 import * as WorkspaceManager from "view/WorkspaceManager";
 import * as LanguageManager from "language/LanguageManager";
-import * as _ from "thirdparty/lodash";
+import * as _ from "lodash";
 
 import { DispatcherEvents } from "utils/EventDispatcher";
 

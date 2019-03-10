@@ -33,7 +33,7 @@
 
 import "utils/Global";
 
-import * as _ from "thirdparty/lodash";
+import * as _ from "lodash";
 import * as EventDispatcher from "utils/EventDispatcher";
 import * as FileSystem from "filesystem/FileSystem";
 import * as FileUtils from "file/FileUtils";

@@ -62,12 +62,12 @@
  *
  */
 
-import * as _ from "thirdparty/lodash";
+import * as _ from "lodash";
 import { Pane } from "view/Pane";
 
 interface Factory {
     canOpenFile(path: string): boolean;
-    openFile(path: string, pane: Pane): void;
+    openFile(path: string, pane: Pane): JQueryPromise<any>;
 }
 
 /**

@@ -32,7 +32,7 @@ import * as PreferencesManager from "preferences/PreferencesManager";
 import * as EventDispatcher from "utils/EventDispatcher";
 import * as Strings from "strings";
 import * as StringUtils from "utils/StringUtils";
-import * as _ from "thirdparty/lodash";
+import * as _ from "lodash";
 
 interface WorkingSetFileMap {
     [key: string]: boolean;

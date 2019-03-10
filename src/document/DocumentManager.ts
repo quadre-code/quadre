@@ -75,7 +75,7 @@
  * Document objects themselves also dispatch some events - see Document docs for details.
  */
 
-import * as _ from "thirdparty/lodash";
+import * as _ from "lodash";
 
 import * as AppInit from "utils/AppInit";
 import * as EventDispatcher from "utils/EventDispatcher";

@@ -43,7 +43,7 @@ import * as DocumentManager from "document/DocumentManager";
 import * as ThemeSettings from "view/ThemeSettings";
 import * as MainViewManager from "view/MainViewManager";
 import * as AppInit from "utils/AppInit";
-import * as _ from "thirdparty/lodash";
+import * as _ from "lodash";
 import * as FontRuleTemplate from "text!view/fontrules/font-based-rules.less";
 import { Editor } from "editor/Editor";
 

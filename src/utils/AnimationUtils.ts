@@ -26,7 +26,7 @@
  * Utilities for dealing with animations in the UI.
  */
 
-import * as _ from "thirdparty/lodash";
+import * as _ from "lodash";
 import * as Async from "utils/Async";
 
 /**
@@ -45,7 +45,7 @@ function _detectTransitionEvent() {
         "transition"      : "transitionend"
     };
 
-    _.forEach(transitions, function (value, key) {
+    _.forEach(transitions, function (value, key: string) {
         if (el.style[key] !== undefined) {
             event = value;
         }

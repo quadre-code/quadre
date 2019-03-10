@@ -31,7 +31,7 @@ import * as Strings from "strings";
 import * as StringUtils from "utils/StringUtils";
 import * as FileSystem from "filesystem/FileSystem";
 import * as FileUtils from "file/FileUtils";
-import * as _ from "thirdparty/lodash";
+import * as _ from "lodash";
 import * as Mustache from "thirdparty/mustache/mustache";
 import { DispatcherEvents } from "utils/EventDispatcher";
 

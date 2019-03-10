@@ -33,7 +33,7 @@ import { Editor, Selection, LineSelection } from "editor/Editor";
 import * as CommandManager from "command/CommandManager";
 import * as EditorManager from "editor/EditorManager";
 import * as CodeMirror from "thirdparty/CodeMirror/lib/codemirror";
-import * as _ from "thirdparty/lodash";
+import * as _ from "lodash";
 
 interface EditGroup {
     text: string;

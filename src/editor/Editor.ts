@@ -77,7 +77,7 @@ import * as ValidationUtils from "utils/ValidationUtils";
 import * as HTMLUtils from "language/HTMLUtils";
 import * as ViewUtils from "utils/ViewUtils";
 import * as MainViewManager from "view/MainViewManager";
-import * as _ from "thirdparty/lodash";
+import * as _ from "lodash";
 
 interface Gutter {
     name: string;

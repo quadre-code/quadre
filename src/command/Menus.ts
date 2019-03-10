@@ -22,7 +22,7 @@
  *
  */
 
-import * as _ from "thirdparty/lodash";
+import * as _ from "lodash";
 
 // Load dependent modules
 import * as Commands from "command/Commands";
@@ -35,7 +35,11 @@ import * as ViewUtils from "utils/ViewUtils";
 import * as DeprecationWarning from "utils/DeprecationWarning";
 
 // make sure the global brackets variable is loaded
-require("utils/Global");
+import "utils/Global";
+
+interface MenuItemMap {
+    [menuItemID: string]: MenuItem;
+}
 
 /**
  * Brackets Application Menu Constants
@@ -150,7 +154,7 @@ const contextMenuMap = {};
  * Maps menuItemID's to MenuItem objects
  * @type {Object.<string, MenuItem>}
  */
-const menuItemMap = {};
+const menuItemMap: MenuItemMap = {};
 
 /**
  * Retrieves the Menu object for the corresponding id.

@@ -150,7 +150,7 @@
  *  state update it needs to do when its visiblity state changes.
  */
 
-import * as _ from "thirdparty/lodash";
+import * as _ from "lodash";
 import * as Mustache from "thirdparty/mustache/mustache";
 import * as EventDispatcher from "utils/EventDispatcher";
 import * as FileSystem from "filesystem/FileSystem";
@@ -182,6 +182,10 @@ interface View {
     notifyContainerChange(): any;
     notifyVisibilityChange(boolean): any;
     focus?();
+}
+
+interface ViewMap {
+    [fullpath: string]: View;
 }
 
 interface State {
@@ -336,7 +340,7 @@ export class Pane {
      * @type {Object.<!string, !View>}
      * @private
      */
-    private _views = {};
+    private _views: ViewMap = {};
 
     /**
      * The current view
@@ -1397,7 +1401,7 @@ export class Pane {
      *  This function will remove temporary views but the file objects for those views will not be found
      *  in the result set.  Only the file objects removed from the working set are returned.
      */
-    public removeViews(list) {
+    public removeViews(list: Array<File>) {
         const self = this;
         let needsDestroyCurrentView = false;
 

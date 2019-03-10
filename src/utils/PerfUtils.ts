@@ -26,7 +26,7 @@
  * This is a collection of utility functions for gathering performance data.
  */
 
-import * as _ from "thirdparty/lodash";
+import * as _ from "lodash";
 import * as StringUtils from "utils/StringUtils";
 
 // make sure the global brackets variable is loaded

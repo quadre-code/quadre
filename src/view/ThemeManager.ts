@@ -24,7 +24,7 @@
 /*jslint regexp: true */
 /*global less */
 
-import * as _ from "thirdparty/lodash";
+import * as _ from "lodash";
 import * as EventDispatcher from "utils/EventDispatcher";
 import * as FileSystem from "filesystem/FileSystem";
 import * as FileUtils from "file/FileUtils";
@@ -35,9 +35,13 @@ import * as ThemeView from "view/ThemeView";
 import * as PreferencesManager from "preferences/PreferencesManager";
 import File = require("filesystem/File");
 
+interface ThemeMap {
+    [themeName: string]: Theme;
+}
+
 const prefs = PreferencesManager.getExtensionPrefs("themes");
 
-const loadedThemes    = {};
+const loadedThemes: ThemeMap = {};
 let currentTheme: Theme | null = null;
 const styleNode       = $(ExtensionUtils.addEmbeddedStyleSheet(""));
 const defaultTheme    = "thor-light-theme";
@@ -193,7 +197,7 @@ function lessifyTheme(content, theme) {
  */
 function getThemeByFile(file) {
     const path = file._path;
-    return _.find(loadedThemes, function (item) {
+    return _.find(loadedThemes, function (item: Theme) {
         return item.file._path === path;
     });
 }

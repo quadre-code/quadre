@@ -29,7 +29,7 @@ import InMemoryFile = require("document/InMemoryFile");
 import * as PerfUtils from "utils/PerfUtils";
 import * as LanguageManager from "language/LanguageManager";
 import * as CodeMirror from "thirdparty/CodeMirror/lib/codemirror";
-import * as _ from "thirdparty/lodash";
+import * as _ from "lodash";
 
 /**
  * Like _.each(), but if given a single item not in an array, acts as
@@ -652,7 +652,7 @@ export class Document {
         // Preflight the edits to specify "end" if unspecified and make sure they don't overlap.
         // (We don't want to do it during the actual edits, since we don't want to apply some of
         // the edits before we find out.)
-        _.each(edits, function (editDesc, index) {
+        _.each(edits, function (editDesc, index: number) {
             oneOrEach(editDesc.edit, function (edit) {
                 if (edit) {
                     if (!edit.end) {
@@ -674,7 +674,7 @@ export class Document {
 
         // Perform the edits.
         this.batchOperation(function () {
-            _.each(edits, function (editDesc, index) {
+            _.each(edits, function (editDesc, index: number) {
                 // Perform this group of edits. The edit positions are guaranteed to be okay
                 // since all the previous edits we've done have been later in the document. However,
                 // we have to fix up any selections that overlap or come after the edit.
@@ -700,7 +700,8 @@ export class Document {
             });
         });
 
-        result = _.chain(result)
+        // FIXME: sort is not available with _.chain in the types.
+        result = (_ as any).chain(result)
             .filter(function (item) {
                 return item !== undefined;
             })
@@ -735,7 +736,7 @@ export class Document {
     /**
      * Updates the language to match the current mapping given by LanguageManager
      */
-    private _updateLanguage() {
+    public _updateLanguage() {
         const oldLanguage = this.language;
         this.language = LanguageManager.getLanguageForPath(this.file.fullPath);
         if (oldLanguage && oldLanguage !== this.language) {

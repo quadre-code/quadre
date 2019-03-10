@@ -133,7 +133,11 @@ import * as Async from "utils/Async";
 import * as FileUtils from "file/FileUtils";
 import * as Strings from "strings";
 import * as defaultLanguagesJSON from "text!language/languages.json";
-import * as _ from "thirdparty/lodash";
+import * as _ from "lodash";
+
+interface LanguageMap {
+    [id: string]: Language;
+}
 
 // PreferencesManager is loaded near the end of the file
 let PreferencesManager;
@@ -141,7 +145,7 @@ let PreferencesManager;
 // State
 let _fallbackLanguage: Language | null = null;
 const _pendingLanguages               = {};
-const _languages                      = {};
+const _languages: LanguageMap = {};
 const _baseFileExtensionToLanguageMap = {};
 const _fileExtensionToLanguageMap     = Object.create(_baseFileExtensionToLanguageMap);
 const _fileNameToLanguageMap          = {};
@@ -235,7 +239,7 @@ function _setLanguageForMode(mode, language) {
  * @param {!string} id Identifier for this language: lowercase letters, digits, and _ separators (e.g. "cpp", "foo_bar", "c99")
  * @return {Language} The language with the provided identifier or undefined
  */
-export function getLanguage(id: string): Language {
+export function getLanguage(id: string) {
     return _languages[id];
 }
 
@@ -324,7 +328,7 @@ export function getLanguageForPath(path, ignoreOverride?) {
  * @return {Object.<string, Language>} A map containing all of the
  *      languages currently defined.
  */
-export function getLanguages() {
+export function getLanguages(): LanguageMap {
     return $.extend({}, _languages); // copy to prevent modification
 }
 
@@ -432,7 +436,7 @@ export function getCompoundFileExtension(fullPath) {
  * Model for a language.
  * @constructor
  */
-class Language {
+export class Language {
     /**
      * Identifier for this language
      * @type {string}
@@ -443,7 +447,7 @@ class Language {
      * Human-readable name of this language
      * @type {string}
      */
-    private _name = null;
+    private _name: string | null = null;
 
     /**
      * CodeMirror mode for this language
@@ -527,7 +531,7 @@ class Language {
      * @return {string} The name
      */
     public getName() {
-        return this._name;
+        return this._name!;
     }
 
     /**

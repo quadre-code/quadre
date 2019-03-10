@@ -33,7 +33,7 @@
  */
 
 import * as Immutable from "thirdparty/immutable";
-import * as _ from "thirdparty/lodash";
+import * as _ from "lodash";
 import * as EventDispatcher from "utils/EventDispatcher";
 import * as FileUtils from "file/FileUtils";
 import FileSystemEntry = require("filesystem/FileSystemEntry");

@@ -35,7 +35,7 @@
  *
  */
 
-import * as _ from "thirdparty/lodash";
+import * as _ from "lodash";
 
 /**
  * Format a string by replacing placeholder symbols with passed in arguments.

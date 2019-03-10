@@ -61,7 +61,7 @@ import * as FileUtils from "file/FileUtils";
 import FileSystem = require("filesystem/FileSystem");
 import FileSystemError = require("filesystem/FileSystemError");
 import * as EventDispatcher from "utils/EventDispatcher";
-import * as _ from "thirdparty/lodash";
+import * as _ from "lodash";
 import * as Async from "utils/Async";
 import * as globmatch from "thirdparty/globmatch";
 
@@ -78,6 +78,7 @@ interface Layer {
     get(data: any, id: string, context: any): any;
     getPreferenceLocation(data: any, id: string, context: any): string | void;
     getKeys(data: any, context: any): any;
+    contextChanged?(data: any, oldContext: string, newContext: string): Array<string> | void;
 }
 
 interface PreferenceOptions {
@@ -95,6 +96,17 @@ interface PreferenceDispatcherEvents extends EventDispatcher.DispatcherEvents {
     _on_internal: (events: string, callback: () => any) => any;
     // typeof EventDispatcher.DispatcherEvents.off
     _off_internal: (events: string, callback?: () => any) => any;
+}
+
+interface ShadowScopeOrder {
+    id: string;
+    scope: any;
+    promise: JQueryPromise<any>;
+}
+
+interface Default {
+    scopeOrder: Array<string>;
+    _shadowScopeOrder: Array<ShadowScopeOrder>;
 }
 
 // CONSTANTS
@@ -578,7 +590,7 @@ export class Scope {
 
         _.each(this._layers, function (layer) {
             if (data[layer.key] && oldContext[layer.key] !== newContext[layer.key]) {
-                const changesInLayer = layer.contextChanged(data[layer.key],
+                const changesInLayer = layer.contextChanged!(data[layer.key],
                     oldContext,
                     newContext);
                 if (changesInLayer) {
@@ -1280,7 +1292,7 @@ export class PreferencesSystem {
     public contextBuilder;
     private _knownPrefs;
     private _scopes;
-    private _defaults;
+    private _defaults: Default;
     private _pendingScopes;
     private _saveInProgress;
     private _nextSaveDeferred;

@@ -22,13 +22,17 @@
  *
  */
 
-import * as _ from "thirdparty/lodash";
+import * as _ from "lodash";
+
+interface StoreMap {
+    [name: string]: string;
+}
 
 /**
  * Convert between URL querystring and name/value pairs. Decodes and encodes URL parameters.
  */
 export class UrlParams {
-    private _store;
+    private _store: StoreMap;
 
     constructor() {
         this._store = {};
@@ -107,7 +111,7 @@ export class UrlParams {
         const strs: Array<string> = [];
         const self = this;
 
-        _.forEach(self._store, function (value, key) {
+        _.forEach(self._store, function (value, key: string) {
             strs.push(encodeURIComponent(key) + "=" + encodeURIComponent(value));
         });
 

@@ -37,7 +37,7 @@ import * as PreferencesBase from "preferences/PreferencesBase";
 import * as FileSystem from "filesystem/FileSystem";
 import * as Strings from "strings";
 import * as PreferencesImpl from "preferences/PreferencesImpl";
-import * as _ from "thirdparty/lodash";
+import * as _ from "lodash";
 
 interface PreferenceContext {
     path?: string | null;

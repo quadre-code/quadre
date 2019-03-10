@@ -26,7 +26,7 @@
  * UI for the Find/Replace and Find in Files modal bar.
  */
 
-import * as _ from "thirdparty/lodash";
+import * as _ from "lodash";
 import * as Mustache from "thirdparty/mustache/mustache";
 import * as EventDispatcher from "utils/EventDispatcher";
 import * as Commands from "command/Commands";
@@ -54,6 +54,10 @@ interface FindBarOption {
     queryPlaceholder: string;
     initialQuery: string;
     scopeLabel: string;
+
+    Strings: any;
+    replaceBatchLabel: string;
+    replaceAllLabel: string;
 }
 
 let lastTypedTime = 0;
@@ -91,7 +95,7 @@ let lastKeyCode; // eslint-disable-line @typescript-eslint/no-unused-vars
  * @param {string=}  scopeLabel - HTML label to show for the scope of the search, expected to be already escaped - default empty string
  */
 export class FindBar {
-    private static _bars;
+    private static _bars: Array<FindBar>;
 
     /*
     * Instance properties/functions
@@ -122,7 +126,7 @@ export class FindBar {
      * @private
      * @type {?ModalBar} Modal bar containing this find bar's UI
      */
-    public _modalBar;
+    public _modalBar: ModalBar | null;
 
     private searchField: QuickSearchField;
 
@@ -154,7 +158,7 @@ export class FindBar {
      * Note that this is a global function, not an instance function.
      * @param {!FindBar} findBar The find bar to register.
      */
-    private static _addFindBar(findBar) {
+    private static _addFindBar(findBar: FindBar) {
         FindBar._bars = FindBar._bars || [];
         FindBar._bars.push(findBar);
     }
@@ -181,7 +185,7 @@ export class FindBar {
         let bars = FindBar._bars;
         if (bars) {
             bars.forEach(function (bar) {
-                bar.close(true, false);
+                bar.close(true);
             });
             bars = [];
         }
@@ -306,7 +310,7 @@ export class FindBar {
         window.document.body.addEventListener("keydown", _handleKeydown, true);
 
         // When the ModalBar closes, clean ourselves up.
-        this._modalBar.on("close", function (event) {
+        (this._modalBar as unknown as EventDispatcher.DispatcherEvents).on("close", function (event) {
             window.document.body.removeEventListener("keydown", _handleKeydown, true);
 
             // Hide error popup, since it hangs down low enough to make the slide-out look awkward
@@ -481,7 +485,7 @@ export class FindBar {
         const self = this;
         const searchFieldInput = self.$("#find-what");
         this.searchField = new QuickSearchField(searchFieldInput, {
-            verticalAdjust: searchFieldInput.offset().top > 0 ? 0 : this._modalBar.getRoot().outerHeight(),
+            verticalAdjust: searchFieldInput.offset().top > 0 ? 0 : this._modalBar!.getRoot().outerHeight(),
             maxResults: 20,
             firstHighlightIndex: null,
             resultProvider: function (query) {

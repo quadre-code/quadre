@@ -26,7 +26,7 @@
  * Set of utilities for simple parsing of JS text.
  */
 
-import * as _ from "thirdparty/lodash";
+import * as _ from "lodash";
 import * as Acorn from "thirdparty/acorn/acorn";
 import * as AcornLoose from "thirdparty/acorn/acorn_loose";
 import * as ASTWalker from "thirdparty/acorn/walk";
@@ -40,6 +40,16 @@ import * as FileSystem from "filesystem/FileSystem";
 import * as FileUtils from "file/FileUtils";
 import * as PerfUtils from "utils/PerfUtils";
 import * as StringUtils from "utils/StringUtils";
+
+interface FunctionInfo {
+    offsetStart: number;
+    label: string | null;
+    location: any;
+}
+
+interface FunctionInfoMap {
+    [functionName: string]: Array<FunctionInfo>;
+}
 
 /**
  * Tracks dirty documents between invocations of findMatchingFunctions.
@@ -56,7 +66,7 @@ const _changedDocumentTracker = new ChangedDocumentTracker();
  */
 function _findAllFunctionsInText(text) {
     let AST;
-    const results = {};
+    const results: FunctionInfoMap = {};
     let functionName;
     let resultNode;
     let memberPrefix;

@@ -52,7 +52,7 @@
  * To add EventDispatcher methods to any object, call EventDispatcher.makeEventDispatcher(obj).
  */
 
-import * as _ from "thirdparty/lodash";
+import * as _ from "lodash";
 
 const LEAK_WARNING_THRESHOLD = 15;
 

@@ -43,7 +43,7 @@ import * as CommandManager from "command/CommandManager";
 import * as Commands from "command/Commands";
 import * as Strings from "strings";
 import * as Resizer from "utils/Resizer";
-import * as _ from "thirdparty/lodash";
+import * as _ from "lodash";
 import { DispatcherEvents } from "utils/EventDispatcher";
 
 // These vars are initialized by the htmlReady handler

@@ -24,7 +24,7 @@
 
 /*unittests: ExtensionManager*/
 
-import * as _ from "thirdparty/lodash";
+import * as _ from "lodash";
 
 import * as ExtensionManager from "extensibility/ExtensionManager";
 import * as registryUtils from "extensibility/registry_utils";

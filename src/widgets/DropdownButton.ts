@@ -42,7 +42,12 @@ import * as EventDispatcher from "utils/EventDispatcher";
 import * as WorkspaceManager from "view/WorkspaceManager";
 import * as Menus from "command/Menus";
 import * as ViewUtils from "utils/ViewUtils";
-import * as _ from "thirdparty/lodash";
+import * as _ from "lodash";
+
+interface ItemRendered {
+    html: string;
+    enabled: boolean;
+}
 
 /**
  * Creates a single dropdown-button instance. The DOM node is created but not attached to
@@ -144,7 +149,7 @@ export class DropdownButton {
      *      or as the 'html' field in an object that also conveys enabled state. Disabled items inherit gray
      *      text color and cannot be selected.
      */
-    public itemRenderer(item, index) {
+    public itemRenderer(item, index): string | ItemRendered {
         return _.escape(String(item));
     }
 
@@ -164,8 +169,9 @@ export class DropdownButton {
                 html += "<li class='divider'></li>";
             } else {
                 const rendered = this.itemRenderer(item, i);
-                const itemHtml = rendered.html || rendered;
-                const disabledClass = (rendered.html && !rendered.enabled) ? "disabled" : "";
+                const itemRendered = rendered as ItemRendered;
+                const itemHtml = itemRendered.html || rendered;
+                const disabledClass = (itemRendered.html && !itemRendered.enabled) ? "disabled" : "";
 
                 html += "<li><a class='stylesheet-link " + disabledClass + "' data-index='" + i + "'>";
                 html += itemHtml;

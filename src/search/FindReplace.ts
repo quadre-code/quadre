@@ -41,7 +41,7 @@ import { FindBar } from "search/FindBar";
 import * as FindUtils from "search/FindUtils";
 import * as FindInFilesUI from "search/FindInFilesUI";
 import * as ScrollTrackMarkers from "search/ScrollTrackMarkers";
-import * as _ from "thirdparty/lodash";
+import * as _ from "lodash";
 import * as CodeMirror from "thirdparty/CodeMirror/lib/codemirror";
 import { DispatcherEvents } from "utils/EventDispatcher";
 
@@ -232,7 +232,7 @@ function _getNextMatch(editor, searchBackwards, pos?, wrap?): Range | null {
  *      into view if it's offscreen, but will not be centered.
  * @param {boolean=} preferNoScroll If center is true, whether to avoid scrolling if the hit is in the top half of the screen. Default false.
  */
-function _selectAndScrollTo(editor, selections, center, preferNoScroll?) {
+function _selectAndScrollTo(editor, selections: Array<Range>, center, preferNoScroll?) {
     const primarySelection = _.find(selections, function (sel) { return sel.primary; }) || _.last(selections);
     const resultVisible = editor.isLineVisible(primarySelection.start.line);
     let centerOptions = Editor.BOUNDARY_CHECK_NORMAL;

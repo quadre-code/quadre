@@ -39,7 +39,7 @@ import * as WorkspaceManager from "view/WorkspaceManager";
 import * as StringUtils from "utils/StringUtils";
 import * as Strings from "strings";
 import * as HealthLogger from "utils/HealthLogger";
-import * as _ from "thirdparty/lodash";
+import * as _ from "lodash";
 import * as Mustache from "thirdparty/mustache/mustache";
 
 import * as searchPanelTemplate from "text!htmlContent/search-panel.html";

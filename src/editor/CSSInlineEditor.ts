@@ -37,12 +37,16 @@ import * as HTMLUtils from "language/HTMLUtils";
 import { MultiRangeInlineEditor, getFocusedMultiRangeInlineEditor } from "editor/MultiRangeInlineEditor";
 import * as Strings from "strings";
 import * as ViewUtils from "utils/ViewUtils";
-import * as _ from "thirdparty/lodash";
+import * as _ from "lodash";
 import File = require("filesystem/File");
+
+interface FileNameMap {
+    [fileName: string]: Array<File>;
+}
 
 interface RuleHandler {
     inlineEditor: MultiRangeInlineEditor;
-    handler: (e) => void;
+    handler: (e?) => void;
 }
 
 const _newRuleHandlers: Array<RuleHandler> = [];
@@ -269,7 +273,7 @@ function htmlToCSSProvider(hostEditor, pos) {
         files.sort(_fileComparator);
 
         // Find any files that share the same name (with different path)
-        const fileNames = {};
+        const fileNames: FileNameMap = {};
         files.forEach(function (file) {
             if (!fileNames[file.name]) {
                 fileNames[file.name] = [];

@@ -28,7 +28,7 @@ import * as Commands from "command/Commands";
 import * as CommandManager from "command/CommandManager";
 import * as PreferencesManager from "preferences/PreferencesManager";
 import * as Strings from "strings";
-import * as _ from "thirdparty/lodash";
+import * as _ from "lodash";
 
 // Constants for the preferences referred to in this file
 enum EditorOptionsHandler {

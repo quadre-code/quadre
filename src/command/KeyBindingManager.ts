@@ -43,7 +43,7 @@ import * as KeyEvent from "utils/KeyEvent";
 import * as Strings from "strings";
 import * as StringUtils from "utils/StringUtils";
 import { UrlParams } from "utils/UrlParams";
-import * as _ from "thirdparty/lodash";
+import * as _ from "lodash";
 import * as keyboardJson from "text!base-config/keyboard.json";
 const KeyboardPrefs       = JSON.parse(keyboardJson);
 
@@ -1240,7 +1240,7 @@ function _applyUserKeyBindings() {
  * specified in _customKeyMapCache (old version) but no longer specified in _customKeyMap (new version).
  */
 function _undoPriorUserKeyBindings() {
-    _.forEach(_customKeyMapCache, function (commandID, key) {
+    _.forEach(_customKeyMapCache, function (commandID, key: string) {
         const normalizedKey  = normalizeKeyDescriptorString(key);
         const defaults       = _.find(_.toArray(_defaultKeyMap), { "commandID": commandID });
         const defaultCommand = _defaultKeyMap[normalizedKey!];

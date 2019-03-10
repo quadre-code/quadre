@@ -36,7 +36,7 @@
  *   with new data from the registry.
  */
 
-import * as _ from "thirdparty/lodash";
+import * as _ from "lodash";
 import * as EventDispatcher from "utils/EventDispatcher";
 import * as Package from "extensibility/Package";
 import * as AppInit from "utils/AppInit";
@@ -81,6 +81,19 @@ interface InstallInfo {
     status: string;
 }
 
+interface BracketsMetadata {
+    apiVersion: string;
+}
+
+interface Brackets {
+    metadata: BracketsMetadata;
+}
+
+interface VersionInfo {
+    brackets: Brackets;
+    version: string;
+}
+
 interface RegistryInfo {
     owner: string;
     updateAvailable: boolean;
@@ -89,7 +102,7 @@ interface RegistryInfo {
 
     lastCompatibleVersion: string;
 
-    versions: Array<string>;
+    versions: Array<VersionInfo>;
 }
 
 interface Extension {

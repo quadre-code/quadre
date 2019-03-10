@@ -31,7 +31,7 @@
 import InMemoryFile = require("document/InMemoryFile");
 import * as EventDispatcher from "utils/EventDispatcher";
 import * as FileUtils from "file/FileUtils";
-import * as _ from "thirdparty/lodash";
+import * as _ from "lodash";
 import * as FileSystem from "filesystem/FileSystem";
 import FileSystemError = require("filesystem/FileSystemError");
 import * as FileTreeViewModel from "project/FileTreeViewModel";

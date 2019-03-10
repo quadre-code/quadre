@@ -27,7 +27,7 @@
  * Includes both UI for selecting/editing filters, as well as the actual file-filtering implementation.
  */
 
-import * as _ from "thirdparty/lodash";
+import * as _ from "lodash";
 import * as Mustache from "thirdparty/mustache/mustache";
 import * as Dialogs from "widgets/Dialogs";
 import { DropdownButton } from "widgets/DropdownButton";

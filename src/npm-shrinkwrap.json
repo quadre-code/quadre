@@ -15,6 +15,12 @@
       "integrity": "sha512-hdL/tdqOVH6m9jwkQDoth3MjG0lnwU8YEBtY5XPIbvBUjIjzmm8WB3ziP2gWHNOs075wN5YCHUW9UMJAW5+9ag==",
       "dev": true
     },
+    "@types/lodash": {
+      "version": "3.10.2",
+      "resolved": "https://registry.npmjs.org/@types/lodash/-/lodash-3.10.2.tgz",
+      "integrity": "sha512-TmlYodTNhMzVzv3CK/9sXGzh31jWsRKHE3faczhVgYFCdXIRQRCOPD+0NDlR+SvJlCj914yP3q3aAupt53p2Ug==",
+      "dev": true
+    },
     "@types/node": {
       "version": "11.10.4",
       "resolved": "https://registry.npmjs.org/@types/node/-/node-11.10.4.tgz",
