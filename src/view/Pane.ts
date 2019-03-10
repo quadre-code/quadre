@@ -167,11 +167,11 @@ import * as ViewUtils from "utils/ViewUtils";
 import * as ProjectManager from "project/ProjectManager";
 import * as paneTemplate from "text!htmlContent/pane.html";
 import File = require("filesystem/File");
-import * as CodeMirror from "thirdparty/CodeMirror/lib/codemirror";
+import * as CodeMirror from "codemirror";
 
 interface View {
     $el: JQuery;
-    _codeMirror: CodeMirror;
+    _codeMirror: CodeMirror.Editor;
     getFile(): File;
     updateLayout(forceRefresh?: boolean);
     destroy();

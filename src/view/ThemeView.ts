@@ -21,7 +21,7 @@
  *
  */
 
-import * as CodeMirror from "thirdparty/CodeMirror/lib/codemirror";
+import * as CodeMirror from "codemirror";
 import * as PreferencesManager from "preferences/PreferencesManager";
 
 const prefs = PreferencesManager.getExtensionPrefs("themes");

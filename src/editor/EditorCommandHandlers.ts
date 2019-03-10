@@ -32,13 +32,13 @@ import * as Strings from "strings";
 import { Editor, Selection, LineSelection } from "editor/Editor";
 import * as CommandManager from "command/CommandManager";
 import * as EditorManager from "editor/EditorManager";
-import * as CodeMirror from "thirdparty/CodeMirror/lib/codemirror";
+import * as CodeMirror from "codemirror";
 import * as _ from "lodash";
 
 interface EditGroup {
     text: string;
-    start: CodeMirror.Pos;
-    end?: CodeMirror.Pos;
+    start: CodeMirror.Position;
+    end?: CodeMirror.Position;
 }
 
 interface SimpleEdit {
@@ -217,7 +217,6 @@ function moveLine(editor: Editor, direction) {
     let lineLength        = 0;
     const edits: Array<EditText> = [];
     let newSels           = [];
-    let pos: CodeMirror.Pos = {};
 
     _.each(lineSelections, function (lineSel: LineSelection) {
         const sel = lineSel.selectionForEdit;
@@ -288,7 +287,10 @@ function moveLine(editor: Editor, direction) {
     if (edits.length) {
         newSels = doc.doMultipleEdits(edits);
 
-        pos.ch = 0;
+        let pos: CodeMirror.Position | null = {
+            ch: 0,
+            line: 0
+        };
 
         if (direction === DIRECTION_UP) {
             editor.setSelections(newSels);

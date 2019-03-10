@@ -127,7 +127,7 @@
  */
 
 // Dependencies
-import * as CodeMirror from "thirdparty/CodeMirror/lib/codemirror";
+import * as CodeMirror from "codemirror";
 import * as EventDispatcher from "utils/EventDispatcher";
 import * as Async from "utils/Async";
 import * as FileUtils from "file/FileUtils";
@@ -215,7 +215,7 @@ function _patchCodeMirror() {
         }
         originalCodeMirrorDefineMode.apply(CodeMirror, arguments);
     }
-    CodeMirror.defineMode = wrappedCodeMirrorDefineMode;
+    (CodeMirror as any).defineMode = wrappedCodeMirrorDefineMode;
 }
 
 /**

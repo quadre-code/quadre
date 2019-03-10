@@ -28,7 +28,7 @@ import * as FileUtils from "file/FileUtils";
 import InMemoryFile = require("document/InMemoryFile");
 import * as PerfUtils from "utils/PerfUtils";
 import * as LanguageManager from "language/LanguageManager";
-import * as CodeMirror from "thirdparty/CodeMirror/lib/codemirror";
+import * as CodeMirror from "codemirror";
 import * as _ from "lodash";
 
 /**

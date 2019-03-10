@@ -63,7 +63,7 @@
 
 import * as AnimationUtils from "utils/AnimationUtils";
 import * as Async from "utils/Async";
-import * as CodeMirror from "thirdparty/CodeMirror/lib/codemirror";
+import * as CodeMirror from "codemirror";
 import * as LanguageManager from "language/LanguageManager";
 import * as EventDispatcher from "utils/EventDispatcher";
 import * as Menus from "command/Menus";
@@ -86,8 +86,8 @@ interface Gutter {
 }
 
 export interface Selection {
-    start: CodeMirror.Pos;
-    end: CodeMirror.Pos;
+    start: CodeMirror.Position;
+    end: CodeMirror.Position;
     reversed?: boolean;
     primary?: boolean;
 }
@@ -95,6 +95,11 @@ export interface Selection {
 export interface LineSelection {
     selectionForEdit: Selection;
     selectionsToTrack: Array<Selection>;
+}
+
+interface CmSelection {
+    anchor: CodeMirror.Position;
+    head: CodeMirror.Position;
 }
 
 /** Editor preferences */
@@ -378,7 +383,7 @@ export class Editor {
      * CodeMirror directly.
      * @type {!CodeMirror}
      */
-    public _codeMirror: CodeMirror;
+    public _codeMirror: CodeMirror.Editor & CodeMirror.Doc;
 
     /**
      * @private
@@ -515,7 +520,7 @@ export class Editor {
 
         // Create the CodeMirror instance
         // (note: CodeMirror doesn't actually require using 'new', but jslint complains without it)
-        this._codeMirror = new CodeMirror(container, {
+        (this._codeMirror as any) = CodeMirror(container, {
             autoCloseBrackets           : currentOptions[EditorOptions.CLOSE_BRACKETS],
             autoCloseTags               : currentOptions[EditorOptions.CLOSE_TAGS],
             coverGutterNextToScrollbar  : true,
@@ -1440,7 +1445,8 @@ export class Editor {
      */
     public getSelections(): Array<Selection> {
         const primarySel = this.getSelection();
-        return _.map(this._codeMirror.listSelections(), function (this: Editor, sel) {
+
+        return _.map<CmSelection, Selection>(this._codeMirror.listSelections(), function (this: Editor, sel: CmSelection) {
             const result = this._normalizeRange(sel.anchor, sel.head);
             if (result.start.line === primarySel.start.line && result.start.ch === primarySel.start.ch &&
                     result.end.line === primarySel.end.line && result.end.ch === primarySel.end.ch) {

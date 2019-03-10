@@ -28,7 +28,7 @@
  */
 
 import * as  _ from "lodash";
-import * as  CodeMirror from "thirdparty/CodeMirror/lib/codemirror";
+import * as  CodeMirror from "codemirror";
 
 let cache;
 

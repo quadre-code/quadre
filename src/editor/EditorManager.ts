@@ -66,9 +66,9 @@ import { InlineTextEditor } from "editor/InlineTextEditor";
 import * as Strings from "strings";
 import * as LanguageManager from "language/LanguageManager";
 import * as DeprecationWarning from "utils/DeprecationWarning";
-import * as CodeMirror from "thirdparty/CodeMirror/lib/codemirror";
+import * as CodeMirror from "codemirror";
 
-type Provider<T> = (editor: Editor, pos: CodeMirror.Pos) => JQueryPromise<T> | null;
+type Provider<T> = (editor: Editor, pos: CodeMirror.Position) => JQueryPromise<T> | null;
 
 /**
  * Currently focused Editor (full-size, inline, or otherwise)

@@ -26,7 +26,7 @@
 // FUTURE: Merge part (or all) of this class with MultiRangeInlineEditor
 
 // Load dependent modules
-import * as CodeMirror from "thirdparty/CodeMirror/lib/codemirror";
+import * as CodeMirror from "codemirror";
 import * as EventDispatcher from "utils/EventDispatcher";
 import * as DocumentManager from "document/DocumentManager";
 import * as EditorManager from "editor/EditorManager";

@@ -56,7 +56,7 @@ import * as HTMLDOMDiff from "language/HTMLDOMDiff";
 import * as _ from "lodash";
 import { DispatcherEvents } from "utils/EventDispatcher";
 import { Editor } from "editor/Editor";
-import * as CodeMirror from "thirdparty/CodeMirror/lib/codemirror";
+import * as CodeMirror from "codemirror";
 
 interface DOMUpdaterInit {
     startOffset: number;
@@ -337,7 +337,7 @@ class DOMUpdater extends HTMLSimpleDOM.Builder {
     public isIncremental: boolean;
     private changedTagID: string;
     private editor: Editor;
-    private cm: CodeMirror;
+    private cm: CodeMirror.Editor & CodeMirror.Doc;
     private previousDOM;
 
     constructor(previousDOM, editor, changeList) {
@@ -453,8 +453,8 @@ class DOMUpdater extends HTMLSimpleDOM.Builder {
      * @param {Object} newSubtreeMap The nodeMap for the new subtree.
      */
     private _handleDeletions(nodeMap, oldSubtreeMap, newSubtreeMap) {
-        const deletedIDs: Array<string> = [];
-        Object.keys(oldSubtreeMap).forEach(function (key) {
+        const deletedIDs: Array<number> = [];
+        Object.keys(oldSubtreeMap).forEach(function (key: any) {
             if (!newSubtreeMap.hasOwnProperty(key)) {
                 deletedIDs.push(key);
                 delete nodeMap[key];

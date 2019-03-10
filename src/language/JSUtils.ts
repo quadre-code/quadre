@@ -32,7 +32,7 @@ import * as AcornLoose from "thirdparty/acorn/acorn_loose";
 import * as ASTWalker from "thirdparty/acorn/walk";
 
 // Load brackets modules
-import * as CodeMirror from "thirdparty/CodeMirror/lib/codemirror";
+import * as CodeMirror from "codemirror";
 import * as Async from "utils/Async";
 import * as DocumentManager from "document/DocumentManager";
 import ChangedDocumentTracker = require("document/ChangedDocumentTracker");
@@ -225,7 +225,7 @@ export function _getFunctionEndOffset(text, offsetStart) {
                 return false;
             }
         }
-        style = mode.token(stream, state);
+        style = mode.token!(stream, state);
         token = stream.current();
         curOffset = lineStart + stream.pos;
         return true;

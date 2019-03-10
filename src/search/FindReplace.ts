@@ -42,7 +42,7 @@ import * as FindUtils from "search/FindUtils";
 import * as FindInFilesUI from "search/FindInFilesUI";
 import * as ScrollTrackMarkers from "search/ScrollTrackMarkers";
 import * as _ from "lodash";
-import * as CodeMirror from "thirdparty/CodeMirror/lib/codemirror";
+import * as CodeMirror from "codemirror";
 import { DispatcherEvents } from "utils/EventDispatcher";
 
 interface Pos {

@@ -3,6 +3,21 @@
   "requires": true,
   "lockfileVersion": 1,
   "dependencies": {
+    "@types/codemirror": {
+      "version": "0.0.72",
+      "resolved": "https://registry.npmjs.org/@types/codemirror/-/codemirror-0.0.72.tgz",
+      "integrity": "sha512-dKtEP139Jxdrog/6zW8akX3LdhJ3V8NjYNCpIHdBVVo6ZiYpShPamtQoGpVhzrUzTOu5A6NlozOSiZipCEVCow==",
+      "dev": true,
+      "requires": {
+        "@types/tern": "*"
+      }
+    },
+    "@types/estree": {
+      "version": "0.0.39",
+      "resolved": "https://registry.npmjs.org/@types/estree/-/estree-0.0.39.tgz",
+      "integrity": "sha512-EYNwp3bU+98cpU4lAWYYL7Zz+2gryWH1qbdDTidVd6hkiR6weksdbMadyXKXNPEkQFhXM+hVO9ZygomHXp+AIw==",
+      "dev": true
+    },
     "@types/jquery": {
       "version": "2.0.41",
       "resolved": "https://registry.npmjs.org/@types/jquery/-/jquery-2.0.41.tgz",
@@ -48,6 +63,15 @@
       "resolved": "https://registry.npmjs.org/@types/requirejs/-/requirejs-2.1.31.tgz",
       "integrity": "sha512-b2soeyuU76rMbcRJ4e0hEl0tbMhFwZeTC0VZnfuWlfGlk6BwWNsev6kFu/twKABPX29wkX84wU2o+cEJoXsiTw==",
       "dev": true
+    },
+    "@types/tern": {
+      "version": "0.23.0",
+      "resolved": "https://registry.npmjs.org/@types/tern/-/tern-0.23.0.tgz",
+      "integrity": "sha512-klmHtUmX+in4DA8l+Hj/zFO8M3g+otgQ9n7AfiEJ3Er9xjxjEsidKVyifLV4klwVu/X7qh8oIFY4d+GNgZiR7Q==",
+      "dev": true,
+      "requires": {
+        "@types/estree": "*"
+      }
     },
     "acorn": {
       "version": "5.1.1",

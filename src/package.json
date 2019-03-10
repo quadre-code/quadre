@@ -11,6 +11,7 @@
     "react-dom": "16.2.0"
   },
   "devDependencies": {
+    "@types/codemirror": "0.0.72",
     "@types/jquery": "^2.0.41",
     "@types/less": "0.0.34",
     "@types/lodash": "^3.10.2",

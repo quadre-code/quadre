@@ -5,6 +5,7 @@ module.exports = {
         "max-len": ["warn", 120],
         "new-cap": ["error", {
             capIsNewExceptions: [
+                "CodeMirror",
                 "CodeMirror.Pos",
                 "Immutable.List",
                 "Immutable.Map",

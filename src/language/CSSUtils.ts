@@ -28,7 +28,7 @@
  * Set of utilities for simple parsing of CSS text.
  */
 
-import * as CodeMirror from "thirdparty/CodeMirror/lib/codemirror";
+import * as CodeMirror from "codemirror";
 import * as Async from "utils/Async";
 import * as DocumentManager from "document/DocumentManager";
 import * as EditorManager from "editor/EditorManager";
@@ -731,7 +731,7 @@ export function getInfoAtPos(editor, constPos) {
          * as CM in htmlmixed mode doesn't yet identify this as css context. We provide
          * a no-op display function to run CM without a DOM head.
          */
-        const _contextCM = new CodeMirror(function () { /* Do nothing */ }, {
+        const _contextCM = CodeMirror(function () { /* Do nothing */ }, {
             value: "{" + tagInfo.attr.value.replace(/(^")|("$)/g, ""),
             mode:  "css"
         });
@@ -885,7 +885,7 @@ export function extractAllSelectors(text, documentMode?): Array<SelectorInfo> {
         if (!_hasStream()) {
             return false;
         }
-        style = mode.token(stream, state);
+        style = mode.token!(stream, state);
         token = stream.current();
         return true;
     }
@@ -896,7 +896,7 @@ export function extractAllSelectors(text, documentMode?): Array<SelectorInfo> {
         if (!_hasStream()) {
             return false;
         }
-        style = mode.token(stream, state);
+        style = mode.token!(stream, state);
         token = stream.current();
         return true;
     }
