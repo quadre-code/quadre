@@ -7,3 +7,7 @@ declare module "i18n!*" {
     const text: any;
     export = text;
 }
+
+interface RequireConfig {
+    locale?: string;
+}

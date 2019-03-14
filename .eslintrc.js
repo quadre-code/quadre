@@ -49,6 +49,18 @@ module.exports = {
                 "module": false
             }
         },
+        // src/
+        {
+            "files": [
+                "src/dependencies.ts",
+                "src/main.ts",
+                "src/xorigin.ts"
+            ],
+            "parserOptions": {
+                "ecmaVersion": 6,
+                "sourceType": "script",
+            },
+        },
         // Build files
         {
             "files": [

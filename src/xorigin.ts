@@ -28,7 +28,7 @@
 (function () {
     "use strict";
 
-    var testCrossOriginError;
+    let testCrossOriginError;
 
     if (window.navigator.userAgent.search(" Chrome/") !== -1) {
         // Chrome support
@@ -50,7 +50,7 @@
     }
 
     // Remember the current error handler to restore it once we're done
-    var previousErrorHandler = window.onerror;
+    const previousErrorHandler = window.onerror;
 
     // Our error handler
     function handleError(message, url, line) {

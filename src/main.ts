@@ -26,7 +26,7 @@
  * The bootstrapping module for brackets. This module sets up the require
  * configuration and loads the brackets module.
  */
-require.config({
+(require as unknown as Require).config({
     paths: {
         "text"              : "thirdparty/text/text",
         "i18n"              : "thirdparty/i18n/i18n",
@@ -49,7 +49,7 @@ require.config({
 });
 
 if (window.location.search.indexOf("testEnvironment") > -1) {
-    require.config({
+    (require as unknown as Require).config({
         paths: {
             "preferences/PreferencesImpl": "../test/TestPreferencesImpl"
         },
@@ -64,7 +64,7 @@ if (window.location.search.indexOf("testEnvironment") > -1) {
      * navigator.language in ExtensionLoader (when making require contexts for each
      * extension).
      */
-    require.config({
+    (require as unknown as Require).config({
         locale: window.localStorage.getItem("locale") || (typeof (brackets) !== "undefined" ? brackets.app.language : window.navigator.language)
     });
 }

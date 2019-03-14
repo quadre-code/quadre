@@ -28,54 +28,50 @@
  * The i18n plugin will dynamically load the strings for the right locale and populate
  * the exports variable. See src\nls\strings.js for the master file of English strings.
  */
-define(function (require, exports, module) {
-    "use strict";
 
-    var _ = require("thirdparty/lodash");
+import * as _ from "lodash";
 
-    var strings     = require("i18n!nls/strings"),
-        urls        = require("i18n!nls/urls"),
-        stringsApp  = require("i18n!nls/strings-app"),
-        StringUtils = require("utils/StringUtils");
+import * as strings from "i18n!nls/strings";
+import * as urls from "i18n!nls/urls";
+import * as stringsApp from "i18n!nls/strings-app";
+import * as StringUtils from "utils/StringUtils";
 
-    // make sure the global brackets variable is loaded
-    require("utils/Global");
+// make sure the global brackets variable is loaded
+import "utils/Global";
 
-    // Add URLs as additional globals
-    var additionalGlobals = $.extend({}, urls),
-        parsedVersion = /([0-9]+)\.([0-9]+)\.([0-9]+)/.exec(brackets.metadata.version);
+// Add URLs as additional globals
+const additionalGlobals = $.extend({}, urls);
+const parsedVersion = /([0-9]+)\.([0-9]+)\.([0-9]+)/.exec(brackets.metadata.version)!;
 
-    additionalGlobals.APP_NAME      = brackets.metadata.name || strings.APP_NAME;
-    additionalGlobals.APP_TITLE     = brackets.config.app_title || strings.APP_NAME;
-    additionalGlobals.TWITTER_NAME  = brackets.config.twitter_name;
-    additionalGlobals.VERSION       = brackets.metadata.version;
-    additionalGlobals.VERSION_MAJOR = parsedVersion[1];
-    additionalGlobals.VERSION_MINOR = parsedVersion[2];
-    additionalGlobals.VERSION_PATCH = parsedVersion[3];
+additionalGlobals.APP_NAME      = brackets.metadata.name || strings.APP_NAME;
+additionalGlobals.APP_TITLE     = brackets.config.app_title || strings.APP_NAME;
+additionalGlobals.TWITTER_NAME  = brackets.config.twitter_name;
+additionalGlobals.VERSION       = brackets.metadata.version;
+additionalGlobals.VERSION_MAJOR = parsedVersion[1];
+additionalGlobals.VERSION_MINOR = parsedVersion[2];
+additionalGlobals.VERSION_PATCH = parsedVersion[3];
 
-    var isDevBuild = !StringUtils.endsWith(decodeURI(window.location.pathname), "/www/index.html");
-    if (isDevBuild) {
-        additionalGlobals.BUILD_TYPE = strings.DEVELOPMENT_BUILD;
-    } else {
-        var isReleaseBuild = (brackets.platform === "mac" || brackets.platform === "win");
-        additionalGlobals.BUILD_TYPE = (isReleaseBuild ? strings.RELEASE_BUILD : strings.EXPERIMENTAL_BUILD);
-    }
+const isDevBuild = !StringUtils.endsWith(decodeURI(window.location.pathname), "/www/index.html");
+if (isDevBuild) {
+    additionalGlobals.BUILD_TYPE = strings.DEVELOPMENT_BUILD;
+} else {
+    const isReleaseBuild = (brackets.platform === "mac" || brackets.platform === "win");
+    additionalGlobals.BUILD_TYPE = (isReleaseBuild ? strings.RELEASE_BUILD : strings.EXPERIMENTAL_BUILD);
+}
 
-    // Insert application strings
-    _.forEach(strings, function (value, key) {
-        _.forEach(additionalGlobals, function (item, name) {
-            strings[key] = strings[key].replace(new RegExp("{" + name + "}", "g"), additionalGlobals[name]);
-        });
+// Insert application strings
+_.forEach(strings, function (value, key: string) {
+    _.forEach(additionalGlobals, function (item, name: string) {
+        strings[key] = strings[key].replace(new RegExp("{" + name + "}", "g"), additionalGlobals[name]);
     });
-
-    // Append or overlay additional, product-specific strings
-    _.forEach(stringsApp, function (value, key) {
-        _.forEach(additionalGlobals, function (item, name) {
-            stringsApp[key] = stringsApp[key].replace(new RegExp("{" + name + "}", "g"), additionalGlobals[name]);
-        });
-        strings[key] = stringsApp[key];
-    });
-
-    module.exports = strings;
-
 });
+
+// Append or overlay additional, product-specific strings
+_.forEach(stringsApp, function (value, key: string) {
+    _.forEach(additionalGlobals, function (item, name: string) {
+        stringsApp[key] = stringsApp[key].replace(new RegExp("{" + name + "}", "g"), additionalGlobals[name]);
+    });
+    strings[key] = stringsApp[key];
+});
+
+export = strings;

@@ -28,8 +28,9 @@
 window.setTimeout(function () {
     "use strict";
 
-    var key, missingDeps = "";
-    var deps = { "jQuery": window.$, "RequireJS": window.require };
+    let key;
+    let missingDeps = "";
+    const deps = { "jQuery": window.$, "RequireJS": window.require };
 
     for (key in deps) {
         if (deps.hasOwnProperty(key) && !deps[key]) {
@@ -38,13 +39,13 @@ window.setTimeout(function () {
     }
 
     if (missingDeps.length > 0) {
-        var str = "<h1>Missing libraries</h1>" +
-                  "<p>Oops! One or more required libraries could not be found.</p>" +
-                  "<ul>" + missingDeps + "</ul>" +
-                  "<p>If you're running from a local copy of the Brackets source, please make sure submodules are updated by running:</p>" +
-                  "<pre>git submodule update --init</pre>" +
-                  "<p>If you're still having problems, please contact us via one of the channels mentioned at the bottom of the <a target=\"blank\" href=\"../README.md\">README</a>.</p>" +
-                  "<p><a href=\"#\" onclick=\"window.location.reload()\">Reload Brackets</a></p>";
+        const str = "<h1>Missing libraries</h1>" +
+                    "<p>Oops! One or more required libraries could not be found.</p>" +
+                    "<ul>" + missingDeps + "</ul>" +
+                    "<p>If you're running from a local copy of the Brackets source, please make sure submodules are updated by running:</p>" +
+                    "<pre>git submodule update --init</pre>" +
+                    "<p>If you're still having problems, please contact us via one of the channels mentioned at the bottom of the <a target=\"blank\" href=\"../README.md\">README</a>.</p>" +
+                    "<p><a href=\"#\" onclick=\"window.location.reload()\">Reload Brackets</a></p>";
 
         window.document.write(str);
     }
