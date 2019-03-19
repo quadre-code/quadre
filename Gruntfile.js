@@ -201,12 +201,4 @@ module.exports = function (grunt) {
             linux: "<%= shell.repo %>/installer/linux/debian/package-root/opt/brackets/brackets"
         }
     });
-
-    // task: build - build stuff into dist folder
-    grunt.registerTask("build", [
-        // "npm-install-dist",
-        // "npm-install-extensions-dist",
-        // "copy:thirdparty",
-        "webpack-browser-dependencies"
-    ]);
 };

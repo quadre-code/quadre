@@ -11,6 +11,7 @@ const gulp = require("gulp");
     "./tasks/npm-install",
     "./tasks/test",
     "./tasks/watch",
+    "./tasks/webpack",
     "./tasks/write-config"
 ].forEach((taskfile) => {
     require(taskfile);
@@ -21,15 +22,13 @@ gulp.task("install", gulp.series(
     "write-config:dist",
     "less",
     "npm-download-default-extensions",
-    "npm-install-source"
-    // "pack-web-dependencies"
+    "npm-install-source",
+    "webpack-browser-dependencies"
 ));
 
 gulp.task("build", gulp.series(
     "npm-install-dist",
     "npm-install-extensions-dist"
-    // "copy:thirdparty",
-    // "webpack-browser-dependencies"
 ));
 
 // task: optimize - optimize contents of dist folder

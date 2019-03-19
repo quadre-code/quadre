@@ -24,6 +24,9 @@ package-lock.json
 /src/thirdparty/react-dom.js
 /src/thirdparty/react.js
 
+# Files build by scripts
+/src/thirdparty/semver.browser.js
+
 # ignore compiled files
 /dist/
 /dist-build/
@@ -61,6 +64,3 @@ package-lock.json
 
 # Files that can be automatically downloaded that we don't want to ship with our builds
 /src/extensibility/node/node_modules/request/tests/
-
-# Files build by scripts
-/src/thirdparty/semver.browser.js

@@ -51,7 +51,7 @@
   "scripts": {
     "postinstall": "gulp install",
     "tsc": "tsc --project app && tsc --project src",
-    "build": "rimraf ./dist && gulp copy-src-dist && gulp build && grunt build && npm run tsc",
+    "build": "rimraf ./dist && gulp copy-src-dist && gulp build && npm run tsc",
     "build-optimized": "npm run build && gulp optimize",
     "test": "npm run tslint",
     "tslint:app": "tslint -c tslint.json --project app/tsconfig.json -t stylish",
@@ -145,7 +145,8 @@
     "tar": "^4.4.8",
     "tslint": "^5.13.0",
     "typescript": "~3.3.3",
-    "webpack": "2.4.1",
+    "webpack": "^4.29.6",
+    "webpack-cli": "^3.3.0",
     "xmldoc": "0.1.2"
   }
 }
