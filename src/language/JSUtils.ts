@@ -182,9 +182,9 @@ function _findAllFunctionsInText(text) {
 export function _getFunctionEndOffset(text, offsetStart) {
     const mode = CodeMirror.getMode({}, "javascript");
     const state = CodeMirror.startState(mode);
-    let stream;
+    let stream: CodeMirror.StringStream;
     let style;
-    let token;
+    let token: string;
     let curOffset = offsetStart;
     const length = text.length;
     let blockCount = 0;
@@ -233,7 +233,7 @@ export function _getFunctionEndOffset(text, offsetStart) {
 
     while (nextToken()) {
         if (style !== "comment" && style !== "regexp" && style !== "string" && style !== "string-2") {
-            if (token === "{") {
+            if (token! === "{") {
                 foundStartBrace = true;
                 blockCount++;
             } else if (token === "}") {

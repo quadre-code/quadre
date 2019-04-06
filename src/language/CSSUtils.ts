@@ -832,13 +832,13 @@ export function getCompleteSelectors(info: SelectorInfo, useGroup?) {
  */
 export function extractAllSelectors(text, documentMode?): Array<SelectorInfo> {
     let state;
-    let lines;
-    let lineCount;
-    let token;
+    let lines: Array<string>;
+    let lineCount: number;
+    let token: string;
     // @ts-ignore
     let style; // eslint-disable-line @typescript-eslint/no-unused-vars
-    let stream;
-    let line;
+    let stream: CodeMirror.StringStream;
+    let line: number;
     const selectors: Array<SelectorInfo> = [];
     const mode                   = CodeMirror.getMode({indentUnit: 2}, documentMode || "css");
     let currentSelector        = "";
