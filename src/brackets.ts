@@ -51,6 +51,7 @@ import "thirdparty/CodeMirror/addon/mode/overlay";
 import "thirdparty/CodeMirror/addon/mode/simple";
 import "thirdparty/CodeMirror/addon/scroll/scrollpastend";
 import "thirdparty/CodeMirror/addon/search/match-highlighter";
+import "thirdparty/CodeMirror/addon/search/matchesonscrollbar";
 import "thirdparty/CodeMirror/addon/search/searchcursor";
 import "thirdparty/CodeMirror/addon/selection/active-line";
 import "thirdparty/CodeMirror/addon/selection/mark-selection";

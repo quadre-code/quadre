@@ -204,18 +204,38 @@ PreferencesManager.definePreference(EditorOptions.CLOSE_TAGS,         "object", 
 PreferencesManager.definePreference(EditorOptions.DRAG_DROP,          "boolean", false, {
     description: Strings.DESCRIPTION_DRAG_DROP_TEXT
 });
-PreferencesManager.definePreference(EditorOptions.HIGHLIGHT_MATCHES,  "boolean", false, {
+PreferencesManager.definePreference(EditorOptions.HIGHLIGHT_MATCHES,  "boolean", { showToken: true, wordsOnly: true, trim: true, minChars: 2, delay: 100, annotateScrollbar: true }, {
     description: Strings.DESCRIPTION_HIGHLIGHT_MATCHES,
     keys: {
         showToken: {
             type: "boolean",
             description: Strings.DESCRIPTION_HIGHLIGHT_MATCHES_SHOW_TOKEN,
-            initial: false
+            initial: true
         },
         wordsOnly: {
             type: "boolean",
             description: Strings.DESCRIPTION_HIGHLIGHT_MATCHES_WORDS_ONLY,
-            initial: false
+            initial: true
+        },
+        trim: {
+            type: "boolean",
+            description: Strings.DESCRIPTION_HIGHLIGHT_MATCHES_TRIM,
+            initial: true
+        },
+        minChars: {
+            type: "number",
+            description: Strings.DESCRIPTION_HIGHLIGHT_MATCHES_MIN_CHARS,
+            initial: 2
+        },
+        delay: {
+            type: "number",
+            description: Strings.DESCRIPTION_HIGHLIGHT_MATCHES_DELAY,
+            initial: 100
+        },
+        annotateScrollbar: {
+            type: "boolean",
+            description: Strings.DESCRIPTION_HIGHLIGHT_MATCHES_ANNOTATE_SCROLLBAR,
+            initial: true
         }
     }
 });
