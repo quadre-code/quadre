@@ -18,7 +18,7 @@ gulp.task("less", function () {
         .pipe(sourcemaps.init())
         .pipe(less({
             paths: [
-                path.join(__dirname, "src", "styles")
+                path.join(__dirname, "dist", "www", "styles")
             ]
         }))
         .pipe(cleanCSS({ compatibility: "ie7" }))
@@ -26,5 +26,5 @@ gulp.task("less", function () {
             suffix: ".min"
         }))
         .pipe(sourcemaps.write("."))
-        .pipe(gulp.dest("src/styles"));
+        .pipe(gulp.dest("dist/www/styles"));
 });

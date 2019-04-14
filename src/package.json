@@ -6,14 +6,14 @@
     "codemirror-addon-toggle-comment": "~0.6.0",
     "create-react-class": "15.6.3",
     "immutable": "3.8.2",
-    "less": "2.7.3",
+    "less": "^3.9.0",
     "react": "16.2.0",
     "react-dom": "16.2.0"
   },
   "devDependencies": {
     "@types/codemirror": "0.0.74",
     "@types/jquery": "^2.0.41",
-    "@types/less": "0.0.34",
+    "@types/less": "^3.0.0",
     "@types/lodash": "^3.10.2",
     "@types/react": "^16.0.38",
     "@types/react-dom": "^16.0.4",

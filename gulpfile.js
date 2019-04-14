@@ -20,7 +20,6 @@ const gulp = require("gulp");
 
 gulp.task("install", gulp.series(
     "write-config:dist",
-    "less",
     "npm-download-default-extensions",
     "npm-install-source",
     "webpack-browser-dependencies"
@@ -28,7 +27,8 @@ gulp.task("install", gulp.series(
 
 gulp.task("build", gulp.series(
     "npm-install-dist",
-    "npm-install-extensions-dist"
+    "npm-install-extensions-dist",
+    "less"
 ));
 
 // task: optimize - optimize contents of dist folder

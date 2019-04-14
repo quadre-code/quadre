@@ -31,8 +31,6 @@ package-lock.json
 /dist/
 /dist-build/
 /src/.index.html
-/src/styles/brackets.min.css
-/src/styles/brackets.min.css.map
 
 # ignore everything in the dev extension directory EXCEPT the README
 # (so that the directory is non-empty and can be in git)
