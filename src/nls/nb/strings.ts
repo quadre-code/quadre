@@ -524,9 +524,6 @@ export = {
     "CMD_SHOW_PARAMETER_HINT"                   : "Vis parameter hint",
     "NO_ARGUMENTS"                              : "<ingen parametere>",
 
-    // extensions/default/JSLint
-    "JSLINT_NAME"                               : "JSLint",
-
     // extensions/default/QuickView
     "CMD_ENABLE_QUICK_VIEW"                     : "Quick View ved hovring",
 

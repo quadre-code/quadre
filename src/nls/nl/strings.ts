@@ -629,9 +629,6 @@ export = {
     "DETECTED_EXCLUSION_TITLE"                  : "JavaScript File Inference Problem",
     "DETECTED_EXCLUSION_INFO"                   : "{APP_NAME} kwam in de problemen met het verwerken van <span class='dialog-filename'>{0}</span>.<br><br>Dit bestand wordt niet verder verwerkt voor \"code hints\", \"Jump to Definition\" of \"Quick Edit\". Om het bestand weer te activeren, open <code>brackets.json</code> in je project en bewerkt <code>jscodehints.detectedExclusions</code>.<br><br>Dit is vermoedelijk een bug in {APP_NAME}. Indien mogelijk kun je een kopie van het bestand sturen naar <a href='https://github.com/adobe/brackets/wiki/How-to-Report-an-Issue'>\"rapporteer een bug\"</a> met een link naar het bestand.",
 
-    // extensions/default/JSLint
-    "JSLINT_NAME"                               : "JSLint",
-
     // extensions/default/QuickView
     "CMD_ENABLE_QUICK_VIEW"                     : "Snel bekijken bij muis over",
 

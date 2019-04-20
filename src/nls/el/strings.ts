@@ -490,9 +490,6 @@ export = {
     "CMD_SHOW_PARAMETER_HINT"                   : "Προβολή Υποδείξεων Παραμέτρων",
     "NO_ARGUMENTS"                              : "<χωρίς παραμέτρους>",
 
-    // extensions/default/JSLint
-    "JSLINT_NAME"                               : "JSLint",
-
     // extensions/default/QuickView
     "CMD_ENABLE_QUICK_VIEW"                     : "Γρήγορη Προβολή στο Hover",
 

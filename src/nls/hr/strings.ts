@@ -550,9 +550,6 @@ export = {
     "CMD_SHOW_PARAMETER_HINT"                   : "Pokaži naznake (hintove) parametara",
     "NO_ARGUMENTS"                              : "<bez parametara>",
 
-    // extensions/default/JSLint
-    "JSLINT_NAME"                               : "JSLint",
-
     // extensions/default/QuickView
     "CMD_ENABLE_QUICK_VIEW"                     : "Brzi 'lebdeći' (hover) prikaz",
 

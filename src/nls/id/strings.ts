@@ -610,9 +610,6 @@ export = {
     "DETECTED_EXCLUSION_TITLE"                  : "Masalah Inferensi File JavaScript",
     "DETECTED_EXCLUSION_INFO"                   : "Brackets mengalami masalah dalam memproses <span class='dialog-filename'>{0}</span>.<br><br>File ini tidak akan lagi diproses untuk Petunjuk Kode, Lompat ke Definisi atau Edit Cepat. Untuk mengaktifkan kembali file ini, buka <code>.brackets.json</code> pada proyek Anda dan ubah <code>jscodehints.detectedExclusions</code>.<br><br>Kemungkinan ini adalah bug pada Brackets. Jika Anda dapat memberikan salinan file ini, <a href='https://github.com/adobe/brackets/wiki/How-to-Report-an-Issue'>laporkan bug/a> dengan tautan ke file yang disebutkan di sini.",
 
-    // extensions/default/JSLint
-    "JSLINT_NAME"                               : "JSLint",
-
     // extensions/default/QuickView
     "CMD_ENABLE_QUICK_VIEW"                     : "Tampilkan Cepat Saat Hover",
 

@@ -609,9 +609,6 @@ export = {
     "DETECTED_EXCLUSION_TITLE"                  : "Problemă de inferență a fișierelu JavaScript",
     "DETECTED_EXCLUSION_INFO"                   : "Brackets a întâlnit probleme la procesarea:<br><br>{0}<br><br>Acest fișier nu va mai fi procesat pentru indicii de cod și definiții. Pentru a reactiva acest funcțional, deschideți <code>.brackets.json</code> din proiect și eliminați fișierul din jscodehints.detectedExclusions.",
 
-    // extensions/default/JSLint
-    "JSLINT_NAME"                               : "JSLint",
-
     // extensions/default/QuickView
     "CMD_ENABLE_QUICK_VIEW"                     : "Activare Quick View",
 

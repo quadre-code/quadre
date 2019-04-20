@@ -544,9 +544,6 @@ export = {
     "CMD_SHOW_PARAMETER_HINT"                   : "Показывать подсказки по аргументам функции",
     "NO_ARGUMENTS"                              : "<нет аргументов>",
 
-    // extensions/default/JSLint
-    "JSLINT_NAME"                               : "JSLint",
-
     // extensions/default/QuickView
     "CMD_ENABLE_QUICK_VIEW"                     : "Быстрый просмотр при наведении",
 

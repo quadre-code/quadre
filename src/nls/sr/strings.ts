@@ -609,9 +609,6 @@ export = {
     "DETECTED_EXCLUSION_TITLE"                  : "Проблем у обради JavaScript датотеке",
     "DETECTED_EXCLUSION_INFO"                   : "Brackets није успео да процесуира <span class='dialog-filename'>{0}</span>.<br><br>Ова датотека више неће бити процесуирана за приказивање малих помоћи у кôду, Скочи на дефиницију или Брза измена. Како бисте активирали ову датотеку, отворите <code>.brackets.json</code> у Вашем пројекту и измените <code>jscodehints.detectedExclusions</code>.<br><br>Ово је вероватно баг у апликацији Brackets. Ако можете приложити копију ове датотеке, молимо Вас <a href='https://github.com/adobe/brackets/wiki/How-to-Report-an-Issue'>пријавите баг</a> који садржи линк до овде наведене датотеке.",
 
-    // extensions/default/JSLint
-    "JSLINT_NAME"                               : "JSLint",
-
     // extensions/default/QuickView
     "CMD_ENABLE_QUICK_VIEW"                     : "Брзи приказ приликом задржавања миша",
 

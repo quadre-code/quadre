@@ -652,9 +652,6 @@ export = {
     "DETECTED_EXCLUSION_TITLE"                  : "Problem att slutleda JavaScript-fil",
     "DETECTED_EXCLUSION_INFO"                   : "Brackets stötte på processeringsfel:<br><br>{0}<br><br>Denna fil kommer inte längre genomsökas efter kodförslag eller definitioner. Öppna <code>.brackets.json</code> och ta bort filen från jscodehints.detectedExclusions för att återställa detta.",
 
-    // extensions/default/JSLint
-    "JSLINT_NAME"                               : "JSLint",
-
     // extensions/default/QuickView
     "CMD_ENABLE_QUICK_VIEW"                     : "Quick View vid hover",
 

@@ -597,9 +597,6 @@ export = {
     "DETECTED_EXCLUSION_TITLE"                  : "Problema de inferencia con un arquivo JavaScript",
     "DETECTED_EXCLUSION_INFO"                   : "Brackets atopouse con problemas procesando:<br><br>{0}<br><br>Este arquivo non volverá a ser procesado para as suxerencias de código e saltar á definición. Para reactivarlo, abre <code>.brackets.json</code> no seu proxecto e elimina o arquivo de jscodehints.detectedExclusions.",
 
-    // extensions/default/JSLint
-    "JSLINT_NAME"                               : "JSLint",
-
     // extensions/default/QuickView
     "CMD_ENABLE_QUICK_VIEW"                     : "Vista rápida co cursor",
 

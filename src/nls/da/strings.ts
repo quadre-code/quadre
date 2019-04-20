@@ -547,9 +547,6 @@ export = {
     "CMD_SHOW_PARAMETER_HINT"                   : "Vis parameterhjælp",
     "NO_ARGUMENTS"                              : "<ingen parametre>",
 
-    // extensions/default/JSLint
-    "JSLINT_NAME"                               : "JSLint",
-
     // extensions/default/QuickView
     "CMD_ENABLE_QUICK_VIEW"                     : "Lyn-visning af det du peger på",
 

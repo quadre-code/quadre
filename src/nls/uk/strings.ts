@@ -609,9 +609,6 @@ export = {
     "DETECTED_EXCLUSION_TITLE"                  : "Помилка виведення файлу JavaScript",
     "DETECTED_EXCLUSION_INFO"                   : "Brackets зіткнувся з проблемою під час обробки <span class='dialog-filename'>{0}</span>.<br><br>Для цього файлу більше не працюватиме аналіз, перехід до оголошень та швидке редагування. Аби повернути їх, відкрийте <code>.brackets.json</code> у теці свого проекту та відредагуйте параметр <code>jscodehints.detectedExclusions</code>. <br><br> Це схоже на ваду у Brackets. Якщо ви можете надати копію цього файлу, будь ласка, <a href='https://github.com/adobe/brackets/wiki/How-to-Report-an-Issue'>сповістіть про ваду</a> та вкажіть посилання на нього.",
 
-    // extensions/default/JSLint
-    "JSLINT_NAME"                               : "JSLint",
-
     // extensions/default/QuickView
     "CMD_ENABLE_QUICK_VIEW"                     : "Швидкий перегляд під час наведення",
 

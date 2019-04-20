@@ -612,9 +612,6 @@ export = {
     "DETECTED_EXCLUSION_TITLE"                  : "خطای منطقی در پرونده جاوا اسکریپت",
     "DETECTED_EXCLUSION_INFO"                   : "براکتس در حال انجام یک پردازش مشکل دار با پرونده <span class='dialog-filename'>{0}</span> است.<br><br>این پرونده اشاره گرهای کدها را بطور کامل نشان نخواهد داد, برای این منظور میتوانید از حالت تعریف یا ویرایش سریع استفاده نمایید. جهت فعال سازی دوباره این پرونده, <code>.brackets.json</code> را در پروژه خود باز کنید و <code>jscodehints.detectedExclusions</code> را ویرایش نمایید.<br><br>این مشکل میتواند یک Bug در براکتس باشد. اگر مشکلی در ارائه این پرونده به ما ندارید, لطفا گزارش <a href='https://github.com/adobe/brackets/wiki/How-to-Report-an-Issue'>پرونده دارای اشکال</a> را با یک لینک به پرونده جهت بررسی ثبت نمایید.",
 
-    // extensions/default/JSLint
-    "JSLINT_NAME"                               : "JSLint",
-
     // extensions/default/QuickView
     "CMD_ENABLE_QUICK_VIEW"                     : "مشاهده سریع بهنگام اشاره با ماوس",
 
