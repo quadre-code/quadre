@@ -550,7 +550,7 @@ class FileNode extends React.Component<IFileNodeProps, IFileNodeState> {
             // start with project-files-container instead of just the interior of
             // project-files-container and then the file tree will be one self-contained
             // functional unit.
-            ViewUtils.scrollElementIntoView($("#project-files-container"), $(ReactDOM.findDOMNode(this)), true);
+            ViewUtils.scrollElementIntoView($("#project-files-container"), $(ReactDOM.findDOMNode(this)!), true);
         } else if (!isSelected && wasSelected && this.state.clickTimer !== null) {
             this.clearTimer();
         }
@@ -1048,7 +1048,7 @@ class FileSelectionBox extends React.Component<IFileSelectionBoxProps, {}> {
             return;
         }
 
-        const node = ReactDOM.findDOMNode(this);
+        const node = ReactDOM.findDOMNode(this)!;
         const selectedNode = $(node.parentNode as HTMLElement).find(this.props.selectedClassName);
         const selectionViewInfo = this.props.selectionViewInfo;
 
@@ -1101,7 +1101,7 @@ class SelectionExtension extends React.Component<ISelectionExtensionProps, {}> {
             return;
         }
 
-        const node = ReactDOM.findDOMNode(this);
+        const node = ReactDOM.findDOMNode(this)!;
         const selectedNode = $(node.parentNode as HTMLElement).find(this.props.selectedClassName).closest("li");
         const selectionViewInfo = this.props.selectionViewInfo;
 

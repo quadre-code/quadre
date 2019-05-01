@@ -418,10 +418,10 @@ define(function (require, exports, module) {
 
                 runs(function () {
                     var editor = EditorManager.getCurrentFullEditor();
-                    checkCloseBraces(editor, {line: 0, ch: 0}, null, OPEN_BRACKET, "[]var myContent = \"This is awesome!\";");
-                    checkCloseBraces(editor, {line: 0, ch: 17}, null, OPEN_BRACKET, "[]var myContent =[] \"This is awesome!\";");
-                    checkCloseBraces(editor, {line: 0, ch: 18}, null, OPEN_BRACKET, "[]var myContent =[[]] \"This is awesome!\";");
-                    checkCloseBraces(editor, {line: 0, ch: 41}, null, OPEN_BRACKET, "[]var myContent =[[]] \"This is awesome!\";[]");
+                    checkCloseBraces(editor, {line: 0, ch: 0}, null, OPEN_BRACKET, "var myContent = \"This is awesome!\";");
+                    checkCloseBraces(editor, {line: 0, ch: 15}, null, OPEN_BRACKET, "var myContent =[] \"This is awesome!\";");
+                    checkCloseBraces(editor, {line: 0, ch: 16}, null, OPEN_BRACKET, "var myContent =[[]] \"This is awesome!\";");
+                    checkCloseBraces(editor, {line: 0, ch: 39}, null, OPEN_BRACKET, "var myContent =[[]] \"This is awesome!\";[]");
                 });
             });
 
