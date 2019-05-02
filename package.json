@@ -75,7 +75,7 @@
   },
   "defaultExtensions": {
     "quadre-eslint": "5.1.0",
-    "quadre-git": "1.0.0-alpha.2"
+    "quadre-git": "1.0.0-alpha.3"
   },
   "dependencies": {
     "anymatch": "1.3.0",
