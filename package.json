@@ -21,7 +21,42 @@
   "build": {
     "appId": "com.squirrel.quadre.Quadre",
     "asar": false,
-    "files": [],
+    "files": [
+      "**/*",
+      "!**/node_modules/*/{CHANGELOG.md,README.md,README,readme.md,readme}",
+      "!**/node_modules/*/{test,__tests__,tests,powered-test,example,examples}",
+      "!**/node_modules/*.d.ts",
+      "!**/node_modules/.bin",
+      "!**/*.{iml,o,hprof,orig,pyc,pyo,rbc,swp,csproj,sln,xproj}",
+      "!.editorconfig",
+      "!**/._*",
+      "!**/{.DS_Store,.git,.hg,.svn,CVS,RCS,SCCS,.gitignore,.gitattributes}",
+      "!**/{__pycache__,thumbs.db,.flowconfig,.idea,.vs,.nyc_output}",
+      "!**/{appveyor.yml,.travis.yml,circle.yml}",
+      "!**/{npm-debug.log,yarn.lock,.yarn-integrity,.yarn-metadata.json}",
+      {
+        "from": "www/extensions/default/quadre-git/node_modules",
+        "to": "www/extensions/default/quadre-git/node_modules",
+        "filter": ["*/**", "!.bin/**"]
+      },
+      {
+        "from": "www/extensions/default/quadre-eslint/node_modules",
+        "to": "www/extensions/default/quadre-eslint/node_modules",
+        "filter": ["*/**", "!.bin/**"]
+      },
+      {
+        "from": "www/extensions/default/JavaScriptCodeHints/node_modules",
+        "to": "www/extensions/default/JavaScriptCodeHints/node_modules",
+        "filter": ["*/**", "!.bin/**"]
+      },
+      {
+        "from": "www/extensions/default/StaticServer/node/node_modules",
+        "to": "www/extensions/default/StaticServer/node/node_modules",
+        "filter": ["*/**", "!.bin/**"]
+      }
+
+      
+    ],
     "npmRebuild": true,
     "directories": {
       "buildResources": "build",
@@ -107,7 +142,7 @@
     "concurrently": "^4.1.0",
     "cross-spawn": "^6.0.5",
     "electron": "^5.0.0",
-    "electron-builder": "20.15.0",
+    "electron-builder": "^20.38.2",
     "electron-packager": "^13.1.1",
     "electron-rebuild": "^1.8.4",
     "eslint": "^5.16.0",
