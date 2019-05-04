@@ -1,0 +1,6 @@
+{
+    "name": "static-server",
+    "dependencies": {
+        "connect": "^2.9.0"
+    }
+}
