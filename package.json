@@ -5,7 +5,7 @@
   "author": "Quadre Team <ficristo.work@gmail.com>",
   "license": "MIT",
   "homepage": "https://github.com/quadre-code/quadre",
-  "version": "2.0.0-alpha.5",
+  "version": "2.0.0-alpha.6",
   "apiVersion": "1.10.0",
   "issues": {
     "url": "https://github.com/quadre-code/quadre/issues"
@@ -37,22 +37,34 @@
       {
         "from": "www/extensions/default/quadre-git/node_modules",
         "to": "www/extensions/default/quadre-git/node_modules",
-        "filter": ["*/**", "!.bin/**"]
+        "filter": [
+          "*/**",
+          "!.bin/**"
+        ]
       },
       {
         "from": "www/extensions/default/quadre-eslint/node_modules",
         "to": "www/extensions/default/quadre-eslint/node_modules",
-        "filter": ["*/**", "!.bin/**"]
+        "filter": [
+          "*/**",
+          "!.bin/**"
+        ]
       },
       {
         "from": "www/extensions/default/JavaScriptCodeHints/node_modules",
         "to": "www/extensions/default/JavaScriptCodeHints/node_modules",
-        "filter": ["*/**", "!.bin/**"]
+        "filter": [
+          "*/**",
+          "!.bin/**"
+        ]
       },
       {
         "from": "www/extensions/default/StaticServer/node/node_modules",
         "to": "www/extensions/default/StaticServer/node/node_modules",
-        "filter": ["*/**", "!.bin/**"]
+        "filter": [
+          "*/**",
+          "!.bin/**"
+        ]
       }
     ],
     "npmRebuild": true,
