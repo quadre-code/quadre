@@ -30,7 +30,7 @@ var http     = require("http"),
     pathJoin = require("path").join,
     connect  = require("connect"),
     utils    = require("connect/lib/utils"),
-    mime     = require("connect/node_modules/send/node_modules/mime"),
+    mime     = require("mime"),
     parse    = utils.parseUrl;
 
 var _domainManager;
