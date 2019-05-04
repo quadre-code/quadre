@@ -54,8 +54,6 @@
         "to": "www/extensions/default/StaticServer/node/node_modules",
         "filter": ["*/**", "!.bin/**"]
       }
-
-      
     ],
     "npmRebuild": true,
     "directories": {

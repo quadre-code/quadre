@@ -1,3 +1,14 @@
+## v2.0.0-alpha.5 (2019-05-04)
+
+Update CodeMirror to 5.46.0
+
+Remove https://github.com/yaddran/brackets-occurrences-marker and instead rely on CodeMirror addon
+
+More convertion of the code base to TypeScript
+
+Convert all scripts to grunt
+
+
 ## v2.0.0-alpha.4 (2019-02-25)
 
 Update CodeMirror to 5.44.0
