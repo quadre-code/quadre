@@ -23,15 +23,16 @@
  */
 
 /*eslint-env node */
-/*jslint node: true */
 "use strict";
 
-var http     = require("http"),
-    pathJoin = require("path").join,
-    connect  = require("connect"),
-    utils    = require("connect/lib/utils"),
-    mime     = require("mime"),
-    parse    = utils.parseUrl;
+var http        = require("http"),
+    pathJoin    = require("path").join,
+    connect     = require("connect"),
+    pauseLib    = require("pause"),
+    serveStatic = require("serve-static"),
+    serveIndex  = require("serve-index"),
+    mime        = require("mime"),
+    parseurl    = require("parseurl");
 
 var _domainManager;
 
@@ -143,7 +144,7 @@ function _createServer(path, port, createCompleteCallback) {
     }
 
     function rewrite(req, res, next) {
-        var location = {pathname: parse(req).pathname},
+        var location = {pathname: parseurl(req).pathname},
             hasListener = _rewritePaths[pathKey] && _rewritePaths[pathKey][location.pathname],
             requestId = _filterRequestCounter++,
             timeoutId;
@@ -155,7 +156,7 @@ function _createServer(path, port, createCompleteCallback) {
         }
 
         // pause the request and wait for listeners to possibly respond
-        var pause = utils.pause(req);
+        var pause = pauseLib(req);
 
         function resume(doNext) {
             // delete the callback after it's used or we hit the timeout.
@@ -178,8 +179,9 @@ function _createServer(path, port, createCompleteCallback) {
             // response data is optional
             if (resData.body) {
                 // HTTP headers
-                var type    = mime.lookup(location.pathname),
-                    charset = mime.charsets.lookup(type);
+                var type    = mime.getType(location.pathname);
+                // Assume text types are utf8
+                var charset = (/^text\/|^application\/(javascript|json)/).test(type) ? "UTF-8" : "";
 
                 res.setHeader("Content-Type", type + (charset ? "; charset=" + charset : ""));
 
@@ -215,10 +217,8 @@ function _createServer(path, port, createCompleteCallback) {
 
     app = connect();
     app.use(rewrite);
-    // JSLint complains if we use `connect.static` because static is a
-    // reserved word.
-    app.use(connect["static"](path, { maxAge: STATIC_CACHE_MAX_AGE }));
-    app.use(connect.directory(path));
+    app.use(serveStatic(path, { maxAge: STATIC_CACHE_MAX_AGE }));
+    app.use(serveIndex(path));
 
     server = http.createServer(app);
 

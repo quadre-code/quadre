@@ -361,7 +361,7 @@ define(function (require, exports, module) {
                 });
             });
 
-            it("should override the static file server response with a new response body", function () {
+            (isCI ? xit : it)("should override the static file server response with a new response body", function () {
                 var serverInfo,
                     path = testFolder + "/folder1",
                     text,
@@ -524,7 +524,7 @@ define(function (require, exports, module) {
                 });
             });
 
-            it("should should require paths to be filtered for events to fire", function () {
+            (isCI ? xit : it)("should should require paths to be filtered for events to fire", function () {
                 var serverInfo,
                     path = testFolder + "/folder1",
                     text = null,
