@@ -1304,7 +1304,7 @@ function _getUserKeyMapFilePath() {
  */
 function _readUserKeyMap(): JQueryPromise<UserKeyBinding> {
     const file   = FileSystem.getFileForPath(_getUserKeyMapFilePath());
-    const result = $.Deferred();
+    const result = $.Deferred<UserKeyBinding>();
 
     file.exists(function (err, doesExist) {
         if (doesExist) {

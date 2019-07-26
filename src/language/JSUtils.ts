@@ -236,7 +236,7 @@ export function _getFunctionEndOffset(text, offsetStart) {
             if (token! === "{") {
                 foundStartBrace = true;
                 blockCount++;
-            } else if (token === "}") {
+            } else if (token! === "}") {
                 blockCount--;
             }
         }
