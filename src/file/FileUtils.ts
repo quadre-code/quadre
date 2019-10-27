@@ -23,7 +23,6 @@
  */
 
 /*jslint regexp: true */
-/*global unescape */
 
 /**
  * Set of utilities for working with files and text content.

@@ -22,7 +22,7 @@
  *
  */
 
-/*global self, importScripts, require */
+/*global self, importScripts */
 
 importScripts("thirdparty/requirejs/require.js");
 

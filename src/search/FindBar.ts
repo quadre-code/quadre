@@ -648,7 +648,7 @@ export class FindBar {
      * @param {boolean} enable Whether to enable the controls.
      */
     public enableReplace(enable) {
-        if (this.isEnabled) {
+        if (this.isEnabled()) {
             this.$("#replace-yes, #replace-batch, #replace-all").prop("disabled", !enable);
         }
     }

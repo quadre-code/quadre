@@ -22,7 +22,6 @@
  *
  */
 
-/*global appshell */
 /*unittests: Preferences Base */
 
 /**
