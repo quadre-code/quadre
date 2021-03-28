@@ -22,18 +22,15 @@
  *
  */
 
-/*eslint-env node */
-/*jslint node: true */
+/* eslint-env node */
 
-"use strict";
+import * as fspath from "path";
+import * as chokidar from "chokidar";
+import * as FileWatcherManager from "./FileWatcherManager";
 
-var fspath = require("path");
-var chokidar = require("chokidar");
-var FileWatcherManager = require("./FileWatcherManager");
-
-function watchPath(path, ignored, _watcherMap) {
+export function watchPath(path: string, ignored: Array<string>, _watcherMap: any) {
     try {
-        var watcher = chokidar.watch(path, {
+        const watcher = chokidar.watch(path, {
             persistent: true,
             ignoreInitial: true,
             ignorePermissionErrors: true,
@@ -44,7 +41,7 @@ function watchPath(path, ignored, _watcherMap) {
         });
 
         watcher.on("all", function (type, filename, nodeFsStats) {
-            var event;
+            let event;
             switch (type) {
                 case "change":
                     event = "changed";
@@ -65,8 +62,8 @@ function watchPath(path, ignored, _watcherMap) {
             }
             // make sure it's normalized
             filename = filename.replace(/\\/g, "/");
-            var parentDirPath = fspath.dirname(filename) + "/";
-            var entryName = fspath.basename(filename);
+            const parentDirPath = fspath.dirname(filename) + "/";
+            const entryName = fspath.basename(filename);
             FileWatcherManager.emitChange(event, parentDirPath, entryName, nodeFsStats);
         });
 
@@ -80,5 +77,3 @@ function watchPath(path, ignored, _watcherMap) {
         console.warn("Failed to watch file " + path + ": " + (err && err.message));
     }
 }
-
-exports.watchPath = watchPath;

@@ -23,12 +23,9 @@
  */
 
 /*eslint-env node */
-/*jslint node: true */
 
-"use strict";
-
-var watcherManager = require("./FileWatcherManager");
-var watcherImpl;
+const watcherManager = require("./FileWatcherManager");
+let watcherImpl!: any;
 if (process.platform === "win32") {
     watcherImpl = require("./CSharpWatcher");
 } else {
@@ -39,7 +36,7 @@ if (process.platform === "win32") {
  * Initialize the "fileWatcher" domain.
  * The fileWatcher domain handles watching and un-watching directories.
  */
-function init(domainManager) {
+export function init(domainManager: any) {
     if (!domainManager.hasDomain("fileWatcher")) {
         domainManager.registerDomain("fileWatcher", {major: 0, minor: 1});
     }
@@ -94,5 +91,3 @@ function init(domainManager) {
     watcherManager.setWatcherImpl(watcherImpl);
 
 }
-
-exports.init = init;

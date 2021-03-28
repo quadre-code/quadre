@@ -27,46 +27,42 @@
  * https://github.com/Microsoft/vscode/blob/314e122b16c5c1ca0288c8006e9c9c3039a51cd7/src/vs/workbench/services/files/node/watcher/win32/csharpWatcherService.ts
  */
 
-/*eslint-env node */
-/*jslint node: true */
+/* eslint-env node */
 
-"use strict";
+import * as fs from "fs";
+import * as fspath from "path";
+import * as cp from "child_process";
+import * as anymatch from "anymatch";
+import * as FileWatcherManager from "./FileWatcherManager";
 
-var fs = require("fs");
-var fspath = require("path");
-var cp = require("child_process");
-var anymatch = require("anymatch");
-var FileWatcherManager = require("./FileWatcherManager");
-
-function buildMatcher(ignored) {
+function buildMatcher(ignored: Array<string>) {
     // in case of a glob like **/.git we want also to ignore its contents **/.git/**
     return anymatch(ignored.concat(ignored.map(function (glob) {
         return glob + "/**";
     })));
 }
 
-function watchPath(path, ignored, _watcherMap) {
+export function watchPath(path: string, ignored: Array<string>, _watcherMap: any) {
+    const ignoreMatcher = buildMatcher(ignored);
+    let closing = false;
 
-    var ignoreMatcher = buildMatcher(ignored);
-    var closing = false;
-
-    function processLine(line) {
+    function processLine(line: string) {
         if (line === "") {
             return;
         }
 
-        var parts = line.split("|");
+        const parts = line.split("|");
         if (parts.length !== 2) {
             console.warn("CSharpWatcher unexpected line: '" + line + "'");
             return;
         }
 
-        var type = parseInt(parts[0], 10);
+        const type = parseInt(parts[0], 10);
         // convert it back to unix path and clear trailing whitespace
-        var absolutePath = parts[1].replace(/\\/g, "/").replace(/\s+$/g, "");
+        const absolutePath = parts[1].replace(/\\/g, "/").replace(/\s+$/g, "");
 
         // convert type to an event
-        var event;
+        let event: string;
         switch (type) {
             case 0:
                 event = "changed";
@@ -87,8 +83,8 @@ function watchPath(path, ignored, _watcherMap) {
             return;
         }
 
-        var parentDirPath = fspath.dirname(absolutePath) + "/";
-        var entryName = fspath.basename(absolutePath);
+        const parentDirPath = fspath.dirname(absolutePath) + "/";
+        const entryName = fspath.basename(absolutePath);
 
         // we need stats object for changed event
         if (event === "changed") {
@@ -103,12 +99,12 @@ function watchPath(path, ignored, _watcherMap) {
         }
     }
 
-    function onError(err) {
+    function onError(err: Error) {
         console.warn("CSharpWatcher process error: " + err.toString());
         FileWatcherManager.unwatchPath(path);
     }
 
-    function onExit(code, signal) {
+    function onExit(code: string, signal: string) {
         if (!closing || signal !== "SIGTERM") {
             console.warn("CSharpWatcher terminated unexpectedly with code: " + code + ", signal: " + signal);
         }
@@ -117,17 +113,17 @@ function watchPath(path, ignored, _watcherMap) {
 
     try {
 
-        var args = [
+        const args = [
             // fspath.resolve will normalize slashes to windows format
             fspath.resolve(path)
         ];
-        var handle = cp.spawn(fspath.resolve(__dirname, "win32", "CodeHelper.exe"), args);
+        const handle = cp.spawn(fspath.resolve(__dirname, "win32", "CodeHelper.exe"), args);
 
         // Events over stdout
         handle.stdout.on("data", function (buffer) {
-            var lines = buffer.toString("utf8").split("\n");
+            const lines = buffer.toString("utf8").split("\n");
             while (lines.length > 0) {
-                processLine(lines.shift());
+                processLine(lines.shift()!);
             }
         });
 
@@ -150,5 +146,3 @@ function watchPath(path, ignored, _watcherMap) {
         console.warn("Failed to watch file " + path + ": " + (err && err.message));
     }
 }
-
-exports.watchPath = watchPath;

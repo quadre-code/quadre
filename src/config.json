@@ -121,14 +121,14 @@
     },
     "scripts": {
         "postinstall": "gulp install",
-        "tsc": "tsc --project app && tsc --project src",
-        "build": "rimraf ./dist && gulp copy-src-dist && gulp build && npm run tsc",
+        "tsc": "tsc --project app && tsc --project src && tsc --project src/filesystem/impls/appshell/node",
+        "build": "rimraf ./dist && gulp copy-src-dist && gulp build && npm run tsc && tsc --project src/filesystem/impls/appshell/node",
         "build-optimized": "npm run build && gulp optimize",
         "test": "npm run tslint",
         "tslint:app": "tslint -c tslint.json --project app/tsconfig.json -t stylish",
         "tslint:src": "tslint -c src/tslint.json --project src/tsconfig.json -t stylish",
         "tslint": "npm run tslint:app && npm run tslint:src",
-        "dev": "concurrently --kill-others \"gulp watch\" \"tsc --watch --project app\" \"tsc --watch --project src\"",
+        "dev": "concurrently --kill-others \"gulp watch\" \"tsc --watch --project app\" \"tsc --watch --project src\" \"tsc --watch --project src/filesystem/impls/appshell/node\"",
         "start": "electron .",
         "pack": "npm run build-optimized && electron-builder --dir",
         "dist": "npm run build-optimized && electron-builder",
@@ -173,6 +173,7 @@
         "yargs": "^13.3.0"
     },
     "devDependencies": {
+        "@types/anymatch": "^1.3.1",
         "@types/fs-extra": "^8.0.0",
         "@types/lodash": "^4.14.136",
         "@types/ws": "0.0.40",
