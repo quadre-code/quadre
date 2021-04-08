@@ -33,6 +33,14 @@ define(function (require, exports, module) {
         SpecRunnerUtils     = require("spec/SpecRunnerUtils"),
         KeyEvent            = require("utils/KeyEvent");
 
+    // Verify if we are running in a CI.
+    var UrlParams = require("utils/UrlParams").UrlParams,
+        params    = new UrlParams();
+
+    // parse URL parameters
+    params.parse();
+
+    var isCI = /true/i.test(params.get("isCI"));
 
     describe("Menus (Native Shell)", function () {
 
@@ -140,7 +148,7 @@ define(function (require, exports, module) {
         });
 
 
-        describe("Context Menus", function () {
+        (isCI ? xdescribe : describe)("Context Menus", function () {
             it("register a context menu", function () {
                 var cmenu = Menus.registerContextMenu("test-cmenu50");
 

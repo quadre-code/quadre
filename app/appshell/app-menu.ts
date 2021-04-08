@@ -179,7 +179,7 @@ export function addMenu(
         const newObj = { id, label: title };
         const menuTemplate = _getOrCreateMenuTemplate(winId);
         const err = _addToPosition(newObj, menuTemplate, position || "last", relativeId);
-        const win = BrowserWindow.fromId(winId);
+        const win = BrowserWindow.fromId(winId)!;
         _refreshMenu(win, callback.bind(null, err));
     });
 }
@@ -205,7 +205,7 @@ export function addMenuItem(
     assert(!relativeId || relativeId && typeof relativeId === "string", "relativeId must be a string");
     assert(typeof callback === "function", "callback must be a function");
     process.nextTick(function () {
-        const win = BrowserWindow.fromId(winId);
+        const win = BrowserWindow.fromId(winId)!;
 
         if (typeof key === "string") {
             key = _fixBracketsKeyboardShortcut(key);
@@ -296,7 +296,7 @@ export function removeMenu(
     assert(typeof winId === "number", "winId must be a number");
     assert(commandId && typeof commandId === "string", "commandId must be a string");
     process.nextTick(function () {
-        const win = BrowserWindow.fromId(winId);
+        const win = BrowserWindow.fromId(winId)!;
         const menuTemplate = menuTemplates[winId];
         const deleted = _deleteMenuItemById(commandId, menuTemplate);
         _refreshMenu(win, callback.bind(null, deleted ? null : ERR_NOT_FOUND));
@@ -311,7 +311,7 @@ export function removeMenuItem(
     assert(typeof winId === "number", "winId must be a number");
     assert(commandId && typeof commandId === "string", "commandId must be a string");
     process.nextTick(function () {
-        const win = BrowserWindow.fromId(winId);
+        const win = BrowserWindow.fromId(winId)!;
         const menuTemplate = menuTemplates[winId];
         const deleted = _deleteMenuItemById(commandId, menuTemplate);
         _refreshMenu(win, callback.bind(null, deleted ? null : ERR_NOT_FOUND));
@@ -340,7 +340,7 @@ export function setMenuItemShortcut(
         } else {
             delete obj.accelerator;
         }
-        const win = BrowserWindow.fromId(winId);
+        const win = BrowserWindow.fromId(winId)!;
         _refreshMenu(win, callback.bind(null, null));
     });
 }
@@ -369,7 +369,7 @@ export function setMenuItemState(
             // TODO: Change addMenuItem to set the type (checkbox, radio, ... submenu)
             obj.type = "checkbox";
         }
-        const win = BrowserWindow.fromId(winId);
+        const win = BrowserWindow.fromId(winId)!;
         _refreshMenu(win, callback.bind(null, null));
     });
 }
@@ -390,7 +390,7 @@ export function setMenuTitle(
             return callback(ERR_NOT_FOUND);
         }
         obj.label = title;
-        const win = BrowserWindow.fromId(winId);
+        const win = BrowserWindow.fromId(winId)!;
         _refreshMenu(win, callback.bind(null, null));
     });
 }

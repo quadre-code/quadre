@@ -135,8 +135,8 @@ export function showOpenDialog(
         defaultPath,
         filters,
         properties
-    }, function (fileNames: Array<string>) {
-        callback(null, fileNames ? fileNames.map(utils.convertWindowsPathToUnixPath) : []);
+    }).then((result) => {
+        callback(null, result.filePaths ? result.filePaths.map(utils.convertWindowsPathToUnixPath) : []);
     });
 }
 
@@ -152,7 +152,7 @@ export function showSaveDialog(
     return dialog.showSaveDialog({
         title,
         defaultPath
-    }, function (path: string) {
-        callback(null, utils.convertWindowsPathToUnixPath(path));
+    }).then((result) => {
+        callback(null, result.filePath ? utils.convertWindowsPathToUnixPath(result.filePath) : undefined);
     });
 }

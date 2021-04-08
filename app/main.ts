@@ -1,6 +1,6 @@
 /* eslint-env node */
 
-import { app, BrowserWindow, ipcMain } from "electron";
+import { app, BrowserWindow, ipcMain, LoadURLOptions } from "electron";
 import AutoUpdater from "./auto-updater";
 import * as _ from "lodash";
 import { getLogger, setLoggerWindow, unsetLoggerWindow, convertWindowsPathToUnixPath, errToString } from "./utils";
@@ -195,7 +195,8 @@ export function openMainBracketsWindow(query: {} | string = {}): Electron.Browse
             nodeIntegration: false,
             nodeIntegrationInSubFrames: true,
             preload: pathLib.resolve(__dirname, "preload.js"),
-            nativeWindowOpen: true
+            nativeWindowOpen: true,
+            enableRemoteModule: true
         }
     };
 
@@ -262,16 +263,27 @@ export function openMainBracketsWindow(query: {} | string = {}): Electron.Browse
     });
 
     win.webContents.on("new-window", function (
-        event, url, frameName, disposition, options, additionalFeatures, referrer
+        event, url, frameName, disposition, options, additionalFeatures, referrer, postBody
     ) {
         event.preventDefault();
 
-        const newWin = new BrowserWindow(options);
+        const bwOptions = options;
+        bwOptions.show = false;
+        const newWin = new BrowserWindow(bwOptions);
         newWin.once("ready-to-show", () => newWin.show());
-        if (!options.webContents) {
-            newWin.loadURL(url); // existing webContents will be navigated automatically
+        if (!(options as any).webContents) {
+            const loadOptions: LoadURLOptions = {
+                httpReferrer: referrer
+            };
+            if (postBody) {
+                const { data, contentType, boundary } = postBody;
+                loadOptions.postData = data as any;
+                loadOptions.extraHeaders = `content-type: ${contentType}; boundary=${boundary}`;
+            }
+
+            newWin.loadURL(url, loadOptions); // existing webContents will be navigated automatically
         }
-        (event as any).newGuest = newWin;
+        event.newGuest = newWin;
     });
 
     return win;

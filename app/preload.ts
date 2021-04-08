@@ -8,7 +8,7 @@ interface BracketsWindowGlobal extends NodeJS.Global {
     // TODO: better define appshell (brackets) global object
     appshell: any;
     brackets: any;
-    electron: Electron.AllElectron;
+    electron: typeof electron;
     node: {
         process: NodeJS.Process;
         require: NodeRequire;
