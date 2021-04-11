@@ -42,6 +42,15 @@ define(function (require, exports, module) {
 
     var testPath            = SpecRunnerUtils.getTestPath("/spec/KeyBindingManager-test-files");
 
+    // Verify if we are running in a CI.
+    var UrlParams = require("utils/UrlParams").UrlParams,
+        params    = new UrlParams();
+
+    // parse URL parameters
+    params.parse();
+
+    var isCI = /true/i.test(params.get("isCI"));
+
     // eslint-disable-next-line no-unused-vars
     var executed,
         testCommandFn       = function () { executed = true; };
@@ -152,7 +161,7 @@ define(function (require, exports, module) {
         return keyMap(bindings);
     }
 
-    describe("KeyBindingManager", function () {
+    (isCI && platform === "mac" ? xdescribe : describe)("KeyBindingManager", function () {
 
         beforeEach(function () {
             CommandManager._testReset();
@@ -528,6 +537,8 @@ define(function (require, exports, module) {
                     KeyBindingManager._initCommandAndKeyMaps();
                     KeyBindingManager._setUserKeyMapFilePath(testPath + "/empty.json");
                     KeyBindingManager._loadUserKeyMap();
+                    waits(300);
+
                     spyOn(Dialogs, "showModalDialog").andCallFake(function (dlgClass, title, message, buttons) {
                         return {done: function (callback) { callback(Dialogs.DIALOG_BTN_OK); } };
                     });
@@ -542,6 +553,8 @@ define(function (require, exports, module) {
                     KeyBindingManager._initCommandAndKeyMaps();
                     KeyBindingManager._setUserKeyMapFilePath(testPath + "/blank.json");
                     KeyBindingManager._loadUserKeyMap();
+                    waits(300);
+
                     spyOn(Dialogs, "showModalDialog").andCallFake(function (dlgClass, title, message, buttons) {
                         return {done: function (callback) { callback(Dialogs.DIALOG_BTN_OK); } };
                     });
