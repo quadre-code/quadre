@@ -1,20 +1,18 @@
-/* eslint-env node */
-
-import { app } from "electron";
+import { app, BrowserWindow } from "electron";
 
 export function isDev() {
     return /(\/|\\)electron(.exe)?$/i.test(app.getPath("exe"));
 }
 
-let mainWindow: Electron.BrowserWindow | null;
+let mainWindow: BrowserWindow | null;
 
-export function setLoggerWindow(win: Electron.BrowserWindow) {
+export function setLoggerWindow(win: BrowserWindow) {
     win.webContents.once("did-frame-finish-load", (event: any) => {
         mainWindow = win;
     });
 }
 
-export function unsetLoggerWindow(win: Electron.BrowserWindow) {
+export function unsetLoggerWindow(win: BrowserWindow) {
     if (mainWindow === win) {
         mainWindow = null;
     }

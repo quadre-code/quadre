@@ -1,5 +1,3 @@
-/* eslint-env node */
-
 import * as _ from "lodash";
 import { remote } from "electron";
 

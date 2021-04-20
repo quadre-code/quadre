@@ -1,15 +1,15 @@
-import { ipcMain } from "electron";
+import { BrowserWindow, ipcMain } from "electron";
 import { autoUpdater /* , UpdateInfo */ } from "electron-updater";
 import { getLogger, isDev } from "./utils";
 
 const log = getLogger("auto-updater");
 
-// function notify(window: Electron.BrowserWindow, title: string, message: string) {
+// function notify(window: BrowserWindow, title: string, message: string) {
 //     window.webContents.send("notify", title, message);
 // }
 
 export default class AppUpdater {
-    constructor(window: Electron.BrowserWindow) {
+    constructor(window: BrowserWindow) {
         if (isDev()) {
             log.info("isDev() true, auto-updater disabled");
             return;

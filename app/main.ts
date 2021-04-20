@@ -1,6 +1,4 @@
-/* eslint-env node */
-
-import { app, BrowserWindow, ipcMain, LoadURLOptions } from "electron";
+import { app, BrowserWindow, BrowserWindowConstructorOptions, ipcMain, LoadURLOptions } from "electron";
 import AutoUpdater from "./auto-updater";
 import * as _ from "lodash";
 import { getLogger, setLoggerWindow, unsetLoggerWindow, convertWindowsPathToUnixPath, errToString } from "./utils";
@@ -30,7 +28,7 @@ ipcMain.on("log", function (event: Event, ...args: Array<any>) {
 // electron.crashReporter.start();
 
 // fetch window position values from the window and save them to config file
-function _saveWindowPosition(sync: boolean, win: Electron.BrowserWindow) {
+function _saveWindowPosition(sync: boolean, win: BrowserWindow) {
     const size = win.getSize();
     const pos = win.getPosition();
     shellConfig.set("window.posX", pos[0]);
@@ -123,7 +121,7 @@ export function restart(query: {} | string = {}) {
     setLoggerWindow(win);
 }
 
-export function getMainBracketsWindow(): Electron.BrowserWindow {
+export function getMainBracketsWindow(): BrowserWindow {
     return wins[0];
 }
 
@@ -147,7 +145,7 @@ function formatUrl(filePath: string, options: FormatOptions = {}) {
     return url;
 }
 
-export function openMainBracketsWindow(query: {} | string = {}): Electron.BrowserWindow {
+export function openMainBracketsWindow(query: {} | string = {}): BrowserWindow {
     const argv = yargs
         .describe("startup-path", "A file path to startup instead of default one.")
         .string("startup-path")
@@ -185,7 +183,7 @@ export function openMainBracketsWindow(query: {} | string = {}): Electron.Browse
 
     const indexUrl = formatUrl(indexPath, formatOptions) + queryString;
 
-    const winOptions: Electron.BrowserWindowConstructorOptions = {
+    const winOptions: BrowserWindowConstructorOptions = {
         title: appInfo.productName,
         x: shellConfig.getNumber("window.posX"),
         y: shellConfig.getNumber("window.posY"),

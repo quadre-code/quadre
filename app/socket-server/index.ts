@@ -1,5 +1,3 @@
-/* eslint-env node */
-
 import * as http from "http";
 import * as ConnectionManager from "./connection-manager";
 import DomainManager from "./domain-manager";

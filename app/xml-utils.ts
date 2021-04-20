@@ -1,5 +1,3 @@
-/* eslint-env node */
-
 const xml2js = require("xml2js");
 
 const xmlParser = new xml2js.Parser({

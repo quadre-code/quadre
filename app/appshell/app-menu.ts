@@ -1,13 +1,12 @@
-/* tslint:disable:no-empty-interface */
-
-interface MenuItemOptions extends Electron.MenuItemConstructorOptions {}
-
 import * as _ from "lodash";
 import * as assert from "assert";
-import { app, Menu, BrowserWindow } from "electron";
+import { app, Menu, BrowserWindow, MenuItemConstructorOptions } from "electron";
 import { menuTemplates } from "../shared";
 
 export const ERR_NOT_FOUND = "NOTFOUND";
+
+// tslint:disable-next-line:no-empty-interface
+interface MenuItemOptions extends MenuItemConstructorOptions {}
 
 function _getOrCreateMenuTemplate(winId: number) {
     if (!menuTemplates[winId]) {
@@ -25,7 +24,7 @@ app.on("browser-window-blur", function (event, win) {
 
 let currentShortcuts: { [accelerator: string]: string } = {};
 
-function registerShortcuts(win: Electron.BrowserWindow, menuItem: MenuItemOptions) {
+function registerShortcuts(win: BrowserWindow, menuItem: MenuItemOptions) {
     if (menuItem.accelerator && menuItem.id) {
         currentShortcuts[menuItem.accelerator as string] = menuItem.id;
     }
@@ -34,7 +33,7 @@ function registerShortcuts(win: Electron.BrowserWindow, menuItem: MenuItemOption
     }
 }
 
-const __refreshMenu = _.debounce(function (win: Electron.BrowserWindow) {
+const __refreshMenu = _.debounce(function (win: BrowserWindow) {
     const menuTemplate = menuTemplates[win.id];
     const menu = menuTemplate ? Menu.buildFromTemplate(_.cloneDeep(menuTemplate)) : null;
     if (process.platform !== "darwin") {
@@ -49,7 +48,7 @@ const __refreshMenu = _.debounce(function (win: Electron.BrowserWindow) {
     }
 }, 100);
 
-function _refreshMenu(win: Electron.BrowserWindow, callback?: () => void) {
+function _refreshMenu(win: BrowserWindow, callback?: () => void) {
     __refreshMenu(win);
     if (callback) {
         process.nextTick(callback);

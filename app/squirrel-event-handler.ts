@@ -1,5 +1,3 @@
-/* eslint-env node */
-
 import { app } from "electron";
 import { spawn } from "child_process";
 import { getLogger } from "./utils";
