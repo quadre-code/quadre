@@ -2,6 +2,7 @@ import * as assert from "assert";
 import * as pathLib from "path";
 import * as utils from "../utils";
 import { remote, shell } from "electron";
+import { machineId } from "node-machine-id";
 
 const app = remote.app;
 const REMOTE_DEBUGGING_PORT = 9234; // TODO: this is hardcoded in brackets-shell
@@ -143,5 +144,13 @@ export function showOSFolder(
     process.nextTick(function () {
         shell.showItemInFolder(utils.convertBracketsPathToWindowsPath(path));
         if (callback) { callback(); }
+    });
+}
+
+export function getMachineHash(callback: (err: Error | null, macHash?: string) => void): void {
+    process.nextTick(function () {
+        machineId()
+            .then((id) => callback(null, id))
+            .catch((err) => callback(err));
     });
 }
