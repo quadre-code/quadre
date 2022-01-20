@@ -42,7 +42,7 @@ import * as LanguageManager from "language/LanguageManager";
 import { ModalBar } from "widgets/ModalBar";
 import { QuickSearchField } from "search/QuickSearchField";
 import * as StringMatch from "utils/StringMatch";
-import { ProviderRegistrationHandler } from "features/PriorityBasedRegistration";
+import { RegistrationHandler as ProviderRegistrationHandler } from "features/PriorityBasedRegistration";
 import { DispatcherEvents } from "utils/EventDispatcher";
 
 interface StringMatcherMap {
