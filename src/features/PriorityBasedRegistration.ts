@@ -22,21 +22,19 @@
  *
  */
 
-/* eslint-disable indent */
-define(function (require, exports, module) {
-    "use strict";
+import * as PreferencesManager from "preferences/PreferencesManager";
 
-    var PreferencesManager = require("preferences/PreferencesManager");
+/**
+ * Comparator to sort providers from high to low priority
+ */
+function _providerSort(a, b) {
+    return b.priority - a.priority;
+}
 
-    /**
-     * Comparator to sort providers from high to low priority
-     */
-    function _providerSort(a, b) {
-        return b.priority - a.priority;
-    }
+export class RegistrationHandler {
+    private _providers: { [key: string]: Array<any> };
 
-
-    function RegistrationHandler() {
+    constructor() {
         this._providers = {
             "all": []
         };
@@ -59,18 +57,17 @@ define(function (require, exports, module) {
      * Providers with a higher number will be asked for tooling before those
      * with a lower priority value. Defaults to zero.
      */
-    RegistrationHandler.prototype.registerProvider = function (providerInfo, languageIds, priority) {
-        var providerObj = {
-                provider: providerInfo,
-                priority: priority || 0
-            },
-            self = this;
+    public registerProvider(providerInfo, languageIds: Array<string>, priority: number | null): void {
+        const providerObj = {
+            provider: providerInfo,
+            priority: priority || 0
+        };
+        const self = this;
 
         if (languageIds.indexOf("all") !== -1) {
             // Ignore anything else in languageIds and just register for every language. This includes
             // the special "all" language since its key is in the hintProviders map from the beginning.
-            var languageId;
-            for (languageId in self._providers) {
+            for (const languageId in self._providers) {
                 if (self._providers.hasOwnProperty(languageId)) {
                     self._providers[languageId].push(providerObj);
                     self._providers[languageId].sort(_providerSort);
@@ -86,7 +83,7 @@ define(function (require, exports, module) {
                 self._providers[languageId].sort(_providerSort);
             });
         }
-    };
+    }
 
     /**
      * Remove a code hint provider
@@ -95,11 +92,9 @@ define(function (require, exports, module) {
      *     language IDs for languages to remove the provider for. Defaults
      *     to all languages.
      */
-    RegistrationHandler.prototype.removeProvider = function (provider, targetLanguageId) {
-        var index,
-            providers,
-            targetLanguageIdArr,
-            self = this;
+    public removeProvider(provider, targetLanguageId: (string | Array<string>) | undefined): void {
+        let targetLanguageIdArr;
+        const self = this;
 
         if (Array.isArray(targetLanguageId)) {
             targetLanguageIdArr = targetLanguageId;
@@ -110,30 +105,26 @@ define(function (require, exports, module) {
         }
 
         targetLanguageIdArr.forEach(function (languageId) {
-            providers = self._providers[languageId];
+            const providers = self._providers[languageId];
 
-            for (index = 0; index < providers.length; index++) {
+            for (let index = 0; index < providers.length; index++) {
                 if (providers[index].provider === provider) {
                     providers.splice(index, 1);
                     break;
                 }
             }
         });
-    };
+    }
 
-
-    RegistrationHandler.prototype.getProvidersForLanguageId = function (languageId) {
-        var providers = this._providers[languageId] || this._providers.all;
+    public getProvidersForLanguageId(languageId?) {
+        const providers = this._providers[languageId] || this._providers.all;
 
         // Exclude providers that are explicitly disabled in the preferences.
         // All providers that do not have their constructor
         // names listed in the preferences are enabled by default.
         return providers.filter(function (provider) {
-            var prefKey = "tooling." + provider.provider.constructor.name;
+            const prefKey = "tooling." + provider.provider.constructor.name;
             return PreferencesManager.get(prefKey) !== false;
         });
-    };
-
-
-    exports.RegistrationHandler = RegistrationHandler;
-});
+    }
+}

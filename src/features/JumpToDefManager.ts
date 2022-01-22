@@ -22,68 +22,61 @@
  *
  */
 
-define(function (require, exports, module) {
-    "use strict";
+import * as Commands from "command/Commands";
+import * as Strings from "strings";
+import * as CommandManager from "command/CommandManager";
+import * as EditorManager from "editor/EditorManager";
+import { RegistrationHandler as ProviderRegistrationHandler } from "features/PriorityBasedRegistration";
 
-    var Commands = require("command/Commands"),
-        Strings = require("strings"),
-        CommandManager = require("command/CommandManager"),
-        EditorManager = require("editor/EditorManager"),
-        ProviderRegistrationHandler = require("features/PriorityBasedRegistration").RegistrationHandler;
-
-    var _providerRegistrationHandler = new ProviderRegistrationHandler(),
-        registerJumpToDefProvider = _providerRegistrationHandler.registerProvider.bind(_providerRegistrationHandler),
-        removeJumpToDefProvider = _providerRegistrationHandler.removeProvider.bind(_providerRegistrationHandler);
+const _providerRegistrationHandler = new ProviderRegistrationHandler();
+export const registerJumpToDefProvider = _providerRegistrationHandler.registerProvider.bind(_providerRegistrationHandler);
+export const removeJumpToDefProvider = _providerRegistrationHandler.removeProvider.bind(_providerRegistrationHandler);
 
 
-    /**
-     * Asynchronously asks providers to handle jump-to-definition.
-     * @return {!Promise} Resolved when the provider signals that it's done; rejected if no
-     * provider responded or the provider that responded failed.
-     */
-    function _doJumpToDef() {
-        var request = null,
-            result = new $.Deferred(),
-            jumpToDefProvider = null,
-            editor = EditorManager.getActiveEditor();
+/**
+ * Asynchronously asks providers to handle jump-to-definition.
+ * @return {!Promise} Resolved when the provider signals that it's done; rejected if no
+ * provider responded or the provider that responded failed.
+ */
+function _doJumpToDef() {
+    const result = $.Deferred();
+    let jumpToDefProvider: any = null;
+    const editor = EditorManager.getActiveEditor();
 
-        if (editor) {
-            // Find a suitable provider, if any
-            var language = editor.getLanguageForSelection(),
-                enabledProviders = _providerRegistrationHandler.getProvidersForLanguageId(language.getId());
+    if (editor) {
+        // Find a suitable provider, if any
+        const language = editor.getLanguageForSelection();
+        const enabledProviders = _providerRegistrationHandler.getProvidersForLanguageId(language.getId());
 
+        enabledProviders.some(function (item, index) {
+            if (item.provider.canJumpToDef(editor)) {
+                jumpToDefProvider = item.provider;
+                return true;
+            }
 
-            enabledProviders.some(function (item, index) {
-                if (item.provider.canJumpToDef(editor)) {
-                    jumpToDefProvider = item.provider;
-                    return true;
-                }
-            });
+            return false;
+        });
 
-            if (jumpToDefProvider) {
-                request = jumpToDefProvider.doJumpToDef(editor);
+        if (jumpToDefProvider) {
+            const request = jumpToDefProvider.doJumpToDef(editor);
 
-                if (request) {
-                    request.done(function () {
-                        result.resolve();
-                    }).fail(function () {
-                        result.reject();
-                    });
-                } else {
+            if (request) {
+                request.done(function () {
+                    result.resolve();
+                }).fail(function () {
                     result.reject();
-                }
+                });
             } else {
                 result.reject();
             }
         } else {
             result.reject();
         }
-
-        return result.promise();
+    } else {
+        result.reject();
     }
 
-    CommandManager.register(Strings.CMD_JUMPTO_DEFINITION, Commands.NAVIGATE_JUMPTO_DEFINITION, _doJumpToDef);
+    return result.promise();
+}
 
-    exports.registerJumpToDefProvider = registerJumpToDefProvider;
-    exports.removeJumpToDefProvider = removeJumpToDefProvider;
-});
+CommandManager.register(Strings.CMD_JUMPTO_DEFINITION, Commands.NAVIGATE_JUMPTO_DEFINITION, _doJumpToDef);
