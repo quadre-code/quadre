@@ -17,6 +17,7 @@
         },
         "rootDir": ".",
         "sourceMap": true,
+        "lib": ["DOM", "ES2015", "ES2016.Array.Include"],
         "target": "es6",
         "skipLibCheck": true,
         "forceConsistentCasingInFileNames": true,

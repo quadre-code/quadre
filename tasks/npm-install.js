@@ -180,7 +180,7 @@ gulp.task("npm-install-dist", npmInstallDist);
 
 
 function npmInstallSrc(cb) {
-    const dirs = ["src", "src/JSUtils", "src/JSUtils/node", "src/languageTools/LanguageClient"];
+    const dirs = ["src", "src/JSUtils", "src/JSUtils/node"];
     const done = _.after(dirs.length, cb);
 
     dirs.forEach(function (dir) {
@@ -277,42 +277,8 @@ npmInstallExtensionsDist.description = "Install node_modules for default extensi
 gulp.task("npm-install-extensions-dist", npmInstallExtensionsDist);
 
 
-function npmInstallTest(cb) {
-    const testDirs = [
-        "spec/LanguageTools-test-files"
-    ];
-    testDirs.forEach(function (dir) {
-        glob("test/" + dir + "/**/package.json", function (err, testFiles) {
-            if (err) {
-                log.error("err " + err);
-                const errPlugin = new PluginError("npm-install-test", err, { showStack: true });
-                return cb(errPlugin);
-            }
-
-            testFiles = testFiles.filter(function (pathFile) {
-                return pathFile.indexOf("node_modules") === -1;
-            });
-            const done = _.after(testFiles.length, cb);
-            testFiles.forEach(function (testFile) {
-                runNpmInstall(path.dirname(testFile), function (err2) {
-                    if (err2) {
-                        const errPlugin = new PluginError("npm-install-test", err2, { showStack: true });
-                        return cb(errPlugin);
-                    }
-
-                    done();
-                }, true);
-            });
-        });
-    });
-}
-npmInstallTest.description = "Install node_modules for tests";
-gulp.task("npm-install-test", npmInstallTest);
-
-
 gulp.task("npm-install-source", gulp.series(
     "npm-install-src",
-    "copy-thirdparty",
-    // "npm-install-extensions-src",
-    "npm-install-test"
+    "copy-thirdparty"
+    // "npm-install-extensions-src"
 ));

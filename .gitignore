@@ -14,7 +14,6 @@ package-lock.json
 /src/node_modules
 /src/JSUtils/node_modules
 /src/JSUtils/node/node_modules
-/src/languageTools/LanguageClient/node_modules
 
 # ignore files copied from node_modules to src/thirdparty
 /src/thirdparty/CodeMirror
