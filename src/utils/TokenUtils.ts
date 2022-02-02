@@ -70,7 +70,7 @@ function _manageCache(cm, line) {
  * @param {boolean} precise If given, results in more current results. Suppresses caching.
  * @return {Object} Token for position
  */
-export function getTokenAt(cm, pos, precise) {
+export function getTokenAt(cm, pos, precise?) {
     if (precise) {
         _clearCache(); // reset cache
         return cm.getTokenAt(pos, precise);
