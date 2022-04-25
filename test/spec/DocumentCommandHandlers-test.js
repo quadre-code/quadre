@@ -39,6 +39,15 @@ define(function (require, exports, module) {
         FileUtils                = require("file/FileUtils"),
         FileSystemError          = require("filesystem/FileSystemError");
 
+    // Verify if we are running in a CI.
+    var UrlParams = require("utils/UrlParams").UrlParams,
+        params    = new UrlParams();
+
+    // parse URL parameters
+    params.parse();
+
+    var isCI = /true/i.test(params.get("isCI"));
+
     describe("DocumentCommandHandlers", function () {
         this.category = "integration";
 
@@ -393,7 +402,7 @@ define(function (require, exports, module) {
                 });
             });
 
-            it("should remove dirty untitled Document from Working Set when closing document is not saved", function () {
+            (isCI ? xit : it)("should remove dirty untitled Document from Working Set when closing document is not saved", function () {
                 runs(function () {
                     promise = CommandManager.execute(Commands.FILE_NEW_UNTITLED);
 
@@ -419,7 +428,7 @@ define(function (require, exports, module) {
                 });
             });
 
-            it("should remove new untitled Document from Working Set upon closing", function () {
+            (isCI ? xit : it)("should remove new untitled Document from Working Set upon closing", function () {
                 runs(function () {
                     promise = CommandManager.execute(Commands.FILE_NEW_UNTITLED);
 

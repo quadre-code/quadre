@@ -63,6 +63,15 @@ define(function (require, exports, module) {
             }
         };
 
+    // Verify if we are running in a CI.
+    var UrlParams = require("utils/UrlParams").UrlParams,
+        params    = new UrlParams();
+
+    // parse URL parameters
+    params.parse();
+
+    var isCI = /true/i.test(params.get("isCI"));
+
     describe("LanguageTools", function () {
         function loadClient(name) {
             var config = {
@@ -631,7 +640,7 @@ define(function (require, exports, module) {
                 });
             });
 
-            it("should start a simple runtime based client", function () {
+            (isCI ? xit : it)("should start a simple runtime based client", function () {
                 var startResult = false,
                     startPromise;
 
@@ -674,7 +683,7 @@ define(function (require, exports, module) {
                 });
             });
 
-            it("should start a simple function based client", function () {
+            (isCI ? xit : it)("should start a simple function based client", function () {
                 var startResult = false,
                     startPromise;
 
@@ -717,7 +726,7 @@ define(function (require, exports, module) {
                 });
             });
 
-            it("should start a simple command based client", function () {
+            (isCI ? xit : it)("should start a simple command based client", function () {
                 var startResult = false,
                     startPromise;
 
