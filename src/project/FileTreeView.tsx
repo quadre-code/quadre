@@ -106,6 +106,7 @@ interface IFileTreeNode {
 }
 
 interface IDirectoryNodeProps extends IFileTree, IFileTreeNode {
+    draggedOver: boolean;
 }
 
 interface IDirectoryNodeState {
@@ -352,6 +353,10 @@ function withDragAndDrop(ContextSettableComponent) {
         constructor(props: IWithDragAndDropProps) {
             super(props);
 
+            this.state = {
+                draggedOver: false
+            };
+
             this.handleDrag = this.handleDrag.bind(this);
             this.handleDrop = this.handleDrop.bind(this);
             this.handleDragEnd = this.handleDragEnd.bind(this);
@@ -478,6 +483,7 @@ function withDragAndDrop(ContextSettableComponent) {
         public render() {
             const dragAnDropProps = {
                 ...this.props,
+                draggedOver: this.state.draggedOver,
                 handleDrag: this.handleDrag,
                 handleDrop: this.handleDrop,
                 handleDragEnd: this.handleDragEnd,
@@ -999,10 +1005,6 @@ class DirectoryNode extends React.Component<IDirectoryNodeProps, IDirectoryNodeS
     constructor(props: IDirectoryNodeProps) {
         super(props);
 
-        this.state = {
-            draggedOver: false
-        };
-
         this.handleClick = this.handleClick.bind(this);
         this.getDataForExtension = this.getDataForExtension.bind(this);
     }
@@ -1017,7 +1019,7 @@ class DirectoryNode extends React.Component<IDirectoryNodeProps, IDirectoryNodeS
             this.props.entry !== nextProps.entry ||
             this.props.sortDirectoriesFirst !== nextProps.sortDirectoriesFirst ||
             this.props.extensions !== nextProps.extensions ||
-            (nextState !== undefined && this.state.draggedOver !== nextState.draggedOver);
+            this.props.draggedOver !== nextProps.draggedOver;
     }
 
     /**
@@ -1106,7 +1108,7 @@ class DirectoryNode extends React.Component<IDirectoryNodeProps, IDirectoryNodeS
         });
 
         let nodeClasses = "jstree-" + nodeClass;
-        if (this.state.draggedOver) {
+        if (this.props.draggedOver) {
             nodeClasses += " jstree-draggedOver";
         }
 
@@ -1446,7 +1448,6 @@ class FileTreeView extends React.Component<IFileTreeViewProps, {}> {
             forceRender={this.props.forceRender}
             platform={this.props.platform}></DirectoryContents>;
         const props = {
-            ...this.props,
             onDrop: this.handleDrop,
             onDragOver: this.handleDragOver
         };

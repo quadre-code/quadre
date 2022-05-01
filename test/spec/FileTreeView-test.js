@@ -323,7 +323,8 @@ define(function (require, exports, module) {
                         children: null
                     }),
                     extensions          : Immutable.Map(),
-                    sortDirectoriesFirst: false
+                    sortDirectoriesFirst: false,
+                    draggedOver         : false
                 };
 
                 var rendered = RTU.renderIntoDocument(FileTreeView._directoryNode(props));

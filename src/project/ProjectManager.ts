@@ -1285,9 +1285,11 @@ AppInit.htmlReady(function () {
 
     // Add support for moving items to root directory
     $projectTreeContainer.on("drop", function (e) {
-        const data = JSON.parse(e.originalEvent.dataTransfer.getData("text"));
-        _actionCreator.moveItem(data.path, getProjectRoot()!.fullPath);
-        e.stopPropagation();
+        if ($projectTreeContainer[0] === $(e.target)[0]) {
+            const data = JSON.parse(e.originalEvent.dataTransfer.getData("text"));
+            _actionCreator.moveItem(data.path, getProjectRoot()!.fullPath);
+            e.stopPropagation();
+        }
     });
 
     // When a context menu item is selected, we need to clear the context
