@@ -1,6 +1,11 @@
 name: CI
 
-on: [push, pull_request]
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+  workflow_dispatch:
 
 jobs:
   mac:
@@ -9,6 +14,7 @@ jobs:
     env:
       USE_HARD_LINKS: false
       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      PUSH_PACKAGES: ${{ github.event_name == 'push' && github.ref == 'refs/heads/master' }}
 
     steps:
     - uses: actions/checkout@v2
@@ -37,6 +43,7 @@ jobs:
     # - run: npm run test:extension
 
     - name: Publish Mac
+      if: ${{ fromJSON(env.PUSH_PACKAGES) }}
       run: npm run publish-mac
 
   linux:
@@ -45,6 +52,7 @@ jobs:
     env:
       USE_HARD_LINKS: false
       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      PUSH_PACKAGES: ${{ github.event_name == 'push' && github.ref == 'refs/heads/master' }}
 
     steps:
     - name: Setup Build Environment
@@ -79,4 +87,5 @@ jobs:
     # - run: npm run test:extension
 
     - name: Publish Linux
+      if: ${{ fromJSON(env.PUSH_PACKAGES) }}
       run: npm run publish-linux
