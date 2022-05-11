@@ -3,6 +3,15 @@
   "requires": true,
   "lockfileVersion": 1,
   "dependencies": {
+    "@types/acorn": {
+      "version": "4.0.6",
+      "resolved": "https://registry.npmjs.org/@types/acorn/-/acorn-4.0.6.tgz",
+      "integrity": "sha512-veQTnWP+1D/xbxVrPC3zHnCZRjSrKfhbMUlEA43iMZLu7EsnTtkJklIuwrCPbOi8YkvDQAiW05VQQFvvz9oieQ==",
+      "dev": true,
+      "requires": {
+        "@types/estree": "*"
+      }
+    },
     "@types/codemirror": {
       "version": "0.0.76",
       "resolved": "https://registry.npmjs.org/@types/codemirror/-/codemirror-0.0.76.tgz",

@@ -28,8 +28,9 @@ import * as LanguageManager from "language/LanguageManager";
 import * as HTMLUtils from "language/HTMLUtils";
 import * as HintUtils from "JSUtils/HintUtils";
 import * as ScopeManager from "JSUtils/ScopeManager";
-import * as Acorn from "node_modules/acorn/dist/acorn";
-import * as AcornLoose from "node_modules/acorn/dist/acorn_loose";
+import * as Acorn from "acorn";
+// @ts-ignore
+import * as AcornLoose from "acorn_loose";
 
 interface SessionType {
     property: boolean;

@@ -22,7 +22,7 @@
  *
  */
 
-import * as Acorn from "node_modules/acorn/dist/acorn";
+import * as Acorn from "acorn";
 
 export const LANGUAGE_ID                 = "javascript";
 const JSX_LANGUAGE_ID             = "jsx";

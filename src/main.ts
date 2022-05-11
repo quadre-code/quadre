@@ -43,7 +43,9 @@
             "thirdparty/react":       "react",
             "thirdparty/react-dom":   "react-dom",
             "codemirror":             "thirdparty/CodeMirror/lib/codemirror",
-            "lodash":                 "thirdparty/lodash"
+            "lodash":                 "thirdparty/lodash",
+            "acorn":                  "thirdparty/acorn/acorn",
+            "acorn_loose":            "thirdparty/acorn/acorn_loose"
         }
     }
 });

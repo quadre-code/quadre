@@ -159,7 +159,7 @@ function npmInstallDist(cb) {
         ]);
         common.writeJSON("dist/www/package.json", srcJson);
 
-        const dirs = ["dist/www", "dist/www/JSUtils", "dist/www/JSUtils/node"];
+        const dirs = ["dist/www"];
         const done = _.after(dirs.length, cb);
 
         dirs.forEach(function (dir) {
@@ -180,7 +180,7 @@ gulp.task("npm-install-dist", npmInstallDist);
 
 
 function npmInstallSrc(cb) {
-    const dirs = ["src", "src/JSUtils", "src/JSUtils/node"];
+    const dirs = ["src"];
     const done = _.after(dirs.length, cb);
 
     dirs.forEach(function (dir) {

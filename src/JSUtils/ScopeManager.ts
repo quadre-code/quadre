@@ -78,7 +78,6 @@ let deferredPreferences: any = null;
 const _bracketsPath       = FileUtils.getNativeBracketsDirectoryPath();
 const _modulePath         = FileUtils.getNativeModuleDirectoryPath(module);
 const _nodePath           = "node/TernNodeDomain";
-const _absoluteModulePath = [_bracketsPath, _modulePath].join("/");
 const _domainPath         = [_bracketsPath, _modulePath, _nodePath].join("/");
 
 
@@ -102,7 +101,8 @@ export function getBuiltins() {
  * Read in the json files that have type information for the builtins, dom,etc
  */
 function initTernEnv() {
-    const path = [_absoluteModulePath, "node/node_modules/tern/defs/"].join("/");
+    const initialPath = _bracketsPath.substr(0, _bracketsPath.lastIndexOf("/"));
+    const path = [initialPath, "node_modules/tern/defs/"].join("/");
     const files = builtinFiles;
 
     files.forEach(function (i) {
