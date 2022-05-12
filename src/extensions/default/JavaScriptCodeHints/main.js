@@ -44,7 +44,7 @@ define(function (require, exports, module) {
         ScopeManager              = brackets.getModule("JSUtils/ScopeManager"),
         Session                   = brackets.getModule("JSUtils/Session"),
         JumpToDefManager          = brackets.getModule("features/JumpToDefManager"),
-        Acorn                     = require("node_modules/acorn/dist/acorn");
+        Acorn                     = brackets.getModule("thirdparty/acorn/acorn");
 
     var session            = null,  // object that encapsulates the current session state
         cachedCursor       = null,  // last cursor of the current hinting session
