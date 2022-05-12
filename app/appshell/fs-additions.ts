@@ -71,11 +71,11 @@ export function readTextFile(filename: string, encoding: string, callback: (err:
 
             // \uFFFD is used to replace an incoming character
             // whose value is unknown or unrepresentable
-            if (/\uFFFD/.test(content)) {
-                const err3: NodeJS.ErrnoException = new Error("ECHARSET: unsupported encoding in file: " + filename);
-                err3.code = "ECHARSET";
-                return callback(err3);
-            }
+            // if (/\uFFFD/.test(content)) {
+            //     const err3: NodeJS.ErrnoException = new Error("ECHARSET: unsupported encoding in file: " + filename);
+            //     err3.code = "ECHARSET";
+            //     return callback(err3);
+            // }
 
             callback(null, content);
         });
