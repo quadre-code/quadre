@@ -255,12 +255,16 @@ define(function (require, exports, module) {
             _platform = brackets.getPlatformInfo(),
             _locale = brackets.getLocale(),
             _lastHandledNotificationNumber = PreferencesManager.getViewState("lastHandledNotificationNumber"),
-            // Extract current build number from package.json version field 0.0.0-0
-            _buildNumber = Number(/-([0-9]+)/.exec(brackets.metadata.version)[1]),
+            _buildNumber = "",
             _version = brackets.metadata.apiVersion;
 
         if (_locale.length > 2) {
             _locale = _locale.substring(0, 2);
+        }
+
+        // Extract current build number from package.json version field 0.0.0-0 (0) or 0.0.0-alpha.1 (alpha.1).
+        if (brackets.metadata.version.indexOf("-") >= 0) {
+            _buildNumber = brackets.metadata.version.substring(brackets.metadata.version.indexOf("-") + 1);
         }
 
         return  notificationObj.sequence > _lastHandledNotificationNumber &&
