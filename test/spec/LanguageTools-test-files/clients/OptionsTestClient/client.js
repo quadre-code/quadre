@@ -21,9 +21,6 @@
  * DEALINGS IN THE SOFTWARE.
  *
  */
-/*eslint-env es6, node*/
-/*eslint max-len: ["error", { "code": 200 }]*/
-/*eslint indent: 0*/
 
 "use strict";
 
@@ -49,68 +46,68 @@ function getServerOptions(type) {
     var serverOptions = null;
 
     switch (type) {
-        case 'runtime':
-            {
-                // [runtime] [execArgs] [module] [args (with communication args)] (with options[env, cwd])
-                serverOptions = {
-                    runtime: process.execPath, //Path to node but could be anything, like php or perl
-                    module: "main.js",
-                    args: [
+        case "runtime":
+        {
+            // [runtime] [execArgs] [module] [args (with communication args)] (with options[env, cwd])
+            serverOptions = {
+                runtime: process.execPath, //Path to node but could be anything, like php or perl
+                module: "main.js",
+                args: [
                     "--server-args" //module args
                 ], //Arguments to process
-                    options: {
-                        cwd: serverPath, //The current directory where main.js is located
-                        env: newEnv, //The process will be started CUSTOMENVVARIABLE in its environment
-                        execArgv: [
+                options: {
+                    cwd: serverPath, //The current directory where main.js is located
+                    env: newEnv, //The process will be started CUSTOMENVVARIABLE in its environment
+                    execArgv: [
                         "--no-warnings",
                         "--no-deprecation" //runtime executable args
                     ]
-                    },
-                    communication: "ipc"
-                };
-                break;
-            }
-        case 'function':
-            {
-                serverOptions = function () {
-                    return new Promise(function (resolve, reject) {
-                        var serverProcess = cp.spawn(process.execPath, [
-                            "main.js",
-                            "--stdio" //Have to add communication args manually
-                        ], {
-                            cwd: serverPath
-                        });
-
-                        if (serverProcess && serverProcess.pid) {
-                            resolve({
-                                process: serverProcess
-                            });
-                        } else {
-                            reject("Couldn't create server process");
-                        }
+                },
+                communication: "ipc"
+            };
+            break;
+        }
+        case "function":
+        {
+            serverOptions = function () {
+                return new Promise(function (resolve, reject) {
+                    var serverProcess = cp.spawn(process.execPath, [
+                        "main.js",
+                        "--stdio" //Have to add communication args manually
+                    ], {
+                        cwd: serverPath
                     });
-                };
-                break;
-            }
-        case 'command':
-            {
-                // [command] [args] (with options[env, cwd])
-                serverOptions = {
-                    command: process.execPath, //Path to executable, mostly runtime
-                    args: [
+
+                    if (serverProcess && serverProcess.pid) {
+                        resolve({
+                            process: serverProcess
+                        });
+                    } else {
+                        reject("Couldn't create server process");
+                    }
+                });
+            };
+            break;
+        }
+        case "command":
+        {
+            // [command] [args] (with options[env, cwd])
+            serverOptions = {
+                command: process.execPath, //Path to executable, mostly runtime
+                args: [
                     "--no-warnings",
                     "--no-deprecation",
                     "main.js",
                     "--stdio", //Have to add communication args manually
                     "--server-args"
                 ], //Arguments to process, ORDER WILL MATTER
-                    options: {
-                        cwd: serverPath,
-                        env: newEnv //The process will be started CUSTOMENVVARIABLE in its environment
-                    }
-                };
-                break;
-            }
+                options: {
+                    cwd: serverPath,
+                    env: newEnv //The process will be started CUSTOMENVVARIABLE in its environment
+                }
+            };
+            break;
+        }
     }
 
     return serverOptions;
@@ -139,8 +136,8 @@ function setOptions(params) {
 
 function init(domainManager) {
     client = new LanguageClient(clientName, domainManager);
-    client.addOnRequestHandler('setModulePath', setModulePath);
-    client.addOnRequestHandler('setOptions', setOptions);
+    client.addOnRequestHandler("setModulePath", setModulePath);
+    client.addOnRequestHandler("setOptions", setOptions);
 }
 
 exports.init = init;

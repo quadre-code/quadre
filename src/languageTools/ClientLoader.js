@@ -22,8 +22,6 @@
  *
  */
 
-/*eslint no-console: 0*/
-/*eslint max-len: ["error", { "code": 200 }]*/
 define(function (require, exports, module) {
     "use strict";
 

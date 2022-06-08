@@ -22,190 +22,187 @@
  *
  */
 
-(function () {
+"use strict";
 
-    "use strict";
+var EventEmitter = require("events"),
+    bracketsEventHandler = new EventEmitter();
 
-    var EventEmitter = require("events"),
-        bracketsEventHandler = new EventEmitter();
+/** https://gist.github.com/LeverOne/1308368 */
+/*eslint-disable */
+function _generateUUID() {
+    var result,
+        numericSeed;
+    for (
+        result = numericSeed = '';
+        numericSeed++ < 36;
+        result += numericSeed * 51 & 52 ? (numericSeed ^ 15 ? 8 ^ Math.random() * (numericSeed ^ 20 ? 16 : 4) : 4).toString(16) : '-'
+    );
 
-    /** https://gist.github.com/LeverOne/1308368 */
-    /*eslint-disable */
-    function _generateUUID() {
-        var result,
-            numericSeed;
-        for (
-            result = numericSeed = '';
-            numericSeed++ < 36;
-            result += numericSeed * 51 & 52 ? (numericSeed ^ 15 ? 8 ^ Math.random() * (numericSeed ^ 20 ? 16 : 4) : 4).toString(16) : '-'
-        );
+    return result;
+}
+/*eslint-enable */
 
-        return result;
+function NodeToBracketsInterface(domainManager, domainName) {
+    this.domainManager = domainManager;
+    this.domainName = domainName;
+    this.nodeFn = {};
+
+    this._registerDataEvents(domainManager, domainName);
+}
+
+NodeToBracketsInterface.prototype.processRequest = function (params) {
+    var methodName = params.method;
+    if (this.nodeFn[methodName]) {
+        var method = this.nodeFn[methodName];
+        return method.call(null, params.params);
     }
-    /*eslint-enable */
+};
 
-    function NodeToBracketsInterface(domainManager, domainName) {
-        this.domainManager = domainManager;
-        this.domainName = domainName;
-        this.nodeFn = {};
-
-        this._registerDataEvents(domainManager, domainName);
-    }
-
-    NodeToBracketsInterface.prototype.processRequest = function (params) {
-        var methodName = params.method;
-        if (this.nodeFn[methodName]) {
-            var method = this.nodeFn[methodName];
-            return method.call(null, params.params);
-        }
-    };
-
-    NodeToBracketsInterface.prototype.processAsyncRequest = function (params, resolver) {
-        var methodName = params.method;
-        if (this.nodeFn[methodName]) {
-            var method = this.nodeFn[methodName];
-            method.call(null, params.params) //The Async function should return a promise
-                .then(function (result) {
-                    resolver(null, result);
-                }).catch(function (err) {
-                    resolver(err, null);
-                });
-        }
-    };
-
-    NodeToBracketsInterface.prototype.processResponse = function (params) {
-        if (params.requestId) {
-            if (params.error) {
-                bracketsEventHandler.emit(params.requestId, params.error);
-            } else {
-                bracketsEventHandler.emit(params.requestId, false, params.params);
-            }
-        } else {
-            bracketsEventHandler.emit(params.requestId, "error");
-        }
-    };
-
-    NodeToBracketsInterface.prototype.createInterface = function (methodName, respond) {
-        var self = this;
-        return function (params) {
-            var callObject = {
-                method: methodName,
-                params: params
-            };
-
-            var retval = undefined;
-            if (respond) {
-                var requestId = _generateUUID();
-
-                callObject["respond"] = true;
-                callObject["requestId"] = requestId;
-
-                self.domainManager.emitEvent(self.domainName, "data", callObject);
-
-                retval = new Promise(function (resolve, reject) {
-                    bracketsEventHandler.once(requestId, function (err, response) {
-                        if (err) {
-                            reject(err);
-                        } else {
-                            resolve(response);
-                        }
-                    });
-                });
-            } else {
-                self.domainManager.emitEvent(self.domainName, "data", callObject);
-            }
-            return retval;
-        };
-    };
-
-    NodeToBracketsInterface.prototype.registerMethod = function (methodName, methodHandle) {
-        var self = this;
-        if (methodName && methodHandle &&
-            typeof methodName === "string" && typeof methodHandle === "function") {
-            self.nodeFn[methodName] = methodHandle;
-        }
-    };
-
-    NodeToBracketsInterface.prototype.registerMethods = function (methodList) {
-        var self = this;
-        methodList.forEach(function (methodObj) {
-            self.registerMethod(methodObj.methodName, methodObj.methodHandle);
-        });
-    };
-
-    NodeToBracketsInterface.prototype._registerDataEvents = function (domainManager, domainName) {
-        if (!domainManager.hasDomain(domainName)) {
-            domainManager.registerDomain(domainName, {
-                major: 0,
-                minor: 1
+NodeToBracketsInterface.prototype.processAsyncRequest = function (params, resolver) {
+    var methodName = params.method;
+    if (this.nodeFn[methodName]) {
+        var method = this.nodeFn[methodName];
+        method.call(null, params.params) //The Async function should return a promise
+            .then(function (result) {
+                resolver(null, result);
+            }).catch(function (err) {
+                resolver(err, null);
             });
+    }
+};
+
+NodeToBracketsInterface.prototype.processResponse = function (params) {
+    if (params.requestId) {
+        if (params.error) {
+            bracketsEventHandler.emit(params.requestId, params.error);
+        } else {
+            bracketsEventHandler.emit(params.requestId, false, params.params);
         }
+    } else {
+        bracketsEventHandler.emit(params.requestId, "error");
+    }
+};
 
-        domainManager.registerCommand(
-            domainName,
-            "data",
-            this.processRequest.bind(this),
-            false,
-            "Receives sync request from brackets",
-            [
-                {
-                    name: "params",
-                    type: "object",
-                    description: "json object containing message info"
-                }
-            ],
-            []
-        );
+NodeToBracketsInterface.prototype.createInterface = function (methodName, respond) {
+    var self = this;
+    return function (params) {
+        var callObject = {
+            method: methodName,
+            params: params
+        };
 
-        domainManager.registerCommand(
-            domainName,
-            "response",
-            this.processResponse.bind(this),
-            false,
-            "Receives response from brackets for an earlier request",
-            [
-                {
-                    name: "params",
-                    type: "object",
-                    description: "json object containing message info"
-                }
-            ],
-            []
-        );
+        var retval = undefined;
+        if (respond) {
+            var requestId = _generateUUID();
 
-        domainManager.registerCommand(
-            domainName,
-            "asyncData",
-            this.processAsyncRequest.bind(this),
-            true,
-            "Receives async call request from brackets",
-            [
-                {
-                    name: "params",
-                    type: "object",
-                    description: "json object containing message info"
-                },
-                {
-                    name: "resolver",
-                    type: "function",
-                    description: "callback required to resolve the async request"
-                }
-            ],
-            []
-        );
+            callObject["respond"] = true;
+            callObject["requestId"] = requestId;
 
-        domainManager.registerEvent(
-            domainName,
-            "data",
-            [
-                {
-                    name: "params",
-                    type: "object",
-                    description: "json object containing message info to pass to brackets"
-                }
-            ]
-        );
+            self.domainManager.emitEvent(self.domainName, "data", callObject);
+
+            retval = new Promise(function (resolve, reject) {
+                bracketsEventHandler.once(requestId, function (err, response) {
+                    if (err) {
+                        reject(err);
+                    } else {
+                        resolve(response);
+                    }
+                });
+            });
+        } else {
+            self.domainManager.emitEvent(self.domainName, "data", callObject);
+        }
+        return retval;
     };
+};
 
-    exports.NodeToBracketsInterface = NodeToBracketsInterface;
-}());
+NodeToBracketsInterface.prototype.registerMethod = function (methodName, methodHandle) {
+    var self = this;
+    if (methodName && methodHandle &&
+        typeof methodName === "string" && typeof methodHandle === "function") {
+        self.nodeFn[methodName] = methodHandle;
+    }
+};
+
+NodeToBracketsInterface.prototype.registerMethods = function (methodList) {
+    var self = this;
+    methodList.forEach(function (methodObj) {
+        self.registerMethod(methodObj.methodName, methodObj.methodHandle);
+    });
+};
+
+NodeToBracketsInterface.prototype._registerDataEvents = function (domainManager, domainName) {
+    if (!domainManager.hasDomain(domainName)) {
+        domainManager.registerDomain(domainName, {
+            major: 0,
+            minor: 1
+        });
+    }
+
+    domainManager.registerCommand(
+        domainName,
+        "data",
+        this.processRequest.bind(this),
+        false,
+        "Receives sync request from brackets",
+        [
+            {
+                name: "params",
+                type: "object",
+                description: "json object containing message info"
+            }
+        ],
+        []
+    );
+
+    domainManager.registerCommand(
+        domainName,
+        "response",
+        this.processResponse.bind(this),
+        false,
+        "Receives response from brackets for an earlier request",
+        [
+            {
+                name: "params",
+                type: "object",
+                description: "json object containing message info"
+            }
+        ],
+        []
+    );
+
+    domainManager.registerCommand(
+        domainName,
+        "asyncData",
+        this.processAsyncRequest.bind(this),
+        true,
+        "Receives async call request from brackets",
+        [
+            {
+                name: "params",
+                type: "object",
+                description: "json object containing message info"
+            },
+            {
+                name: "resolver",
+                type: "function",
+                description: "callback required to resolve the async request"
+            }
+        ],
+        []
+    );
+
+    domainManager.registerEvent(
+        domainName,
+        "data",
+        [
+            {
+                name: "params",
+                type: "object",
+                description: "json object containing message info to pass to brackets"
+            }
+        ]
+    );
+};
+
+exports.NodeToBracketsInterface = NodeToBracketsInterface;

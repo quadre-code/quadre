@@ -42,7 +42,11 @@ module.exports = {
         },
         // src/
         {
-            "files": [ "src/**" ],
+            "files": [ 
+                "src/**",
+                "!src/**/node/**",
+                "!src/languageTools/LanguageClient/**"
+            ],
             "globals": {
                 "electron": false,
                 "exports": false,
@@ -60,6 +64,16 @@ module.exports = {
                 "ecmaVersion": 6,
                 "sourceType": "script",
             },
+        },
+        // src/ node files
+        {
+            "files": [
+                "src/**/node/**",
+                "src/languageTools/LanguageClient/**"
+            ],
+            "env": {
+                "node": true
+            }
         },
         // Build files
         {
@@ -100,6 +114,17 @@ module.exports = {
                 "waitsForDone": false,
                 "waitsForFail": false,
                 "electron": false
+            }
+        },
+        // Tests node files
+        {
+            "files": [
+                "test/node/**",
+                "test/spec/LanguageTools-test-files/clients/**/client.js",
+                "test/spec/LanguageTools-test-files/server/lsp-test-server/main.js"
+            ],
+            "env": {
+                "node": true
             }
         }
     ]

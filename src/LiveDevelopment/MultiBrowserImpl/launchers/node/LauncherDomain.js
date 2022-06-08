@@ -22,8 +22,8 @@
  *
  */
 
-/*eslint-env node */
 /*jslint node: true */
+
 "use strict";
 
 var open = require("opn");

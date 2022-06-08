@@ -74,8 +74,6 @@
  *    `MainViewManager.on("eventname", handler);`
  */
 
-/*eslint-disable max-len, no-shadow, no-console*/
-
 import * as _ from "lodash";
 import * as EventDispatcher from "utils/EventDispatcher";
 import * as Strings from "strings";

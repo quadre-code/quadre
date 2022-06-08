@@ -22,9 +22,8 @@
  *
  */
 
-/*eslint no-console: 0*/
-/*eslint max-len: ["error", { "code": 200 }]*/
-/*eslint-env es6*/
+/* globals Map */
+
 define(function (require, exports, module) {
     "use strict";
 
@@ -67,8 +66,12 @@ define(function (require, exports, module) {
 
     function _withNamespace(event) {
         return event.split(" ")
-            .filter((value) => !!value)
-            .map((value) => value + ".language-tools")
+            .filter(function (value) {
+                return !!value;
+            })
+            .map(function (value) {
+                return value + ".language-tools";
+            })
             .join(" ");
     }
 

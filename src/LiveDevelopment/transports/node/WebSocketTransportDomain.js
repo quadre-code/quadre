@@ -29,8 +29,8 @@
  * brings the cursor to the tag corresponding to that particular tagID
  */
 
-/*eslint-env node */
 /*jslint node: true */
+
 "use strict";
 
 var WebSocketServer = require("ws").Server;

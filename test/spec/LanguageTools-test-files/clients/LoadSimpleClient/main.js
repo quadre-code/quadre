@@ -21,8 +21,7 @@
  * DEALINGS IN THE SOFTWARE.
  *
  */
-/*eslint max-len: ["error", { "code": 200 }]*/
-/*eslint indent: 0*/
+
 define(function (require, exports, module) {
     "use strict";
 
@@ -35,7 +34,7 @@ define(function (require, exports, module) {
         clientPromise = null;
 
     AppInit.appReady(function () {
-        clientPromise = LanguageTools.initiateToolingService(clientName, clientFilePath, ['unknown']);
+        clientPromise = LanguageTools.initiateToolingService(clientName, clientFilePath, ["unknown"]);
     });
 
     exports.initExtension = function () {

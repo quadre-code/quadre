@@ -22,8 +22,6 @@
  *
  */
 
-/*eslint-env node */
-
 const watcherManager = require("./FileWatcherManager");
 let watcherImpl!: any;
 if (process.platform === "win32") {

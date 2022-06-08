@@ -22,9 +22,6 @@
  *
  */
 
-/*eslint no-console: 0*/
-/*eslint indent: 0*/
-/*eslint max-len: ["error", { "code": 200 }]*/
 define(function (require, exports, module) {
     "use strict";
 
@@ -71,55 +68,55 @@ define(function (require, exports, module) {
 
         switch (type) {
             case ToolingInfo.LANGUAGE_SERVICE.START:
-                {
-                    if (hasValidProp(params, "rootPaths") || hasValidProp(params, "rootPath")) {
-                        validatedParams = params;
-                        validatedParams.capabilities = validatedParams.capabilities || false;
-                    }
-                    break;
+            {
+                if (hasValidProp(params, "rootPaths") || hasValidProp(params, "rootPath")) {
+                    validatedParams = params;
+                    validatedParams.capabilities = validatedParams.capabilities || false;
                 }
+                break;
+            }
             case ToolingInfo.FEATURES.CODE_HINTS:
             case ToolingInfo.FEATURES.PARAMETER_HINTS:
             case ToolingInfo.FEATURES.JUMP_TO_DECLARATION:
             case ToolingInfo.FEATURES.JUMP_TO_DEFINITION:
             case ToolingInfo.FEATURES.JUMP_TO_IMPL:
-                {
-                    if (hasValidProps(params, ["filePath", "cursorPos"])) {
-                        validatedParams = params;
-                    }
-                    break;
+            {
+                if (hasValidProps(params, ["filePath", "cursorPos"])) {
+                    validatedParams = params;
                 }
+                break;
+            }
             case ToolingInfo.FEATURES.CODE_HINT_INFO:
-                {
-                    validatedParams = params;
-                    break;
-                }
+            {
+                validatedParams = params;
+                break;
+            }
             case ToolingInfo.FEATURES.FIND_REFERENCES:
-                {
-                    if (hasValidProps(params, ["filePath", "cursorPos"])) {
-                        validatedParams = params;
-                        validatedParams.includeDeclaration = validatedParams.includeDeclaration || false;
-                    }
-                    break;
+            {
+                if (hasValidProps(params, ["filePath", "cursorPos"])) {
+                    validatedParams = params;
+                    validatedParams.includeDeclaration = validatedParams.includeDeclaration || false;
                 }
+                break;
+            }
             case ToolingInfo.FEATURES.DOCUMENT_SYMBOLS:
-                {
-                    if (hasValidProp(params, "filePath")) {
-                        validatedParams = params;
-                    }
-                    break;
-                }
-            case ToolingInfo.FEATURES.PROJECT_SYMBOLS:
-                {
-                    if (hasValidProp(params, "query") && typeof params.query === "string") {
-                        validatedParams = params;
-                    }
-                    break;
-                }
-            case ToolingInfo.LANGUAGE_SERVICE.CUSTOM_REQUEST:
-                {
+            {
+                if (hasValidProp(params, "filePath")) {
                     validatedParams = params;
                 }
+                break;
+            }
+            case ToolingInfo.FEATURES.PROJECT_SYMBOLS:
+            {
+                if (hasValidProp(params, "query") && typeof params.query === "string") {
+                    validatedParams = params;
+                }
+                break;
+            }
+            case ToolingInfo.LANGUAGE_SERVICE.CUSTOM_REQUEST:
+            {
+                validatedParams = params;
+            }
         }
 
         return validatedParams;
@@ -140,44 +137,44 @@ define(function (require, exports, module) {
 
         switch (type) {
             case ToolingInfo.SYNCHRONIZE_EVENTS.DOCUMENT_OPENED:
-                {
-                    if (hasValidProps(params, ["filePath", "fileContent", "languageId"])) {
-                        validatedParams = params;
-                    }
-                    break;
-                }
-            case ToolingInfo.SYNCHRONIZE_EVENTS.DOCUMENT_CHANGED:
-                {
-                    if (hasValidProps(params, ["filePath", "fileContent"])) {
-                        validatedParams = params;
-                    }
-                    break;
-                }
-            case ToolingInfo.SYNCHRONIZE_EVENTS.DOCUMENT_SAVED:
-                {
-                    if (hasValidProp(params, "filePath")) {
-                        validatedParams = params;
-                    }
-                    break;
-                }
-            case ToolingInfo.SYNCHRONIZE_EVENTS.DOCUMENT_CLOSED:
-                {
-                    if (hasValidProp(params, "filePath")) {
-                        validatedParams = params;
-                    }
-                    break;
-                }
-            case ToolingInfo.SYNCHRONIZE_EVENTS.PROJECT_FOLDERS_CHANGED:
-                {
-                    if (hasValidProps(params, ["foldersAdded", "foldersRemoved"])) {
-                        validatedParams = params;
-                    }
-                    break;
-                }
-            case ToolingInfo.LANGUAGE_SERVICE.CUSTOM_NOTIFICATION:
-                {
+            {
+                if (hasValidProps(params, ["filePath", "fileContent", "languageId"])) {
                     validatedParams = params;
                 }
+                break;
+            }
+            case ToolingInfo.SYNCHRONIZE_EVENTS.DOCUMENT_CHANGED:
+            {
+                if (hasValidProps(params, ["filePath", "fileContent"])) {
+                    validatedParams = params;
+                }
+                break;
+            }
+            case ToolingInfo.SYNCHRONIZE_EVENTS.DOCUMENT_SAVED:
+            {
+                if (hasValidProp(params, "filePath")) {
+                    validatedParams = params;
+                }
+                break;
+            }
+            case ToolingInfo.SYNCHRONIZE_EVENTS.DOCUMENT_CLOSED:
+            {
+                if (hasValidProp(params, "filePath")) {
+                    validatedParams = params;
+                }
+                break;
+            }
+            case ToolingInfo.SYNCHRONIZE_EVENTS.PROJECT_FOLDERS_CHANGED:
+            {
+                if (hasValidProps(params, ["foldersAdded", "foldersRemoved"])) {
+                    validatedParams = params;
+                }
+                break;
+            }
+            case ToolingInfo.LANGUAGE_SERVICE.CUSTOM_NOTIFICATION:
+            {
+                validatedParams = params;
+            }
         }
 
         return validatedParams;
@@ -329,12 +326,12 @@ define(function (require, exports, module) {
         if (params) {
             var self = this;
             return this._startClient(params)
-                    .then(function (result) {
-                        self.setServerCapabilities(result.capabilities);
-                        return $.Deferred().resolve(result);
-                    }, function (err) {
-                        return $.Deferred().reject(err);
-                    });
+                .then(function (result) {
+                    self.setServerCapabilities(result.capabilities);
+                    return $.Deferred().resolve(result);
+                }, function (err) {
+                    return $.Deferred().reject(err);
+                });
         }
 
         console.log("Invalid Parameters provided for request type : start");
@@ -654,13 +651,13 @@ define(function (require, exports, module) {
             HealthLogger = require("utils/HealthLogger"),
             typeStr = HealthLogger.commonStrings[typeStrKey] || "";
 
-         HealthLogger.sendAnalyticsData(
+        HealthLogger.sendAnalyticsData(
             HealthLogger.commonStrings.USAGE + HealthLogger.commonStrings.LANGUAGE_SERVER_PROTOCOL + typeStr + languageName,
             HealthLogger.commonStrings.USAGE,
             HealthLogger.commonStrings.LANGUAGE_SERVER_PROTOCOL,
             typeStr,
             languageName.toLowerCase()
-          );
+        );
     }
 
     //For unit testting

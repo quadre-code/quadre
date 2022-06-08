@@ -27,8 +27,6 @@
  * https://github.com/Microsoft/vscode/blob/314e122b16c5c1ca0288c8006e9c9c3039a51cd7/src/vs/workbench/services/files/node/watcher/win32/csharpWatcherService.ts
  */
 
-/* eslint-env node */
-
 import * as fs from "fs";
 import * as fspath from "path";
 import * as cp from "child_process";

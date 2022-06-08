@@ -22,7 +22,6 @@
  *
  */
 
-/*eslint-env node */
 /*jslint node: true, regexp: true */
 
 "use strict";

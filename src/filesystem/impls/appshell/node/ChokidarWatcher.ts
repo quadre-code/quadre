@@ -22,8 +22,6 @@
  *
  */
 
-/* eslint-env node */
-
 import * as fspath from "path";
 import * as chokidar from "chokidar";
 import * as FileWatcherManager from "./FileWatcherManager";

@@ -21,9 +21,7 @@
  * DEALINGS IN THE SOFTWARE.
  *
  */
-/*eslint-env es6, node*/
-/*eslint max-len: ["error", { "code": 200 }]*/
-/*eslint indent: 0*/
+
 "use strict";
 
 var LanguageClient = require(global.LanguageClientInfo.languageClientPath).LanguageClient,
@@ -44,8 +42,8 @@ function getServerOptionsForSocket() {
             .join(FORWARD_SLASH);
 
         getPort({
-                port: defaultPort
-            })
+            port: defaultPort
+        })
             .then(function (port) {
 
                 var serverOptions = {
@@ -114,9 +112,9 @@ function setOptionsForSocket() {
 
 function init(domainManager) {
     client = new LanguageClient(clientName, domainManager);
-    client.addOnRequestHandler('setModulePath', setModulePath);
-    client.addOnRequestHandler('setOptions', setOptions);
-    client.addOnRequestHandler('setOptionsForSocket', setOptionsForSocket);
+    client.addOnRequestHandler("setModulePath", setModulePath);
+    client.addOnRequestHandler("setOptions", setOptions);
+    client.addOnRequestHandler("setOptionsForSocket", setOptionsForSocket);
 }
 
 exports.init = init;

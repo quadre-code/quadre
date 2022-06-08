@@ -21,7 +21,7 @@
  * DEALINGS IN THE SOFTWARE.
  *
  */
-/*eslint-disable max-len, no-console*/
+
 /**
  * Pane objects host views of files, editors, etc... Clients cannot access
  * Pane objects directly. Instead the implementation is protected by the
