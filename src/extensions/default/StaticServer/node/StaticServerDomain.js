@@ -22,7 +22,6 @@
  *
  */
 
-/*eslint-env node */
 "use strict";
 
 var http        = require("http"),

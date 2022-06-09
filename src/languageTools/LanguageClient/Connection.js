@@ -22,117 +22,115 @@
  *
  */
 
-(function () {
-    "use strict";
+"use strict";
 
-    var protocol = require("vscode-languageserver-protocol");
+var protocol = require("vscode-languageserver-protocol");
 
-    var Actions = {
-        OnClose: {
-            Stop: 0,
-            Restart: 1
-        },
-        OnError: {
-            Ignore: 0,
-            Stop: 1
-        }
-    };
+var Actions = {
+    OnClose: {
+        Stop: 0,
+        Restart: 1
+    },
+    OnError: {
+        Ignore: 0,
+        Stop: 1
+    }
+};
 
-    function ActionController() {
-        this.restartsTimes = [];
+function ActionController() {
+    this.restartsTimes = [];
+}
+
+ActionController.prototype.getOnErrorAction = function (errorData) {
+    var errorCount = errorData[2];
+
+    if (errorCount <= 3) {
+        return Actions.OnError.Ignore;
     }
 
-    ActionController.prototype.getOnErrorAction = function (errorData) {
-        var errorCount = errorData[2];
+    return Actions.OnError.Restart;
+};
 
-        if (errorCount <= 3) {
-            return Actions.OnError.Ignore;
-        }
+ActionController.prototype.getOnCloseAction = function () {
+    var currentTime = Date.now();
+    this.restartsTimes.push(currentTime);
 
-        return Actions.OnError.Restart;
-    };
-
-    ActionController.prototype.getOnCloseAction = function () {
-        var currentTime = Date.now();
-        this.restartsTimes.push(currentTime);
-
-        var numRestarts = this.restartsTimes.length;
-        if (numRestarts < 5) {
-            return Actions.OnClose.Restart;
-        }
-
-        var timeBetweenFiveRestarts = this.restartsTimes[numRestarts - 1] - this.restartsTimes[0];
-        if (timeBetweenFiveRestarts <= 3 * 60 * 1000) { //3 minutes
-            return Actions.OnClose.Stop;
-        }
-
-        this.restartsTimes.shift();
+    var numRestarts = this.restartsTimes.length;
+    if (numRestarts < 5) {
         return Actions.OnClose.Restart;
-    };
-
-    function _getOnCloseHandler(connection, actionController, restartLanguageClient) {
-        return function () {
-            try {
-                if (connection) {
-                    connection.dispose();
-                }
-            } catch (error) {
-                // Do nothing
-            }
-
-            var action = Actions.OnClose.Stop;
-            try {
-                action = actionController.getOnCloseAction();
-            } catch (error) {
-                // Do nothing
-            }
-
-
-            if (action === Actions.OnClose.Restart) {
-                restartLanguageClient();
-            }
-        };
     }
 
-    function _getOnErrorHandler(actionController, stopLanguageClient) {
-        return function (errorData) {
-            var action = actionController.getOnErrorAction(errorData);
+    var timeBetweenFiveRestarts = this.restartsTimes[numRestarts - 1] - this.restartsTimes[0];
+    if (timeBetweenFiveRestarts <= 3 * 60 * 1000) { //3 minutes
+        return Actions.OnClose.Stop;
+    }
 
-            if (action === Actions.OnError.Stop) {
-                stopLanguageClient();
+    this.restartsTimes.shift();
+    return Actions.OnClose.Restart;
+};
+
+function _getOnCloseHandler(connection, actionController, restartLanguageClient) {
+    return function () {
+        try {
+            if (connection) {
+                connection.dispose();
             }
-        };
-    }
+        } catch (error) {
+            // Do nothing
+        }
 
-    function Logger() {
-        // Do nothing
-    }
+        var action = Actions.OnClose.Stop;
+        try {
+            action = actionController.getOnCloseAction();
+        } catch (error) {
+            // Do nothing
+        }
 
-    Logger.prototype.error = function (message) {
-        console.error(message);
+
+        if (action === Actions.OnClose.Restart) {
+            restartLanguageClient();
+        }
     };
-    Logger.prototype.warn = function (message) {
-        console.warn(message);
+}
+
+function _getOnErrorHandler(actionController, stopLanguageClient) {
+    return function (errorData) {
+        var action = actionController.getOnErrorAction(errorData);
+
+        if (action === Actions.OnError.Stop) {
+            stopLanguageClient();
+        }
     };
-    Logger.prototype.info = function (message) {
-        console.info(message);
-    };
-    Logger.prototype.log = function (message) {
-        console.log(message);
-    };
+}
 
-    function createConnection(reader, writer, restartLanguageClient, stopLanguageClient) {
-        var logger = new Logger(),
-            actionController = new ActionController(),
-            connection = protocol.createProtocolConnection(reader, writer, logger),
-            errorHandler = _getOnErrorHandler(actionController, stopLanguageClient),
-            closeHandler = _getOnCloseHandler(connection, actionController, restartLanguageClient);
+function Logger() {
+    // Do nothing
+}
 
-        connection.onError(errorHandler);
-        connection.onClose(closeHandler);
+Logger.prototype.error = function (message) {
+    console.error(message);
+};
+Logger.prototype.warn = function (message) {
+    console.warn(message);
+};
+Logger.prototype.info = function (message) {
+    console.info(message);
+};
+Logger.prototype.log = function (message) {
+    console.log(message);
+};
 
-        return connection;
-    }
+function createConnection(reader, writer, restartLanguageClient, stopLanguageClient) {
+    var logger = new Logger(),
+        actionController = new ActionController(),
+        connection = protocol.createProtocolConnection(reader, writer, logger),
+        errorHandler = _getOnErrorHandler(actionController, stopLanguageClient),
+        closeHandler = _getOnCloseHandler(connection, actionController, restartLanguageClient);
 
-    exports.createConnection = createConnection;
-}());
+    connection.onError(errorHandler);
+    connection.onClose(closeHandler);
+
+    return connection;
+}
+
+exports.createConnection = createConnection;

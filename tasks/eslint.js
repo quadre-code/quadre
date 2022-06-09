@@ -39,7 +39,9 @@ const meta = {
         "!test/smokes/**",
         "!test/temp/**",
         "!test/thirdparty/**",
-        "!test/**/node_modules/**/*.js"
+        "!test/**/node_modules/**/*.js",
+        "test/spec/LanguageTools-test-files/**/*.js",
+        "test/spec/LanguageTools-test-files/**/*.ts"
     ],
     build: [
         "Gruntfile.js",

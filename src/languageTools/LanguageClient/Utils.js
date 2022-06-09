@@ -22,7 +22,6 @@
  *
  */
 
-/*eslint-env es6, node*/
 "use strict";
 
 var nodeURL = require("url"),
@@ -31,9 +30,9 @@ var nodeURL = require("url"),
 function pathToUri(filePath) {
     var newPath = convertWinToPosixPath(filePath);
     if (newPath[0] !== "/") {
-        newPath = `/${newPath}`;
+        newPath = "/" + newPath;
     }
-    return encodeURI(`file://${newPath}`).replace(/[?#]/g, encodeURIComponent);
+    return encodeURI("file://" + newPath).replace(/[?#]/g, encodeURIComponent);
 }
 
 function uriToPath(uri) {
@@ -42,7 +41,7 @@ function uriToPath(uri) {
         return uri;
     }
 
-    let filePath = decodeURIComponent(url.path);
+    var filePath = decodeURIComponent(url.path);
     if (process.platform === "win32") {
         if (filePath[0] === "/") {
             filePath = filePath.substr(1);

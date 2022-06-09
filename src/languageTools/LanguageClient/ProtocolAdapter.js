@@ -23,9 +23,7 @@
  */
 
 /*global LanguageClientInfo*/
-/*eslint-env es6, node*/
-/*eslint max-len: ["error", { "code": 200 }]*/
-/*eslint no-fallthrough: 0*/
+
 "use strict";
 
 var protocol = require("vscode-languageserver-protocol"),
@@ -148,6 +146,7 @@ function _constructParamsAndRelay(relay, type, params) {
             didChangeWorkspaceFolders(relay, _params);
             break;
         }
+        /* eslint-disable no-fallthrough */
         case ToolingInfo.FEATURES.CODE_HINTS:
             handler = completion;
         case ToolingInfo.FEATURES.PARAMETER_HINTS:
@@ -168,6 +167,7 @@ function _constructParamsAndRelay(relay, type, params) {
 
             return handler(relay, _params);
         }
+        /* eslint-enable no-fallthrough */
         case ToolingInfo.FEATURES.CODE_HINT_INFO:
         {
             return completionItemResolve(relay, params);

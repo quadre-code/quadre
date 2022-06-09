@@ -22,8 +22,6 @@
  *
  */
 
-/* eslint-env node */
-
 "use strict";
 
 var fs    = require("fs-extra"),

@@ -21,14 +21,12 @@
  * DEALINGS IN THE SOFTWARE.
  *
  */
-/*eslint-env es6, node*/
-/*eslint max-len: ["error", { "code": 200 }]*/
-/*eslint indent: 0*/
 
 "use strict";
 
 var LanguageClient = require(global.LanguageClientInfo.languageClientPath).LanguageClient,
     clientName = "LoadSimpleClient",
+    // eslint-disable-next-line no-unused-vars
     client = null;
 
 function init(domainManager) {

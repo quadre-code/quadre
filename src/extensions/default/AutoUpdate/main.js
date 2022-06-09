@@ -21,8 +21,6 @@
  * DEALINGS IN THE SOFTWARE.
  *
  */
-/* eslint-disable indent */
-/* eslint-disable max-len */
 
 define(function (require, exports, module) {
     "use strict";
@@ -147,7 +145,7 @@ define(function (require, exports, module) {
         }
     }
 
-     /*
+    /*
      * Checks if Brackets version got updated
      * @returns {boolean}  true if version updated, false otherwise
      */
@@ -160,7 +158,7 @@ define(function (require, exports, module) {
     }
 
 
-     /**
+    /**
      * Gets the arguments to a function in an array
      * @param   {object} args - the arguments object
      * @returns {Array}   - array of actual arguments
@@ -192,7 +190,7 @@ define(function (require, exports, module) {
         updateDomain.exec("data", msg);
     }
 
-     /**
+    /**
      * Checks Install failure scenarios
      */
     function checkInstallationStatus() {
@@ -214,7 +212,7 @@ define(function (require, exports, module) {
         postMessageToNode(MessageIds.CHECK_INSTALLER_STATUS, searchParams);
     }
 
-     /**
+    /**
      * Checks and handles the update success and failure scenarios
      */
     function checkUpdateStatus() {
@@ -280,7 +278,7 @@ define(function (require, exports, module) {
     }
 
 
-     /**
+    /**
      * Initializes the state of parsed content from updateHelper.json
      * returns Promise Object Which is resolved when parsing is success
      * and rejected if parsing is failed.
@@ -294,18 +292,18 @@ define(function (require, exports, module) {
             .fail(function (code) {
                 var logMsg;
                 switch (code) {
-                case StateHandlerMessages.FILE_NOT_FOUND:
-                    logMsg = "AutoUpdate : updateHelper.json cannot be parsed, does not exist";
-                    break;
-                case StateHandlerMessages.FILE_NOT_READ:
-                    logMsg = "AutoUpdate : updateHelper.json could not be read";
-                    break;
-                case StateHandlerMessages.FILE_PARSE_EXCEPTION:
-                    logMsg = "AutoUpdate : updateHelper.json could not be parsed, exception encountered";
-                    break;
-                case StateHandlerMessages.FILE_READ_FAIL:
-                    logMsg = "AutoUpdate : updateHelper.json could not be parsed";
-                    break;
+                    case StateHandlerMessages.FILE_NOT_FOUND:
+                        logMsg = "AutoUpdate : updateHelper.json cannot be parsed, does not exist";
+                        break;
+                    case StateHandlerMessages.FILE_NOT_READ:
+                        logMsg = "AutoUpdate : updateHelper.json could not be read";
+                        break;
+                    case StateHandlerMessages.FILE_PARSE_EXCEPTION:
+                        logMsg = "AutoUpdate : updateHelper.json could not be parsed, exception encountered";
+                        break;
+                    case StateHandlerMessages.FILE_READ_FAIL:
+                        logMsg = "AutoUpdate : updateHelper.json could not be parsed";
+                        break;
                 }
                 console.log(logMsg);
                 result.reject();
@@ -373,7 +371,7 @@ define(function (require, exports, module) {
         initializeState()
             .done(function () {
 
-                 var setUpdateInProgress = function () {
+                var setUpdateInProgress = function () {
                     var initNodeFn = function () {
                         isAutoUpdateInitiated = true;
                         postMessageToNode(MessageIds.INITIALIZE_STATE, _updateParams);
@@ -396,7 +394,7 @@ define(function (require, exports, module) {
                                 description: Strings.AUTOUPDATE_IN_PROGRESS
                             });
                         } else {
-                             setUpdateStateInJSON("autoUpdateInProgress", true)
+                            setUpdateStateInJSON("autoUpdateInProgress", true)
                                 .done(setUpdateInProgress);
 
                         }
@@ -418,7 +416,7 @@ define(function (require, exports, module) {
     }
 
 
-     /**
+    /**
      * Typical signature of an update entry, with the most frequently used keys
      * @typedef {Object} Update~Entry
      * @property {Number} buildNumber - The build number for the update
@@ -440,55 +438,55 @@ define(function (require, exports, module) {
      */
     function _updateProcessHandler(updates) {
 
-            if (!updates) {
-                console.warn("AutoUpdate : updates information not available.");
-                return;
-            }
-            var OS = brackets.getPlatformInfo(),
-                checksum,
-                downloadURL,
-                installerName,
-                platforms,
-                latestUpdate;
+        if (!updates) {
+            console.warn("AutoUpdate : updates information not available.");
+            return;
+        }
+        var OS = brackets.getPlatformInfo(),
+            checksum,
+            downloadURL,
+            installerName,
+            platforms,
+            latestUpdate;
 
-            latestUpdate = updates[0];
-            platforms = latestUpdate ? latestUpdate.platforms : null;
+        latestUpdate = updates[0];
+        platforms = latestUpdate ? latestUpdate.platforms : null;
 
-            if (platforms && platforms[OS]) {
+        if (platforms && platforms[OS]) {
 
-                //If no checksum field is present then we're setting it to 0, just as a safety check,
-                // although ideally this situation should never occur in releases post its introduction.
-                checksum = platforms[OS].checksum ? platforms[OS].checksum : 0,
-                downloadURL = platforms[OS].downloadURL ? platforms[OS].downloadURL : "",
-                installerName = downloadURL ? downloadURL.split("/").pop() : "";
+            //If no checksum field is present then we're setting it to 0, just as a safety check,
+            // although ideally this situation should never occur in releases post its introduction.
+            checksum = platforms[OS].checksum ? platforms[OS].checksum : 0,
+            downloadURL = platforms[OS].downloadURL ? platforms[OS].downloadURL : "",
+            installerName = downloadURL ? downloadURL.split("/").pop() : "";
 
-            } else {
-                // Update not present for current platform
-                return false;
-            }
+        } else {
+            // Update not present for current platform
+            return false;
+        }
 
-            if (!checksum || !downloadURL || !installerName) {
-                console.warn("AutoUpdate : asset information incorrect for the update");
-                return false;
-            }
+        if (!checksum || !downloadURL || !installerName) {
+            console.warn("AutoUpdate : asset information incorrect for the update");
+            return false;
+        }
 
-            var updateParams = {
-                downloadURL: downloadURL,
-                installerName: installerName,
-                latestBuildNumber: latestUpdate.buildNumber,
-                checksum: checksum
-            };
+        var updateParams = {
+            downloadURL: downloadURL,
+            installerName: installerName,
+            latestBuildNumber: latestUpdate.buildNumber,
+            checksum: checksum
+        };
 
 
-            //Initiate the auto update, with update params
-            initiateAutoUpdate(updateParams);
+        //Initiate the auto update, with update params
+        initiateAutoUpdate(updateParams);
 
         //Send a truthy value to ensure caller is informed about successful initialization of auto-update
         return true;
     }
 
 
-     /**
+    /**
      * Unregisters the App Quit event handler
      */
     function resetAppQuitHandler() {
@@ -554,7 +552,7 @@ define(function (require, exports, module) {
 
         // Check if the update domain is properly initialised
         updateDomain.promise()
-             .done(function () {
+            .done(function () {
                 setupAutoUpdatePreference();
                 if (_isAutoUpdateEnabled()) {
                     domainID = (new Date()).getTime().toString();
@@ -562,7 +560,7 @@ define(function (require, exports, module) {
                     UpdateNotification.registerUpdateHandler(_updateProcessHandler);
                 }
             })
-             .fail(function (err) {
+            .fail(function (err) {
                 console.error("AutoUpdate : node domain could not be initialized.");
                 return;
             });
@@ -578,7 +576,7 @@ define(function (require, exports, module) {
                 if (inProgress && reset) {
                     setUpdateStateInJSON(updateProgressKey, !reset)
                         .always(checkUpdateStatus);
-                 } else if (!inProgress) {
+                } else if (!inProgress) {
                     checkUpdateStatus();
                 }
             });
@@ -629,7 +627,7 @@ define(function (require, exports, module) {
      *                       success or failure of state update in json file
      */
     function setUpdateStateInJSON(key, value) {
-         var result = $.Deferred();
+        var result = $.Deferred();
 
         updateJsonHandler.set(key, value)
             .done(function () {
@@ -778,20 +776,20 @@ define(function (require, exports, module) {
         var analyticsDescriptionMessage = "";
 
         switch (message) {
-        case _nodeErrorMessages.UPDATEDIR_READ_FAILED:
-            analyticsDescriptionMessage = "Update directory could not be read.";
-            break;
-        case _nodeErrorMessages.UPDATEDIR_CLEAN_FAILED:
-            analyticsDescriptionMessage = "Update directory could not be cleaned.";
-            break;
+            case _nodeErrorMessages.UPDATEDIR_READ_FAILED:
+                analyticsDescriptionMessage = "Update directory could not be read.";
+                break;
+            case _nodeErrorMessages.UPDATEDIR_CLEAN_FAILED:
+                analyticsDescriptionMessage = "Update directory could not be cleaned.";
+                break;
         }
         console.log("AutoUpdate : Clean-up failed! Reason : " + analyticsDescriptionMessage + ".\n");
         HealthLogger.sendAnalyticsData(
-                autoUpdateEventNames.AUTOUPDATE_CLEANUP_FAILED,
-                "autoUpdate",
-                "cleanUp",
-                "fail",
-                analyticsDescriptionMessage
+            autoUpdateEventNames.AUTOUPDATE_CLEANUP_FAILED,
+            "autoUpdate",
+            "cleanUp",
+            "fail",
+            analyticsDescriptionMessage
         );
     }
 
@@ -960,10 +958,10 @@ define(function (require, exports, module) {
                 updateJsonHandler.refresh()
                     .done(function () {
                         setUpdateStateInJSON("downloadCompleted", true)
-                        .done(statusValidFn);
-                });
+                            .done(statusValidFn);
+                    });
             } else {
-                 setUpdateStateInJSON("downloadCompleted", true)
+                setUpdateStateInJSON("downloadCompleted", true)
                     .done(statusValidFn);
             }
         } else {
@@ -989,14 +987,14 @@ define(function (require, exports, module) {
                     analyticsDescriptionMessage = "";
 
                 switch (statusObj.err) {
-                case _nodeErrorMessages.CHECKSUM_DID_NOT_MATCH:
-                    descriptionMessage = Strings.CHECKSUM_DID_NOT_MATCH;
-                    analyticsDescriptionMessage = "Checksum didn't match.";
-                    break;
-                case _nodeErrorMessages.INSTALLER_NOT_FOUND:
-                    descriptionMessage = Strings.INSTALLER_NOT_FOUND;
-                    analyticsDescriptionMessage = "Installer not found.";
-                    break;
+                    case _nodeErrorMessages.CHECKSUM_DID_NOT_MATCH:
+                        descriptionMessage = Strings.CHECKSUM_DID_NOT_MATCH;
+                        analyticsDescriptionMessage = "Checksum didn't match.";
+                        break;
+                    case _nodeErrorMessages.INSTALLER_NOT_FOUND:
+                        descriptionMessage = Strings.INSTALLER_NOT_FOUND;
+                        analyticsDescriptionMessage = "Installer not found.";
+                        break;
                 }
                 HealthLogger.sendAnalyticsData(
                     autoUpdateEventNames.AUTOUPDATE_DOWNLOAD_FAILED,

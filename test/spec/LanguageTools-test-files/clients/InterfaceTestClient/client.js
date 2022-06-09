@@ -21,9 +21,7 @@
  * DEALINGS IN THE SOFTWARE.
  *
  */
-/*eslint-env es6, node*/
-/*eslint max-len: ["error", { "code": 200 }]*/
-/*eslint indent: 0*/
+
 "use strict";
 
 var LanguageClient = require(global.LanguageClientInfo.languageClientPath).LanguageClient,
@@ -32,100 +30,100 @@ var LanguageClient = require(global.LanguageClientInfo.languageClientPath).Langu
 
 function notificationMethod(params) {
     switch (params.action) {
-        case 'acknowledgement':
-            {
+        case "acknowledgement":
+        {
+            client._notifyBrackets({
+                type: "acknowledge",
+                params: {
+                    acknowledgement: true,
+                    clientName: clientName
+                }
+            });
+            break;
+        }
+        case "nodeSyncRequest":
+        {
+            var syncRequest = client._requestBrackets({
+                type: "nodeSyncRequest",
+                params: {
+                    syncRequest: true,
+                    clientName: clientName
+                }
+            });
+
+            syncRequest.then(function (value) {
                 client._notifyBrackets({
-                    type: "acknowledge",
+                    type: "validateSyncRequest",
                     params: {
-                        acknowledgement: true,
+                        syncRequestResult: value,
                         clientName: clientName
                     }
                 });
-                break;
-            }
-        case 'nodeSyncRequest':
-            {
-                var syncRequest = client._requestBrackets({
-                    type: "nodeSyncRequest",
-                    params: {
-                        syncRequest: true,
-                        clientName: clientName
-                    }
-                });
+            });
+            break;
+        }
+        case "nodeAsyncRequestWhichResolves":
+        {
+            var asyncRequestS = client._requestBrackets({
+                type: "nodeAsyncRequestWhichResolves",
+                params: {
+                    asyncRequest: true,
+                    clientName: clientName
+                }
+            });
 
-                syncRequest.then(function (value) {
-                    client._notifyBrackets({
-                        type: "validateSyncRequest",
-                        params: {
-                            syncRequestResult: value,
-                            clientName: clientName
-                        }
-                    });
-                });
-                break;
-            }
-        case 'nodeAsyncRequestWhichResolves':
-            {
-                var asyncRequestS = client._requestBrackets({
-                    type: "nodeAsyncRequestWhichResolves",
+            asyncRequestS.then(function (value) {
+                client._notifyBrackets({
+                    type: "validateAsyncSuccess",
                     params: {
-                        asyncRequest: true,
+                        asyncRequestResult: value,
                         clientName: clientName
                     }
                 });
+            });
+            break;
+        }
+        case "nodeAsyncRequestWhichFails":
+        {
+            var asyncRequestE = client._requestBrackets({
+                type: "nodeAsyncRequestWhichFails",
+                params: {
+                    asyncRequest: true,
+                    clientName: clientName
+                }
+            });
 
-                asyncRequestS.then(function (value) {
-                    client._notifyBrackets({
-                        type: "validateAsyncSuccess",
-                        params: {
-                            asyncRequestResult: value,
-                            clientName: clientName
-                        }
-                    });
-                });
-                break;
-            }
-        case 'nodeAsyncRequestWhichFails':
-            {
-                var asyncRequestE = client._requestBrackets({
-                    type: "nodeAsyncRequestWhichFails",
+            asyncRequestE.catch(function (value) {
+                client._notifyBrackets({
+                    type: "validateAsyncFail",
                     params: {
-                        asyncRequest: true,
+                        asyncRequestError: value,
                         clientName: clientName
                     }
                 });
-
-                asyncRequestE.catch(function (value) {
-                    client._notifyBrackets({
-                        type: "validateAsyncFail",
-                        params: {
-                            asyncRequestError: value,
-                            clientName: clientName
-                        }
-                    });
-                });
-                break;
-            }
+            });
+            break;
+        }
     }
 }
 
 function requestMethod(params) {
     switch (params.action) {
-        case 'resolve':
-            {
-                return Promise.resolve("resolved");
-            }
-        case 'reject':
-            {
-                return Promise.reject("rejected");
-            }
+        case "resolve":
+        {
+            return Promise.resolve("resolved");
+        }
+        case "reject":
+        {
+            return Promise.reject("rejected");
+        }
     }
 }
 
 function init(domainManager) {
     client = new LanguageClient(clientName, domainManager);
     client.addOnNotificationHandler("notificationMethod", notificationMethod);
-    client.addOnRequestHandler('requestMethod', requestMethod);
+    client.addOnRequestHandler("requestMethod", requestMethod);
 }
 
 exports.init = init;

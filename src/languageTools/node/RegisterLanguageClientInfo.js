@@ -22,7 +22,6 @@
  *
  */
 
-/*eslint-env es6, node*/
 "use strict";
 
 var domainName = "LanguageClientInfo",

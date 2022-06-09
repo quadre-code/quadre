@@ -22,9 +22,8 @@
  *
  */
 
-/*global Map*/
-/* eslint-disable indent */
-/* eslint max-len: ["error", { "code": 200 }], no-invalid-this: 0*/
+/* globals Map */
+
 define(function (require, exports, module) {
     "use strict";
 
@@ -331,8 +330,8 @@ define(function (require, exports, module) {
                 if (docUri !== docPathUri) {
                     var documentPath = PathConverters.uriToPath(docUri);
                     CommandManager.execute(Commands.FILE_OPEN, {
-                            fullPath: documentPath
-                        })
+                        fullPath: documentPath
+                    })
                         .done(function () {
                             setJumpPosition(startCurPos);
                             $deferredHints.resolve();
@@ -394,8 +393,8 @@ define(function (require, exports, module) {
             errors: errors
         });
         if (this._promiseMap.get(filePath)) {
-           this._promiseMap.get(filePath).resolve(this._results.get(filePath));
-           this._promiseMap.delete(filePath);
+            this._promiseMap.get(filePath).resolve(this._results.get(filePath));
+            this._promiseMap.delete(filePath);
         }
         if (this._validateOnType) {
             var editor = EditorManager.getActiveEditor(),

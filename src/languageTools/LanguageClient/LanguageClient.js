@@ -23,7 +23,7 @@
  */
 
 /*global LanguageClientInfo */
-/*eslint strict: ["error", "global"]*/
+
 "use strict";
 
 var ProtocolAdapter = require("./ProtocolAdapter"),

@@ -22,8 +22,6 @@
  *
  */
 
-/*eslint-env node */
-
 import * as fs from "fs";
 
 interface WatcherMap {

@@ -21,10 +21,8 @@
  * DEALINGS IN THE SOFTWARE.
  *
  */
-/*eslint-env es6, node*/
-/*eslint max-len: ["error", { "code": 200 }]*/
-/*eslint indent: 0*/
-'use strict';
+
+"use strict";
 
 var vls = require("vscode-languageserver"),
     connection = vls.createConnection(vls.ProposedFeatures.all);
@@ -36,21 +34,21 @@ connection.onInitialize(function (params) {
             completionProvider: {
                 resolveProvider: true,
                 triggerCharacters: [
-                    '=',
-                    ' ',
-                    '$',
-                    '-',
-                    '&'
+                    "=",
+                    " ",
+                    "$",
+                    "-",
+                    "&"
                 ]
             },
             definitionProvider: true,
             signatureHelpProvider: {
                 triggerCharacters: [
-                    '-',
-                    '[',
-                    ',',
-                    ' ',
-                    '='
+                    "-",
+                    "[",
+                    ",",
+                    " ",
+                    "="
                 ]
             },
             "workspaceSymbolProvider": "true",
@@ -188,58 +186,58 @@ connection.onDidSaveTextDocument(function (params) {
 connection.onNotification(function (type, params) {
     switch (type) {
         case "custom/triggerDiagnostics":
-            {
-                connection.sendDiagnostics({
-                    received: {
-                        type: type,
-                        params: params
-                    }
-                });
-                break;
-            }
+        {
+            connection.sendDiagnostics({
+                received: {
+                    type: type,
+                    params: params
+                }
+            });
+            break;
+        }
         case "custom/getNotification":
-            {
-                connection.sendNotification("custom/serverNotification", {
-                    received: {
-                        type: type,
-                        params: params
-                    }
-                });
-                break;
-            }
+        {
+            connection.sendNotification("custom/serverNotification", {
+                received: {
+                    type: type,
+                    params: params
+                }
+            });
+            break;
+        }
         case "custom/getRequest":
-            {
-                connection.sendRequest("custom/serverRequest", {
+        {
+            connection.sendRequest("custom/serverRequest", {
+                received: {
+                    type: type,
+                    params: params
+                }
+            }).then(function (resolveResponse) {
+                connection.sendNotification("custom/requestSuccessNotification", {
                     received: {
-                        type: type,
-                        params: params
+                        type: "custom/requestSuccessNotification",
+                        params: resolveResponse
                     }
-                }).then(function (resolveResponse) {
-                    connection.sendNotification("custom/requestSuccessNotification", {
-                        received: {
-                            type: "custom/requestSuccessNotification",
-                            params: resolveResponse
-                        }
-                    });
-                }).catch(function (rejectResponse) {
-                    connection.sendNotification("custom/requestFailedNotification", {
-                        received: {
-                            type: "custom/requestFailedNotification",
-                            params: rejectResponse
-                        }
-                    });
                 });
-                break;
-            }
+            }).catch(function (rejectResponse) {
+                connection.sendNotification("custom/requestFailedNotification", {
+                    received: {
+                        type: "custom/requestFailedNotification",
+                        params: rejectResponse
+                    }
+                });
+            });
+            break;
+        }
         default:
-            {
-                connection.sendNotification(vls.LogMessageNotification.type, {
-                    received: {
-                        type: type,
-                        params: params
-                    }
-                });
-            }
+        {
+            connection.sendNotification(vls.LogMessageNotification.type, {
+                received: {
+                    type: type,
+                    params: params
+                }
+            });
+        }
     }
 });
 
