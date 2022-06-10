@@ -26,8 +26,6 @@
  *  Utilities functions related to Health Data logging
  */
 
-/* globals Map */
-
 import * as PreferencesManager from "preferences/PreferencesManager";
 import * as LanguageManager from "language/LanguageManager";
 import * as FileUtils from "file/FileUtils";

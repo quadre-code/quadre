@@ -1,5 +1,8 @@
 module.exports = {
     "extends": "moody-tsx",
+    "env": {
+        "es6": true
+    },
     "rules": {
         "guard-for-in": "off",
         "max-len": ["warn", 120],
@@ -61,7 +64,6 @@ module.exports = {
                 "src/xorigin.ts"
             ],
             "parserOptions": {
-                "ecmaVersion": 6,
                 "sourceType": "script",
             },
         },
