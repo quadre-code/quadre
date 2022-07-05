@@ -1,4 +1,5 @@
 import * as electron from "electron";
+import * as electronRemote from "@electron/remote";
 import appshell = require("./appshell/index");
 
 let t: any;
@@ -9,6 +10,7 @@ interface BracketsWindowGlobal {
     appshell: any;
     brackets: any;
     electron: typeof electron;
+    electronRemote: typeof electronRemote;
     node: {
         process: NodeJS.Process;
         require: NodeRequire;
@@ -22,6 +24,7 @@ process.once("loaded", function () {
     try {
         t = {
             electron,
+            electronRemote,
             process,
             require,
             module,
@@ -38,6 +41,7 @@ process.once("loaded", function () {
     const g = global as BracketsWindowGlobal & typeof global;
     // expose electron renderer process modules
     g.electron = t.electron;
+    g.electronRemote = t.electronRemote;
     // expose node stuff under node global wrapper because of requirejs
     g.node = {
         process: t.process,

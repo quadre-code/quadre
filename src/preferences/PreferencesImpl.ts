@@ -27,7 +27,7 @@
  * to be essentially private implementation that can be overridden for tests.
  */
 
-const isDev = electron.remote.require("./utils").isDev();
+const isDev = electronRemote.require("./utils").isDev();
 
 import * as PreferencesBase from "./PreferencesBase";
 import * as Async from "utils/Async";

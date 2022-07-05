@@ -45,7 +45,7 @@ define(function (require, exports, module) {
             TEST_MENU_ITEM          = "Item 1",
             TEST_MENU_ITEM_ID       = "item1";
 
-        var winId = electron.remote.getCurrentWindow().id;
+        var winId = electronRemote.getCurrentWindow().id;
 
         it("should have a brackets.app namespace", function () {
             var complete = false,

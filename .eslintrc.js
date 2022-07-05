@@ -52,6 +52,7 @@ module.exports = {
             ],
             "globals": {
                 "electron": false,
+                "electronRemote": false,
                 "exports": false,
                 "module": false
             }
@@ -115,7 +116,8 @@ module.exports = {
                 "afterLast": false,
                 "waitsForDone": false,
                 "waitsForFail": false,
-                "electron": false
+                "electron": false,
+                "electronRemote": false
             }
         },
         // Tests node files

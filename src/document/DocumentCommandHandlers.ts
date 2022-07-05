@@ -65,7 +65,7 @@ import * as _ from "lodash";
 /**
  * Instance of the App and BrowserWindow object provided by Electron
  */
-const browserWindow = electron.remote.getCurrentWindow();
+const browserWindow = electronRemote.getCurrentWindow();
 
 /**
  * Container for label shown above editor; must be an inline element
@@ -1769,7 +1769,7 @@ function browserReload(href) {
                 href = href.substr(0, fragment);
             }
 
-            setTimeout(function () { electron.remote.require("./main").restart(href); }, 500);
+            setTimeout(function () { electronRemote.require("./main").restart(href); }, 500);
         });
     }).fail(function () {
         _isReloading = false;

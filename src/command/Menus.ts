@@ -436,7 +436,7 @@ export class Menu {
             // Targeting parent to get the menu item <a> and the <li> that contains it
             $(_getHTMLMenuItem(menuItemID)).parent().remove();
         } else {
-            const winId = electron.remote.getCurrentWindow().id;
+            const winId = electronRemote.getCurrentWindow().id;
             brackets.app.removeMenuItem(winId, commandID, function (err) {
                 if (err) {
                     console.error("removeMenuItem() -- command not found: " + commandID + " (error: " + err + ")");
@@ -482,7 +482,7 @@ export class Menu {
                 return;
             }
         } else {
-            const winId = electron.remote.getCurrentWindow().id;
+            const winId = electronRemote.getCurrentWindow().id;
             brackets.app.removeMenuItem(winId, menuItem.dividerId, function (err) {
                 if (err) {
                     console.error("removeMenuDivider() -- divider not found: %s (error: %s)", menuItemID, err);
@@ -617,7 +617,7 @@ export class Menu {
                 relativeID = relativeID.sectionMarker;
             }
 
-            const winId = electron.remote.getCurrentWindow().id;
+            const winId = electronRemote.getCurrentWindow().id;
             brackets.app.addMenuItem(winId, this.id, name, commandID, bindingStr, displayStr, position, relativeID, function (err) {
                 switch (err) {
                     case NO_ERROR:
@@ -954,7 +954,7 @@ export class MenuItem {
     public _checkedChanged() {
         const checked = !!this._command.getChecked();
         if (this.isNative) {
-            const winId = electron.remote.getCurrentWindow().id;
+            const winId = electronRemote.getCurrentWindow().id;
             const enabled = !!this._command.getEnabled();
             brackets.app.setMenuItemState(winId, this._command.getID(), enabled, checked, function (err) {
                 if (err) {
@@ -971,7 +971,7 @@ export class MenuItem {
      */
     public _enabledChanged() {
         if (this.isNative) {
-            const winId = electron.remote.getCurrentWindow().id;
+            const winId = electronRemote.getCurrentWindow().id;
             const enabled = !!this._command.getEnabled();
             const checked = !!this._command.getChecked();
             brackets.app.setMenuItemState(winId, this._command.getID(), enabled, checked, function (err) {
@@ -989,7 +989,7 @@ export class MenuItem {
      */
     public _nameChanged() {
         if (this.isNative) {
-            const winId = electron.remote.getCurrentWindow().id;
+            const winId = electronRemote.getCurrentWindow().id;
             brackets.app.setMenuTitle(winId, this._command.getID(), this._command.getName(), function (err) {
                 if (err) {
                     console.log("Error setting menu title: " + err);
@@ -1006,7 +1006,7 @@ export class MenuItem {
      */
     private _keyBindingAdded(event, keyBinding) {
         if (this.isNative) {
-            const winId = electron.remote.getCurrentWindow().id;
+            const winId = electronRemote.getCurrentWindow().id;
             const shortcutKey = keyBinding.displayKey || keyBinding.key;
             brackets.app.setMenuItemShortcut(winId, this._command.getID(), shortcutKey, KeyBindingManager.formatKeyDescriptor(shortcutKey), function (err) {
                 if (err) {
@@ -1024,7 +1024,7 @@ export class MenuItem {
      */
     private _keyBindingRemoved(event, keyBinding) {
         if (this.isNative) {
-            const winId = electron.remote.getCurrentWindow().id;
+            const winId = electronRemote.getCurrentWindow().id;
             brackets.app.setMenuItemShortcut(winId, this._command.getID(), "", "", function (err) {
                 if (err) {
                     console.error("Error setting menu item shortcut: " + err);
@@ -1085,7 +1085,7 @@ export function addMenu(name, id, position?, relativeID?) {
     menuMap[id] = menu;
 
     if (!_isHTMLMenu(id)) {
-        const winId = electron.remote.getCurrentWindow().id;
+        const winId = electronRemote.getCurrentWindow().id;
         brackets.app.addMenu(winId, name, id, position, relativeID, function (err) {
             switch (err) {
                 case NO_ERROR:
@@ -1165,7 +1165,7 @@ export function removeMenu(id) {
     if (_isHTMLMenu(id)) {
         $(_getHTMLMenu(id)).remove();
     } else {
-        const winId = electron.remote.getCurrentWindow().id;
+        const winId = electronRemote.getCurrentWindow().id;
         brackets.app.removeMenu(winId, id, function (err) {
             if (err) {
                 console.error("removeMenu() -- id not found: " + id + " (error: " + err + ")");

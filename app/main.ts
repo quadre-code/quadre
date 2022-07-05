@@ -1,4 +1,6 @@
-import { app, BrowserWindow, BrowserWindowConstructorOptions, ipcMain, LoadURLOptions } from "electron";
+import { app, BrowserWindow, BrowserWindowConstructorOptions, ipcMain } from "electron";
+// tslint:disable-next-line:no-submodule-imports
+import * as electronRemote from "@electron/remote/main";
 import AutoUpdater from "./auto-updater";
 import * as _ from "lodash";
 import { getLogger, setLoggerWindow, unsetLoggerWindow, convertWindowsPathToUnixPath, errToString } from "./utils";
@@ -10,6 +12,8 @@ import { readBracketsPreferences } from "./brackets-config";
 import { wins, menuTemplates } from "./shared";
 import * as shellState from "./shell-state";
 import * as SocketServer from "./socket-server"; // Implementation of Brackets' shell server
+
+electronRemote.initialize();
 
 const appInfo = require("./package.json");
 
@@ -104,8 +108,34 @@ app.on("ready", function () {
     setLoggerWindow(win);
 });
 
-app.on("gpu-process-crashed", function () {
-    restart();
+app.on("browser-window-created", (event, window) => {
+    if (!menuTemplates[window.id]) {
+        menuTemplates[window.id] = [];
+    }
+
+    electronRemote.enable(window.webContents);
+
+    window.webContents.setWindowOpenHandler((details: Electron.HandlerDetails) => {
+        return {
+            action: "allow",
+            overrideBrowserWindowOptions: {
+                webPreferences: {
+                    nodeIntegration: false,
+                    nodeIntegrationInSubFrames: true,
+                    preload: pathLib.resolve(__dirname, "preload.js"),
+                    contextIsolation: false
+                }
+            }
+        };
+    });
+
+    window.once("ready-to-show", () => window.show());
+});
+
+app.on("child-process-gone", function (event: Electron.Event, details: Electron.Details) {
+    if (details.reason === "killed") {
+        restart();
+    }
 });
 
 export function restart(query: {} | string = {}) {
@@ -193,8 +223,7 @@ export function openMainBracketsWindow(query: {} | string = {}): BrowserWindow {
             nodeIntegration: false,
             nodeIntegrationInSubFrames: true,
             preload: pathLib.resolve(__dirname, "preload.js"),
-            nativeWindowOpen: true,
-            enableRemoteModule: true
+            contextIsolation: false
         }
     };
 
@@ -220,6 +249,7 @@ export function openMainBracketsWindow(query: {} | string = {}): BrowserWindow {
     if (argv.devtools) {
         win.webContents.openDevTools({ mode: "detach" });
     }
+    electronRemote.enable(win.webContents);
     wins.push(win);
 
     // load the index.html of the app
@@ -260,28 +290,18 @@ export function openMainBracketsWindow(query: {} | string = {}): BrowserWindow {
         saveWindowPosition(win);
     });
 
-    win.webContents.on("new-window", function (
-        event, url, frameName, disposition, options, additionalFeatures, referrer, postBody
-    ) {
-        event.preventDefault();
-
-        const bwOptions = options;
-        bwOptions.show = false;
-        const newWin = new BrowserWindow(bwOptions);
-        newWin.once("ready-to-show", () => newWin.show());
-        if (!(options as any).webContents) {
-            const loadOptions: LoadURLOptions = {
-                httpReferrer: referrer
-            };
-            if (postBody) {
-                const { data, contentType, boundary } = postBody;
-                loadOptions.postData = data as any;
-                loadOptions.extraHeaders = `content-type: ${contentType}; boundary=${boundary}`;
+    win.webContents.setWindowOpenHandler((details: Electron.HandlerDetails) => {
+        return {
+            action: "allow",
+            overrideBrowserWindowOptions: {
+                webPreferences: {
+                    nodeIntegration: false,
+                    nodeIntegrationInSubFrames: true,
+                    preload: pathLib.resolve(__dirname, "preload.js"),
+                    contextIsolation: false
+                }
             }
-
-            newWin.loadURL(url, loadOptions); // existing webContents will be navigated automatically
-        }
-        event.newGuest = newWin;
+        };
     });
 
     return win;

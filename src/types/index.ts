@@ -3,6 +3,7 @@ declare const appshell: any;
 declare const brackets: any;
 // eslint-disable-next-line no-undef
 declare const electron: typeof Electron;
+declare const electronRemote: any;
 declare const node: {
     process: NodeJS.Process;
     require: NodeRequire;
