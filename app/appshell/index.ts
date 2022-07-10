@@ -1,9 +1,9 @@
 import * as _ from "lodash";
-import { remote } from "electron";
+import * as electronRemote from "@electron/remote";
 
-const app = _.extend({}, require("./app"), remote.require("./appshell/app-menu"));
+const app = _.extend({}, require("./app"), electronRemote.require("./appshell/app-menu"));
 const fs = _.extend({}, require("fs-extra"), require("./fs-additions"));
-const shell = remote.require("./appshell/shell");
+const shell = electronRemote.require("./appshell/shell");
 
 // prevent using this alias, rather use .remove
 delete fs.delete;

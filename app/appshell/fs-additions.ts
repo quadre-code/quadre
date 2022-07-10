@@ -1,7 +1,6 @@
 import * as fs from "fs-extra";
 import * as utils from "../utils";
-import { remote } from "electron";
-const { dialog } = remote;
+import { dialog } from "@electron/remote";
 const isbinaryfile = require("isbinaryfile");
 const stripBom = require("strip-bom");
 const trash = require("trash");

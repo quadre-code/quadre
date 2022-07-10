@@ -667,7 +667,7 @@ function _getUpdateInformation(
 
     if (fetchData) {
 
-        const autoUpdater = electron.remote.require("./auto-updater");
+        const autoUpdater = electronRemote.require("./auto-updater");
         const parseXml = node.require("./xml-utils").parseXml;
         const UPDATE_SERVER_HOST = autoUpdater.UPDATE_SERVER_HOST;
         const url = `https://${UPDATE_SERVER_HOST}/feed/channel/all.atom`;

@@ -1,10 +1,11 @@
 import * as assert from "assert";
 import * as pathLib from "path";
 import * as utils from "../utils";
-import { remote, shell } from "electron";
+import { shell } from "electron";
+import * as electronRemote from "@electron/remote";
 import { machineId } from "node-machine-id";
 
-const app = remote.app;
+const app = electronRemote.app;
 const REMOTE_DEBUGGING_PORT = 9234; // TODO: this is hardcoded in brackets-shell
 const startupTime = process.hrtime();
 
@@ -22,7 +23,7 @@ export const ERR_NODE_PORT_NOT_YET_SET = -2;
 // TODO: this should be changeable
 export const language = "en";
 
-const shellState = remote.require("./shell-state");
+const shellState = electronRemote.require("./shell-state");
 
 export function getNodeState(callback: (errCode: string, port: number) => void) {
     process.nextTick(function () {
@@ -128,11 +129,11 @@ export function openURLInDefaultBrowser(
 
 export function quit() {
     // close current window, shell will quit when all windows are closed
-    remote.getCurrentWindow().close();
+    electronRemote.getCurrentWindow().close();
 }
 
 export function showDeveloperTools() {
-    const win = remote.getCurrentWindow();
+    const win = electronRemote.getCurrentWindow();
     win.webContents.openDevTools({ mode: "detach" });
 }
 
