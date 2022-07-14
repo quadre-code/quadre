@@ -177,11 +177,9 @@ function formatUrl(filePath: string, options: FormatOptions = {}) {
 
 export function openMainBracketsWindow(query: {} | string = {}): BrowserWindow {
     const argv = yargs
-        .describe("startup-path", "A file path to startup instead of default one.")
-        .string("startup-path")
-        .describe("devtools", "Open the devtools window at startup.")
-        .boolean("devtools")
-        .argv;
+        .option("startup-path", { describe: "A file path to startup instead of default one.", type: "string" })
+        .option("devtools", { describe: "Open the devtools window at startup.", type: "boolean" })
+        .parseSync();
 
     // compose path to brackets' index file
     let indexPath = "www/index.html";
