@@ -17,8 +17,9 @@ function browserDependencies(cb) {
     const webpackTasks = [
         [
             "--entry=./node_modules/semver/semver.js",
-            "--output=./src/thirdparty/semver.browser.js",
-            "--output-library-target=amd",
+            "--output-path=./src/thirdparty",
+            "--output-filename=semver.browser.js",
+            "--output-library-type=amd",
             "--mode=development"
         ]
     ];
