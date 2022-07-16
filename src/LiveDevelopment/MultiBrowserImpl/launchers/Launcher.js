@@ -25,26 +25,27 @@
 define(function (require, exports, module) {
     "use strict";
 
-    var FileUtils  = require("file/FileUtils"),
-        NodeDomain = require("utils/NodeDomain");
-
-    var _bracketsPath   = FileUtils.getNativeBracketsDirectoryPath(),
-        _modulePath     = FileUtils.getNativeModuleDirectoryPath(module),
-        _nodePath       = "node/LauncherDomain",
-        _domainPath     = [_bracketsPath, _modulePath, _nodePath].join("/"),
-        _nodeDomain     = new NodeDomain("launcher", _domainPath);
-
+    var PathUtils = require("thirdparty/path-utils/path-utils");
 
     /**
      * Launch the given URL in the system default browser.
      * @param {string} url
      */
     function launch(url) {
-        // launch from node domain
-        _nodeDomain.exec("launch", url);
+        var parsed = PathUtils.parseUrl(url);
+        if (!["https:", "http:"].includes(parsed.protocol)) {
+            console.error("Unknown protocol: " + url);
+            return;
+        }
+
+        // TODO: it now launching just on default browser, add launchers for specific browsers?
+        electronRemote.shell.openExternal(url)
+            .then(() => {
+                console.log("Success opening: " + url);
+            })
+            .catch(err => console.error(err));
     }
 
     // Exports
     exports.launch = launch;
-
 });
