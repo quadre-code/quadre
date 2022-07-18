@@ -15447,15 +15447,6 @@
         }
       }
     },
-    "opn": {
-      "version": "4.0.2",
-      "resolved": "https://registry.npmjs.org/opn/-/opn-4.0.2.tgz",
-      "integrity": "sha1-erwi5kTf9jsKltWrfyeQwPAavJU=",
-      "requires": {
-        "object-assign": "^4.0.1",
-        "pinkie-promise": "^2.0.0"
-      }
-    },
     "optimist": {
       "version": "0.3.7",
       "resolved": "https://registry.npmjs.org/optimist/-/optimist-0.3.7.tgz",
