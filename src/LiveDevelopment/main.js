@@ -138,7 +138,11 @@ define(function main(require, exports, module) {
     function _loadStyles() {
         var lessText = require("text!LiveDevelopment/main.less");
 
-        less.render(lessText, function onParse(err, tree) {
+        const options = {
+            math: "always"
+        };
+
+        less.render(lessText, options, function onParse(err, tree) {
             console.assert(!err, err);
             ExtensionUtils.addEmbeddedStyleSheet(tree.css);
         });

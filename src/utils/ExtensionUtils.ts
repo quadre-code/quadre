@@ -94,18 +94,18 @@ function isAbsolutePathOrUrl(pathOrUrl) {
  */
 export function parseLessCode(code, url) {
     const result = $.Deferred();
-    let options;
+    const options: Less.Options = {
+        math: "always"
+    };
 
     if (url) {
         const dir = url.slice(0, url.lastIndexOf("/") + 1);
 
-        options = {
-            filename: url,
-            rootpath: dir
-        };
+        options.filename = url;
+        options.rootpath = dir;
 
         if (isAbsolutePathOrUrl(url)) {
-            options.currentFileInfo = {
+            (options as any).currentFileInfo = {
                 currentDirectory: dir,
                 entryPath: dir,
                 filename: url,
@@ -119,7 +119,7 @@ export function parseLessCode(code, url) {
         if (err) {
             result.reject(err);
         } else {
-            result.resolve(tree.css);
+            result.resolve(tree!.css);
         }
     });
 

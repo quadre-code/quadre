@@ -173,15 +173,17 @@ function fixPath(path) {
  */
 function lessifyTheme(content, theme) {
     const deferred = $.Deferred();
-
-    less.render("#editor-holder {" + content + "\n}", {
+    const options: Less.Options = {
         rootpath: fixPath(stylesPath),
-        filename: fixPath(theme.file._path)
-    }, function (err, tree) {
+        filename: fixPath(theme.file._path),
+        math: "always"
+    };
+
+    less.render("#editor-holder {" + content + "\n}", options, function (err, tree) {
         if (err) {
             deferred.reject(err);
         } else {
-            deferred.resolve(tree.css);
+            deferred.resolve(tree!.css);
         }
     });
 
