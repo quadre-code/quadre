@@ -163,12 +163,16 @@ function _removeDynamicFontSize() {
  */
 function _addDynamicFontSize(fontSize) {
     const template = FontRuleTemplate.split("{font-size-param}").join(fontSize);
-    less.render(template, {}, function onParse(err, tree) {
+    const options: Less.Options = {
+        math: "always"
+    };
+
+    less.render(template, options, function onParse(err, tree) {
         if (err) {
             console.error(err);
         } else {
             _addDynamicProperty(DYNAMIC_FONT_STYLE_ID, {
-                ruleText: tree.css
+                ruleText: tree!.css
             });
         }
     });

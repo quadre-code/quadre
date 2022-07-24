@@ -19,7 +19,8 @@ gulp.task("less", function () {
         .pipe(less({
             paths: [
                 path.join(__dirname, "dist", "www", "styles")
-            ]
+            ],
+            math: "always"
         }))
         .pipe(cleanCSS({ compatibility: "ie7" }))
         .pipe(rename({
