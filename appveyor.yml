@@ -8,7 +8,7 @@ platform:
 environment:
   global:
     TEST_JUNIT_XML_ROOT: c:\projects\junit-test-results
-    NODE_VERSION: 12
+    NODE_VERSION: 16
 
 # set clone depth
 clone_depth: 5                      # clone entire repository history if not defined
