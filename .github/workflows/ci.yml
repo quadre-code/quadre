@@ -89,3 +89,56 @@ jobs:
     - name: Publish Linux
       if: ${{ fromJSON(env.PUSH_PACKAGES) }}
       run: npm run publish-linux
+
+  windows:
+    runs-on: windows-latest
+
+    env:
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      PUSH_PACKAGES: ${{ github.event_name == 'push' && github.ref == 'refs/heads/master' }}
+      TEST_JUNIT_XML_ROOT: c:\projects\junit-test-results
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: Use Node.js ${{ matrix.node-version }}
+      uses: actions/setup-node@v1
+      with:
+        node-version: 16.x
+
+    - name: Checkout submodules
+      run: git submodule update --init --recursive
+
+    - name: Install
+      run: npm install
+
+    - name: Build
+      run: npm run build
+
+    - name: Prepare
+      run: npm run test:prepare:ci
+
+    - name: Unit Test
+      run: npm run test:unit
+
+    # - name: Integration Test
+    #   run: npm run test:integration
+
+    # - name: MainView Test
+    #   run: npm run test:mainview
+
+    # - name: Extension Test
+    #   run: npm run test:extension
+
+    - name: Publish Windows
+      if: ${{ fromJSON(env.PUSH_PACKAGES) }}
+      run: npm run publish-win
+
+    - name: Pack Windows
+      if: ${{ !fromJSON(env.PUSH_PACKAGES) }}
+      run: npm run pack
+
+    - name: Publish Test Report
+      uses: mikepenz/action-junit-report@v3
+      if: always()
+      with:
+        report_paths: ${{ env.TEST_JUNIT_XML_ROOT }}\**\*.xml
