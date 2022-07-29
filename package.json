@@ -190,7 +190,7 @@
     "load-grunt-tasks": "3.5.2",
     "node-abi": "^3.22.0",
     "plugin-error": "^2.0.0",
-    "rewire": "1.1.2",
+    "rewire": "^6.0.0",
     "rimraf": "^3.0.2",
     "tar": "^6.1.11",
     "tslint": "^5.20.1",
