@@ -1,8 +1,6 @@
 # Quadre
 
-Windows: [![Build status](https://ci.appveyor.com/api/projects/status/9j6aw25isnol3uig/branch/master?svg=true)](https://ci.appveyor.com/project/ficristo/quadre/branch/master)
-
-Mac, Linux: [![Build Status](https://github.com/quadre-code/quadre/actions/workflows/ci.yml/badge.svg)](https://github.com/quadre-code/quadre/actions)
+Windows, Mac, Linux: [![Build Status](https://github.com/quadre-code/quadre/actions/workflows/ci.yml/badge.svg)](https://github.com/quadre-code/quadre/actions)
 
 ## How does Brackets-Electron differ to regular Brackets?
 
