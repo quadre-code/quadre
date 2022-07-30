@@ -563,7 +563,7 @@ export class Editor {
             styleActiveLine             : currentOptions[EditorOptions.STYLE_ACTIVE_LINE],
             tabSize                     : currentOptions[EditorOptions.TAB_SIZE],
             readOnly                    : isReadOnly
-        });
+        } as unknown as CodeMirror.EditorConfiguration);
 
         // Can't get CodeMirror's focused state without searching for
         // CodeMirror-focused. Instead, track focus via onFocus and onBlur
@@ -738,7 +738,7 @@ export class Editor {
     private _addIndentAtEachSelection(selections) {
         const instance = this._codeMirror;
         const usingTabs = instance.getOption("indentWithTabs");
-        const indentUnit = instance.getOption("indentUnit");
+        const indentUnit = instance.getOption("indentUnit")!;
         const edits: Array<any> = [];
 
         _.each(selections, function (sel) {
@@ -875,7 +875,7 @@ export class Editor {
         let overallJump: number | null = null;
 
         if (!instance.getOption("indentWithTabs") && PreferencesManager.get(EditorOptions.SOFT_TABS)) {
-            const indentUnit = instance.getOption("indentUnit");
+            const indentUnit = instance.getOption("indentUnit")!;
 
             _.each(this.getSelections(), function (sel) {
                 if (CodeMirror.cmpPos(sel.start, sel.end) !== 0) {
@@ -1183,7 +1183,7 @@ export class Editor {
 
         // Disable CodeMirror's drop handling if a file/folder is dropped
         this._codeMirror.on("drop", function (cm, event) {
-            const files = event.dataTransfer.files;
+            const files = event.dataTransfer!.files;
             if (files && files.length) {
                 event.preventDefault();
             }
@@ -1191,7 +1191,7 @@ export class Editor {
         // For word wrap. Code adapted from https://codemirror.net/demo/indentwrap.html#
         this._codeMirror.on("renderLine", function (cm, line, elt) {
             const charWidth = self._codeMirror.defaultCharWidth();
-            const off = CodeMirror.countColumn(line.text, null, cm.getOption("tabSize")) * charWidth;
+            const off = CodeMirror.countColumn(line.text, null, cm.getOption("tabSize")!) * charWidth;
             elt.style.textIndent = "-" + off + "px";
             elt.style.paddingLeft = off + "px";
         });
@@ -2376,7 +2376,7 @@ export class Editor {
                 }
 
                 const rangeMode = self.getModeForRange(sel.start, sel.end, true);
-                return (!rangeMode || rangeMode.name !== startMode.name);
+                return (!rangeMode || (rangeMode as any).name !== startMode.name);
             });
             if (hasMixedSel) {
                 return null;
@@ -2470,10 +2470,13 @@ export class Editor {
      */
     private _updateStyleActiveLine() {
         if (this.hasSelection()) {
+            // @ts-ignore
             if (this._codeMirror.getOption("styleActiveLine")) {
+                // @ts-ignore
                 this._codeMirror.setOption("styleActiveLine", false);
             }
         } else {
+            // @ts-ignore
             this._codeMirror.setOption("styleActiveLine", this._currentOptions[EditorOptions.STYLE_ACTIVE_LINE]);
         }
     }

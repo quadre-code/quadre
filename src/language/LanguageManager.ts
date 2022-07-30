@@ -139,6 +139,15 @@ interface LanguageMap {
     [id: string]: Language;
 }
 
+interface ScriptType {
+    matches: RegExp;
+    mode: string;
+}
+
+interface ScriptTypes {
+    scriptTypes: Array<ScriptType>;
+}
+
 // PreferencesManager is loaded near the end of the file
 let PreferencesManager;
 
@@ -1129,7 +1138,7 @@ CodeMirror.defineMIME("text/x-brackets-html", {
             "mode": "jsx"
         }
     ]
-});
+} as unknown as CodeMirror.ModeSpec<ScriptTypes>);
 
 // Define SVG MIME type so an SVG language can be defined for SVG-specific code hints.
 // Currently, SVG uses XML mode so it has generic XML syntax highlighting. This can
