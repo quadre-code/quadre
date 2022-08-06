@@ -22,19 +22,20 @@
  *
  */
 
-define(function (require, exports, module) {
-    "use strict";
+export class BracketsToNodeInterface {
+    private domain;
+    private bracketsFn;
 
-    function BracketsToNodeInterface(domain) {
+    constructor(domain) {
         this.domain = domain;
         this.bracketsFn = {};
 
         this._registerDataEvent();
     }
 
-    BracketsToNodeInterface.prototype._messageHandler = function (evt, params) {
-        var methodName = params.method,
-            self = this;
+    private _messageHandler(evt, params): void {
+        const methodName = params.method;
+        const self = this;
 
         function _getErrorString(err) {
             if (typeof err === "string") {
@@ -50,7 +51,7 @@ define(function (require, exports, module) {
         }
 
         function _sendResponse(response) {
-            var responseParams = {
+            const responseParams = {
                 requestId: params.requestId,
                 params: response
             };
@@ -58,7 +59,7 @@ define(function (require, exports, module) {
         }
 
         function _sendError(err) {
-            var responseParams = {
+            const responseParams = {
                 requestId: params.requestId,
                 error: _getErrorString(err)
             };
@@ -66,9 +67,9 @@ define(function (require, exports, module) {
         }
 
         if (self.bracketsFn[methodName]) {
-            var method = self.bracketsFn[methodName];
+            const method = self.bracketsFn[methodName];
             try {
-                var response = method.call(null, params.params);
+                const response = method.call(null, params.params);
                 if (params.respond && params.requestId) {
                     if (response.promise) {
                         response.done(function (result) {
@@ -86,39 +87,35 @@ define(function (require, exports, module) {
                 }
             }
         }
+    }
 
-    };
-
-
-    BracketsToNodeInterface.prototype._registerDataEvent = function () {
+    public _registerDataEvent(): void {
         this.domain.on("data", this._messageHandler.bind(this));
-    };
+    }
 
-    BracketsToNodeInterface.prototype.createInterface = function (methodName, isAsync) {
-        var self = this;
+    public createInterface(methodName, isAsync) {
+        const self = this;
         return function (params) {
-            var execEvent = isAsync ? "asyncData" : "data";
-            var callObject = {
+            const execEvent = isAsync ? "asyncData" : "data";
+            const callObject = {
                 method: methodName,
                 params: params
             };
             return self.domain.exec(execEvent, callObject);
         };
-    };
+    }
 
-    BracketsToNodeInterface.prototype.registerMethod = function (methodName, methodHandle) {
+    public registerMethod(methodName, methodHandle): void {
         if (methodName && methodHandle &&
             typeof methodName === "string" && typeof methodHandle === "function") {
             this.bracketsFn[methodName] = methodHandle;
         }
-    };
+    }
 
-    BracketsToNodeInterface.prototype.registerMethods = function (methodList) {
-        var self = this;
+    public registerMethods(methodList): void {
+        const self = this;
         methodList.forEach(function (methodObj) {
             self.registerMethod(methodObj.methodName, methodObj.methodHandle);
         });
-    };
-
-    exports.BracketsToNodeInterface = BracketsToNodeInterface;
-});
+    }
+}

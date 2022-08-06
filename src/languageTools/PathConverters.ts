@@ -22,61 +22,51 @@
  *
  */
 
-define(function (require, exports, module) {
-    "use strict";
+import * as PathUtils from "thirdparty/path-utils/path-utils";
+import * as FileUtils from "file/FileUtils";
 
-    var PathUtils = require("thirdparty/path-utils/path-utils"),
-        FileUtils = require("file/FileUtils");
+export function uriToPath(uri): string {
+    const url = PathUtils.parseUrl(uri);
+    if (url.protocol !== "file:" || url.pathname === undefined) {
+        return uri;
+    }
 
-    function uriToPath(uri) {
-        var url = PathUtils.parseUrl(uri);
-        if (url.protocol !== "file:" || url.pathname === undefined) {
-            return uri;
-        }
-
-        var filePath = decodeURIComponent(url.pathname);
-        if (brackets.platform === "win") {
-            if (filePath && filePath.includes(":/") && filePath[0] === "/") {
-                filePath = filePath.substr(1);
-            }
-            return filePath;
+    let filePath = decodeURIComponent(url.pathname);
+    if (brackets.platform === "win") {
+        if (filePath && filePath.includes(":/") && filePath[0] === "/") {
+            filePath = filePath.substr(1);
         }
         return filePath;
     }
+    return filePath;
+}
 
-    function pathToUri(filePath) {
-        var newPath = convertWinToPosixPath(filePath);
-        if (newPath[0] !== "/") {
-            newPath = "/" + newPath;
-        }
-        return encodeURI("file://" + newPath).replace(/[?#]/g, encodeURIComponent);
+export function pathToUri(filePath): string {
+    let newPath = convertWinToPosixPath(filePath);
+    if (newPath[0] !== "/") {
+        newPath = "/" + newPath;
     }
+    return encodeURI("file://" + newPath).replace(/[?#]/g, encodeURIComponent);
+}
 
-    function convertToWorkspaceFolders(paths) {
-        var workspaceFolders = paths.map(function (folderPath) {
-            var uri = pathToUri(folderPath),
-                name = FileUtils.getBasename(folderPath);
+export function convertToWorkspaceFolders(paths) {
+    const workspaceFolders = paths.map(function (folderPath) {
+        const uri = pathToUri(folderPath);
+        const name = FileUtils.getBaseName(folderPath);
 
-            return {
-                uri: uri,
-                name: name
-            };
-        });
+        return {
+            uri: uri,
+            name: name
+        };
+    });
 
-        return workspaceFolders;
-    }
+    return workspaceFolders;
+}
 
-    function convertPosixToWinPath(path) {
-        return path.replace(/\//g, "\\");
-    }
+export function convertPosixToWinPath(path): string {
+    return path.replace(/\//g, "\\");
+}
 
-    function convertWinToPosixPath(path) {
-        return path.replace(/\\/g, "/");
-    }
-
-    exports.uriToPath = uriToPath;
-    exports.pathToUri = pathToUri;
-    exports.convertPosixToWinPath = convertPosixToWinPath;
-    exports.convertPosixToWinPath = convertPosixToWinPath;
-    exports.convertToWorkspaceFolders = convertToWorkspaceFolders;
-});
+export function convertWinToPosixPath(path) {
+    return path.replace(/\\/g, "/");
+}
