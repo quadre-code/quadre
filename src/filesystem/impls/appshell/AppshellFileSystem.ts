@@ -572,7 +572,7 @@ function initWatchers(changeCallback: Function, offlineCallback: Function) {
 function watchPath(
     path: string,
     ignored: Array<string>,
-    callback: Function
+    callback: (err: any, ...args) => void
 ) {
     appshell.fs.isNetworkDrive(path, function (err: NodeJS.ErrnoException, isNetworkDrive: boolean) {
         if (err || isNetworkDrive) {
@@ -601,7 +601,7 @@ function watchPath(
 function unwatchPath(
     path: string,
     ignored: Array<string>,
-    callback: Function
+    callback: (err: any, ...args) => void
 ) {
     _nodeDomain.exec("unwatchPath", path)
         .then(callback, callback);
@@ -614,7 +614,7 @@ function unwatchPath(
  *
  * @param {function(?string)=} callback
  */
-function unwatchAll(callback: Function) {
+function unwatchAll(callback: (err: any, ...args) => void) {
     _nodeDomain.exec("unwatchAll")
         .then(callback, callback);
 }

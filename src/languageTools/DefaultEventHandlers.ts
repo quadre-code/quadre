@@ -22,20 +22,22 @@
  *
  */
 
-define(function (require, exports, module) {
-    "use strict";
+import * as LanguageManager from "language/LanguageManager";
+import * as ProjectManager from "project/ProjectManager";
+import * as PathConverters from "languageTools/PathConverters";
 
-    var LanguageManager = require("language/LanguageManager"),
-        ProjectManager = require("project/ProjectManager"),
-        PathConverters = require("languageTools/PathConverters");
+export class EventPropagationProvider {
+    private client;
+    private previousProject;
+    private currentProject;
 
-    function EventPropagationProvider(client) {
+    constructor(client) {
         this.client = client;
         this.previousProject = "";
         this.currentProject = ProjectManager.getProjectRoot();
     }
 
-    EventPropagationProvider.prototype._sendDocumentOpenNotification = function (languageId, doc) {
+    private _sendDocumentOpenNotification(languageId, doc): void {
         if (!this.client) {
             return;
         }
@@ -47,10 +49,10 @@ define(function (require, exports, module) {
                 fileContent: doc.getText()
             });
         }
-    };
+    }
 
-    EventPropagationProvider.prototype.handleActiveEditorChange = function (event, current, previous) {
-        var self = this;
+    public handleActiveEditorChange(event, current, previous): void {
+        const self = this;
 
         if (!this.client) {
             return;
@@ -59,7 +61,7 @@ define(function (require, exports, module) {
         if (previous) {
             previous.document
                 .off("languageChanged.language-tools");
-            var previousLanguageId = LanguageManager.getLanguageForPath(previous.document.file.fullPath).getId();
+            const previousLanguageId = LanguageManager.getLanguageForPath(previous.document.file.fullPath).getId();
             if (this.client._languages.includes(previousLanguageId)) {
                 this.client.notifyTextDocumentClosed({
                     filePath: (previous.document.file._path || previous.document.file.fullPath)
@@ -67,17 +69,17 @@ define(function (require, exports, module) {
             }
         }
         if (current) {
-            var currentLanguageId = LanguageManager.getLanguageForPath(current.document.file.fullPath).getId();
+            const currentLanguageId = LanguageManager.getLanguageForPath(current.document.file.fullPath).getId();
             current.document
                 .on("languageChanged.language-tools", function () {
-                    var languageId = LanguageManager.getLanguageForPath(current.document.file.fullPath).getId();
+                    const languageId = LanguageManager.getLanguageForPath(current.document.file.fullPath).getId();
                     self._sendDocumentOpenNotification(languageId, current.document);
                 });
             self._sendDocumentOpenNotification(currentLanguageId, current.document);
         }
-    };
+    }
 
-    EventPropagationProvider.prototype.handleProjectOpen = function (event, directory) {
+    public handleProjectOpen(event, directory): void {
         if (!this.client) {
             return;
         }
@@ -88,92 +90,83 @@ define(function (require, exports, module) {
             foldersAdded: [this.currentProject],
             foldersRemoved: [this.previousProject]
         });
-    };
+    }
 
-    EventPropagationProvider.prototype.handleProjectClose = function (event, directory) {
+    public handleProjectClose(event, directory): void {
         if (!this.client) {
             return;
         }
 
         this.previousProject = directory.fullPath;
-    };
+    }
 
-    EventPropagationProvider.prototype.handleDocumentDirty = function (event, doc) {
+    public handleDocumentDirty(event, doc): void {
         if (!this.client) {
             return;
         }
 
         if (!doc.isDirty) {
-            var docLanguageId = LanguageManager.getLanguageForPath(doc.file.fullPath).getId();
+            const docLanguageId = LanguageManager.getLanguageForPath(doc.file.fullPath).getId();
             if (this.client._languages.includes(docLanguageId)) {
                 this.client.notifyTextDocumentSave({
                     filePath: (doc.file._path || doc.file.fullPath)
                 });
             }
         }
-    };
+    }
 
-    EventPropagationProvider.prototype.handleDocumentChange = function (event, doc, changeList) {
+    public handleDocumentChange(event, doc, changeList): void {
         if (!this.client) {
             return;
         }
 
-        var docLanguageId = LanguageManager.getLanguageForPath(doc.file.fullPath).getId();
+        const docLanguageId = LanguageManager.getLanguageForPath(doc.file.fullPath).getId();
         if (this.client._languages.includes(docLanguageId)) {
             this.client.notifyTextDocumentChanged({
                 filePath: (doc.file._path || doc.file.fullPath),
                 fileContent: doc.getText()
             });
         }
-    };
+    }
 
-    EventPropagationProvider.prototype.handleDocumentRename = function (event, oldName, newName) {
+    public handleDocumentRename(event, oldName, newName): void {
         if (!this.client) {
             return;
         }
 
-        var oldDocLanguageId = LanguageManager.getLanguageForPath(oldName).getId();
+        const oldDocLanguageId = LanguageManager.getLanguageForPath(oldName).getId();
         if (this.client._languages.includes(oldDocLanguageId)) {
             this.client.notifyTextDocumentClosed({
                 filePath: oldName
             });
         }
 
-        var newDocLanguageId = LanguageManager.getLanguageForPath(newName).getId();
+        const newDocLanguageId = LanguageManager.getLanguageForPath(newName).getId();
         if (this.client._languages.includes(newDocLanguageId)) {
             this.client.notifyTextDocumentOpened({
                 filePath: newName
             });
         }
-    };
+    }
 
-    EventPropagationProvider.prototype.handleAppClose = function (event) {
-        //Also handles Reload with Extensions
+    public handleAppClose(event): void {
+        // Also handles Reload with Extensions
         if (!this.client) {
             return;
         }
 
         this.client.stop();
-    };
-
-    function handleProjectFoldersRequest(event) {
-        var projectRoot = ProjectManager.getProjectRoot(),
-            workspaceFolders = [projectRoot];
-
-        workspaceFolders = PathConverters.convertToWorkspaceFolders(workspaceFolders);
-
-        return $.Deferred().resolve(workspaceFolders);
     }
 
-    EventPropagationProvider.prototype.registerClientForEditorEvent = function () {
+    public registerClientForEditorEvent(): void {
         if (this.client) {
-            var handleActiveEditorChange = this.handleActiveEditorChange.bind(this),
-                handleProjectOpen = this.handleProjectOpen.bind(this),
-                handleProjectClose = this.handleProjectClose.bind(this),
-                handleDocumentDirty = this.handleDocumentDirty.bind(this),
-                handleDocumentChange = this.handleDocumentChange.bind(this),
-                handleDocumentRename = this.handleDocumentRename.bind(this),
-                handleAppClose = this.handleAppClose.bind(this);
+            const handleActiveEditorChange = this.handleActiveEditorChange.bind(this);
+            const handleProjectOpen = this.handleProjectOpen.bind(this);
+            const handleProjectClose = this.handleProjectClose.bind(this);
+            const handleDocumentDirty = this.handleDocumentDirty.bind(this);
+            const handleDocumentChange = this.handleDocumentChange.bind(this);
+            const handleDocumentRename = this.handleDocumentRename.bind(this);
+            const handleAppClose = this.handleAppClose.bind(this);
 
             this.client.addOnEditorChangeHandler(handleActiveEditorChange);
             this.client.addOnProjectOpenHandler(handleProjectOpen);
@@ -186,7 +179,14 @@ define(function (require, exports, module) {
         } else {
             console.log("No client provided for event propagation");
         }
-    };
+    }
+}
 
-    exports.EventPropagationProvider = EventPropagationProvider;
-});
+function handleProjectFoldersRequest(event) {
+    const projectRoot = ProjectManager.getProjectRoot();
+    let workspaceFolders = [projectRoot];
+
+    workspaceFolders = PathConverters.convertToWorkspaceFolders(workspaceFolders);
+
+    return $.Deferred().resolve(workspaceFolders);
+}

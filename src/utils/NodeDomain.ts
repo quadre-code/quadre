@@ -188,7 +188,7 @@ class NodeDomain {
      * @param {string} name The name of the domain command to execute
      * @return {jQuery.Promise} Resolves with the result of the command
      */
-    public exec(name, ...args) {
+    public exec<T = any>(name, ...args): JQueryPromise<T> {
         const connection = this.connection;
         const params = Array.prototype.slice.call(arguments, 1);
         const execConnected = function (this: NodeDomain) {

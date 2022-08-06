@@ -31,7 +31,7 @@ define(function (require, exports, module) {
         LanguageClientWrapper = require("languageTools/LanguageClientWrapper"),
         LanguageTools = require("languageTools/LanguageTools"),
         EventDispatcher = require("utils/EventDispatcher"),
-        ToolingInfo = JSON.parse(brackets.getModule("text!languageTools/ToolingInfo.json"));
+        ToolingInfo = JSON.parse(require("text!languageTools/ToolingInfo.json"));
 
     var testPath = SpecRunnerUtils.getTestPath("/spec/LanguageTools-test-files"),
         serverResponse = {

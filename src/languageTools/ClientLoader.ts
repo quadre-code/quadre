@@ -22,157 +22,156 @@
  *
  */
 
-define(function (require, exports, module) {
-    "use strict";
+/// <amd-dependency path="module" name="module"/>
 
-    var ToolingInfo = JSON.parse(require("text!languageTools/ToolingInfo.json")),
-        NodeDomain = require("utils/NodeDomain"),
-        FileUtils = require("file/FileUtils"),
-        EventDispatcher = require("utils/EventDispatcher"),
-        BracketsToNodeInterface = require("languageTools/BracketsToNodeInterface").BracketsToNodeInterface;
+import NodeDomain = require("utils/NodeDomain");
+import * as FileUtils from "file/FileUtils";
+import * as EventDispatcher from "utils/EventDispatcher";
+import { BracketsToNodeInterface } from "languageTools/BracketsToNodeInterface";
+import * as toolingInfoJson from "text!languageTools/ToolingInfo.json";
+const ToolingInfo = JSON.parse(toolingInfoJson);
 
-    EventDispatcher.makeEventDispatcher(exports);
-    //Register paths required for Language Client and also register default brackets capabilities.
-    var _bracketsPath = FileUtils.getNativeBracketsDirectoryPath();
-    // The native directory path ends with either "test" or "src".
-    _bracketsPath = _bracketsPath.replace(/\/test$/, "/www"); // convert from "test" to "src"
+interface PendingClient {
+    load(): void;
+}
 
-    var _modulePath = FileUtils.getNativeModuleDirectoryPath(module),
-        _nodePath = "node/RegisterLanguageClientInfo",
-        _domainPath = [_bracketsPath, _modulePath, _nodePath].join("/"),
-        clientInfoDomain = null,
-        clientInfoLoadedPromise = null,
-        //Clients that have to be loaded once the LanguageClient info is successfully loaded on the
-        //node side.
-        pendingClientsToBeLoaded = [];
+EventDispatcher.makeEventDispatcher(exports);
+// Register paths required for Language Client and also register default brackets capabilities.
+let _bracketsPath = FileUtils.getNativeBracketsDirectoryPath();
+// The native directory path ends with either "test" or "src".
+_bracketsPath = _bracketsPath.replace(/\/test$/, "/www"); // convert from "test" to "www"
 
-    function syncPrefsWithDomain(languageToolsPrefs) {
-        if (clientInfoDomain) {
-            clientInfoDomain.exec("syncPreferences", languageToolsPrefs);
-        }
+const _modulePath = FileUtils.getNativeModuleDirectoryPath(module);
+const _nodePath = "node/RegisterLanguageClientInfo";
+const _domainPath = [_bracketsPath, _modulePath, _nodePath].join("/");
+let clientInfoDomain: NodeDomain | null = null;
+let clientInfoLoadedPromise: JQueryPromise<any> | null = null;
+// Clients that have to be loaded once the LanguageClient info is successfully loaded on the
+// node side.
+let pendingClientsToBeLoaded: Array<PendingClient> | null = [];
+
+export function syncPrefsWithDomain(languageToolsPrefs) {
+    if (clientInfoDomain) {
+        clientInfoDomain.exec("syncPreferences", languageToolsPrefs);
     }
+}
 
-    function _createNodeDomain(domainName, domainPath) {
-        return new NodeDomain(domainName, domainPath);
-    }
+function _createNodeDomain(domainName, domainPath) {
+    return new NodeDomain(domainName, domainPath);
+}
 
-    function loadLanguageClientDomain(clientName, domainPath) {
-        //generate a random hash name for the domain, this is the client id
-        var domainName = clientName,
-            result = $.Deferred(),
-            languageClientDomain = _createNodeDomain(domainName, domainPath);
+function loadLanguageClientDomain(clientName, domainPath): JQueryDeferred<NodeDomain> {
+    // generate a random hash name for the domain, this is the client id
+    const domainName = clientName;
+    const result = $.Deferred<NodeDomain>();
+    const languageClientDomain = _createNodeDomain(domainName, domainPath);
 
-        if (languageClientDomain) {
-            languageClientDomain.promise()
-                .done(function () {
-                    console.log(domainPath + " domain successfully created");
-                    result.resolve(languageClientDomain);
-                })
-                .fail(function (err) {
-                    console.error(domainPath + " domain could not be created.");
-                    result.reject();
-                });
-        } else {
-            console.error(domainPath + " domain could not be created.");
-            result.reject();
-        }
-
-        return result;
-    }
-
-    function createNodeInterfaceForDomain(languageClientDomain) {
-        var nodeInterface = new BracketsToNodeInterface(languageClientDomain);
-
-        return nodeInterface;
-    }
-
-    function _clientLoader(clientName, clientFilePath, clientPromise) {
-        loadLanguageClientDomain(clientName, clientFilePath)
-            .then(function (languageClientDomain) {
-                var languageClientInterface = createNodeInterfaceForDomain(languageClientDomain);
-
-                clientPromise.resolve({
-                    name: clientName,
-                    interface: languageClientInterface
-                });
-            }, clientPromise.reject);
-    }
-
-    function initiateLanguageClient(clientName, clientFilePath) {
-        var result = $.Deferred();
-
-        //Only load clients after the LanguageClient Info has been initialized
-        if (!clientInfoLoadedPromise || clientInfoLoadedPromise.state() === "pending") {
-            var pendingClient = {
-                load: _clientLoader.bind(null, clientName, clientFilePath, result)
-            };
-            pendingClientsToBeLoaded.push(pendingClient);
-        } else {
-            _clientLoader(clientName, clientFilePath, result);
-        }
-
-        return result;
-    }
-
-    /**
-     * This function passes Brackets's native directory path as well as the tooling commands
-     * required by the LanguageClient node module. This information is then maintained in memory
-     * in the node process server for succesfully loading and functioning of all language clients
-     * since it is a direct dependency.
-     */
-    function sendLanguageClientInfo() {
-        //Init node with Information required by Language Client
-        clientInfoLoadedPromise = clientInfoDomain.exec("initialize", _bracketsPath, ToolingInfo);
-
-        function logInitializationError() {
-            console.error("Failed to Initialize LanguageClient Module Information.");
-        }
-
-        //Attach success and failure function for the clientInfoLoadedPromise
-        clientInfoLoadedPromise.then(function (success) {
-            if (!success) {
-                logInitializationError();
-                return;
-            }
-
-            if (Array.isArray(pendingClientsToBeLoaded)) {
-                pendingClientsToBeLoaded.forEach(function (pendingClient) {
-                    pendingClient.load();
-                });
-            } else {
-                exports.trigger("languageClientModuleInitialized");
-            }
-            pendingClientsToBeLoaded = null;
-        }, function () {
-            logInitializationError();
-        });
-    }
-
-    /**
-     * This function starts a domain which initializes the LanguageClient node module
-     * required by the Language Server Protocol framework in Brackets. All the LSP clients
-     * can only be successfully initiated once this domain has been successfully loaded and
-     * the LanguageClient info initialized. Refer to sendLanguageClientInfo for more.
-     */
-    function initDomainAndHandleNodeCrash() {
-        clientInfoDomain = new NodeDomain("LanguageClientInfo", _domainPath);
-        //Initialize LanguageClientInfo once the domain has successfully loaded.
-        clientInfoDomain.promise().done(function () {
-            sendLanguageClientInfo();
-            //This is to handle the node failure. If the node process dies, we get an on close
-            //event on the websocket connection object. Brackets then spawns another process and
-            //restablishes the connection. Once the connection is restablished we send reinitialize
-            //the LanguageClient info.
-            clientInfoDomain.connection.on("close", function (event, reconnectedPromise) {
-                reconnectedPromise.done(sendLanguageClientInfo);
+    if (languageClientDomain) {
+        languageClientDomain.promise()
+            .done(function () {
+                console.log(domainPath + " domain successfully created");
+                result.resolve(languageClientDomain);
+            })
+            .fail(function (err) {
+                console.error(domainPath + " domain could not be created.");
+                result.reject();
             });
-        }).fail(function (err) {
-            console.error("ClientInfo domain could not be loaded: ", err);
-        });
+    } else {
+        console.error(domainPath + " domain could not be created.");
+        result.reject();
     }
-    initDomainAndHandleNodeCrash();
 
+    return result;
+}
 
-    exports.initiateLanguageClient = initiateLanguageClient;
-    exports.syncPrefsWithDomain = syncPrefsWithDomain;
-});
+function createNodeInterfaceForDomain(languageClientDomain) {
+    const nodeInterface = new BracketsToNodeInterface(languageClientDomain);
+
+    return nodeInterface;
+}
+
+function _clientLoader(clientName, clientFilePath, clientPromise) {
+    loadLanguageClientDomain(clientName, clientFilePath)
+        .then(function (languageClientDomain) {
+            const languageClientInterface = createNodeInterfaceForDomain(languageClientDomain);
+
+            clientPromise.resolve({
+                name: clientName,
+                interface: languageClientInterface
+            });
+        }, clientPromise.reject);
+}
+
+export function initiateLanguageClient(clientName, clientFilePath) {
+    const result = $.Deferred<{name: string, interface: BracketsToNodeInterface}>();
+
+    // Only load clients after the LanguageClient Info has been initialized
+    if (!clientInfoLoadedPromise || clientInfoLoadedPromise.state() === "pending") {
+        const pendingClient: PendingClient = {
+            load: _clientLoader.bind(null, clientName, clientFilePath, result)
+        };
+        pendingClientsToBeLoaded!.push(pendingClient);
+    } else {
+        _clientLoader(clientName, clientFilePath, result);
+    }
+
+    return result;
+}
+
+/**
+ * This function passes Brackets's native directory path as well as the tooling commands
+ * required by the LanguageClient node module. This information is then maintained in memory
+ * in the node process server for succesfully loading and functioning of all language clients
+ * since it is a direct dependency.
+ */
+function sendLanguageClientInfo() {
+    // Init node with Information required by Language Client
+    clientInfoLoadedPromise = clientInfoDomain!.exec("initialize", _bracketsPath, ToolingInfo);
+
+    function logInitializationError() {
+        console.error("Failed to Initialize LanguageClient Module Information.");
+    }
+
+    // Attach success and failure function for the clientInfoLoadedPromise
+    clientInfoLoadedPromise.then(function (success) {
+        if (!success) {
+            logInitializationError();
+            return;
+        }
+
+        if (Array.isArray(pendingClientsToBeLoaded)) {
+            pendingClientsToBeLoaded.forEach(function (pendingClient) {
+                pendingClient.load();
+            });
+        } else {
+            exports.trigger("languageClientModuleInitialized");
+        }
+        pendingClientsToBeLoaded = null;
+    }, function () {
+        logInitializationError();
+    });
+}
+
+/**
+ * This function starts a domain which initializes the LanguageClient node module
+ * required by the Language Server Protocol framework in Brackets. All the LSP clients
+ * can only be successfully initiated once this domain has been successfully loaded and
+ * the LanguageClient info initialized. Refer to sendLanguageClientInfo for more.
+ */
+function initDomainAndHandleNodeCrash() {
+    clientInfoDomain = new NodeDomain("LanguageClientInfo", _domainPath);
+    // Initialize LanguageClientInfo once the domain has successfully loaded.
+    clientInfoDomain.promise().done(function () {
+        sendLanguageClientInfo();
+        // This is to handle the node failure. If the node process dies, we get an on close
+        // event on the websocket connection object. Brackets then spawns another process and
+        // restablishes the connection. Once the connection is restablished we send reinitialize
+        // the LanguageClient info.
+        (clientInfoDomain!.connection as unknown as EventDispatcher.DispatcherEvents).on("close", function (event, reconnectedPromise) {
+            reconnectedPromise.done(sendLanguageClientInfo);
+        });
+    }).fail(function (err) {
+        console.error("ClientInfo domain could not be loaded: ", err);
+    });
+}
+initDomainAndHandleNodeCrash();

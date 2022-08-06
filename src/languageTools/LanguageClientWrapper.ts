@@ -22,177 +22,179 @@
  *
  */
 
-define(function (require, exports, module) {
-    "use strict";
+import * as toolingInfoJson from "text!languageTools/ToolingInfo.json";
+const ToolingInfo = JSON.parse(toolingInfoJson);
+const MESSAGE_FORMAT = {
+    BRACKETS: "brackets",
+    LSP: "lsp"
+};
 
-    var ToolingInfo = JSON.parse(require("text!languageTools/ToolingInfo.json")),
-        MESSAGE_FORMAT = {
-            BRACKETS: "brackets",
-            LSP: "lsp"
-        };
+function _addTypeInformation(type, params) {
+    return {
+        type: type,
+        params: params
+    };
+}
 
-    function _addTypeInformation(type, params) {
-        return {
-            type: type,
-            params: params
-        };
+function hasValidProp(obj, prop) {
+    return (obj && obj[prop] !== undefined && obj[prop] !== null);
+}
+
+function hasValidProps(obj, props) {
+    let retval = !!obj;
+    const len = props.length;
+
+    for (let i = 0; retval && (i < len); i++) {
+        retval = (retval && obj[props[i]] !== undefined && obj[props[i]] !== null);
     }
 
-    function hasValidProp(obj, prop) {
-        return (obj && obj[prop] !== undefined && obj[prop] !== null);
+    return retval;
+}
+
+/*
+    RequestParams creator - sendNotifications/request
+*/
+// For unit testting
+export function validateRequestParams(type, params) {
+    let validatedParams: any = null;
+
+    params = params || {};
+
+    // Don't validate if the formatting is done by the caller
+    if (params.format === MESSAGE_FORMAT.LSP) {
+        return params;
     }
 
-    function hasValidProps(obj, props) {
-        var retval = !!obj,
-            len = props.length,
-            i;
-
-        for (i = 0; retval && (i < len); i++) {
-            retval = (retval && obj[props[i]] !== undefined && obj[props[i]] !== null);
-        }
-
-        return retval;
-    }
-    /*
-        RequestParams creator - sendNotifications/request
-    */
-    function validateRequestParams(type, params) {
-        var validatedParams = null;
-
-        params = params || {};
-
-        //Don't validate if the formatting is done by the caller
-        if (params.format === MESSAGE_FORMAT.LSP) {
-            return params;
-        }
-
-        switch (type) {
-            case ToolingInfo.LANGUAGE_SERVICE.START:
-            {
-                if (hasValidProp(params, "rootPaths") || hasValidProp(params, "rootPath")) {
-                    validatedParams = params;
-                    validatedParams.capabilities = validatedParams.capabilities || false;
-                }
-                break;
-            }
-            case ToolingInfo.FEATURES.CODE_HINTS:
-            case ToolingInfo.FEATURES.PARAMETER_HINTS:
-            case ToolingInfo.FEATURES.JUMP_TO_DECLARATION:
-            case ToolingInfo.FEATURES.JUMP_TO_DEFINITION:
-            case ToolingInfo.FEATURES.JUMP_TO_IMPL:
-            {
-                if (hasValidProps(params, ["filePath", "cursorPos"])) {
-                    validatedParams = params;
-                }
-                break;
-            }
-            case ToolingInfo.FEATURES.CODE_HINT_INFO:
-            {
+    switch (type) {
+        case ToolingInfo.LANGUAGE_SERVICE.START: {
+            if (hasValidProp(params, "rootPaths") || hasValidProp(params, "rootPath")) {
                 validatedParams = params;
-                break;
+                validatedParams.capabilities = validatedParams.capabilities || false;
             }
-            case ToolingInfo.FEATURES.FIND_REFERENCES:
-            {
-                if (hasValidProps(params, ["filePath", "cursorPos"])) {
-                    validatedParams = params;
-                    validatedParams.includeDeclaration = validatedParams.includeDeclaration || false;
-                }
-                break;
-            }
-            case ToolingInfo.FEATURES.DOCUMENT_SYMBOLS:
-            {
-                if (hasValidProp(params, "filePath")) {
-                    validatedParams = params;
-                }
-                break;
-            }
-            case ToolingInfo.FEATURES.PROJECT_SYMBOLS:
-            {
-                if (hasValidProp(params, "query") && typeof params.query === "string") {
-                    validatedParams = params;
-                }
-                break;
-            }
-            case ToolingInfo.LANGUAGE_SERVICE.CUSTOM_REQUEST:
-            {
+            break;
+        }
+        case ToolingInfo.FEATURES.CODE_HINTS:
+        case ToolingInfo.FEATURES.PARAMETER_HINTS:
+        case ToolingInfo.FEATURES.JUMP_TO_DECLARATION:
+        case ToolingInfo.FEATURES.JUMP_TO_DEFINITION:
+        case ToolingInfo.FEATURES.JUMP_TO_IMPL: {
+            if (hasValidProps(params, ["filePath", "cursorPos"])) {
                 validatedParams = params;
             }
+            break;
         }
-
-        return validatedParams;
-    }
-
-    /*
-        ReponseParams transformer - used by OnNotifications
-    */
-    function validateNotificationParams(type, params) {
-        var validatedParams = null;
-
-        params = params || {};
-
-        //Don't validate if the formatting is done by the caller
-        if (params.format === MESSAGE_FORMAT.LSP) {
-            return params;
+        case ToolingInfo.FEATURES.CODE_HINT_INFO: {
+            validatedParams = params;
+            break;
         }
-
-        switch (type) {
-            case ToolingInfo.SYNCHRONIZE_EVENTS.DOCUMENT_OPENED:
-            {
-                if (hasValidProps(params, ["filePath", "fileContent", "languageId"])) {
-                    validatedParams = params;
-                }
-                break;
+        case ToolingInfo.FEATURES.FIND_REFERENCES: {
+            if (hasValidProps(params, ["filePath", "cursorPos"])) {
+                validatedParams = params;
+                validatedParams.includeDeclaration = validatedParams.includeDeclaration || false;
             }
-            case ToolingInfo.SYNCHRONIZE_EVENTS.DOCUMENT_CHANGED:
-            {
-                if (hasValidProps(params, ["filePath", "fileContent"])) {
-                    validatedParams = params;
-                }
-                break;
-            }
-            case ToolingInfo.SYNCHRONIZE_EVENTS.DOCUMENT_SAVED:
-            {
-                if (hasValidProp(params, "filePath")) {
-                    validatedParams = params;
-                }
-                break;
-            }
-            case ToolingInfo.SYNCHRONIZE_EVENTS.DOCUMENT_CLOSED:
-            {
-                if (hasValidProp(params, "filePath")) {
-                    validatedParams = params;
-                }
-                break;
-            }
-            case ToolingInfo.SYNCHRONIZE_EVENTS.PROJECT_FOLDERS_CHANGED:
-            {
-                if (hasValidProps(params, ["foldersAdded", "foldersRemoved"])) {
-                    validatedParams = params;
-                }
-                break;
-            }
-            case ToolingInfo.LANGUAGE_SERVICE.CUSTOM_NOTIFICATION:
-            {
+            break;
+        }
+        case ToolingInfo.FEATURES.DOCUMENT_SYMBOLS: {
+            if (hasValidProp(params, "filePath")) {
                 validatedParams = params;
             }
+            break;
         }
-
-        return validatedParams;
+        case ToolingInfo.FEATURES.PROJECT_SYMBOLS: {
+            if (hasValidProp(params, "query") && typeof params.query === "string") {
+                validatedParams = params;
+            }
+            break;
+        }
+        case ToolingInfo.LANGUAGE_SERVICE.CUSTOM_REQUEST: {
+            validatedParams = params;
+        }
     }
 
-    function validateHandler(handler) {
-        var retval = false;
+    return validatedParams;
+}
 
-        if (handler && typeof handler === "function") {
-            retval = true;
-        } else {
-            console.warn("Handler validation failed. Handler should be of type 'function'. Provided handler is of type :", typeof handler);
-        }
+/*
+    ReponseParams transformer - used by OnNotifications
+*/
+// For unit testting
+export function validateNotificationParams(type, params) {
+    let validatedParams = null;
 
-        return retval;
+    params = params || {};
+
+    // Don't validate if the formatting is done by the caller
+    if (params.format === MESSAGE_FORMAT.LSP) {
+        return params;
     }
 
-    function LanguageClientWrapper(name, path, domainInterface, languages) {
+    switch (type) {
+        case ToolingInfo.SYNCHRONIZE_EVENTS.DOCUMENT_OPENED: {
+            if (hasValidProps(params, ["filePath", "fileContent", "languageId"])) {
+                validatedParams = params;
+            }
+            break;
+        }
+        case ToolingInfo.SYNCHRONIZE_EVENTS.DOCUMENT_CHANGED: {
+            if (hasValidProps(params, ["filePath", "fileContent"])) {
+                validatedParams = params;
+            }
+            break;
+        }
+        case ToolingInfo.SYNCHRONIZE_EVENTS.DOCUMENT_SAVED: {
+            if (hasValidProp(params, "filePath")) {
+                validatedParams = params;
+            }
+            break;
+        }
+        case ToolingInfo.SYNCHRONIZE_EVENTS.DOCUMENT_CLOSED: {
+            if (hasValidProp(params, "filePath")) {
+                validatedParams = params;
+            }
+            break;
+        }
+        case ToolingInfo.SYNCHRONIZE_EVENTS.PROJECT_FOLDERS_CHANGED: {
+            if (hasValidProps(params, ["foldersAdded", "foldersRemoved"])) {
+                validatedParams = params;
+            }
+            break;
+        }
+        case ToolingInfo.LANGUAGE_SERVICE.CUSTOM_NOTIFICATION: {
+            validatedParams = params;
+        }
+    }
+
+    return validatedParams;
+}
+
+function validateHandler(handler) {
+    let retval = false;
+
+    if (handler && typeof handler === "function") {
+        retval = true;
+    } else {
+        console.warn("Handler validation failed. Handler should be of type 'function'. Provided handler is of type :", typeof handler);
+    }
+
+    return retval;
+}
+
+export class LanguageClientWrapper {
+    public _name;
+    public _path;
+    private _domainInterface;
+    public _languages;
+    private _startClient;
+    private _stopClient;
+    private _notifyClient;
+    private _requestClient;
+    private _onRequestHandler;
+    private _onNotificationHandlers;
+    private _dynamicCapabilities;
+    private _serverCapabilities;
+    private _onEventHandlers;
+
+    constructor(name, path, domainInterface, languages) {
         this._name = name;
         this._path = path;
         this._domainInterface = domainInterface;
@@ -206,7 +208,7 @@ define(function (require, exports, module) {
         this._dynamicCapabilities = {};
         this._serverCapabilities = {};
 
-        //Initialize with keys for brackets events we want to tap into.
+        // Initialize with keys for brackets events we want to tap into.
         this._onEventHandlers = {
             "activeEditorChange": [],
             "projectOpen": [],
@@ -220,7 +222,7 @@ define(function (require, exports, module) {
         this._init();
     }
 
-    LanguageClientWrapper.prototype._init = function () {
+    private _init() {
         this._domainInterface.registerMethods([
             {
                 methodName: ToolingInfo.LANGUAGE_SERVICE.REQUEST,
@@ -232,20 +234,20 @@ define(function (require, exports, module) {
             }
         ]);
 
-        //create function interfaces
+        // create function interfaces
         this._startClient = this._domainInterface.createInterface(ToolingInfo.LANGUAGE_SERVICE.START, true);
         this._stopClient = this._domainInterface.createInterface(ToolingInfo.LANGUAGE_SERVICE.STOP, true);
         this._notifyClient = this._domainInterface.createInterface(ToolingInfo.LANGUAGE_SERVICE.NOTIFY);
         this._requestClient = this._domainInterface.createInterface(ToolingInfo.LANGUAGE_SERVICE.REQUEST, true);
-    };
+    }
 
-    LanguageClientWrapper.prototype._onRequestDelegator = function (params) {
+    private _onRequestDelegator(params) {
         if (!params || !params.type) {
             console.log("Invalid server request");
             return $.Deferred().reject();
         }
 
-        var requestHandler = this._onRequestHandler[params.type];
+        const requestHandler = this._onRequestHandler[params.type];
         if (params.type === ToolingInfo.SERVICE_REQUESTS.REGISTRATION_REQUEST) {
             return this._registrationShim(params.params, requestHandler);
         }
@@ -259,16 +261,15 @@ define(function (require, exports, module) {
         }
         console.log("No handler provided for server request type : ", params.type);
         return $.Deferred().reject();
+    }
 
-    };
-
-    LanguageClientWrapper.prototype._onNotificationDelegator = function (params) {
+    private _onNotificationDelegator(params) {
         if (!params || !params.type) {
             console.log("Invalid server notification");
             return;
         }
 
-        var notificationHandlers = this._onNotificationHandlers[params.type];
+        const notificationHandlers = this._onNotificationHandlers[params.type];
         if (notificationHandlers && Array.isArray(notificationHandlers) && notificationHandlers.length) {
             notificationHandlers.forEach(function (handler) {
                 if (validateHandler(handler)) {
@@ -278,9 +279,9 @@ define(function (require, exports, module) {
         } else {
             console.log("No handlers provided for server notification type : ", params.type);
         }
-    };
+    }
 
-    LanguageClientWrapper.prototype._request = function (type, params) {
+    private _request(type, params) {
         params = validateRequestParams(type, params);
         if (params) {
             params = _addTypeInformation(type, params);
@@ -289,9 +290,9 @@ define(function (require, exports, module) {
 
         console.log("Invalid Parameters provided for request type : ", type);
         return $.Deferred().reject();
-    };
+    }
 
-    LanguageClientWrapper.prototype._notify = function (type, params) {
+    private _notify(type, params) {
         params = validateNotificationParams(type, params);
         if (params) {
             params = _addTypeInformation(type, params);
@@ -299,15 +300,15 @@ define(function (require, exports, module) {
         } else {
             console.log("Invalid Parameters provided for notification type : ", type);
         }
-    };
+    }
 
-    LanguageClientWrapper.prototype._addOnRequestHandler = function (type, handler) {
+    private _addOnRequestHandler(type, handler) {
         if (validateHandler(handler)) {
             this._onRequestHandler[type] = handler;
         }
-    };
+    }
 
-    LanguageClientWrapper.prototype._addOnNotificationHandler = function (type, handler) {
+    private _addOnNotificationHandler(type, handler) {
         if (validateHandler(handler)) {
             if (!this._onNotificationHandlers[type]) {
                 this._onNotificationHandlers[type] = [];
@@ -315,16 +316,16 @@ define(function (require, exports, module) {
 
             this._onNotificationHandlers[type].push(handler);
         }
-    };
+    }
 
     /**
-        Requests
-    */
-    //start
-    LanguageClientWrapper.prototype.start = function (params) {
+     * Requests
+     */
+    // start
+    public start(params) {
         params = validateRequestParams(ToolingInfo.LANGUAGE_SERVICE.START, params);
         if (params) {
-            var self = this;
+            const self = this;
             return this._startClient(params)
                 .then(function (result) {
                     self.setServerCapabilities(result.capabilities);
@@ -336,26 +337,26 @@ define(function (require, exports, module) {
 
         console.log("Invalid Parameters provided for request type : start");
         return $.Deferred().reject();
-    };
+    }
 
-    //shutdown
-    LanguageClientWrapper.prototype.stop = function () {
+    // shutdown
+    public stop() {
         return this._stopClient();
-    };
+    }
 
-    //restart
-    LanguageClientWrapper.prototype.restart = function (params) {
-        var self = this;
+    // restart
+    public restart(params) {
+        const self = this;
         return this.stop().then(function () {
             return self.start(params);
         });
-    };
+    }
 
     /**
-        textDocument requests
-    */
-    //completion
-    LanguageClientWrapper.prototype.requestHints = function (params) {
+     * textDocument requests
+     */
+    // completion
+    public requestHints(params) {
         return this._request(ToolingInfo.FEATURES.CODE_HINTS, params)
             .then(function (response) {
                 if (response && response.items && response.items.length) {
@@ -365,15 +366,15 @@ define(function (require, exports, module) {
             }, function (err) {
                 return $.Deferred().reject(err);
             });
-    };
+    }
 
-    //completionItemResolve
-    LanguageClientWrapper.prototype.getAdditionalInfoForHint = function (params) {
+    // completionItemResolve
+    public getAdditionalInfoForHint(params) {
         return this._request(ToolingInfo.FEATURES.CODE_HINT_INFO, params);
-    };
+    }
 
-    //signatureHelp
-    LanguageClientWrapper.prototype.requestParameterHints = function (params) {
+    // signatureHelp
+    public requestParameterHints(params) {
         return this._request(ToolingInfo.FEATURES.PARAMETER_HINTS, params)
             .then(function (response) {
                 if (response && response.signatures && response.signatures.length) {
@@ -383,10 +384,10 @@ define(function (require, exports, module) {
             }, function (err) {
                 return $.Deferred().reject(err);
             });
-    };
+    }
 
-    //gotoDefinition
-    LanguageClientWrapper.prototype.gotoDefinition = function (params) {
+    // gotoDefinition
+    public gotoDefinition(params) {
         return this._request(ToolingInfo.FEATURES.JUMP_TO_DEFINITION, params)
             .then(function (response) {
                 if (response && response.range) {
@@ -396,108 +397,108 @@ define(function (require, exports, module) {
             }, function (err) {
                 return $.Deferred().reject(err);
             });
-    };
+    }
 
-    //gotoDeclaration
-    LanguageClientWrapper.prototype.gotoDeclaration = function (params) {
+    // gotoDeclaration
+    public gotoDeclaration(params) {
         return this._request(ToolingInfo.FEATURES.JUMP_TO_DECLARATION, params);
-    };
+    }
 
-    //gotoImplementation
-    LanguageClientWrapper.prototype.gotoImplementation = function (params) {
+    // gotoImplementation
+    public gotoImplementation(params) {
         return this._request(ToolingInfo.FEATURES.JUMP_TO_IMPL, params);
-    };
+    }
 
-    //findReferences
-    LanguageClientWrapper.prototype.findReferences = function (params) {
+    // findReferences
+    public findReferences(params) {
         return this._request(ToolingInfo.FEATURES.FIND_REFERENCES, params);
-    };
+    }
 
-    //documentSymbol
-    LanguageClientWrapper.prototype.requestSymbolsForDocument = function (params) {
+    // documentSymbol
+    public requestSymbolsForDocument(params) {
         return this._request(ToolingInfo.FEATURES.DOCUMENT_SYMBOLS, params);
-    };
+    }
 
     /**
-        workspace requests
-    */
-    //workspaceSymbol
-    LanguageClientWrapper.prototype.requestSymbolsForWorkspace = function (params) {
+     * workspace requests
+     */
+    // workspaceSymbol
+    public requestSymbolsForWorkspace(params) {
         return this._request(ToolingInfo.FEATURES.PROJECT_SYMBOLS, params);
-    };
+    }
 
-    //These will mostly be callbacks/[done-fail](promises)
+    // These will mostly be callbacks/[done-fail](promises)
     /**
-        Window OnNotifications
-    */
-    //showMessage
-    LanguageClientWrapper.prototype.addOnShowMessage = function (handler) {
+     * Window OnNotifications
+     */
+    // showMessage
+    public addOnShowMessage(handler) {
         this._addOnNotificationHandler(ToolingInfo.SERVICE_NOTIFICATIONS.SHOW_MESSAGE, handler);
-    };
+    }
 
-    //logMessage
-    LanguageClientWrapper.prototype.addOnLogMessage = function (handler) {
+    // logMessage
+    public addOnLogMessage(handler) {
         this._addOnNotificationHandler(ToolingInfo.SERVICE_NOTIFICATIONS.LOG_MESSAGE, handler);
-    };
+    }
 
     /**
-        healthData/logging OnNotifications
-    */
-    //telemetry
-    LanguageClientWrapper.prototype.addOnTelemetryEvent = function (handler) {
+     * healthData/logging OnNotifications
+     */
+    // telemetry
+    public addOnTelemetryEvent(handler) {
         this._addOnNotificationHandler(ToolingInfo.SERVICE_NOTIFICATIONS.TELEMETRY, handler);
-    };
+    }
 
     /**
-        textDocument OnNotifications
-    */
-    //onPublishDiagnostics
-    LanguageClientWrapper.prototype.addOnCodeInspection = function (handler) {
+     * textDocument OnNotifications
+     */
+    // onPublishDiagnostics
+    public addOnCodeInspection(handler) {
         this._addOnNotificationHandler(ToolingInfo.SERVICE_NOTIFICATIONS.DIAGNOSTICS, handler);
-    };
+    }
 
     /**
-        Window OnRequest
-    */
+     * Window OnRequest
+     */
 
-    //showMessageRequest - handler must return promise
-    LanguageClientWrapper.prototype.onShowMessageWithRequest = function (handler) {
+    // showMessageRequest - handler must return promise
+    public onShowMessageWithRequest(handler) {
         this._addOnRequestHandler(ToolingInfo.SERVICE_REQUESTS.SHOW_SELECT_MESSAGE, handler);
-    };
+    }
 
-    LanguageClientWrapper.prototype.onProjectFoldersRequest = function (handler) {
+    public onProjectFoldersRequest(handler) {
         this._addOnRequestHandler(ToolingInfo.SERVICE_REQUESTS.PROJECT_FOLDERS_REQUEST, handler);
-    };
+    }
 
-    LanguageClientWrapper.prototype._registrationShim = function (params, handler) {
-        var self = this;
+    private _registrationShim(params, handler) {
+        const self = this;
 
-        var registrations = params.registrations;
+        const registrations = params.registrations;
         registrations.forEach(function (registration) {
-            var id = registration.id;
+            const id = registration.id;
             self._dynamicCapabilities[id] = registration;
         });
         return validateHandler(handler) ? handler(params) : $.Deferred().resolve();
-    };
+    }
 
-    LanguageClientWrapper.prototype.onDynamicCapabilityRegistration = function (handler) {
+    public onDynamicCapabilityRegistration(handler) {
         this._addOnRequestHandler(ToolingInfo.SERVICE_REQUESTS.REGISTRATION_REQUEST, handler);
-    };
+    }
 
-    LanguageClientWrapper.prototype._unregistrationShim = function (params, handler) {
-        var self = this;
+    private _unregistrationShim(params, handler) {
+        const self = this;
 
-        var unregistrations = params.unregistrations;
+        const unregistrations = params.unregistrations;
         unregistrations.forEach(function (unregistration) {
-            var id = unregistration.id;
+            const id = unregistration.id;
             delete self._dynamicCapabilities[id];
         });
         return validateHandler(handler) ? handler(params) : $.Deferred().resolve();
-    };
+    }
 
-    LanguageClientWrapper.prototype.onDynamicCapabilityUnregistration = function (handler) {
+    public onDynamicCapabilityUnregistration(handler) {
         this._addOnRequestHandler(ToolingInfo.SERVICE_REQUESTS.UNREGISTRATION_REQUEST, handler);
-    };
+    }
 
     /*
         Unimplemented OnNotifications
@@ -506,120 +507,120 @@ define(function (require, exports, module) {
     */
 
     /**
-        SendNotifications
-    */
-
-    /**
-        workspace SendNotifications
-    */
-    //didChangeProjectRoots
-    LanguageClientWrapper.prototype.notifyProjectRootsChanged = function (params) {
-        this._notify(ToolingInfo.SYNCHRONIZE_EVENTS.PROJECT_FOLDERS_CHANGED, params);
-    };
-
-    /**
-        textDocument SendNotifications
-    */
-    //didOpenTextDocument
-    LanguageClientWrapper.prototype.notifyTextDocumentOpened = function (params) {
-        this._notify(ToolingInfo.SYNCHRONIZE_EVENTS.DOCUMENT_OPENED, params);
-    };
-
-    //didCloseTextDocument
-    LanguageClientWrapper.prototype.notifyTextDocumentClosed = function (params) {
-        this._notify(ToolingInfo.SYNCHRONIZE_EVENTS.DOCUMENT_CLOSED, params);
-    };
-
-    //didChangeTextDocument
-    LanguageClientWrapper.prototype.notifyTextDocumentChanged = function (params) {
-        this._notify(ToolingInfo.SYNCHRONIZE_EVENTS.DOCUMENT_CHANGED, params);
-    };
-
-    //didSaveTextDocument
-    LanguageClientWrapper.prototype.notifyTextDocumentSave = function (params) {
-        this._notify(ToolingInfo.SYNCHRONIZE_EVENTS.DOCUMENT_SAVED, params);
-    };
-
-    /**
-        Custom messages
+     * SendNotifications
      */
 
-    //customNotification
-    LanguageClientWrapper.prototype.sendCustomNotification = function (params) {
+    /**
+     * workspace SendNotifications
+     */
+    // didChangeProjectRoots
+    public notifyProjectRootsChanged(params) {
+        this._notify(ToolingInfo.SYNCHRONIZE_EVENTS.PROJECT_FOLDERS_CHANGED, params);
+    }
+
+    /**
+     * textDocument SendNotifications
+     */
+    // didOpenTextDocument
+    public notifyTextDocumentOpened(params) {
+        this._notify(ToolingInfo.SYNCHRONIZE_EVENTS.DOCUMENT_OPENED, params);
+    }
+
+    // didCloseTextDocument
+    public notifyTextDocumentClosed(params) {
+        this._notify(ToolingInfo.SYNCHRONIZE_EVENTS.DOCUMENT_CLOSED, params);
+    }
+
+    // didChangeTextDocument
+    public notifyTextDocumentChanged(params) {
+        this._notify(ToolingInfo.SYNCHRONIZE_EVENTS.DOCUMENT_CHANGED, params);
+    }
+
+    // didSaveTextDocument
+    public notifyTextDocumentSave(params) {
+        this._notify(ToolingInfo.SYNCHRONIZE_EVENTS.DOCUMENT_SAVED, params);
+    }
+
+    /**
+     * Custom messages
+     */
+
+    // customNotification
+    public sendCustomNotification(params) {
         this._notify(ToolingInfo.LANGUAGE_SERVICE.CUSTOM_NOTIFICATION, params);
-    };
+    }
 
-    LanguageClientWrapper.prototype.onCustomNotification = function (type, handler) {
+    public onCustomNotification(type, handler) {
         this._addOnNotificationHandler(type, handler);
-    };
+    }
 
-    //customRequest
-    LanguageClientWrapper.prototype.sendCustomRequest = function (params) {
+    // customRequest
+    public sendCustomRequest(params) {
         return this._request(ToolingInfo.LANGUAGE_SERVICE.CUSTOM_REQUEST, params);
-    };
+    }
 
-    LanguageClientWrapper.prototype.onCustomRequest = function (type, handler) {
+    public onCustomRequest(type, handler) {
         this._addOnRequestHandler(type, handler);
-    };
+    }
 
-    //Handling Brackets Events
-    LanguageClientWrapper.prototype.addOnEditorChangeHandler = function (handler) {
+    // Handling Brackets Events
+    public addOnEditorChangeHandler(handler) {
         if (validateHandler(handler)) {
-            this._onEventHandlers["activeEditorChange"].push(handler);
+            this._onEventHandlers.activeEditorChange.push(handler);
         }
-    };
+    }
 
-    LanguageClientWrapper.prototype.addOnProjectOpenHandler = function (handler) {
+    public addOnProjectOpenHandler(handler) {
         if (validateHandler(handler)) {
-            this._onEventHandlers["projectOpen"].push(handler);
+            this._onEventHandlers.projectOpen.push(handler);
         }
-    };
+    }
 
-    LanguageClientWrapper.prototype.addBeforeProjectCloseHandler = function (handler) {
+    public addBeforeProjectCloseHandler(handler) {
         if (validateHandler(handler)) {
-            this._onEventHandlers["beforeProjectClose"].push(handler);
+            this._onEventHandlers.beforeProjectClose.push(handler);
         }
-    };
+    }
 
-    LanguageClientWrapper.prototype.addOnDocumentDirtyFlagChangeHandler = function (handler) {
+    public addOnDocumentDirtyFlagChangeHandler(handler) {
         if (validateHandler(handler)) {
-            this._onEventHandlers["dirtyFlagChange"].push(handler);
+            this._onEventHandlers.dirtyFlagChange.push(handler);
         }
-    };
+    }
 
-    LanguageClientWrapper.prototype.addOnDocumentChangeHandler = function (handler) {
+    public addOnDocumentChangeHandler(handler) {
         if (validateHandler(handler)) {
-            this._onEventHandlers["documentChange"].push(handler);
+            this._onEventHandlers.documentChange.push(handler);
         }
-    };
+    }
 
-    LanguageClientWrapper.prototype.addOnFileRenameHandler = function (handler) {
+    public addOnFileRenameHandler(handler) {
         if (validateHandler(handler)) {
-            this._onEventHandlers["fileNameChange"].push(handler);
+            this._onEventHandlers.fileNameChange.push(handler);
         }
-    };
+    }
 
-    LanguageClientWrapper.prototype.addBeforeAppClose = function (handler) {
+    public addBeforeAppClose(handler) {
         if (validateHandler(handler)) {
-            this._onEventHandlers["beforeAppClose"].push(handler);
+            this._onEventHandlers.beforeAppClose.push(handler);
         }
-    };
+    }
 
-    LanguageClientWrapper.prototype.addOnCustomEventHandler = function (eventName, handler) {
+    public addOnCustomEventHandler(eventName, handler) {
         if (validateHandler(handler)) {
             if (!this._onEventHandlers[eventName]) {
                 this._onEventHandlers[eventName] = [];
             }
             this._onEventHandlers[eventName].push(handler);
         }
-    };
+    }
 
-    LanguageClientWrapper.prototype.triggerEvent = function (event) {
-        var eventName = event.type,
-            eventArgs = arguments;
+    public triggerEvent(event) {
+        const eventName = event.type;
+        const eventArgs = arguments;
 
         if (this._onEventHandlers[eventName] && Array.isArray(this._onEventHandlers[eventName])) {
-            var handlers = this._onEventHandlers[eventName];
+            const handlers = this._onEventHandlers[eventName];
 
             handlers.forEach(function (handler) {
                 if (validateHandler(handler)) {
@@ -627,40 +628,34 @@ define(function (require, exports, module) {
                 }
             });
         }
-    };
-
-    LanguageClientWrapper.prototype.getDynamicCapabilities = function () {
-        return this._dynamicCapabilities;
-    };
-
-    LanguageClientWrapper.prototype.getServerCapabilities = function () {
-        return this._serverCapabilities;
-    };
-
-    LanguageClientWrapper.prototype.setServerCapabilities = function (serverCapabilities) {
-        this._serverCapabilities = serverCapabilities;
-    };
-
-    exports.LanguageClientWrapper = LanguageClientWrapper;
-
-    function logAnalyticsData(typeStrKey) {
-        var editor =  require("editor/EditorManager").getActiveEditor(),
-            document = editor ? editor.document : null,
-            language = document ? document.language : null,
-            languageName = language ? language._name : "",
-            HealthLogger = require("utils/HealthLogger"),
-            typeStr = HealthLogger.commonStrings[typeStrKey] || "";
-
-        HealthLogger.sendAnalyticsData(
-            HealthLogger.commonStrings.USAGE + HealthLogger.commonStrings.LANGUAGE_SERVER_PROTOCOL + typeStr + languageName,
-            HealthLogger.commonStrings.USAGE,
-            HealthLogger.commonStrings.LANGUAGE_SERVER_PROTOCOL,
-            typeStr,
-            languageName.toLowerCase()
-        );
     }
 
-    //For unit testting
-    exports.validateRequestParams = validateRequestParams;
-    exports.validateNotificationParams = validateNotificationParams;
-});
+    public getDynamicCapabilities() {
+        return this._dynamicCapabilities;
+    }
+
+    public getServerCapabilities() {
+        return this._serverCapabilities;
+    }
+
+    public setServerCapabilities(serverCapabilities) {
+        this._serverCapabilities = serverCapabilities;
+    }
+}
+
+function logAnalyticsData(typeStrKey) {
+    const editor =  require("editor/EditorManager").getActiveEditor();
+    const document = editor ? editor.document : null;
+    const language = document ? document.language : null;
+    const languageName = language ? language._name : "";
+    const HealthLogger = require("utils/HealthLogger");
+    const typeStr = HealthLogger.commonStrings[typeStrKey] || "";
+
+    HealthLogger.sendAnalyticsData(
+        HealthLogger.commonStrings.USAGE + HealthLogger.commonStrings.LANGUAGE_SERVER_PROTOCOL + typeStr + languageName,
+        HealthLogger.commonStrings.USAGE,
+        HealthLogger.commonStrings.LANGUAGE_SERVER_PROTOCOL,
+        typeStr,
+        languageName.toLowerCase()
+    );
+}

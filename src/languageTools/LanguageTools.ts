@@ -22,100 +22,94 @@
  *
  */
 
-define(function (require, exports, module) {
-    "use strict";
+import * as ClientLoader from "languageTools/ClientLoader";
+import * as EditorManager from "editor/EditorManager";
+import * as ProjectManager from "project/ProjectManager";
+import * as DocumentManager from "document/DocumentManager";
+import * as DocumentModule from "document/Document";
+import * as PreferencesManager from "preferences/PreferencesManager";
+import * as Strings from "strings";
+import { LanguageClientWrapper } from "languageTools/LanguageClientWrapper";
+import { DispatcherEvents } from "utils/EventDispatcher";
 
-    var ClientLoader = require("languageTools/ClientLoader"),
-        EditorManager = require("editor/EditorManager"),
-        ProjectManager = require("project/ProjectManager"),
-        DocumentManager = require("document/DocumentManager"),
-        DocumentModule = require("document/Document"),
-        PreferencesManager = require("preferences/PreferencesManager"),
-        Strings = require("strings"),
-        LanguageClientWrapper = require("languageTools/LanguageClientWrapper").LanguageClientWrapper;
+const languageClients = new Map();
+let languageToolsPrefs = {
+    showServerLogsInConsole: false
+};
+const BRACKETS_EVENTS_NAMES = {
+    EDITOR_CHANGE_EVENT: "activeEditorChange",
+    PROJECT_OPEN_EVENT: "projectOpen",
+    PROJECT_CLOSE_EVENT: "beforeProjectClose",
+    DOCUMENT_DIRTY_EVENT: "dirtyFlagChange",
+    DOCUMENT_CHANGE_EVENT: "documentChange",
+    FILE_RENAME_EVENT: "fileNameChange",
+    BEFORE_APP_CLOSE: "beforeAppClose"
+};
 
-    var languageClients = new Map(),
-        languageToolsPrefs = {
-            showServerLogsInConsole: false
-        },
-        BRACKETS_EVENTS_NAMES = {
-            EDITOR_CHANGE_EVENT: "activeEditorChange",
-            PROJECT_OPEN_EVENT: "projectOpen",
-            PROJECT_CLOSE_EVENT: "beforeProjectClose",
-            DOCUMENT_DIRTY_EVENT: "dirtyFlagChange",
-            DOCUMENT_CHANGE_EVENT: "documentChange",
-            FILE_RENAME_EVENT: "fileNameChange",
-            BEFORE_APP_CLOSE: "beforeAppClose"
-        };
-
-    PreferencesManager.definePreference("languageTools", "object", languageToolsPrefs, {
-        description: Strings.LANGUAGE_TOOLS_PREFERENCES
-    });
-
-    PreferencesManager.on("change", "languageTools", function () {
-        languageToolsPrefs = PreferencesManager.get("languageTools");
-
-        ClientLoader.syncPrefsWithDomain(languageToolsPrefs);
-    });
-
-    function registerLanguageClient(clientName, languageClient) {
-        languageClients.set(clientName, languageClient);
-    }
-
-    function _withNamespace(event) {
-        return event.split(" ")
-            .filter(function (value) {
-                return !!value;
-            })
-            .map(function (value) {
-                return value + ".language-tools";
-            })
-            .join(" ");
-    }
-
-    function _eventHandler() {
-        var eventArgs = arguments;
-        //Broadcast event to all clients
-        languageClients.forEach(function (client) {
-            client.triggerEvent.apply(client, eventArgs);
-        });
-    }
-
-    function _attachEventHandlers() {
-        //Attach standard listeners
-        EditorManager.on(_withNamespace(BRACKETS_EVENTS_NAMES.EDITOR_CHANGE_EVENT), _eventHandler); //(event, current, previous)
-        ProjectManager.on(_withNamespace(BRACKETS_EVENTS_NAMES.PROJECT_OPEN_EVENT), _eventHandler); //(event, directory)
-        ProjectManager.on(_withNamespace(BRACKETS_EVENTS_NAMES.PROJECT_CLOSE_EVENT), _eventHandler); //(event, directory)
-        DocumentManager.on(_withNamespace(BRACKETS_EVENTS_NAMES.DOCUMENT_DIRTY_EVENT), _eventHandler); //(event, document)
-        DocumentModule.on(_withNamespace(BRACKETS_EVENTS_NAMES.DOCUMENT_CHANGE_EVENT), _eventHandler); //(event, document, changeList)
-        DocumentManager.on(_withNamespace(BRACKETS_EVENTS_NAMES.FILE_RENAME_EVENT), _eventHandler); //(event, oldName, newName)
-        ProjectManager.on(_withNamespace(BRACKETS_EVENTS_NAMES.BEFORE_APP_CLOSE), _eventHandler); //(event, oldName, newName)
-    }
-
-    _attachEventHandlers();
-
-    function listenToCustomEvent(eventModule, eventName) {
-        eventModule.on(_withNamespace(eventName), _eventHandler);
-    }
-
-    function initiateToolingService(clientName, clientFilePath, languages) {
-        var result = $.Deferred();
-
-        ClientLoader.initiateLanguageClient(clientName, clientFilePath)
-            .done(function (languageClientInfo) {
-                var languageClientName = languageClientInfo.name,
-                    languageClientInterface = languageClientInfo.interface,
-                    languageClient = new LanguageClientWrapper(languageClientName, clientFilePath, languageClientInterface, languages);
-
-                registerLanguageClient(languageClientName, languageClient);
-
-                result.resolve(languageClient);
-            })
-            .fail(result.reject);
-
-        return result;
-    }
-
-    exports.initiateToolingService = initiateToolingService;
-    exports.listenToCustomEvent = listenToCustomEvent;
+PreferencesManager.definePreference("languageTools", "object", languageToolsPrefs, {
+    description: Strings.LANGUAGE_TOOLS_PREFERENCES
 });
+
+PreferencesManager.on("change", "languageTools", function () {
+    languageToolsPrefs = PreferencesManager.get("languageTools");
+
+    ClientLoader.syncPrefsWithDomain(languageToolsPrefs);
+});
+
+function registerLanguageClient(clientName, languageClient) {
+    languageClients.set(clientName, languageClient);
+}
+
+function _withNamespace(event) {
+    return event.split(" ")
+        .filter(function (value) {
+            return !!value;
+        })
+        .map(function (value) {
+            return value + ".language-tools";
+        })
+        .join(" ");
+}
+
+function _eventHandler() {
+    const eventArgs = arguments;
+    // Broadcast event to all clients
+    languageClients.forEach(function (client) {
+        client.triggerEvent.apply(client, eventArgs);
+    });
+}
+
+function _attachEventHandlers() {
+    // Attach standard listeners
+    (EditorManager as unknown as DispatcherEvents).on(_withNamespace(BRACKETS_EVENTS_NAMES.EDITOR_CHANGE_EVENT), _eventHandler); // (event, current, previous)
+    (ProjectManager as unknown as DispatcherEvents).on(_withNamespace(BRACKETS_EVENTS_NAMES.PROJECT_OPEN_EVENT), _eventHandler); // (event, directory)
+    (ProjectManager as unknown as DispatcherEvents).on(_withNamespace(BRACKETS_EVENTS_NAMES.PROJECT_CLOSE_EVENT), _eventHandler); // (event, directory)
+    (DocumentManager as unknown as DispatcherEvents).on(_withNamespace(BRACKETS_EVENTS_NAMES.DOCUMENT_DIRTY_EVENT), _eventHandler); // (event, document)
+    (DocumentModule as unknown as DispatcherEvents).on(_withNamespace(BRACKETS_EVENTS_NAMES.DOCUMENT_CHANGE_EVENT), _eventHandler); // (event, document, changeList)
+    (DocumentManager as unknown as DispatcherEvents).on(_withNamespace(BRACKETS_EVENTS_NAMES.FILE_RENAME_EVENT), _eventHandler); // (event, oldName, newName)
+    (ProjectManager as unknown as DispatcherEvents).on(_withNamespace(BRACKETS_EVENTS_NAMES.BEFORE_APP_CLOSE), _eventHandler); // (event, oldName, newName)
+}
+
+_attachEventHandlers();
+
+export function listenToCustomEvent(eventModule, eventName) {
+    eventModule.on(_withNamespace(eventName), _eventHandler);
+}
+
+export function initiateToolingService(clientName, clientFilePath, languages) {
+    const result = $.Deferred();
+
+    ClientLoader.initiateLanguageClient(clientName, clientFilePath)
+        .done(function (languageClientInfo) {
+            const languageClientName = languageClientInfo!.name;
+            const languageClientInterface = languageClientInfo!.interface;
+            const languageClient = new LanguageClientWrapper(languageClientName, clientFilePath, languageClientInterface, languages);
+
+            registerLanguageClient(languageClientName, languageClient);
+
+            result.resolve(languageClient);
+        })
+        .fail(result.reject);
+
+    return result;
+}
