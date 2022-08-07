@@ -22,157 +22,170 @@
  *
  */
 
-define(function (require, exports, module) {
-    "use strict";
+/// <amd-dependency path="module" name="module"/>
 
-    // Load dependencies.
-    var AppInit             = brackets.getModule("utils/AppInit"),
-        CodeHintManager     = brackets.getModule("editor/CodeHintManager"),
-        PreferencesManager  = brackets.getModule("preferences/PreferencesManager"),
-        StringMatch         = brackets.getModule("utils/StringMatch"),
-        ExtensionUtils      = brackets.getModule("utils/ExtensionUtils"),
-        EditorManager       = brackets.getModule("editor/EditorManager"),
-        LanguageManager     = brackets.getModule("language/LanguageManager"),
-        JSONUtils           = brackets.getModule("language/JSONUtils"),
-        Strings             = brackets.getModule("strings"),
-        ThemeManager        = brackets.getModule("view/ThemeManager"),
-        CodeInspection      = brackets.getModule("language/CodeInspection"),
-        _                   = brackets.getModule("thirdparty/lodash"),
-        languages           = LanguageManager.getLanguages(),
-        isPrefDocument      = false,
-        isPrefHintsEnabled  = false;
+import type { CodeHintProvider } from "editor/CodeHintManager";
 
-    // Stores data of preferences used by Brackets and its core/thirdparty extensions.
-    var data = {
-        language: {
-            type: "object",
-            description: Strings.DESCRIPTION_LANGUAGE
-        },
-        path: {
-            type: "object",
-            description: Strings.DESCRIPTION_PATH
-        }
-    };
+// Load dependencies.
+const AppInit             = brackets.getModule("utils/AppInit");
+const CodeHintManager     = brackets.getModule("editor/CodeHintManager");
+const PreferencesManager  = brackets.getModule("preferences/PreferencesManager");
+const StringMatch         = brackets.getModule("utils/StringMatch");
+const ExtensionUtils      = brackets.getModule("utils/ExtensionUtils");
+const EditorManager       = brackets.getModule("editor/EditorManager");
+const LanguageManager     = brackets.getModule("language/LanguageManager");
+const JSONUtils           = brackets.getModule("language/JSONUtils");
+const Strings             = brackets.getModule("strings");
+const ThemeManager        = brackets.getModule("view/ThemeManager");
+const CodeInspection      = brackets.getModule("language/CodeInspection");
+const _                   = brackets.getModule("thirdparty/lodash");
+let languages           = LanguageManager.getLanguages();
+let isPrefDocument      = false;
+let isPrefHintsEnabled  = false;
 
-    var stringMatcherOptions = {
-        preferPrefixMatches: true
-    };
+// For unit tests only.
+export let hintProvider: PrefsCodeHints;
 
-    // List of parent keys for which no key hints will be provided.
-    var parentKeyBlacklist = [
-        "language.fileExtensions",
-        "language.fileNames",
-        "path"
-    ];
+interface Option {
+    type: string | null;
+    description: null;
+    values: null;
+    valueType?: string;
+}
 
-    // Define a preference for code hinting.
-    PreferencesManager.definePreference("codehint.PrefHints", "boolean", true, {
-        description: Strings.DESCRIPTION_PREF_HINTS
-    });
-
-    /**
-     * @private
-     *
-     * Determines whether or not the current document is a preferences document and
-     * user has enabled code hints
-     *
-     * @return {Boolean}
-     */
-    function _isPrefHintsEnabled() {
-        return (isPrefDocument &&
-                PreferencesManager.get("showCodeHints") !== false &&
-                PreferencesManager.get("codehint.PrefHints") !== false);
+// Stores data of preferences used by Brackets and its core/thirdparty extensions.
+let data = {
+    language: {
+        type: "object",
+        description: Strings.DESCRIPTION_LANGUAGE
+    },
+    path: {
+        type: "object",
+        description: Strings.DESCRIPTION_PATH
     }
+};
 
-    /**
-     * @private
-     *
-     * Determines whether or not the name of a file matches the preferences files
-     *
-     * @param {!Document} document
-     * @return {Boolean}
-     */
-    function _isPrefDocument(document) {
-        return (/^\.?brackets\.json$/).test(document.file._name);
+const stringMatcherOptions = {
+    preferPrefixMatches: true
+};
+
+// List of parent keys for which no key hints will be provided.
+const parentKeyBlacklist = [
+    "language.fileExtensions",
+    "language.fileNames",
+    "path"
+];
+
+// Define a preference for code hinting.
+PreferencesManager.definePreference("codehint.PrefHints", "boolean", true, {
+    description: Strings.DESCRIPTION_PREF_HINTS
+});
+
+/**
+ * @private
+ *
+ * Determines whether or not the current document is a preferences document and
+ * user has enabled code hints
+ *
+ * @return {Boolean}
+ */
+function _isPrefHintsEnabled() {
+    return (isPrefDocument &&
+            PreferencesManager.get("showCodeHints") !== false &&
+            PreferencesManager.get("codehint.PrefHints") !== false);
+}
+
+/**
+ * @private
+ *
+ * Determines whether or not the name of a file matches the preferences files
+ *
+ * @param {!Document} document
+ * @return {Boolean}
+ */
+function _isPrefDocument(document) {
+    return (/^\.?brackets\.json$/).test(document.file._name);
+}
+
+// Set listeners on preference, editor and language changes.
+PreferencesManager.on("change", "showCodeHints", function () {
+    isPrefHintsEnabled = _isPrefHintsEnabled();
+});
+PreferencesManager.on("change", "codehint.PrefHints", function () {
+    isPrefHintsEnabled = _isPrefHintsEnabled();
+});
+(EditorManager as any).on("activeEditorChange", function (e, editor) {
+    if (editor) {
+        isPrefDocument = _isPrefDocument(editor.document);
     }
+    isPrefHintsEnabled = _isPrefHintsEnabled();
+});
+(LanguageManager as any).on("languageAdded", function () {
+    languages = LanguageManager.getLanguages();
+});
 
-    // Set listeners on preference, editor and language changes.
-    PreferencesManager.on("change", "showCodeHints", function () {
-        isPrefHintsEnabled = _isPrefHintsEnabled();
+/*
+    * Returns a sorted and formatted list of hints with the query substring
+    * highlighted.
+    *
+    * @param {Array.<Object>} hints - the list of hints to format
+    * @param {string} query - querystring used for highlighting matched
+    *      portions of each hint
+    * @return {Array.jQuery} sorted Array of jQuery DOM elements to insert
+    */
+function formatHints(hints, query) {
+    const hasMetadata = hints.some(function (token) {
+        return token.type || token.description;
     });
-    PreferencesManager.on("change", "codehint.PrefHints", function () {
-        isPrefHintsEnabled = _isPrefHintsEnabled();
-    });
-    EditorManager.on("activeEditorChange", function (e, editor) {
-        if (editor) {
-            isPrefDocument = _isPrefDocument(editor.document);
-        }
-        isPrefHintsEnabled = _isPrefHintsEnabled();
-    });
-    LanguageManager.on("languageAdded", function () {
-        languages = LanguageManager.getLanguages();
-    });
 
-    /*
-     * Returns a sorted and formatted list of hints with the query substring
-     * highlighted.
-     *
-     * @param {Array.<Object>} hints - the list of hints to format
-     * @param {string} query - querystring used for highlighting matched
-     *      portions of each hint
-     * @return {Array.jQuery} sorted Array of jQuery DOM elements to insert
-     */
-    function formatHints(hints, query) {
+    StringMatch.basicMatchSort(hints);
+    return hints.map(function (token) {
+        const $hintItem = $("<span>").addClass("brackets-pref-hints");
+        const $hintObj  = $("<span>").addClass("hint-obj");
 
-        var hasMetadata = hints.some(function (token) {
-            return token.type || token.description;
-        });
-
-        StringMatch.basicMatchSort(hints);
-        return hints.map(function (token) {
-            var $hintItem = $("<span>").addClass("brackets-pref-hints"),
-                $hintObj  = $("<span>").addClass("hint-obj");
-
-            // highlight the matched portion of each hint
-            if (token.stringRanges) {
-                token.stringRanges.forEach(function (item) {
-                    if (item.matched) {
-                        $hintObj.append($("<span>")
-                            .text(item.text)
-                            .addClass("matched-hint"));
-                    } else {
-                        $hintObj.append(item.text);
-                    }
-                });
-            } else {
-                $hintObj.text(token.value);
-            }
-
-            $hintItem.append($hintObj);
-
-            if (hasMetadata) {
-                $hintItem.data("type", token.type);
-                if (token.description) {
-                    $hintItem.append($("<span>")
-                        .addClass("hint-description")
-                        .text(token.description));
+        // highlight the matched portion of each hint
+        if (token.stringRanges) {
+            token.stringRanges.forEach(function (item) {
+                if (item.matched) {
+                    $hintObj.append($("<span>")
+                        .text(item.text)
+                        .addClass("matched-hint"));
+                } else {
+                    $hintObj.append(item.text);
                 }
+            });
+        } else {
+            $hintObj.text(token.value);
+        }
+
+        $hintItem.append($hintObj);
+
+        if (hasMetadata) {
+            $hintItem.data("type", token.type);
+            if (token.description) {
+                $hintItem.append($("<span>")
+                    .addClass("hint-description")
+                    .text(token.description));
             }
-            return $hintItem;
-        });
-    }
+        }
+        return $hintItem;
+    });
+}
+
+class PrefsCodeHints implements CodeHintProvider {
+    private ctxInfo;
+    private editor;
 
     /**
      * @constructor
      */
-    function PrefsCodeHints() {
+    constructor() {
         this.ctxInfo = null;
 
         // Add all the preferences defined except the excluded ones.
-        var preferences = PreferencesManager.getAllPreferences(),
-            preference;
+        const preferences = PreferencesManager.getAllPreferences();
         Object.keys(preferences).forEach(function (pref) {
-            preference = preferences[pref];
+            const preference = preferences[pref];
             if (preference.excludeFromHints) {
                 return;
             }
@@ -192,7 +205,7 @@ define(function (require, exports, module) {
      * @param {String} implicitChar
      * @return {Boolean}
      */
-    PrefsCodeHints.prototype.hasHints = function (editor, implicitChar) {
+    public hasHints(editor, implicitChar) {
         if (isPrefHintsEnabled && editor.getModeForSelection() === "application/json") {
             this.editor = editor;
             this.ctxInfo = JSONUtils.getContextInfo(this.editor, this.editor.getCursorPos(), true);
@@ -207,7 +220,7 @@ define(function (require, exports, module) {
             }
         }
         return false;
-    };
+    }
 
     /**
      * Returns a list of hints available in the current context
@@ -215,10 +228,14 @@ define(function (require, exports, module) {
      * @param {String} implicitChar
      * @return {!{hints: Array.<jQueryObject>, match: string, selectInitial: boolean, handleWideResults: boolean}}
      */
-    PrefsCodeHints.prototype.getHints = function (implicitChar) {
-        var hints = [], ctxInfo, query, keys, values, option = {type: null, description: null, values: null};
+    public getHints(implicitChar) {
+        let hints: Array<any> = [];
+        let query;
+        let keys;
+        let values;
+        let option: Option = {type: null, description: null, values: null};
 
-        ctxInfo = this.ctxInfo = JSONUtils.getContextInfo(this.editor, this.editor.getCursorPos(), true);
+        const ctxInfo = this.ctxInfo = JSONUtils.getContextInfo(this.editor, this.editor.getCursorPos(), true);
 
         if (ctxInfo && ctxInfo.token) {
             query = JSONUtils.stripQuotes(ctxInfo.token.string.substr(0, ctxInfo.offset)).trim();
@@ -239,9 +256,9 @@ define(function (require, exports, module) {
                     keys = data;
                 }
 
-                hints = $.map(Object.keys(keys), function (key) {
+                hints = $.map(Object.keys(keys), function (key: string) {
                     if (ctxInfo.exclusionList.indexOf(key) === -1) {
-                        var match = StringMatch.stringMatch(key, query, stringMatcherOptions);
+                        const match = StringMatch.stringMatch(key, query, stringMatcherOptions);
                         if (match) {
                             match.type = keys[key].type || option.type;
                             match.description = keys[key].description || null;
@@ -263,8 +280,8 @@ define(function (require, exports, module) {
                 // Get the values depending on the selected key.
                 if (option && option.type === "boolean") {
                     values = ["false", "true"];
-                } else if (option && option.values && (["number", "string"].indexOf(option.type) !== -1 ||
-                                                       (option.type === "array" && ctxInfo.isArray))) {
+                } else if (option && option.values && (["number", "string"].indexOf(option.type!) !== -1 ||
+                                                        (option.type === "array" && ctxInfo.isArray))) {
                     values = option.values;
                 } else if (ctxInfo.isArray && ctxInfo.keyName === "linting.prefer" && languages[ctxInfo.parentKeyName]) {
                     values = CodeInspection.getProviderIDsForLanguage(ctxInfo.parentKeyName);
@@ -273,7 +290,7 @@ define(function (require, exports, module) {
                         return theme.name;
                     });
                 } else if (ctxInfo.parentKeyName === "language.fileExtensions" ||
-                           ctxInfo.parentKeyName === "language.fileNames") {
+                            ctxInfo.parentKeyName === "language.fileNames") {
                     values = Object.keys(languages);
                 } else {
                     return null;
@@ -288,7 +305,7 @@ define(function (require, exports, module) {
 
                 // filter through the values.
                 hints = $.map(values, function (value) {
-                    var match = StringMatch.stringMatch(value, query, stringMatcherOptions);
+                    const match = StringMatch.stringMatch(value, query, stringMatcherOptions);
                     if (match) {
                         match.type = option.valueType || option.type;
                         match.description = option.description || null;
@@ -305,7 +322,7 @@ define(function (require, exports, module) {
             };
         }
         return null;
-    };
+    }
 
     /**
      * Inserts a completion at current position
@@ -313,14 +330,14 @@ define(function (require, exports, module) {
      * @param {!String} completion
      * @return {Boolean}
      */
-    PrefsCodeHints.prototype.insertHint = function (completion) {
-        var ctxInfo = JSONUtils.getContextInfo(this.editor, this.editor.getCursorPos(), false, true),
-            pos     = this.editor.getCursorPos(),
-            start   = {line: -1, ch: -1},
-            end     = {line: -1, ch: -1},
-            startChar,
-            quoteChar,
-            type;
+    public insertHint(completion) {
+        const ctxInfo = JSONUtils.getContextInfo(this.editor, this.editor.getCursorPos(), false, true)!;
+        const pos     = this.editor.getCursorPos();
+        const start   = {line: -1, ch: -1};
+        const end     = {line: -1, ch: -1};
+        let startChar;
+        let quoteChar;
+        let type;
 
         if (completion.jquery) {
             type = completion.data("type");
@@ -400,32 +417,30 @@ define(function (require, exports, module) {
             this.editor.document.replaceRange(completion, start, end);
             return false;
         }
-    };
 
-    /**
-     * @private
-     *
-     * `isPrefHintsEnabled` must be set to true to allow code hints
-     *
-     * It also loads a set of preferences that we need for running unit tests, this
-     * will not break unit tests in case we add new preferences in the future.
-     *
-     * @param {!Document} testDocument
-     * @param {!Object} testPreferences
-     */
-    function _setupTestEnvironment(testDocument, testPreferences) {
-        isPrefHintsEnabled = _isPrefDocument(testDocument);
-        data = testPreferences;
+        return false;
     }
+}
 
-    AppInit.appReady(function () {
-        var hintProvider = new PrefsCodeHints();
-        CodeHintManager.registerHintProvider(hintProvider, ["json"], 0);
-        ExtensionUtils.loadStyleSheet(module, "styles/brackets-prefs-hints.css");
+/**
+ * @private
+ *
+ * `isPrefHintsEnabled` must be set to true to allow code hints
+ *
+ * It also loads a set of preferences that we need for running unit tests, this
+ * will not break unit tests in case we add new preferences in the future.
+ *
+ * @param {!Document} testDocument
+ * @param {!Object} testPreferences
+ */
+// Export for unit tests only.
+export function _setupTestEnvironment(testDocument, testPreferences) {
+    isPrefHintsEnabled = _isPrefDocument(testDocument);
+    data = testPreferences;
+}
 
-        // For unit tests only.
-        exports.hintProvider            = hintProvider;
-        exports._setupTestEnvironment   = _setupTestEnvironment;
-    });
-
+AppInit.appReady(function () {
+    hintProvider = new PrefsCodeHints();
+    CodeHintManager.registerHintProvider(hintProvider, ["json"], 0);
+    ExtensionUtils.loadStyleSheet(module, "styles/brackets-prefs-hints.css");
 });

@@ -22,32 +22,48 @@
  *
  */
 
-define(function (require, exports, module) {
-    "use strict";
+import type { HintObject } from "editor/CodeHintList";
+import type { CodeHintProvider } from "editor/CodeHintManager";
 
-    // Load dependent modules
-    var AppInit             = brackets.getModule("utils/AppInit"),
-        CodeHintManager     = brackets.getModule("editor/CodeHintManager"),
-        HTMLUtils           = brackets.getModule("language/HTMLUtils"),
-        PreferencesManager  = brackets.getModule("preferences/PreferencesManager"),
-        Strings             = brackets.getModule("strings"),
-        HTMLTags            = require("text!HtmlTags.json"),
-        HTMLAttributes      = require("text!HtmlAttributes.json"),
-        tags,
-        attributes;
+// Load dependent modules
+const AppInit             = brackets.getModule("utils/AppInit");
+const CodeHintManager     = brackets.getModule("editor/CodeHintManager");
+const HTMLUtils           = brackets.getModule("language/HTMLUtils");
+const PreferencesManager  = brackets.getModule("preferences/PreferencesManager");
+const Strings             = brackets.getModule("strings");
+import * as HTMLTags from "text!HtmlTags.json";
+import * as HTMLAttributes from "text!HtmlAttributes.json";
+let tags;
+let attributes;
 
-    PreferencesManager.definePreference("codehint.TagHints", "boolean", true, {
-        description: Strings.DESCRIPTION_HTML_TAG_HINTS
-    });
+// For unit testing
+export let tagHintProvider: TagHints;
+export let attrHintProvider: AttrHints;
 
-    PreferencesManager.definePreference("codehint.AttrHints", "boolean", true, {
-        description: Strings.DESCRIPTION_ATTR_HINTS
-    });
+interface Query {
+    queryStr: any;
+    tag?: string;
+    attrName?: string;
+    usedAttr?: Array<string>;
+}
+
+PreferencesManager.definePreference("codehint.TagHints", "boolean", true, {
+    description: Strings.DESCRIPTION_HTML_TAG_HINTS
+});
+
+PreferencesManager.definePreference("codehint.AttrHints", "boolean", true, {
+    description: Strings.DESCRIPTION_ATTR_HINTS
+});
+
+class TagHints implements CodeHintProvider {
+    private exclusion;
+    private tagInfo;
+    private editor;
 
     /**
      * @constructor
      */
-    function TagHints() {
+    constructor() {
         this.exclusion = null;
     }
 
@@ -55,15 +71,15 @@ define(function (require, exports, module) {
      * Check whether the exclusion is still the same as text after the cursor.
      * If not, reset it to null.
      */
-    TagHints.prototype.updateExclusion = function () {
-        var textAfterCursor;
+    public updateExclusion(): void {
+        let textAfterCursor;
         if (this.exclusion && this.tagInfo) {
             textAfterCursor = this.tagInfo.tagName.substr(this.tagInfo.position.offset);
             if (!CodeHintManager.hasValidExclusion(this.exclusion, textAfterCursor)) {
                 this.exclusion = null;
             }
         }
-    };
+    }
 
     /**
      * Determines whether HTML tag hints are available in the current editor
@@ -82,8 +98,8 @@ define(function (require, exports, module) {
      * the given editor context and, in case implicitChar is non- null,
      * whether it is appropriate to do so.
      */
-    TagHints.prototype.hasHints = function (editor, implicitChar) {
-        var pos = editor.getCursorPos();
+    public hasHints(editor, implicitChar): boolean {
+        const pos = editor.getCursorPos();
 
         this.tagInfo = HTMLUtils.getTagInfo(editor, pos);
         this.editor = editor;
@@ -107,7 +123,7 @@ define(function (require, exports, module) {
         }
 
         return false;
-    };
+    }
 
     /**
      * Returns a list of availble HTML tag hints if possible for the current
@@ -128,9 +144,9 @@ define(function (require, exports, module) {
      * 4. handleWideResults, a boolean (or undefined) that indicates whether
      *    to allow result string to stretch width of display.
      */
-    TagHints.prototype.getHints = function (implicitChar) {
-        var query,
-            result;
+    public getHints(implicitChar) {
+        let query;
+        let result;
 
         this.tagInfo = HTMLUtils.getTagInfo(this.editor, this.editor.getCursorPos());
         if (this.tagInfo.position.tokenType === HTMLUtils.TAG_NAME) {
@@ -153,7 +169,7 @@ define(function (require, exports, module) {
         }
 
         return null;
-    };
+    }
 
     /**
      * Inserts a given HTML tag hint into the current editor context.
@@ -165,14 +181,14 @@ define(function (require, exports, module) {
      * Indicates whether the manager should follow hint insertion with an
      * additional explicit hint request.
      */
-    TagHints.prototype.insertHint = function (completion) {
-        var start = {line: -1, ch: -1},
-            end = {line: -1, ch: -1},
-            cursor = this.editor.getCursorPos(),
-            charCount = 0;
+    public insertHint(completion) {
+        const start = {line: -1, ch: -1};
+        const end = {line: -1, ch: -1};
+        const cursor = this.editor.getCursorPos();
+        let charCount = 0;
 
         if (this.tagInfo.position.tokenType === HTMLUtils.TAG_NAME) {
-            var textAfterCursor = this.tagInfo.tagName.substr(this.tagInfo.position.offset);
+            const textAfterCursor = this.tagInfo.tagName.substr(this.tagInfo.position.offset);
             if (CodeHintManager.hasValidExclusion(this.exclusion, textAfterCursor)) {
                 charCount = this.tagInfo.position.offset;
             } else {
@@ -194,14 +210,20 @@ define(function (require, exports, module) {
         }
 
         return false;
-    };
+    }
+}
+
+class AttrHints implements CodeHintProvider {
+    private globalAttributes;
+    private exclusion;
+    private tagInfo;
+    private editor;
 
     /**
      * @constructor
      */
-    function AttrHints() {
+    constructor() {
         this.globalAttributes = this.readGlobalAttrHints();
-        this.cachedHints = null;
         this.exclusion = "";
     }
 
@@ -210,7 +232,7 @@ define(function (require, exports, module) {
      * Parse the code hints from JSON data and extract all hints from property names.
      * @return {!Array.<string>} An array of code hints read from the JSON data source.
      */
-    AttrHints.prototype.readGlobalAttrHints = function () {
+    public readGlobalAttrHints = function () {
         return $.map(attributes, function (value, key) {
             if (value.global === "true") {
                 return key;
@@ -233,16 +255,16 @@ define(function (require, exports, module) {
      * @return {!Array.<string>|$.Deferred}
      * The (possibly deferred) hints.
      */
-    AttrHints.prototype._getValueHintsForAttr = function (query, tagName, attrName) {
+    private _getValueHintsForAttr(query, tagName, attrName) {
         // We look up attribute values with tagName plus a slash and attrName first.
         // If the lookup fails, then we fall back to look up with attrName only. Most
         // of the attributes in JSON are using attribute name only as their properties,
         // but in some cases like "type" attribute, we have different properties like
         // "script/type", "link/type" and "button/type".
-        var hints = [];
+        let hints: Array<string> = [];
 
-        var tagPlusAttr = tagName + "/" + attrName,
-            attrInfo = attributes[tagPlusAttr] || attributes[attrName];
+        const tagPlusAttr = tagName + "/" + attrName;
+        const attrInfo = attributes[tagPlusAttr] || attributes[attrName];
 
         if (attrInfo) {
             if (attrInfo.type === "boolean") {
@@ -253,7 +275,7 @@ define(function (require, exports, module) {
         }
 
         return hints;
-    };
+    }
 
     /**
      * Check whether the exclusion is still the same as text after the cursor.
@@ -263,11 +285,11 @@ define(function (require, exports, module) {
      * true to indicate that we update the exclusion only if the cursor is inside an attribute name context.
      * Otherwise, we also update exclusion for attribute value context.
      */
-    AttrHints.prototype.updateExclusion = function (attrNameOnly) {
+    public updateExclusion(attrNameOnly) {
         if (this.exclusion && this.tagInfo) {
-            var tokenType = this.tagInfo.position.tokenType,
-                offset = this.tagInfo.position.offset,
-                textAfterCursor;
+            const tokenType = this.tagInfo.position.tokenType;
+            const offset = this.tagInfo.position.offset;
+            let textAfterCursor;
 
             if (tokenType === HTMLUtils.ATTR_NAME) {
                 textAfterCursor = this.tagInfo.attr.name.substr(offset);
@@ -278,7 +300,7 @@ define(function (require, exports, module) {
                 this.exclusion = null;
             }
         }
-    };
+    }
 
     /**
      * Determines whether HTML attribute hints are available in the current
@@ -297,16 +319,14 @@ define(function (require, exports, module) {
      * the given editor context and, in case implicitChar is non-null,
      * whether it is appropriate to do so.
      */
-    AttrHints.prototype.hasHints = function (editor, implicitChar) {
-        var pos = editor.getCursorPos(),
-            tokenType,
-            offset,
-            query;
+    public hasHints(editor, implicitChar) {
+        const pos = editor.getCursorPos();
+        let query;
 
         this.editor = editor;
         this.tagInfo = HTMLUtils.getTagInfo(editor, pos);
-        tokenType = this.tagInfo.position.tokenType;
-        offset = this.tagInfo.position.offset;
+        const tokenType = this.tagInfo.position.tokenType;
+        const offset = this.tagInfo.position.offset;
         if (implicitChar === null) {
             query = null;
 
@@ -326,14 +346,14 @@ define(function (require, exports, module) {
 
                 // If we're at an attribute value, check if it's an attribute name that has hintable values.
                 if (this.tagInfo.attr.name) {
-                    var hints = this._getValueHintsForAttr({queryStr: query},
+                    const hints = this._getValueHintsForAttr({queryStr: query},
                         this.tagInfo.tagName,
                         this.tagInfo.attr.name);
                     if (hints instanceof Array) {
                         // If we got synchronous hints, check if we have something we'll actually use
-                        var i, foundPrefix = false;
-                        for (i = 0; i < hints.length; i++) {
-                            if (hints[i].indexOf(query) === 0) {
+                        let foundPrefix = false;
+                        for (const hint of hints) {
+                            if (hint.indexOf(query) === 0) {
                                 foundPrefix = true;
                                 break;
                             }
@@ -365,7 +385,7 @@ define(function (require, exports, module) {
         }
 
         return false;
-    };
+    }
 
     /**
      * Returns a list of availble HTML attribute hints if possible for the
@@ -386,16 +406,14 @@ define(function (require, exports, module) {
      * 4. handleWideResults, a boolean (or undefined) that indicates whether
      *    to allow result string to stretch width of display.
      */
-    AttrHints.prototype.getHints = function (implicitChar) {
-        var cursor = this.editor.getCursorPos(),
-            query = {queryStr: null},
-            tokenType,
-            offset,
-            result = [];
+    public getHints(implicitChar) {
+        const cursor = this.editor.getCursorPos();
+        const query: Query = {queryStr: null};
+        let result: Array<any> = [];
 
         this.tagInfo = HTMLUtils.getTagInfo(this.editor, cursor);
-        tokenType = this.tagInfo.position.tokenType;
-        offset = this.tagInfo.position.offset;
+        const tokenType = this.tagInfo.position.tokenType;
+        const offset = this.tagInfo.position.offset;
         if (tokenType === HTMLUtils.ATTR_NAME || tokenType === HTMLUtils.ATTR_VALUE) {
             query.tag = this.tagInfo.tagName;
 
@@ -419,18 +437,18 @@ define(function (require, exports, module) {
         }
 
         if (query.tag && query.queryStr !== null) {
-            var tagName = query.tag,
-                attrName = query.attrName,
-                filter = query.queryStr,
-                unfiltered = [],
-                hints;
+            const tagName = query.tag;
+            const attrName = query.attrName;
+            const filter = query.queryStr;
+            let unfiltered = [];
+            let hints;
 
             if (attrName) {
                 hints = this._getValueHintsForAttr(query, tagName, attrName);
             } else if (tags && tags[tagName] && tags[tagName].attributes) {
                 unfiltered = tags[tagName].attributes.concat(this.globalAttributes);
                 hints = $.grep(unfiltered, function (attr, i) {
-                    return $.inArray(attr, query.usedAttr) < 0;
+                    return $.inArray(attr, query.usedAttr!) < 0;
                 });
             }
 
@@ -450,8 +468,8 @@ define(function (require, exports, module) {
             }
 
             if (hints instanceof Object && hints.hasOwnProperty("done")) { // Deferred hints
-                var deferred = $.Deferred();
-                hints.done(function (asyncHints) {
+                const deferred = $.Deferred<HintObject<string>>();
+                hints.done((asyncHints) => {
                     deferred.resolveWith(this, [{
                         hints: asyncHints,
                         match: query.queryStr,
@@ -461,12 +479,10 @@ define(function (require, exports, module) {
                 });
                 return deferred;
             }
-
-            return null;
         }
 
-
-    };
+        return null;
+    }
 
     /**
      * Inserts a given HTML attribute hint into the current editor context.
@@ -478,18 +494,18 @@ define(function (require, exports, module) {
      * Indicates whether the manager should follow hint insertion with an
      * additional explicit hint request.
      */
-    AttrHints.prototype.insertHint = function (completion) {
-        var cursor = this.editor.getCursorPos(),
-            start = {line: -1, ch: -1},
-            end = {line: -1, ch: -1},
-            tokenType = this.tagInfo.position.tokenType,
-            offset = this.tagInfo.position.offset,
-            charCount = 0,
-            insertedName = false,
-            replaceExistingOne = this.tagInfo.attr.valueAssigned,
-            endQuote = "",
-            shouldReplace = true,
-            textAfterCursor;
+    public insertHint(completion) {
+        const cursor = this.editor.getCursorPos();
+        const start = {line: -1, ch: -1};
+        const end = {line: -1, ch: -1};
+        const tokenType = this.tagInfo.position.tokenType;
+        const offset = this.tagInfo.position.offset;
+        let charCount = 0;
+        let insertedName = false;
+        let replaceExistingOne = this.tagInfo.attr.valueAssigned;
+        let endQuote = "";
+        let shouldReplace = true;
+        let textAfterCursor;
 
         if (tokenType === HTMLUtils.ATTR_NAME) {
             textAfterCursor = this.tagInfo.attr.name.substr(offset);
@@ -558,21 +574,17 @@ define(function (require, exports, module) {
         }
 
         return false;
-    };
+    }
+}
 
-    AppInit.appReady(function () {
-        // Parse JSON files
-        tags = JSON.parse(HTMLTags);
-        attributes = JSON.parse(HTMLAttributes);
+AppInit.appReady(function () {
+    // Parse JSON files
+    tags = JSON.parse(HTMLTags);
+    attributes = JSON.parse(HTMLAttributes);
 
-        // Register code hint providers
-        var tagHints = new TagHints();
-        var attrHints = new AttrHints();
-        CodeHintManager.registerHintProvider(tagHints, ["html"], 0);
-        CodeHintManager.registerHintProvider(attrHints, ["html"], 0);
-
-        // For unit testing
-        exports.tagHintProvider = tagHints;
-        exports.attrHintProvider = attrHints;
-    });
+    // Register code hint providers
+    tagHintProvider = new TagHints();
+    attrHintProvider = new AttrHints();
+    CodeHintManager.registerHintProvider(tagHintProvider, ["html"], 0);
+    CodeHintManager.registerHintProvider(attrHintProvider, ["html"], 0);
 });

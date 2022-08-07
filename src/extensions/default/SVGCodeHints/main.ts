@@ -22,122 +22,128 @@
  *
  */
 
-define(function (require, exports, module) {
-    "use strict";
+/// <amd-dependency path="module" name="module"/>
 
-    // Load dependencies.
-    var AppInit             = brackets.getModule("utils/AppInit"),
-        CodeHintManager     = brackets.getModule("editor/CodeHintManager"),
-        PreferencesManager  = brackets.getModule("preferences/PreferencesManager"),
-        XMLUtils            = brackets.getModule("language/XMLUtils"),
-        StringMatch         = brackets.getModule("utils/StringMatch"),
-        ExtensionUtils      = brackets.getModule("utils/ExtensionUtils"),
-        ColorUtils          = brackets.getModule("utils/ColorUtils"),
-        Strings             = brackets.getModule("strings"),
-        _                   = brackets.getModule("thirdparty/lodash"),
-        SVGTags             = require("text!SVGTags.json"),
-        SVGAttributes       = require("text!SVGAttributes.json"),
-        cachedAttributes    = {},
-        tagData,
-        attributeData,
-        isSVGEnabled;
+import type { CodeHintProvider } from "editor/CodeHintManager";
 
-    var stringMatcherOptions = {
-        preferPrefixMatches: true
-    };
+// Load dependencies.
+const AppInit             = brackets.getModule("utils/AppInit");
+const CodeHintManager     = brackets.getModule("editor/CodeHintManager");
+const PreferencesManager  = brackets.getModule("preferences/PreferencesManager");
+const XMLUtils            = brackets.getModule("language/XMLUtils");
+const StringMatch         = brackets.getModule("utils/StringMatch");
+const ExtensionUtils      = brackets.getModule("utils/ExtensionUtils");
+const ColorUtils          = brackets.getModule("utils/ColorUtils");
+const Strings             = brackets.getModule("strings");
+const _                   = brackets.getModule("thirdparty/lodash");
+import * as SVGTags from "text!SVGTags.json";
+import * as SVGAttributes from "text!SVGAttributes.json";
+const cachedAttributes    = {};
+let tagData;
+let attributeData;
+let isSVGEnabled;
+export let hintProvider: SVGCodeHints;
 
-    // Define our own pref for hinting.
-    PreferencesManager.definePreference("codehint.SVGHints", "boolean", true, {
-        description: Strings.DESCRIPTION_SVG_HINTS
-    });
+const stringMatcherOptions = {
+    preferPrefixMatches: true
+};
 
-    // Preferences to control hint.
-    function _isSVGHintsEnabled() {
-        return (PreferencesManager.get("codehint.SVGHints") !== false &&
-                PreferencesManager.get("showCodeHints") !== false);
-    }
+// Define our own pref for hinting.
+PreferencesManager.definePreference("codehint.SVGHints", "boolean", true, {
+    description: Strings.DESCRIPTION_SVG_HINTS
+});
 
-    PreferencesManager.on("change", "codehint.SVGHints", function () {
-        isSVGEnabled = _isSVGHintsEnabled();
-    });
+// Preferences to control hint.
+function _isSVGHintsEnabled() {
+    return (PreferencesManager.get("codehint.SVGHints") !== false &&
+            PreferencesManager.get("showCodeHints") !== false);
+}
 
-    PreferencesManager.on("change", "showCodeHints", function () {
-        isSVGEnabled = _isSVGHintsEnabled();
-    });
-
-    // Check if SVG Hints are available.
+PreferencesManager.on("change", "codehint.SVGHints", function () {
     isSVGEnabled = _isSVGHintsEnabled();
+});
 
-    /**
-     * Returns a list of attributes used by a tag.
-     *
-     * @param {string} tagName name of the SVG tag.
-     * @return {Array.<string>} list of attributes.
-     */
-    function getTagAttributes(tagName) {
-        var tag;
+PreferencesManager.on("change", "showCodeHints", function () {
+    isSVGEnabled = _isSVGHintsEnabled();
+});
 
-        if (!cachedAttributes.hasOwnProperty(tagName)) {
-            tag = tagData.tags[tagName];
-            cachedAttributes[tagName] = [];
-            if (tag.attributes) {
-                cachedAttributes[tagName] =  cachedAttributes[tagName].concat(tag.attributes);
+// Check if SVG Hints are available.
+isSVGEnabled = _isSVGHintsEnabled();
+
+/**
+ * Returns a list of attributes used by a tag.
+ *
+ * @param {string} tagName name of the SVG tag.
+ * @return {Array.<string>} list of attributes.
+ */
+function getTagAttributes(tagName) {
+    let tag;
+
+    if (!cachedAttributes.hasOwnProperty(tagName)) {
+        tag = tagData.tags[tagName];
+        cachedAttributes[tagName] = [];
+        if (tag.attributes) {
+            cachedAttributes[tagName] =  cachedAttributes[tagName].concat(tag.attributes);
+        }
+        tag.attributeGroups.forEach(function (group) {
+            if (tagData.attributeGroups.hasOwnProperty(group)) {
+                cachedAttributes[tagName] = cachedAttributes[tagName].concat(tagData.attributeGroups[group]);
             }
-            tag.attributeGroups.forEach(function (group) {
-                if (tagData.attributeGroups.hasOwnProperty(group)) {
-                    cachedAttributes[tagName] = cachedAttributes[tagName].concat(tagData.attributeGroups[group]);
+        });
+        cachedAttributes[tagName] = _.uniq(cachedAttributes[tagName].sort(), true);
+    }
+    return cachedAttributes[tagName];
+}
+
+/*
+    * Returns a sorted and formatted list of hints with the query substring
+    * highlighted.
+    *
+    * @param {Array.<Object>} hints - the list of hints to format
+    * @param {string} query - querystring used for highlighting matched
+    *      portions of each hint
+    * @return {Array.jQuery} sorted Array of jQuery DOM elements to insert
+    */
+function formatHints(hints, query) {
+    const hasColorSwatch = hints.some(function (token) {
+        return token.color;
+    });
+
+    StringMatch.basicMatchSort(hints);
+    return hints.map(function (token) {
+        let $hintObj = $("<span>").addClass("brackets-svg-hints");
+
+        // highlight the matched portion of each hint
+        if (token.stringRanges) {
+            token.stringRanges.forEach(function (item) {
+                if (item.matched) {
+                    $hintObj.append($("<span>")
+                        .text(item.text)
+                        .addClass("matched-hint"));
+                } else {
+                    $hintObj.append(item.text);
                 }
             });
-            cachedAttributes[tagName] = _.uniq(cachedAttributes[tagName].sort(), true);
+        } else {
+            $hintObj.text(token.value);
         }
-        return cachedAttributes[tagName];
-    }
 
-    /*
-     * Returns a sorted and formatted list of hints with the query substring
-     * highlighted.
-     *
-     * @param {Array.<Object>} hints - the list of hints to format
-     * @param {string} query - querystring used for highlighting matched
-     *      portions of each hint
-     * @return {Array.jQuery} sorted Array of jQuery DOM elements to insert
-     */
-    function formatHints(hints, query) {
-        var hasColorSwatch = hints.some(function (token) {
-            return token.color;
-        });
+        if (hasColorSwatch) {
+            $hintObj = ColorUtils.formatColorHint($hintObj, token.color);
+        }
 
-        StringMatch.basicMatchSort(hints);
-        return hints.map(function (token) {
-            var $hintObj = $("<span>").addClass("brackets-svg-hints");
+        return $hintObj;
+    });
+}
 
-            // highlight the matched portion of each hint
-            if (token.stringRanges) {
-                token.stringRanges.forEach(function (item) {
-                    if (item.matched) {
-                        $hintObj.append($("<span>")
-                            .text(item.text)
-                            .addClass("matched-hint"));
-                    } else {
-                        $hintObj.append(item.text);
-                    }
-                });
-            } else {
-                $hintObj.text(token.value);
-            }
-
-            if (hasColorSwatch) {
-                $hintObj = ColorUtils.formatColorHint($hintObj, token.color);
-            }
-
-            return $hintObj;
-        });
-    }
+class SVGCodeHints implements CodeHintProvider {
+    private tagInfo;
+    private editor;
 
     /**
      * @constructor
      */
-    function SVGCodeHints() {
+    constructor() {
         this.tagInfo = null;
     }
 
@@ -150,7 +156,7 @@ define(function (require, exports, module) {
      *
      * @return {boolean} Determines whether or not hints are available in the current context.
      */
-    SVGCodeHints.prototype.hasHints = function (editor, implicitChar) {
+    public hasHints(editor, implicitChar) {
         if (isSVGEnabled && editor.getModeForSelection() === "image/svg+xml") {
             this.editor = editor;
             this.tagInfo = XMLUtils.getTagInfo(this.editor, this.editor.getCursorPos());
@@ -160,7 +166,7 @@ define(function (require, exports, module) {
             }
         }
         return false;
-    };
+    }
 
     /**
      * Returns a list of hints that are available in the current context,
@@ -169,10 +175,16 @@ define(function (require, exports, module) {
      * @param {string} implicitChar A character that the user typed in the hinting session.
      * @return {!{hints: Array.<jQueryObject>, match: string, selectInitial: boolean, handleWideResults: boolean}}
      */
-    SVGCodeHints.prototype.getHints = function (implicitChar) {
-        var hints = [], query, tagInfo, attributes = [], options = [], index, isMultiple, tagSpecificOptions;
+    public getHints(implicitChar) {
+        let hints: Array<any> = [];
+        let query;
+        let attributes: Array<any> = [];
+        let options: Array<any> = [];
+        let index;
+        let isMultiple;
+        let tagSpecificOptions;
 
-        tagInfo  = XMLUtils.getTagInfo(this.editor, this.editor.getCursorPos());
+        const tagInfo  = XMLUtils.getTagInfo(this.editor, this.editor.getCursorPos());
         this.tagInfo = tagInfo;
 
         if (tagInfo && tagInfo.tokenType) {
@@ -180,7 +192,7 @@ define(function (require, exports, module) {
 
             if (tagInfo.tokenType === XMLUtils.TOKEN_TAG) {
                 hints = $.map(Object.keys(tagData.tags), function (tag) {
-                    var match = StringMatch.stringMatch(tag, query, stringMatcherOptions);
+                    const match = StringMatch.stringMatch(tag, query, stringMatcherOptions);
                     if (match) {
                         return match;
                     }
@@ -193,7 +205,7 @@ define(function (require, exports, module) {
                 attributes = getTagAttributes(tagInfo.tagName);
                 hints = $.map(attributes, function (attribute) {
                     if (tagInfo.exclusionList.indexOf(attribute) === -1) {
-                        var match = StringMatch.stringMatch(attribute, query, stringMatcherOptions);
+                        const match = StringMatch.stringMatch(attribute, query, stringMatcherOptions);
                         if (match) {
                             return match;
                         }
@@ -232,7 +244,7 @@ define(function (require, exports, module) {
                 query = XMLUtils.getValueQuery(tagInfo);
                 hints = $.map(options, function (option) {
                     if (tagInfo.exclusionList.indexOf(option) === -1) {
-                        var match = StringMatch.stringMatch(option.text || option, query, stringMatcherOptions);
+                        const match = StringMatch.stringMatch(option.text || option, query, stringMatcherOptions);
                         if (match) {
                             if (option.color) {
                                 match.color = option.color;
@@ -251,7 +263,7 @@ define(function (require, exports, module) {
             };
         }
         return null;
-    };
+    }
 
     /**
      * Insert the selected hint into the editor
@@ -259,15 +271,15 @@ define(function (require, exports, module) {
      * @param {string} completion The string that user selected from the list
      * @return {boolean} Determines whether or not to continue the hinting session
      */
-    SVGCodeHints.prototype.insertHint = function (completion) {
-        var tagInfo = this.tagInfo,
-            pos     = this.editor.getCursorPos(),
-            start   = {line: -1, ch: -1},
-            end     = {line: -1, ch: -1},
-            query,
-            startChar,
-            endChar,
-            quoteChar;
+    public insertHint(completion) {
+        const tagInfo = this.tagInfo;
+        const pos     = this.editor.getCursorPos();
+        const start   = {line: -1, ch: -1};
+        const end     = {line: -1, ch: -1};
+        let query;
+        let startChar;
+        let endChar;
+        let quoteChar;
 
         if (completion.jquery) {
             completion = completion.text();
@@ -335,16 +347,17 @@ define(function (require, exports, module) {
             }
             return false;
         }
-    };
 
-    AppInit.appReady(function () {
-        tagData = JSON.parse(SVGTags);
-        attributeData = JSON.parse(SVGAttributes);
+        return false;
+    }
+}
 
-        var hintProvider = new SVGCodeHints();
-        CodeHintManager.registerHintProvider(hintProvider, ["svg"], 0);
+AppInit.appReady(function () {
+    tagData = JSON.parse(SVGTags);
+    attributeData = JSON.parse(SVGAttributes);
 
-        ExtensionUtils.loadStyleSheet(module, "styles/brackets-svg-hints.css");
-        exports.hintProvider = hintProvider;
-    });
+    hintProvider = new SVGCodeHints();
+    CodeHintManager.registerHintProvider(hintProvider, ["svg"], 0);
+
+    ExtensionUtils.loadStyleSheet(module, "styles/brackets-svg-hints.css");
 });

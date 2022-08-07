@@ -21,37 +21,46 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-define(function (require, exports, module) {
-    "use strict";
+import type { HintObject } from "editor/CodeHintList";
+import type { CodeHintProvider } from "editor/CodeHintManager";
 
-    // Brackets modules
-    var AppInit             = brackets.getModule("utils/AppInit"),
-        CodeHintManager     = brackets.getModule("editor/CodeHintManager"),
-        CSSUtils            = brackets.getModule("language/CSSUtils"),
-        FileSystem          = brackets.getModule("filesystem/FileSystem"),
-        FileUtils           = brackets.getModule("file/FileUtils"),
-        HTMLUtils           = brackets.getModule("language/HTMLUtils"),
-        PreferencesManager  = brackets.getModule("preferences/PreferencesManager"),
-        ProjectManager      = brackets.getModule("project/ProjectManager"),
-        StringUtils         = brackets.getModule("utils/StringUtils"),
-        PathUtils           = brackets.getModule("thirdparty/path-utils/path-utils"),
-        Strings             = brackets.getModule("strings"),
-        Data                = require("text!data.json"),
+// Brackets modules
+const AppInit             = brackets.getModule("utils/AppInit");
+const CodeHintManager     = brackets.getModule("editor/CodeHintManager");
+const CSSUtils            = brackets.getModule("language/CSSUtils");
+const FileSystem          = brackets.getModule("filesystem/FileSystem");
+const FileUtils           = brackets.getModule("file/FileUtils");
+const HTMLUtils           = brackets.getModule("language/HTMLUtils");
+const PreferencesManager  = brackets.getModule("preferences/PreferencesManager");
+const ProjectManager      = brackets.getModule("project/ProjectManager");
+const StringUtils         = brackets.getModule("utils/StringUtils");
+const PathUtils           = brackets.getModule("thirdparty/path-utils/path-utils");
+const Strings             = brackets.getModule("strings");
+import * as Data from "text!data.json";
 
-        urlHints,
-        data,
-        htmlAttrs,
-        styleModes      = ["css", "text/x-less", "text/x-scss"];
+// For unit testing
+export let hintProvider: UrlCodeHints;
+
+let urlHints: UrlCodeHints;
+let data;
+let htmlAttrs;
+const styleModes      = ["css", "text/x-less", "text/x-scss"];
 
 
-    PreferencesManager.definePreference("codehint.UrlCodeHints", "boolean", true, {
-        description: Strings.DESCRIPTION_URL_CODE_HINTS
-    });
+PreferencesManager.definePreference("codehint.UrlCodeHints", "boolean", true, {
+    description: Strings.DESCRIPTION_URL_CODE_HINTS
+});
+
+class UrlCodeHints implements CodeHintProvider {
+    private editor;
+    public cachedHints;
+    private closeOnSelect;
+    private info;
 
     /**
      * @constructor
      */
-    function UrlCodeHints() { /* Do nothing */ }
+    constructor() { /* Do nothing */ }
 
     /**
      * Helper function to create a list of urls to existing files based on the query.
@@ -59,26 +68,23 @@ define(function (require, exports, module) {
      *
      * @return {Array.<string>|$.Deferred} The (possibly deferred) hints.
      */
-    UrlCodeHints.prototype._getUrlList = function (query) {
-        var directory,
-            doc,
-            docDir,
-            queryDir = "",
-            queryUrl,
-            result = [],
-            self,
-            targetDir,
-            unfiltered = [];
+    private _getUrlList(query) {
+        let directory;
+        let queryDir = "";
+        const result: Array<string> = [];
+        let self;
+        let targetDir;
+        let unfiltered: Array<any> = [];
 
-        doc = this.editor && this.editor.document;
+        const doc = this.editor && this.editor.document;
         if (!doc || !doc.file) {
             return result;
         }
 
-        docDir = FileUtils.getDirectoryPath(doc.file.fullPath);
+        const docDir = FileUtils.getDirectoryPath(doc.file.fullPath);
 
         // get relative path from query string
-        queryUrl = PathUtils.parseUrl(query.queryStr);
+        const queryUrl = PathUtils.parseUrl(query.queryStr);
         if (queryUrl) {
             queryDir = queryUrl.directory;
         }
@@ -86,7 +92,7 @@ define(function (require, exports, module) {
         // build target folder path
         if (queryDir.length > 0 && queryDir[0] === "/") {
             // site-root relative path
-            targetDir = ProjectManager.getProjectRoot().fullPath +
+            targetDir = ProjectManager.getProjectRoot()!.fullPath +
                         decodeURI(queryDir).substring(1);
         } else {
             // page relative path
@@ -141,7 +147,9 @@ define(function (require, exports, module) {
             self.cachedHints.unfiltered = [];
 
             directory.getContents(function (err, contents) {
-                var currentDeferred, entryStr, syncResults;
+                let currentDeferred;
+                let entryStr;
+                let syncResults;
 
                 if (!err) {
                     contents.forEach(function (entry) {
@@ -212,7 +220,7 @@ define(function (require, exports, module) {
         // Command: Commands.FILE_OPEN
 
         return result;
-    };
+    }
 
     /**
      * Helper function that determines the possible value hints for a given html tag/attribute name pair
@@ -223,9 +231,9 @@ define(function (require, exports, module) {
      * @return {{hints: (Array.<string>|$.Deferred), sortFunc: ?function(string, string): number}}
      * The (possibly deferred) hints and the sort function to use on thise hints.
      */
-    UrlCodeHints.prototype._getUrlHints = function (query) {
-        var hints = [],
-            sortFunc;
+    private _getUrlHints(query) {
+        let hints: Array<any> = [];
+        let sortFunc;
 
         // Do not show hints after "?" in url
         if (query.queryStr.indexOf("?") === -1) {
@@ -237,7 +245,7 @@ define(function (require, exports, module) {
         }
 
         return { hints: hints, sortFunc: sortFunc };
-    };
+    }
 
     /**
      * Determines whether url hints are available in the current editor
@@ -256,8 +264,8 @@ define(function (require, exports, module) {
      * the given editor context and, in case implicitChar is non-null,
      * whether it is appropriate to do so.
      */
-    UrlCodeHints.prototype.hasHints = function (editor, implicitChar) {
-        var mode = editor.getModeForSelection();
+    public hasHints(editor, implicitChar) {
+        const mode = editor.getModeForSelection();
         if (mode === "html") {
             return this.hasHtmlHints(editor, implicitChar);
         }
@@ -267,7 +275,7 @@ define(function (require, exports, module) {
         }
 
         return false;
-    };
+    }
 
     /**
      * Helper function for hasHints() for CSS.
@@ -285,9 +293,9 @@ define(function (require, exports, module) {
      * the given editor context and, in case implicitChar is non-null,
      * whether it is appropriate to do so.
      */
-    UrlCodeHints.prototype.hasCssHints = function (editor, implicitChar) {
+    public hasCssHints(editor, implicitChar) {
         this.editor = editor;
-        var cursor = this.editor.getCursorPos();
+        const cursor = this.editor.getCursorPos();
 
         this.info = CSSUtils.getInfoAtPos(editor, cursor);
 
@@ -296,10 +304,9 @@ define(function (require, exports, module) {
         }
 
         // collect existing value
-        var i,
-            val = "";
+        let val = "";
 
-        for (i = 0; i <= this.info.index && i < this.info.values.length; i++) {
+        for (let i = 0; i <= this.info.index && i < this.info.values.length; i++) {
             if (i < this.info.index) {
                 val += this.info.values[i];
             } else {
@@ -313,7 +320,7 @@ define(function (require, exports, module) {
         }
 
         return false;
-    };
+    }
 
     /**
      * Helper function for hasHints() for HTML.
@@ -331,16 +338,12 @@ define(function (require, exports, module) {
      * the given editor context and, in case implicitChar is non-null,
      * whether it is appropriate to do so.
      */
-    UrlCodeHints.prototype.hasHtmlHints = function (editor, implicitChar) {
-        var tagInfo,
-            query,
-            tokenType;
-
+    public hasHtmlHints(editor, implicitChar) {
         this.editor = editor;
 
-        tagInfo = HTMLUtils.getTagInfo(editor, editor.getCursorPos());
-        query = null;
-        tokenType = tagInfo.position.tokenType;
+        const tagInfo = HTMLUtils.getTagInfo(editor, editor.getCursorPos());
+        let query: string | null = null;
+        const tokenType = tagInfo.position.tokenType;
 
         if (tokenType === HTMLUtils.ATTR_VALUE) {
 
@@ -356,15 +359,15 @@ define(function (require, exports, module) {
                     query = "";
                 }
 
-                var hintsAndSortFunc = this._getUrlHints({queryStr: query}),
-                    hints = hintsAndSortFunc.hints;
+                const hintsAndSortFunc = this._getUrlHints({queryStr: query});
+                const hints = hintsAndSortFunc.hints;
 
                 if (hints instanceof Array) {
                     // If we got synchronous hints, check if we have something we'll actually use
-                    var i, foundPrefix = false;
-                    query = query.toLowerCase();
-                    for (i = 0; i < hints.length; i++) {
-                        if (hints[i].toLowerCase().indexOf(query) === 0) {
+                    let foundPrefix = false;
+                    query = query!.toLowerCase();
+                    for (const hint of hints) {
+                        if (hint.toLowerCase().indexOf(query) === 0) {
                             foundPrefix = true;
                             break;
                         }
@@ -378,7 +381,7 @@ define(function (require, exports, module) {
         }
 
         return (query !== null);
-    };
+    }
 
     /**
      * Returns a list of available url hints, if possible, for the current
@@ -399,18 +402,18 @@ define(function (require, exports, module) {
      * 4. handleWideResults, a boolean (or undefined) that indicates whether
      *    to allow result string to stretch width of display.
      */
-    UrlCodeHints.prototype.getHints = function (key) {
-        var mode = this.editor.getModeForSelection(),
-            cursor = this.editor.getCursorPos(),
-            filter = "",
-            hints = [],
-            sortFunc,
-            query = { queryStr: "" },
-            result = [];
+    public getHints(key) {
+        const mode = this.editor.getModeForSelection();
+        const cursor = this.editor.getCursorPos();
+        let filter = "";
+        let hints: Array<any> | JQueryPromise<any> = [];
+        let sortFunc;
+        const query = { queryStr: "" };
+        let result: Array<any> = [];
 
         if (mode === "html") {
-            var tagInfo = HTMLUtils.getTagInfo(this.editor, cursor),
-                tokenType = tagInfo.position.tokenType;
+            const tagInfo = HTMLUtils.getTagInfo(this.editor, cursor);
+            const tokenType = tagInfo.position.tokenType;
 
             if (tokenType !== HTMLUtils.ATTR_VALUE || !htmlAttrs[tagInfo.attr.name]) {
                 return null;
@@ -424,7 +427,7 @@ define(function (require, exports, module) {
         } else if (styleModes.indexOf(mode) > -1) {
             this.info = CSSUtils.getInfoAtPos(this.editor, cursor);
 
-            var context = this.info.context;
+            const context = this.info.context;
             if (context !== CSSUtils.PROP_VALUE && context !== CSSUtils.IMPORT_URL) {
                 return null;
             }
@@ -433,8 +436,8 @@ define(function (require, exports, module) {
             if (this.info.index !== -1) {
 
                 // Collect value up to (item) index/(char) offset
-                var i, val = "";
-                for (i = 0; i < this.info.index; i++) {
+                let val = "";
+                for (let i = 0; i < this.info.index; i++) {
                     val += this.info.values[i];
                 }
                 // index may exceed length of array for multiple-value case
@@ -446,7 +449,7 @@ define(function (require, exports, module) {
                 val = val.replace(/^\s*url\(/i, "");
 
                 // Keep track of leading whitespace and strip it
-                var matchWhitespace = val.match(/^\s*/);
+                const matchWhitespace = val.match(/^\s*/);
                 if (matchWhitespace) {
                     this.info.leadingWhitespace = matchWhitespace[0];
                     val = val.substring(matchWhitespace[0].length);
@@ -471,7 +474,7 @@ define(function (require, exports, module) {
 
         if (query.queryStr !== null) {
             filter = query.queryStr;
-            var hintsAndSortFunc = this._getUrlHints(query);
+            const hintsAndSortFunc = this._getUrlHints(query);
             hints = hintsAndSortFunc.hints;
             sortFunc = hintsAndSortFunc.sortFunc;
         }
@@ -479,7 +482,7 @@ define(function (require, exports, module) {
 
         if (hints instanceof Array && hints.length) {
             // Array was returned
-            var lowerCaseFilter = filter.toLowerCase();
+            const lowerCaseFilter = filter.toLowerCase();
             console.assert(!result.length);
             result = $.map(hints, function (item) {
                 if (item.toLowerCase().indexOf(lowerCaseFilter) === 0) {
@@ -497,9 +500,9 @@ define(function (require, exports, module) {
 
         if (hints instanceof Object && hints.hasOwnProperty("done")) {
             // Deferred hints were returned
-            var deferred = $.Deferred();
-            hints.done(function (asyncHints) {
-                var lowerCaseFilter = filter.toLowerCase();
+            const deferred = $.Deferred<HintObject<string>>();
+            (hints as any).done((asyncHints) => {
+                const lowerCaseFilter = filter.toLowerCase();
                 result = $.map(asyncHints, function (item) {
                     if (item.toLowerCase().indexOf(lowerCaseFilter) === 0) {
                         return item;
@@ -518,7 +521,7 @@ define(function (require, exports, module) {
         }
 
         return null;
-    };
+    }
 
     /**
      * Inserts a given url hint into the current editor context.
@@ -530,8 +533,8 @@ define(function (require, exports, module) {
      * Indicates whether the manager should follow hint insertion with an
      * additional explicit hint request.
      */
-    UrlCodeHints.prototype.insertHint = function (completion) {
-        var mode = this.editor.getModeForSelection();
+    public insertHint(completion) {
+        const mode = this.editor.getModeForSelection();
 
         // Encode the string just prior to inserting the hint into the editor
         completion = encodeURI(completion);
@@ -545,7 +548,7 @@ define(function (require, exports, module) {
         }
 
         return false;
-    };
+    }
 
     /**
      * Get distance between 2 positions.
@@ -562,8 +565,8 @@ define(function (require, exports, module) {
      * @return {number}
      * Number of characters between 2 positions
      */
-    UrlCodeHints.prototype.getCharOffset = function (array, pos1, pos2) {
-        var i, count = 0;
+    public getCharOffset(array, pos1, pos2) {
+        let count = 0;
 
         if (pos1.index === pos2.index) {
             return (pos2.offset >= pos1.offset) ? (pos2.offset - pos1.offset) : 0;
@@ -574,7 +577,7 @@ define(function (require, exports, module) {
                 return 0;
             }
 
-            for (i = pos1.index; i <= pos2.index; i++) {
+            for (let i = pos1.index; i <= pos2.index; i++) {
                 if (i === pos1.index) {
                     count += (array[i].length - pos1.offset);
                 } else if (i === pos2.index) {
@@ -586,7 +589,7 @@ define(function (require, exports, module) {
         }
 
         return count;
-    };
+    }
 
     /**
      * Finds next position in array of specified char.
@@ -601,19 +604,18 @@ define(function (require, exports, module) {
      * @return {{index: number, offset: number}}
      * Index of array, and offset in string where char found.
      */
-    UrlCodeHints.prototype.findNextPosInArray = function (array, ch, pos) {
-        var i, o, searchOffset;
-        for (i = pos.index; i < array.length; i++) {
+    public findNextPosInArray(array, ch, pos) {
+        for (let i = pos.index; i < array.length; i++) {
             // Only use offset on index, then offset of 0 after that
-            searchOffset = (i === pos.index) ? pos.offset : 0;
-            o = array[i].indexOf(ch, searchOffset);
+            const searchOffset = (i === pos.index) ? pos.offset : 0;
+            const o = array[i].indexOf(ch, searchOffset);
 
             if (o !== -1) {
                 return { index: i, offset: o };
             }
         }
         return { index: -1, offset: -1 };
-    };
+    }
 
     /**
      * Inserts a given css url hint into the current editor context.
@@ -625,17 +627,17 @@ define(function (require, exports, module) {
      * Indicates whether the manager should follow hint insertion with an
      * additional explicit hint request.
      */
-    UrlCodeHints.prototype.insertCssHint = function (completion) {
-        var cursor = this.editor.getCursorPos(),
-            start  = { line: cursor.line, ch: cursor.ch },
-            end    = { line: cursor.line, ch: cursor.ch };
+    public insertCssHint(completion) {
+        const cursor = this.editor.getCursorPos();
+        const start  = { line: cursor.line, ch: cursor.ch };
+        const end    = { line: cursor.line, ch: cursor.ch };
 
-        var hasClosingQuote = false,
-            hasClosingParen = false,
-            insertText      = completion,
-            moveLen         = 0,
-            closingPos      = { index: -1, offset: -1 },
-            searchResult    = { index: -1, offset: -1 };
+        let hasClosingQuote = false;
+        let hasClosingParen = false;
+        let insertText      = completion;
+        let moveLen         = 0;
+        let closingPos      = { index: -1, offset: -1 };
+        let searchResult    = { index: -1, offset: -1 };
 
         if (this.info.context !== CSSUtils.PROP_VALUE && this.info.context !== CSSUtils.IMPORT_URL) {
             return false;
@@ -672,7 +674,7 @@ define(function (require, exports, module) {
             }
         } else {
             // If next char is "/", then overwrite it since we're inserting a "/"
-            var nextSlash = this.findNextPosInArray(this.info.values, "/", this.info);
+            const nextSlash = this.findNextPosInArray(this.info.values, "/", this.info);
             if (nextSlash.index === this.info.index && nextSlash.offset === this.info.offset) {
                 end.ch += 1;
             }
@@ -716,7 +718,7 @@ define(function (require, exports, module) {
         }
 
         return true;
-    };
+    }
 
     /**
      * Inserts a given html url hint into the current editor context.
@@ -728,15 +730,15 @@ define(function (require, exports, module) {
      * Indicates whether the manager should follow hint insertion with an
      * additional explicit hint request.
      */
-    UrlCodeHints.prototype.insertHtmlHint = function (completion) {
-        var cursor = this.editor.getCursorPos(),
-            start = {line: -1, ch: -1},
-            end = {line: -1, ch: -1},
-            tagInfo = HTMLUtils.getTagInfo(this.editor, cursor),
-            tokenType = tagInfo.position.tokenType,
-            charCount = 0,
-            endQuote = "",
-            shouldReplace = false;
+    public insertHtmlHint(completion) {
+        const cursor = this.editor.getCursorPos();
+        const start = {line: -1, ch: -1};
+        const end = {line: -1, ch: -1};
+        const tagInfo = HTMLUtils.getTagInfo(this.editor, cursor);
+        const tokenType = tagInfo.position.tokenType;
+        let charCount = 0;
+        let endQuote = "";
+        let shouldReplace = false;
 
         if (tokenType === HTMLUtils.ATTR_VALUE) {
             // Special handling for URL hinting -- if the completion is a file name
@@ -792,31 +794,31 @@ define(function (require, exports, module) {
         }
 
         return false;
-    };
-
-    function _clearCachedHints() {
-        // Verify cache exists and is not deferred
-        if (urlHints && urlHints.cachedHints && urlHints.cachedHints.deferred &&
-                urlHints.cachedHints.deferred.state() !== "pending") {
-
-            // Cache may or may not be stale. Main benefit of cache is to limit async lookups
-            // during typing. File tree updates cannot happen during typing, so it's probably
-            // not worth determining whether cache may still be valid. Just delete it.
-            urlHints.cachedHints = null;
-        }
     }
+}
 
-    AppInit.appReady(function () {
-        data            = JSON.parse(Data);
-        htmlAttrs       = data.htmlAttrs;
+function _clearCachedHints() {
+    // Verify cache exists and is not deferred
+    if (urlHints && urlHints.cachedHints && urlHints.cachedHints.deferred &&
+            urlHints.cachedHints.deferred.state() !== "pending") {
 
-        urlHints        = new UrlCodeHints();
-        CodeHintManager.registerHintProvider(urlHints, ["css", "html", "less", "scss"], 5);
+        // Cache may or may not be stale. Main benefit of cache is to limit async lookups
+        // during typing. File tree updates cannot happen during typing, so it's probably
+        // not worth determining whether cache may still be valid. Just delete it.
+        urlHints.cachedHints = null;
+    }
+}
 
-        FileSystem.on("change", _clearCachedHints);
-        FileSystem.on("rename", _clearCachedHints);
+AppInit.appReady(function () {
+    data            = JSON.parse(Data);
+    htmlAttrs       = data.htmlAttrs;
 
-        // For unit testing
-        exports.hintProvider = urlHints;
-    });
+    urlHints        = new UrlCodeHints();
+    CodeHintManager.registerHintProvider(urlHints, ["css", "html", "less", "scss"], 5);
+
+    FileSystem.on("change", _clearCachedHints);
+    FileSystem.on("rename", _clearCachedHints);
+
+    // For unit testing
+    hintProvider = urlHints;
 });

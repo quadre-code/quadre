@@ -49,8 +49,9 @@ export interface HintObject<T> {
     match: string | null;
     selectInitial: boolean;
     hints: HintArray<T>;
-    handleWideResults;
-    enableDescription: boolean;
+    handleWideResults?: boolean;
+    enableDescription?: boolean;
+    defaultDescriptionWidth?: boolean;
 }
 
 interface ViewHints {
@@ -143,7 +144,7 @@ export class CodeHintList {
      */
     public $hintMenu;
 
-    public enableDescription: boolean;
+    public enableDescription: boolean | undefined;
 
     constructor(editor, insertHintOnTab, maxResults) {
         this.maxResults = ValidationUtils.isIntegerInRange(maxResults, 1, 1000) ? maxResults : 50;

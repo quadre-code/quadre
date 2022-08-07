@@ -22,92 +22,89 @@
  *
  */
 
-define(function (require, exports, module) {
-    "use strict";
+const Menus                   = brackets.getModule("command/Menus");
+const CommandManager          = brackets.getModule("command/CommandManager");
+const Strings                 = brackets.getModule("strings");
+const Dialogs                 = brackets.getModule("widgets/Dialogs");
+const DefaultDialogs          = brackets.getModule("widgets/DefaultDialogs");
+const StringUtils             = brackets.getModule("utils/StringUtils");
 
-    var Menus                   = brackets.getModule("command/Menus"),
-        CommandManager          = brackets.getModule("command/CommandManager"),
-        Strings                 = brackets.getModule("strings"),
-        Dialogs                 = brackets.getModule("widgets/Dialogs"),
-        DefaultDialogs          = brackets.getModule("widgets/DefaultDialogs"),
-        StringUtils             = brackets.getModule("utils/StringUtils");
+function _mapCLToolsErrorCodeToString(errorCode) {
 
-    function _mapCLToolsErrorCodeToString(errorCode) {
-
-        var errorString;
-        switch (errorCode) {
-            case appshell.app.ERR_CL_TOOLS_RMFAILED:
-                errorString = Strings.ERROR_CLTOOLS_RMFAILED;
-                break;
-            case appshell.app.ERR_CL_TOOLS_MKDIRFAILED:
-                errorString = Strings.ERROR_CLTOOLS_MKDIRFAILED;
-                break;
-            case appshell.app.ERR_CL_TOOLS_SYMLINKFAILED:
-                errorString = Strings.ERROR_CLTOOLS_LNFAILED;
-                break;
-            case appshell.app.ERR_CL_TOOLS_SERVFAILED:
-                errorString = Strings.ERROR_CLTOOLS_SERVFAILED;
-                break;
-            case appshell.app.ERR_CL_TOOLS_NOTSUPPORTED:
-                errorString = Strings.ERROR_CLTOOLS_NOTSUPPORTED;
-                break;
-            default:
-                errorString = StringUtils.format(Strings.GENERIC_ERROR, errorCode);
-                break;
-        }
-
-        return errorString;
+    let errorString;
+    switch (errorCode) {
+        case appshell.app.ERR_CL_TOOLS_RMFAILED:
+            errorString = Strings.ERROR_CLTOOLS_RMFAILED;
+            break;
+        case appshell.app.ERR_CL_TOOLS_MKDIRFAILED:
+            errorString = Strings.ERROR_CLTOOLS_MKDIRFAILED;
+            break;
+        case appshell.app.ERR_CL_TOOLS_SYMLINKFAILED:
+            errorString = Strings.ERROR_CLTOOLS_LNFAILED;
+            break;
+        case appshell.app.ERR_CL_TOOLS_SERVFAILED:
+            errorString = Strings.ERROR_CLTOOLS_SERVFAILED;
+            break;
+        case appshell.app.ERR_CL_TOOLS_NOTSUPPORTED:
+            errorString = Strings.ERROR_CLTOOLS_NOTSUPPORTED;
+            break;
+        default:
+            errorString = StringUtils.format(Strings.GENERIC_ERROR, errorCode);
+            break;
     }
 
-    function handleInstallCommandResult(errorCode) {
-        var dialog;
+    return errorString;
+}
 
-        if (errorCode === appshell.app.ERR_CL_TOOLS_CANCELLED) {
-            // The user has cancelled the authentication dialog.
-            return;
-        }
+function handleInstallCommandResult(errorCode) {
+    let dialog;
 
-        if (errorCode === null || errorCode === undefined) {
-            // flag success message here.
-            dialog = Dialogs.showModalDialog(
-                DefaultDialogs.DIALOG_ID_INFO,
-                Strings.CREATING_LAUNCH_SCRIPT_TITLE,
-                Strings.LAUNCH_SCRIPT_CREATE_SUCCESS
-            );
-            Dialogs.addLinkTooltips(dialog);
-
-        } else {
-            var errorString = _mapCLToolsErrorCodeToString(errorCode);
-            var errMsg = StringUtils.format(Strings.ERROR_CREATING_LAUNCH_SCRIPT, errorString);
-            dialog = Dialogs.showModalDialog(
-                DefaultDialogs.DIALOG_ID_ERROR,
-                Strings.CREATING_LAUNCH_SCRIPT_TITLE,
-                errMsg
-            );
-            Dialogs.addLinkTooltips(dialog);
-        }
+    if (errorCode === appshell.app.ERR_CL_TOOLS_CANCELLED) {
+        // The user has cancelled the authentication dialog.
+        return;
     }
 
-    function handleInstallCommand() {
-        appshell.app.installCommandLine(function (serviceCode) {
-            handleInstallCommandResult(serviceCode);
-        });
+    if (errorCode === null || errorCode === undefined) {
+        // flag success message here.
+        dialog = Dialogs.showModalDialog(
+            DefaultDialogs.DIALOG_ID_INFO,
+            Strings.CREATING_LAUNCH_SCRIPT_TITLE,
+            Strings.LAUNCH_SCRIPT_CREATE_SUCCESS
+        );
+        Dialogs.addLinkTooltips(dialog);
+
+    } else {
+        const errorString = _mapCLToolsErrorCodeToString(errorCode);
+        const errMsg = StringUtils.format(Strings.ERROR_CREATING_LAUNCH_SCRIPT, errorString);
+        dialog = Dialogs.showModalDialog(
+            DefaultDialogs.DIALOG_ID_ERROR,
+            Strings.CREATING_LAUNCH_SCRIPT_TITLE,
+            errMsg
+        );
+        Dialogs.addLinkTooltips(dialog);
     }
+}
 
-    // Register the command and add the menu to file menu.
-    function addCommand() {
+function handleInstallCommand() {
+    appshell.app.installCommandLine(function (serviceCode) {
+        handleInstallCommandResult(serviceCode);
+    });
+}
 
-        var menu                    = Menus.getMenu(Menus.AppMenuBar.FILE_MENU),
-            INSTALL_COMMAND_SCRIPT  = "file.installCommandScript";
+// Register the command and add the menu to file menu.
+function addCommand() {
+    const menu                    = Menus.getMenu(Menus.AppMenuBar.FILE_MENU);
+    const INSTALL_COMMAND_SCRIPT  = "file.installCommandScript";
 
-        CommandManager.register(Strings.CMD_LAUNCH_SCRIPT_MAC, INSTALL_COMMAND_SCRIPT, handleInstallCommand);
-        menu.addMenuDivider();
-        menu.addMenuItem(INSTALL_COMMAND_SCRIPT);
-    }
+    CommandManager.register(Strings.CMD_LAUNCH_SCRIPT_MAC, INSTALL_COMMAND_SCRIPT, handleInstallCommand);
+    menu.addMenuDivider();
+    menu.addMenuItem(INSTALL_COMMAND_SCRIPT);
+}
 
-    // Append this menu only for Mac.
-    if (brackets.platform === "mac") {
-        addCommand();
-    }
+// Append this menu only for Mac.
+if (brackets.platform === "mac") {
+    addCommand();
+}
 
-});
+// See https://github.com/Microsoft/TypeScript/issues/20943
+export {};

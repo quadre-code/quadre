@@ -49,8 +49,8 @@ define(function (require, exports, module) {
         // first, and then files), but this is not true for UrlCodeHints folder.
         var testfilesDirHints       = [ "subfolder/", "test.html"],
             subfolderDirHints       = [ "chevron.png", "test.css", "test.js", "test.scss"],
-            UrlCodeHintsDirHintsMac = [ "../data.json", "../main.js", "../testfiles/", "../unittests.js"],
-            UrlCodeHintsDirHints    = [ "../testfiles/", "../data.json", "../main.js", "../unittests.js"];
+            UrlCodeHintsDirHintsMac = [ "../data.json", "../main.js", "../main.js.map", "../testfiles/", "../unittests.js"],
+            UrlCodeHintsDirHints    = [ "../testfiles/", "../data.json", "../main.js", "../main.js.map", "../unittests.js"];
 
         /**
          * Returns an Editor suitable for use in isolation, given a Document.

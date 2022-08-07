@@ -188,7 +188,7 @@ function _getExclusionList(editor, constPos): Array<string> {
  * @param {Boolean} requireNextToken if true we can replace the next token of a value.
  * @return {!{token: Object, tokenType: number, offset: number, keyName: String, valueName: String, parentKeyName: String, isArray: Boolean, exclusionList: Array.<String>, shouldReplace: Boolean}}
  */
-export function getContextInfo(editor, constPos, requireParent, requireNextToken) {
+export function getContextInfo(editor, constPos, requireParent, requireNextToken?) {
     let ctxPrev;
     let keyName;
     let valueName;

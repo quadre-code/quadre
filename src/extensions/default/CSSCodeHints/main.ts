@@ -22,39 +22,50 @@
  *
  */
 
-/*jslint regexp: true */
+/// <amd-dependency path="module" name="module"/>
 
-define(function (require, exports, module) {
-    "use strict";
+import type { CodeHintProvider } from "editor/CodeHintManager";
 
-    var AppInit             = brackets.getModule("utils/AppInit"),
-        ExtensionUtils      = brackets.getModule("utils/ExtensionUtils"),
-        CodeHintManager     = brackets.getModule("editor/CodeHintManager"),
-        CSSUtils            = brackets.getModule("language/CSSUtils"),
-        HTMLUtils           = brackets.getModule("language/HTMLUtils"),
-        LanguageManager     = brackets.getModule("language/LanguageManager"),
-        PreferencesManager  = brackets.getModule("preferences/PreferencesManager"),
-        TokenUtils          = brackets.getModule("utils/TokenUtils"),
-        StringMatch         = brackets.getModule("utils/StringMatch"),
-        ColorUtils          = brackets.getModule("utils/ColorUtils"),
-        Strings             = brackets.getModule("strings"),
-        CSSProperties       = require("text!CSSProperties.json"),
-        properties          = JSON.parse(CSSProperties);
+const AppInit             = brackets.getModule("utils/AppInit");
+const ExtensionUtils      = brackets.getModule("utils/ExtensionUtils");
+const CodeHintManager     = brackets.getModule("editor/CodeHintManager");
+const CSSUtils            = brackets.getModule("language/CSSUtils");
+const HTMLUtils           = brackets.getModule("language/HTMLUtils");
+const LanguageManager     = brackets.getModule("language/LanguageManager");
+const PreferencesManager  = brackets.getModule("preferences/PreferencesManager");
+const TokenUtils          = brackets.getModule("utils/TokenUtils");
+const StringMatch         = brackets.getModule("utils/StringMatch");
+const ColorUtils          = brackets.getModule("utils/ColorUtils");
+const Strings             = brackets.getModule("strings");
+import * as CSSProperties from "text!CSSProperties.json";
+const properties          = JSON.parse(CSSProperties);
+
+// For unit testing
+export let cssPropHintProvider: CssPropHints;
 
 
-    PreferencesManager.definePreference("codehint.CssPropHints", "boolean", true, {
-        description: Strings.DESCRIPTION_CSS_PROP_HINTS
-    });
+PreferencesManager.definePreference("codehint.CssPropHints", "boolean", true, {
+    description: Strings.DESCRIPTION_CSS_PROP_HINTS
+});
 
-    // Context of the last request for hints: either CSSUtils.PROP_NAME,
-    // CSSUtils.PROP_VALUE or null.
-    var lastContext,
-        stringMatcherOptions = { preferPrefixMatches: true };
+// Context of the last request for hints: either CSSUtils.PROP_NAME,
+// CSSUtils.PROP_VALUE or null.
+let lastContext;
+const stringMatcherOptions = { preferPrefixMatches: true };
+
+class CssPropHints implements CodeHintProvider {
+    private primaryTriggerKeys: string;
+    private secondaryTriggerKeys: string;
+    private exclusion;
+    private editor;
+    private namedFlowsCache;
+    private cursor;
+    private info;
 
     /**
      * @constructor
      */
-    function CssPropHints() {
+    constructor() {
         this.primaryTriggerKeys = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ-()";
         this.secondaryTriggerKeys = ":";
         this.exclusion = null;
@@ -67,11 +78,11 @@ define(function (require, exports, module) {
      *
      * @return {string} the "css" text that can be sent to CSSUtils to extract all named flows.
      */
-    CssPropHints.prototype.getCssStyleText = function () {
+    public getCssStyleText(): string {
         if (LanguageManager.getLanguageForPath(this.editor.document.file.fullPath).getId() === "html") {
             // Collect text in all style blocks
-            var text = "",
-                styleBlocks = HTMLUtils.findBlocks(this.editor, "css");
+            let text = "";
+            const styleBlocks = HTMLUtils.findBlocks(this.editor, "css");
 
             styleBlocks.forEach(function (styleBlock) {
                 text += styleBlock.text;
@@ -82,7 +93,7 @@ define(function (require, exports, module) {
 
         // css file, just return the text
         return this.editor.document.getText();
-    };
+    }
 
     /**
      * Extract all the named flows from any "flow-from" or "flow-into" properties
@@ -92,7 +103,7 @@ define(function (require, exports, module) {
      *
      * @return {Array.<string>} All named flows available in the current document.
      */
-    CssPropHints.prototype.getNamedFlows = function () {
+    public getNamedFlows() {
         if (this.namedFlowsCache) {
             // If the cursor is no longer on the same line, then the cache is stale.
             // Delete cache so we can extract all named flows again.
@@ -108,7 +119,7 @@ define(function (require, exports, module) {
         }
 
         return this.namedFlowsCache.flows;
-    };
+    }
 
     /**
      * Check whether the exclusion is still the same as text after the cursor.
@@ -118,8 +129,8 @@ define(function (require, exports, module) {
      * true to indicate that we update the exclusion only if the cursor is inside property name context.
      * Otherwise, we also update exclusion for property value context.
      */
-    CssPropHints.prototype.updateExclusion = function (propNameOnly) {
-        var textAfterCursor;
+    public updateExclusion(propNameOnly) {
+        let textAfterCursor;
         if (this.exclusion && this.info) {
             if (this.info.context === CSSUtils.PROP_NAME) {
                 textAfterCursor = this.info.name.substr(this.info.offset);
@@ -130,7 +141,7 @@ define(function (require, exports, module) {
                 this.exclusion = null;
             }
         }
-    };
+    }
 
     /**
      * Determines whether CSS propertyname or -name hints are available in the current editor
@@ -149,9 +160,9 @@ define(function (require, exports, module) {
      * the given editor context and, in case implicitChar is non- null,
      * whether it is appropriate to do so.
      */
-    CssPropHints.prototype.hasHints = function (editor, implicitChar) {
+    public hasHints(editor, implicitChar) {
         this.editor = editor;
-        var cursor = this.editor.getCursorPos();
+        const cursor = this.editor.getCursorPos();
 
         lastContext = null;
         this.info = CSSUtils.getInfoAtPos(editor, cursor);
@@ -170,7 +181,7 @@ define(function (require, exports, module) {
             }
 
             return (this.primaryTriggerKeys.indexOf(implicitChar) !== -1) ||
-                   (this.secondaryTriggerKeys.indexOf(implicitChar) !== -1);
+                    (this.secondaryTriggerKeys.indexOf(implicitChar) !== -1);
         }
 
         if (this.info.context === CSSUtils.PROP_NAME) {
@@ -182,47 +193,6 @@ define(function (require, exports, module) {
         }
 
         return true;
-    };
-
-    /**
-     * Returns a sorted and formatted list of hints with the query substring
-     * highlighted.
-     *
-     * @param {Array.<Object>} hints - the list of hints to format
-     * @param {string} query - querystring used for highlighting matched
-     *      portions of each hint
-     * @return {Array.jQuery} sorted Array of jQuery DOM elements to insert
-     */
-    function formatHints(hints, query) {
-        var hasColorSwatch = hints.some(function (token) {
-            return token.color;
-        });
-
-        StringMatch.basicMatchSort(hints);
-        return hints.map(function (token) {
-            var $hintObj = $("<span>").addClass("brackets-css-hints");
-
-            // highlight the matched portion of each hint
-            if (token.stringRanges) {
-                token.stringRanges.forEach(function (item) {
-                    if (item.matched) {
-                        $hintObj.append($("<span>")
-                            .text(item.text)
-                            .addClass("matched-hint"));
-                    } else {
-                        $hintObj.append(item.text);
-                    }
-                });
-            } else {
-                $hintObj.text(token.value);
-            }
-
-            if (hasColorSwatch) {
-                $hintObj = ColorUtils.formatColorHint($hintObj, token.color);
-            }
-
-            return $hintObj;
-        });
     }
 
     /**
@@ -249,18 +219,18 @@ define(function (require, exports, module) {
      * 4. handleWideResults, a boolean (or undefined) that indicates whether
      *    to allow result string to stretch width of display.
      */
-    CssPropHints.prototype.getHints = function (implicitChar) {
+    public getHints(implicitChar) {
         this.cursor = this.editor.getCursorPos();
         this.info = CSSUtils.getInfoAtPos(this.editor, this.cursor);
 
-        var needle = this.info.name,
-            valueNeedle = "",
-            context = this.info.context,
-            valueArray,
-            type,
-            namedFlows,
-            result,
-            selectInitial = false;
+        let needle = this.info.name;
+        let valueNeedle = "";
+        const context = this.info.context;
+        let valueArray;
+        let type;
+        let namedFlows;
+        let result;
+        let selectInitial = false;
 
         // Clear the exclusion if the user moves the cursor with left/right arrow key.
         this.updateExclusion(true);
@@ -314,7 +284,7 @@ define(function (require, exports, module) {
             }
 
             result = $.map(valueArray, function (pvalue) {
-                var result = StringMatch.stringMatch(pvalue.text || pvalue, valueNeedle, stringMatcherOptions);
+                const result = StringMatch.stringMatch(pvalue.text || pvalue, valueNeedle, stringMatcherOptions);
                 if (result) {
                     if (pvalue.color) {
                         result.color = pvalue.color;
@@ -348,7 +318,7 @@ define(function (require, exports, module) {
             needle = needle.substr(0, this.info.offset);
 
             result = $.map(properties, function (pvalues, pname) {
-                var result = StringMatch.stringMatch(pname, needle, stringMatcherOptions);
+                const result = StringMatch.stringMatch(pname, needle, stringMatcherOptions);
                 if (result) {
                     return result;
                 }
@@ -362,7 +332,7 @@ define(function (require, exports, module) {
             };
         }
         return null;
-    };
+    }
 
     /**
      * Inserts a given CSS protertyname or -value hint into the current editor context.
@@ -374,15 +344,15 @@ define(function (require, exports, module) {
      * Indicates whether the manager should follow hint insertion with an
      * additional explicit hint request.
      */
-    CssPropHints.prototype.insertHint = function (hint) {
-        var offset = this.info.offset,
-            cursor = this.editor.getCursorPos(),
-            start = {line: -1, ch: -1},
-            end = {line: -1, ch: -1},
-            keepHints = false,
-            adjustCursor = false,
-            newCursor,
-            ctx;
+    public insertHint(hint) {
+        const offset = this.info.offset;
+        const cursor = this.editor.getCursorPos();
+        const start = {line: -1, ch: -1};
+        const end = {line: -1, ch: -1};
+        let keepHints = false;
+        let adjustCursor = false;
+        let newCursor;
+        let ctx;
 
         if (hint.jquery) {
             hint = hint.text();
@@ -397,7 +367,7 @@ define(function (require, exports, module) {
 
         if (this.info.context === CSSUtils.PROP_NAME) {
             keepHints = true;
-            var textAfterCursor = this.info.name.substr(this.info.offset);
+            const textAfterCursor = this.info.name.substr(this.info.offset);
             if (this.info.name.length === 0 || CodeHintManager.hasValidExclusion(this.exclusion, textAfterCursor)) {
                 // It's a new insertion, so append a colon and set keepHints
                 // to show property value hints.
@@ -447,7 +417,7 @@ define(function (require, exports, module) {
                 end.ch = start.ch;
             }
 
-            var parenMatch = hint.match(/\(.*?\)/);
+            const parenMatch = hint.match(/\(.*?\)/);
             if (parenMatch) {
                 // value has (...), so place cursor inside opening paren
                 // and keep hints open
@@ -469,15 +439,53 @@ define(function (require, exports, module) {
         }
 
         return keepHints;
-    };
+    }
+}
 
-    AppInit.appReady(function () {
-        var cssPropHints = new CssPropHints();
-        CodeHintManager.registerHintProvider(cssPropHints, ["css", "scss", "less"], 1);
-
-        ExtensionUtils.loadStyleSheet(module, "styles/brackets-css-hints.css");
-
-        // For unit testing
-        exports.cssPropHintProvider = cssPropHints;
+/**
+ * Returns a sorted and formatted list of hints with the query substring
+ * highlighted.
+ *
+ * @param {Array.<Object>} hints - the list of hints to format
+ * @param {string} query - querystring used for highlighting matched
+ *      portions of each hint
+ * @return {Array.jQuery} sorted Array of jQuery DOM elements to insert
+ */
+function formatHints(hints, query) {
+    const hasColorSwatch = hints.some(function (token) {
+        return token.color;
     });
+
+    StringMatch.basicMatchSort(hints);
+    return hints.map(function (token) {
+        let $hintObj = $("<span>").addClass("brackets-css-hints");
+
+        // highlight the matched portion of each hint
+        if (token.stringRanges) {
+            token.stringRanges.forEach(function (item) {
+                if (item.matched) {
+                    $hintObj.append($("<span>")
+                        .text(item.text)
+                        .addClass("matched-hint"));
+                } else {
+                    $hintObj.append(item.text);
+                }
+            });
+        } else {
+            $hintObj.text(token.value);
+        }
+
+        if (hasColorSwatch) {
+            $hintObj = ColorUtils.formatColorHint($hintObj, token.color);
+        }
+
+        return $hintObj;
+    });
+}
+
+AppInit.appReady(function () {
+    cssPropHintProvider = new CssPropHints();
+    CodeHintManager.registerHintProvider(cssPropHintProvider, ["css", "scss", "less"], 1);
+
+    ExtensionUtils.loadStyleSheet(module, "styles/brackets-css-hints.css");
 });

@@ -795,7 +795,7 @@ function _prefixMatchResult(str, query) {
  *                  This is generally just used by StringMatcher for optimization.
  * @return {{ranges:Array.<{text:string, matched:boolean, includesLastSegment:boolean}>, matchGoodness:int, scoreDebug: Object}} matched ranges and score
  */
-export function stringMatch(str, query, options, special) {
+export function stringMatch(str, query, options, special?) {
     let result;
 
     options = options || {};
