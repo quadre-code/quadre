@@ -1221,7 +1221,7 @@ class PrefixedPreferencesSystem {
      * @param {string|Function} preferenceID Name of a specific preference or the handler function
      * @param {?Function} handler Handler for the event
      */
-    public on(event, preferenceID, handler) {
+    public on(event, preferenceID, handler?) {
         if (typeof preferenceID === "function") {
             handler = preferenceID;
             preferenceID = null;

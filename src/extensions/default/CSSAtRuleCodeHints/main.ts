@@ -22,29 +22,35 @@
  *
  */
 
-define(function (require, exports, module) {
-    "use strict";
+import type { CodeHintProvider } from "editor/CodeHintManager";
 
-    // Load dependent modules
-    var AppInit         = brackets.getModule("utils/AppInit"),
-        CodeHintManager = brackets.getModule("editor/CodeHintManager"),
-        AtRulesText     = require("text!AtRulesDef.json"),
-        AtRules         = JSON.parse(AtRulesText);
+// Load dependent modules
+const AppInit         = brackets.getModule("utils/AppInit");
+const CodeHintManager = brackets.getModule("editor/CodeHintManager");
+import * as AtRulesText from "text!AtRulesDef.json";
+const AtRules         = JSON.parse(AtRulesText);
 
+// For unit testing
+export let restrictedBlockHints: AtRuleHints;
+
+class AtRuleHints implements CodeHintProvider {
+    private editor;
+    private filter;
+    private token;
 
     /**
      * @constructor
      */
-    function AtRuleHints() {
+    constructor() {
         // Do nothing.
     }
 
     // As we are only going to provide @rules name hints
     // we should claim that we don't have hints for anything else
-    AtRuleHints.prototype.hasHints = function (editor, implicitChar) {
-        var pos = editor.getCursorPos(),
-            token = editor._codeMirror.getTokenAt(pos),
-            cmState;
+    public hasHints(editor, implicitChar): boolean {
+        const pos = editor.getCursorPos();
+        const token = editor._codeMirror.getTokenAt(pos);
+        let cmState;
 
         this.editor = editor;
 
@@ -63,11 +69,11 @@ define(function (require, exports, module) {
 
         this.filter = null;
         return false;
-    };
+    }
 
-    AtRuleHints.prototype.getHints = function (implicitChar) {
-        var pos     = this.editor.getCursorPos(),
-            token   = this.editor._codeMirror.getTokenAt(pos);
+    public getHints(implicitChar) {
+        const pos     = this.editor.getCursorPos();
+        const token   = this.editor._codeMirror.getTokenAt(pos);
 
         this.filter = token.string;
         this.token = token;
@@ -77,10 +83,12 @@ define(function (require, exports, module) {
         }
 
         // Filter the property list based on the token string
-        var result = Object.keys(AtRules).filter(function (key) {
+        const result = Object.keys(AtRules).filter(function (key) {
             if (key.indexOf(token.string) === 0) {
                 return key;
             }
+
+            return undefined;
         }).sort();
 
         return {
@@ -90,8 +98,7 @@ define(function (require, exports, module) {
             defaultDescriptionWidth: true,
             handleWideResults: false
         };
-    };
-
+    }
 
     /**
      * Inserts a given @<rule> hint into the current editor context.
@@ -103,18 +110,15 @@ define(function (require, exports, module) {
      * Indicates whether the manager should follow hint insertion with an
      * additional explicit hint request.
      */
-    AtRuleHints.prototype.insertHint = function (completion) {
-        var cursor = this.editor.getCursorPos();
+    public insertHint(completion): false {
+        const cursor = this.editor.getCursorPos();
         this.editor.document.replaceRange(completion, {line: cursor.line, ch: this.token.start}, {line: cursor.line, ch: this.token.end});
         return false;
-    };
+    }
+}
 
-    AppInit.appReady(function () {
-        // Register code hint providers
-        var restrictedBlockHints = new AtRuleHints();
-        CodeHintManager.registerHintProvider(restrictedBlockHints, ["css", "less", "scss"], 0);
-
-        // For unit testing
-        exports.restrictedBlockHints = restrictedBlockHints;
-    });
+AppInit.appReady(function () {
+    // Register code hint providers
+    restrictedBlockHints = new AtRuleHints();
+    CodeHintManager.registerHintProvider(restrictedBlockHints, ["css", "less", "scss"], 0);
 });

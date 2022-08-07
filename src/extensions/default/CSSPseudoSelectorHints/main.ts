@@ -22,88 +22,94 @@
  *
  */
 
-define(function (require, exports, module) {
-    "use strict";
+import type { CodeHintProvider } from "editor/CodeHintManager";
 
-    // Load dependent modules
-    var AppInit             = brackets.getModule("utils/AppInit"),
-        CodeHintManager     = brackets.getModule("editor/CodeHintManager"),
-        TokenUtils          = brackets.getModule("utils/TokenUtils"),
-        PseudoRulesText     = require("text!PseudoSelectors.json"),
-        PseudoRules         = JSON.parse(PseudoRulesText);
+// Load dependent modules
+const AppInit             = brackets.getModule("utils/AppInit");
+const CodeHintManager     = brackets.getModule("editor/CodeHintManager");
+const TokenUtils          = brackets.getModule("utils/TokenUtils");
+import * as PseudoRulesText from "text!PseudoSelectors.json";
+const PseudoRules         = JSON.parse(PseudoRulesText);
 
+// For test
+export let pseudoSelectorHints: PseudoSelectorHints;
 
-    var TOKEN_TYPE_PSEUDO_CLASS   = 0,
-        TOKEN_TYPE_PSEUDO_ELEMENT = 1,
-        PUNCTUATION_CHAR          = ":";
+const TOKEN_TYPE_PSEUDO_CLASS   = 0;
+const TOKEN_TYPE_PSEUDO_ELEMENT = 1;
+const PUNCTUATION_CHAR          = ":";
 
-    function _getPseudoContext(token, cursorText, ctx) {
-        var slicedToken,
-            contextType = -1;
+function _getPseudoContext(token, cursorText, ctx) {
+    let slicedToken;
+    let contextType = -1;
 
-        // Magic code to get around CM's 'pseudo' identification logic
-        // As per CSS3 spec :
-        // -> ':' identifies pseudo classes
-        // -> '::' identifies pseudo elements
-        // We should strictly check for single or double occurance of ':' by slicing
-        // the line text till the token start position
+    // Magic code to get around CM's 'pseudo' identification logic
+    // As per CSS3 spec :
+    // -> ':' identifies pseudo classes
+    // -> '::' identifies pseudo elements
+    // We should strictly check for single or double occurance of ':' by slicing
+    // the line text till the token start position
 
-        if (token.state.state === "pseudo") {
-            slicedToken = cursorText.substr(0, token.start + 1).slice(-3);
-        } else if (token.type === "variable-3") {
-            slicedToken = cursorText.substr(0, token.start).slice(-3);
-        }
-
-        if (!slicedToken) {
-            //We get here when in SCSS mode and the cursor is right after ':'
-            //Test the previous token first
-            TokenUtils.movePrevToken(ctx);
-            if (ctx.token.string === PUNCTUATION_CHAR) {
-                //We are in pseudo element context ('::')
-                contextType = TOKEN_TYPE_PSEUDO_ELEMENT;
-            } else {
-                contextType = TOKEN_TYPE_PSEUDO_CLASS;
-            }
-        } else {
-            if (slicedToken.slice(-2) === "::") {
-                contextType = TOKEN_TYPE_PSEUDO_ELEMENT;
-            } else if (slicedToken.slice(-1) === ":") {
-                contextType = TOKEN_TYPE_PSEUDO_CLASS;
-            }
-        }
-
-        return contextType;
+    if (token.state.state === "pseudo") {
+        slicedToken = cursorText.substr(0, token.start + 1).slice(-3);
+    } else if (token.type === "variable-3") {
+        slicedToken = cursorText.substr(0, token.start).slice(-3);
     }
+
+    if (!slicedToken) {
+        // We get here when in SCSS mode and the cursor is right after ':'
+        // Test the previous token first
+        TokenUtils.movePrevToken(ctx);
+        if (ctx.token.string === PUNCTUATION_CHAR) {
+            // We are in pseudo element context ('::')
+            contextType = TOKEN_TYPE_PSEUDO_ELEMENT;
+        } else {
+            contextType = TOKEN_TYPE_PSEUDO_CLASS;
+        }
+    } else {
+        if (slicedToken.slice(-2) === "::") {
+            contextType = TOKEN_TYPE_PSEUDO_ELEMENT;
+        } else if (slicedToken.slice(-1) === ":") {
+            contextType = TOKEN_TYPE_PSEUDO_CLASS;
+        }
+    }
+
+    return contextType;
+}
+
+function _validatePseudoContext(token) {
+    return token.state.state === "pseudo" || token.type === "variable-3" || token.string === PUNCTUATION_CHAR;
+}
+
+class PseudoSelectorHints implements CodeHintProvider {
+    private editor;
+    private context;
+    private token;
 
     /**
      * @constructor
      */
-    function PseudoSelectorHints() {
+    constructor() {
         // Do nothing.
-    }
-
-    function _validatePseudoContext(token) {
-        return token.state.state === "pseudo" || token.type === "variable-3" || token.string === PUNCTUATION_CHAR;
     }
 
     // As we are only going to provide :<pseudo> name hints
     // we should claim that we don't have hints for anything else
-    PseudoSelectorHints.prototype.hasHints = function (editor, implicitChar) {
-        var pos = editor.getCursorPos(),
-            token = editor._codeMirror.getTokenAt(pos);
+    public hasHints(editor, implicitChar): boolean {
+        const pos = editor.getCursorPos();
+        const token = editor._codeMirror.getTokenAt(pos);
 
         this.editor = editor;
 
         // Check if we are at ':' pseudo rule or in 'variable-3' 'def' context
         return _validatePseudoContext(token);
-    };
+    }
 
-    PseudoSelectorHints.prototype.getHints = function (implicitChar) {
-        var pos = this.editor.getCursorPos(),
-            token = this.editor._codeMirror.getTokenAt(pos),
-            filter = token.type === "variable-3" ? token.string : "",
-            lineTillCursor = this.editor._codeMirror.getLine(pos.line),
-            ctx = TokenUtils.getInitialContext(this.editor._codeMirror, pos);
+    public getHints(implicitChar) {
+        const pos = this.editor.getCursorPos();
+        const token = this.editor._codeMirror.getTokenAt(pos);
+        const filter = token.type === "variable-3" ? token.string : "";
+        const lineTillCursor = this.editor._codeMirror.getLine(pos.line);
+        const ctx = TokenUtils.getInitialContext(this.editor._codeMirror, pos);
 
         if (!_validatePseudoContext(token)) {
             return null;
@@ -120,10 +126,12 @@ define(function (require, exports, module) {
         this.token = token;
 
         // Filter the property list based on the token string
-        var result = Object.keys(this.context === TOKEN_TYPE_PSEUDO_CLASS ? PseudoRules.classes : PseudoRules.elements).filter(function (key) {
+        const result = Object.keys(this.context === TOKEN_TYPE_PSEUDO_CLASS ? PseudoRules.classes : PseudoRules.elements).filter(function (key) {
             if (key.indexOf(filter) === 0) {
                 return key;
             }
+
+            return undefined;
         }).sort();
 
         return {
@@ -133,7 +141,7 @@ define(function (require, exports, module) {
             defaultDescriptionWidth: true,
             handleWideResults: false
         };
-    };
+    }
 
     /**
      * Inserts a given ':<pseudo>' hint into the current editor context.
@@ -145,10 +153,10 @@ define(function (require, exports, module) {
      * Indicates whether the manager should follow hint insertion with an
      * additional explicit hint request.
      */
-    PseudoSelectorHints.prototype.insertHint = function (completion) {
-        var cursor = this.editor.getCursorPos();
-        var startPos = {line: cursor.line, ch: this.token.start},
-            endPos   = {line: cursor.line, ch: this.token.end};
+    public insertHint(completion): false {
+        let cursor = this.editor.getCursorPos();
+        const startPos = {line: cursor.line, ch: this.token.start};
+        let endPos   = {line: cursor.line, ch: this.token.end};
 
         if (this.token.state.state === "pseudo") {
             // We have just started the 'pseudo' context, start replacing the current token by leaving ':' char
@@ -170,14 +178,11 @@ define(function (require, exports, module) {
         }
 
         return false;
-    };
+    }
+}
 
-    AppInit.appReady(function () {
-        // Register code hint providers
-        var pseudoSelectorHints = new PseudoSelectorHints();
-        CodeHintManager.registerHintProvider(pseudoSelectorHints, ["css", "scss", "less"], 0);
-
-        // For test
-        exports.pseudoSelectorHints = pseudoSelectorHints;
-    });
+AppInit.appReady(function () {
+    // Register code hint providers
+    pseudoSelectorHints = new PseudoSelectorHints();
+    CodeHintManager.registerHintProvider(pseudoSelectorHints, ["css", "scss", "less"], 0);
 });
