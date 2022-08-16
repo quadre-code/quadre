@@ -22,104 +22,109 @@
  *
  */
 
-/*jslint regexp: true */
-
-define(function (require, exports, module) {
-    "use strict";
-
-    var QuickOpen           = brackets.getModule("search/QuickOpen"),
-        QuickOpenHelper     = brackets.getModule("search/QuickOpenHelper"),
-        DocumentManager     = brackets.getModule("document/DocumentManager"),
-        StringMatch         = brackets.getModule("utils/StringMatch");
+const QuickOpen           = brackets.getModule("search/QuickOpen");
+const QuickOpenHelper     = brackets.getModule("search/QuickOpenHelper");
+const DocumentManager     = brackets.getModule("document/DocumentManager");
+const StringMatch         = brackets.getModule("utils/StringMatch");
 
 
-    /**
-    * FileLocation class
-    * @constructor
-    * @param {string} fullPath
-    * @param {number} line
-    * @param {number} chFrom column start position
-    * @param {number} chTo column end position
-    * @param {string} id
-    */
-    function FileLocation(fullPath, line, chFrom, chTo, id) {
+/**
+ * FileLocation class
+ * @constructor
+ * @param {string} fullPath
+ * @param {number} line
+ * @param {number} chFrom column start position
+ * @param {number} chTo column end position
+ * @param {string} id
+ */
+class FileLocation {
+    public fullPath;
+    public line;
+    public chFrom;
+    public chTo;
+    public id;
+
+    constructor(fullPath, line, chFrom, chTo, id) {
         this.fullPath = fullPath;
         this.line = line;
         this.chFrom = chFrom;
         this.chTo = chTo;
         this.id = id;
     }
+}
 
-    /**
-     * Returns a list of information about ID's for a single document. This array is populated
-     * by createIDList()
-     * @type {?Array.<FileLocation>}
-     */
-    function createIDList() {
-        var doc = DocumentManager.getCurrentDocument();
-        if (!doc) {
-            return;
-        }
-
-        var idList = [];
-        var docText = doc.getText();
-        var lines = docText.split("\n");
-
-        var regex = new RegExp(/\s+id\s*?=\s*?["'](.*?)["']/gi);
-        var id, chFrom, chTo, i, line;
-        for (i = 0; i < lines.length; i++) {
-            line = lines[i];
-            var info;
-            while ((info = regex.exec(line)) !== null) {
-                id = info[1];
-                // TODO: this doesn't handle id's that share the
-                // same portion of a name on the same line or when
-                // the id and value are on different lines
-                chFrom = line.indexOf(id);
-                chTo = chFrom + id.length;
-                idList.push(new FileLocation(null, i, chFrom, chTo, id));
-            }
-        }
-        return idList;
+/**
+ * Returns a list of information about ID's for a single document. This array is populated
+ * by createIDList()
+ * @type {?Array.<FileLocation>}
+ */
+function createIDList() {
+    const doc = DocumentManager.getCurrentDocument();
+    if (!doc) {
+        return;
     }
 
+    const idList: Array<FileLocation> = [];
+    const docText = doc.getText();
+    const lines = docText.split("\n");
 
-    /**
-     * @param {string} query what the user is searching for
-     * @return {Array.<SearchResult>} sorted and filtered results that match the query
-     */
-    function search(query, matcher) {
-        var idList = matcher.idList;
-        if (!idList) {
-            idList = createIDList();
-            matcher.idList = idList;
+    const regex = new RegExp(/\s+id\s*?=\s*?["'](.*?)["']/gi);
+
+    for (let i = 0; i < lines.length; i++) {
+        const line = lines[i];
+        let info;
+        // tslint:disable-next-line:no-conditional-assignment
+        while ((info = regex.exec(line)) !== null) {
+            const id = info[1];
+            // TODO: this doesn't handle id's that share the
+            // same portion of a name on the same line or when
+            // the id and value are on different lines
+            const chFrom = line.indexOf(id);
+            const chTo = chFrom + id.length;
+            idList.push(new FileLocation(null, i, chFrom, chTo, id));
         }
-        query = query.slice(query.indexOf("@") + 1, query.length);
-
-        // Filter and rank how good each match is
-        var filteredList = $.map(idList, function (fileLocation) {
-            var searchResult = matcher.match(fileLocation.id, query);
-            if (searchResult) {
-                searchResult.fileLocation = fileLocation;
-            }
-            return searchResult;
-        });
-
-        // Sort based on ranking & basic alphabetical order
-        StringMatch.basicMatchSort(filteredList);
-
-        return filteredList;
     }
+    return idList;
+}
 
-    QuickOpen.addQuickOpenPlugin(
-        {
-            name: "html ids",
-            languageIds: ["html"],
-            search: search,
-            match: QuickOpenHelper.match,
-            itemFocus: QuickOpenHelper.itemFocus,
-            itemSelect: QuickOpenHelper.itemSelect
+
+/**
+ * @param {string} query what the user is searching for
+ * @return {Array.<SearchResult>} sorted and filtered results that match the query
+ */
+function search(query, matcher) {
+    let idList = matcher.idList;
+    if (!idList) {
+        idList = createIDList();
+        matcher.idList = idList;
+    }
+    query = query.slice(query.indexOf("@") + 1, query.length);
+
+    // Filter and rank how good each match is
+    const filteredList = $.map(idList, function (fileLocation: FileLocation) {
+        const searchResult = matcher.match(fileLocation.id, query);
+        if (searchResult) {
+            searchResult.fileLocation = fileLocation;
         }
-    );
+        return searchResult;
+    });
 
-});
+    // Sort based on ranking & basic alphabetical order
+    StringMatch.basicMatchSort(filteredList);
+
+    return filteredList;
+}
+
+QuickOpen.addQuickOpenPlugin(
+    {
+        name: "html ids",
+        languageIds: ["html"],
+        search: search,
+        match: QuickOpenHelper.match,
+        itemFocus: QuickOpenHelper.itemFocus,
+        itemSelect: QuickOpenHelper.itemSelect
+    }
+);
+
+// See https://github.com/Microsoft/TypeScript/issues/20943
+export {};
