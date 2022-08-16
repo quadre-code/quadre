@@ -22,91 +22,97 @@
  *
  */
 
-define(function (require, exports, module) {
-    "use strict";
-
-    var QuickOpen           = brackets.getModule("search/QuickOpen"),
-        QuickOpenHelper     = brackets.getModule("search/QuickOpenHelper"),
-        JSUtils             = brackets.getModule("language/JSUtils"),
-        DocumentManager     = brackets.getModule("document/DocumentManager"),
-        StringMatch         = brackets.getModule("utils/StringMatch");
+const QuickOpen           = brackets.getModule("search/QuickOpen");
+const QuickOpenHelper     = brackets.getModule("search/QuickOpenHelper");
+const JSUtils             = brackets.getModule("language/JSUtils");
+const DocumentManager     = brackets.getModule("document/DocumentManager");
+const StringMatch         = brackets.getModule("utils/StringMatch");
 
 
-    /**
-    * FileLocation class
-    * @constructor
-    * @param {string} fullPath
-    * @param {number} line
-    * @param {number} chFrom column start position
-    * @param {number} chTo column end position
-    * @param {string} functionName
-    */
-    function FileLocation(fullPath, line, chFrom, chTo, functionName) {
+/**
+ * FileLocation class
+ * @constructor
+ * @param {string} fullPath
+ * @param {number} line
+ * @param {number} chFrom column start position
+ * @param {number} chTo column end position
+ * @param {string} functionName
+ */
+class FileLocation {
+    public fullPath;
+    public line;
+    public chFrom;
+    public chTo;
+    public functionName;
+
+    constructor(fullPath, line, chFrom, chTo, functionName) {
         this.fullPath = fullPath;
         this.line = line;
         this.chFrom = chFrom;
         this.chTo = chTo;
         this.functionName = functionName;
     }
+}
 
-    /**
-     * Contains a list of information about functions for a single document.
-     *
-     * @return {?Array.<FileLocation>}
-     */
-    function createFunctionList() {
-        var doc = DocumentManager.getCurrentDocument();
-        if (!doc) {
-            return;
-        }
-
-        var functionList = [];
-        var docText = doc.getText();
-        var functions = JSUtils.findAllMatchingFunctionsInText(docText, "*");
-        functions.forEach(function (funcEntry) {
-            functionList.push(new FileLocation(null, funcEntry.nameLineStart, funcEntry.columnStart, funcEntry.columnEnd, funcEntry.label || funcEntry.name));
-        });
-        return functionList;
+/**
+ * Contains a list of information about functions for a single document.
+ *
+ * @return {?Array.<FileLocation>}
+ */
+function createFunctionList() {
+    const doc = DocumentManager.getCurrentDocument();
+    if (!doc) {
+        return;
     }
 
+    const functionList: Array<FileLocation> = [];
+    const docText = doc.getText();
+    const functions = JSUtils.findAllMatchingFunctionsInText(docText, "*");
+    functions.forEach(function (funcEntry) {
+        functionList.push(new FileLocation(null, funcEntry.nameLineStart, funcEntry.columnStart, funcEntry.columnEnd, funcEntry.label || funcEntry.name));
+    });
+    return functionList;
+}
 
-    /**
-     * @param {string} query what the user is searching for
-     * @param {StringMatch.StringMatcher} matcher object that caches search-in-progress data
-     * @return {Array.<SearchResult>} sorted and filtered results that match the query
-     */
-    function search(query, matcher) {
-        var functionList = matcher.functionList;
-        if (!functionList) {
-            functionList = createFunctionList();
-            matcher.functionList = functionList;
-        }
-        query = query.slice(query.indexOf("@") + 1, query.length);
 
-        // Filter and rank how good each match is
-        var filteredList = $.map(functionList, function (fileLocation) {
-            var searchResult = matcher.match(fileLocation.functionName, query);
-            if (searchResult) {
-                searchResult.fileLocation = fileLocation;
-            }
-            return searchResult;
-        });
-
-        // Sort based on ranking & basic alphabetical order
-        StringMatch.basicMatchSort(filteredList);
-
-        return filteredList;
+/**
+ * @param {string} query what the user is searching for
+ * @param {StringMatch.StringMatcher} matcher object that caches search-in-progress data
+ * @return {Array.<SearchResult>} sorted and filtered results that match the query
+ */
+function search(query, matcher) {
+    let functionList = matcher.functionList;
+    if (!functionList) {
+        functionList = createFunctionList();
+        matcher.functionList = functionList;
     }
+    query = query.slice(query.indexOf("@") + 1, query.length);
 
-    QuickOpen.addQuickOpenPlugin(
-        {
-            name: "JavaScript functions",
-            languageIds: ["javascript"],
-            search: search,
-            match: QuickOpenHelper.match,
-            itemFocus: QuickOpenHelper.itemFocus,
-            itemSelect: QuickOpenHelper.itemSelect
+    // Filter and rank how good each match is
+    const filteredList = $.map(functionList, function (fileLocation) {
+        const searchResult = matcher.match(fileLocation.functionName, query);
+        if (searchResult) {
+            searchResult.fileLocation = fileLocation;
         }
-    );
+        return searchResult;
+    });
 
-});
+    // Sort based on ranking & basic alphabetical order
+    StringMatch.basicMatchSort(filteredList);
+
+    return filteredList;
+}
+
+QuickOpen.addQuickOpenPlugin(
+    {
+        name: "JavaScript functions",
+        languageIds: ["javascript"],
+        search: search,
+        match: QuickOpenHelper.match,
+        itemFocus: QuickOpenHelper.itemFocus,
+        itemSelect: QuickOpenHelper.itemSelect
+    }
+);
+
+// See https://github.com/Microsoft/TypeScript/issues/20943
+export {};

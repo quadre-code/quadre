@@ -3,18 +3,22 @@
 import * as CommandManager from "command/CommandManager";
 import * as Commands from "command/Commands";
 import * as Menus from "command/Menus";
+import * as DocumentManager from "document/DocumentManager";
 import * as CodeHintManager from "editor/CodeHintManager";
 import * as EditorManager from "editor/EditorManager";
 import * as CodeInspection from "language/CodeInspection";
 import * as CSSUtils from "language/CSSUtils";
 import * as HTMLUtils from "language/HTMLUtils";
 import * as JSONUtils from "language/JSONUtils";
+import * as JSUtils from "language/JSUtils";
 import * as LanguageManager from "language/LanguageManager";
 import * as XMLUtils from "language/XMLUtils";
 import * as FileUtils from "file/FileUtils";
 import * as FileSystem from "filesystem/FileSystem";
 import * as PreferencesManager from "preferences/PreferencesManager";
 import * as ProjectManager from "project/ProjectManager";
+import * as QuickOpen from "search/QuickOpen";
+import * as QuickOpenHelper from "search/QuickOpenHelper";
 import * as MainViewManager from "view/MainViewManager";
 import * as ThemeManager from "view/ThemeManager";
 import * as AppInit from "utils/AppInit";
@@ -53,12 +57,14 @@ declare global {
             : T extends "command/CommandManager" ? typeof CommandManager
             : T extends "command/Commands" ? typeof Commands
             : T extends "command/Menus" ? typeof Menus
+            : T extends "document/DocumentManager" ? typeof DocumentManager
             : T extends "editor/CodeHintManager" ? typeof CodeHintManager
             : T extends "editor/EditorManager" ? typeof EditorManager & EventDispatcher.DispatcherEvents
             : T extends "language/CodeInspection" ? typeof CodeInspection
             : T extends "language/CSSUtils" ? typeof CSSUtils
             : T extends "language/HTMLUtils" ? typeof HTMLUtils
             : T extends "language/JSONUtils" ? typeof JSONUtils
+            : T extends "language/JSUtils" ? typeof JSUtils
             : T extends "language/LanguageManager" ? typeof LanguageManager
             : T extends "language/XMLUtils" ? typeof XMLUtils
             : T extends "file/FileUtils" ? typeof FileUtils
@@ -67,6 +73,8 @@ declare global {
             : T extends "project/ProjectManager" ? typeof ProjectManager
             : T extends "view/MainViewManager" ? typeof MainViewManager
             : T extends "view/ThemeManager" ? typeof ThemeManager
+            : T extends "search/QuickOpen" ? typeof QuickOpen
+            : T extends "search/QuickOpenHelper" ? typeof QuickOpenHelper
             : T extends "utils/AppInit" ? typeof AppInit
             : T extends "utils/ColorUtils" ? typeof ColorUtils
             : T extends "utils/EventDispatcher" ? typeof EventDispatcher

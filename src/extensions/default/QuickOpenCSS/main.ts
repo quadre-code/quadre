@@ -22,93 +22,90 @@
  *
  */
 
-define(function (require, exports, module) {
-    "use strict";
-
-    var EditorManager       = brackets.getModule("editor/EditorManager"),
-        QuickOpen           = brackets.getModule("search/QuickOpen"),
-        QuickOpenHelper     = brackets.getModule("search/QuickOpenHelper"),
-        CSSUtils            = brackets.getModule("language/CSSUtils"),
-        DocumentManager     = brackets.getModule("document/DocumentManager"),
-        StringMatch         = brackets.getModule("utils/StringMatch");
+const EditorManager       = brackets.getModule("editor/EditorManager");
+const QuickOpen           = brackets.getModule("search/QuickOpen");
+const QuickOpenHelper     = brackets.getModule("search/QuickOpenHelper");
+const CSSUtils            = brackets.getModule("language/CSSUtils");
+const DocumentManager     = brackets.getModule("document/DocumentManager");
+const StringMatch         = brackets.getModule("utils/StringMatch");
 
 
-    /**
-     * Returns a list of information about selectors for a single document. This array is populated
-     * by createSelectorList()
-     * @return {?Array.<FileLocation>}
-     */
-    function createSelectorList() {
-        var doc = DocumentManager.getCurrentDocument();
-        if (!doc) {
-            return;
-        }
-
-        var docText = doc.getText();
-        return CSSUtils.extractAllSelectors(docText, doc.getLanguage().getMode());
+/**
+ * Returns a list of information about selectors for a single document. This array is populated
+ * by createSelectorList()
+ * @return {?Array.<FileLocation>}
+ */
+function createSelectorList() {
+    const doc = DocumentManager.getCurrentDocument();
+    if (!doc) {
+        return;
     }
 
+    const docText = doc.getText();
+    return CSSUtils.extractAllSelectors(docText, doc.getLanguage().getMode());
+}
 
-    /**
-     * @param {string} query what the user is searching for
-     * @return {Array.<SearchResult>} sorted and filtered results that match the query
-     */
-    function search(query, matcher) {
-        var selectorList = matcher.selectorList;
-        if (!selectorList) {
-            selectorList = createSelectorList();
-            matcher.selectorList = selectorList;
-        }
-        query = query.slice(query.indexOf("@") + 1, query.length);
 
-        // Filter and rank how good each match is
-        var filteredList = $.map(selectorList, function (itemInfo) {
-            var searchResult = matcher.match(CSSUtils.getCompleteSelectors(itemInfo), query);
-            if (searchResult) {
-                searchResult.selectorInfo = itemInfo;
-            }
-            return searchResult;
-        });
-
-        // Sort based on ranking & basic alphabetical order
-        StringMatch.basicMatchSort(filteredList);
-
-        return filteredList;
+/**
+ * @param {string} query what the user is searching for
+ * @return {Array.<SearchResult>} sorted and filtered results that match the query
+ */
+function search(query, matcher) {
+    let selectorList = matcher.selectorList;
+    if (!selectorList) {
+        selectorList = createSelectorList();
+        matcher.selectorList = selectorList;
     }
+    query = query.slice(query.indexOf("@") + 1, query.length);
 
-    /**
-     * Scroll to the selected item in the current document (unless no query string entered yet,
-     * in which case the topmost list item is irrelevant)
-     * @param {?SearchResult} selectedItem
-     * @param {string} query
-     * @param {boolean} explicit False if this is only highlighted due to being at top of list after search()
-     */
-    function itemFocus(selectedItem, query, explicit) {
-        if (!selectedItem || (query.length < 2 && !explicit)) {
-            return;
+    // Filter and rank how good each match is
+    const filteredList = $.map(selectorList, function (itemInfo) {
+        const searchResult = matcher.match(CSSUtils.getCompleteSelectors(itemInfo), query);
+        if (searchResult) {
+            searchResult.selectorInfo = itemInfo;
         }
-        var selectorInfo = selectedItem.selectorInfo;
+        return searchResult;
+    });
 
-        var from = {line: selectorInfo.selectorStartLine, ch: selectorInfo.selectorStartChar};
-        var to = {line: selectorInfo.selectorStartLine, ch: selectorInfo.selectorEndChar};
-        EditorManager.getCurrentFullEditor().setSelection(from, to, true);
+    // Sort based on ranking & basic alphabetical order
+    StringMatch.basicMatchSort(filteredList);
+
+    return filteredList;
+}
+
+/**
+ * Scroll to the selected item in the current document (unless no query string entered yet,
+ * in which case the topmost list item is irrelevant)
+ * @param {?SearchResult} selectedItem
+ * @param {string} query
+ * @param {boolean} explicit False if this is only highlighted due to being at top of list after search()
+ */
+function itemFocus(selectedItem, query, explicit) {
+    if (!selectedItem || (query.length < 2 && !explicit)) {
+        return;
     }
+    const selectorInfo = selectedItem.selectorInfo;
 
-    function itemSelect(selectedItem, query) {
-        itemFocus(selectedItem, query, true);
+    const from = {line: selectorInfo.selectorStartLine, ch: selectorInfo.selectorStartChar};
+    const to = {line: selectorInfo.selectorStartLine, ch: selectorInfo.selectorEndChar};
+    EditorManager.getCurrentFullEditor().setSelection(from, to, true);
+}
+
+function itemSelect(selectedItem, query) {
+    itemFocus(selectedItem, query, true);
+}
+
+
+QuickOpen.addQuickOpenPlugin(
+    {
+        name: "CSS Selectors",
+        languageIds: ["css", "less", "scss"],
+        search: search,
+        match: QuickOpenHelper.match,
+        itemFocus: itemFocus,
+        itemSelect: itemSelect
     }
+);
 
-
-    QuickOpen.addQuickOpenPlugin(
-        {
-            name: "CSS Selectors",
-            languageIds: ["css", "less", "scss"],
-            search: search,
-            match: QuickOpenHelper.match,
-            itemFocus: itemFocus,
-            itemSelect: itemSelect
-        }
-    );
-
-
-});
+// See https://github.com/Microsoft/TypeScript/issues/20943
+export {};
