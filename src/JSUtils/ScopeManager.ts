@@ -1586,7 +1586,7 @@ export function handleProjectClose() {
  *  @param {string=} projectRootPath - new project root path(optional).
  *  Only needed for unit tests.
  */
-export function handleProjectOpen(projectRootPath) {
+export function handleProjectOpen(projectRootPath?) {
     initPreferences(projectRootPath);
 }
 

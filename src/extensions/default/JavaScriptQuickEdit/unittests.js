@@ -462,8 +462,8 @@ define(function (require, exports, module) {
                     var extensionRequire = testWindow.brackets.getModule("utils/ExtensionLoader").
                         getRequireContextForExtension("JavaScriptCodeHints");
                     JSCodeHints = extensionRequire("main");
-                    // eslint-disable-next-line new-cap
-                    ParameterHintProvider = extensionRequire("ParameterHintsProvider").JSParameterHintsProvider();
+                    var JSParameterHintsProvider = extensionRequire("ParameterHintsProvider").JSParameterHintsProvider;
+                    ParameterHintProvider = new JSParameterHintsProvider();
                 }
 
                 beforeEach(function () {

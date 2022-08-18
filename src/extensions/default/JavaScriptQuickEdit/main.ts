@@ -22,212 +22,206 @@
  *
  */
 
-define(function (require, exports, module) {
-    "use strict";
+// Brackets modules
+const MultiRangeInlineEditor  = brackets.getModule("editor/MultiRangeInlineEditor").MultiRangeInlineEditor;
+const EditorManager           = brackets.getModule("editor/EditorManager");
+const JSUtils                 = brackets.getModule("language/JSUtils");
+const LanguageManager         = brackets.getModule("language/LanguageManager");
+const PerfUtils               = brackets.getModule("utils/PerfUtils");
+const ProjectManager          = brackets.getModule("project/ProjectManager");
+const Strings                 = brackets.getModule("strings");
+const HealthLogger            = brackets.getModule("utils/HealthLogger");
 
-    // Brackets modules
-    var MultiRangeInlineEditor  = brackets.getModule("editor/MultiRangeInlineEditor").MultiRangeInlineEditor,
-        EditorManager           = brackets.getModule("editor/EditorManager"),
-        JSUtils                 = brackets.getModule("language/JSUtils"),
-        LanguageManager         = brackets.getModule("language/LanguageManager"),
-        PerfUtils               = brackets.getModule("utils/PerfUtils"),
-        ProjectManager          = brackets.getModule("project/ProjectManager"),
-        Strings                 = brackets.getModule("strings"),
-        HealthLogger            = brackets.getModule("utils/HealthLogger");
+/**
+ * Return the token string that is at the specified position.
+ *
+ * @param hostEditor {!Editor} editor
+ * @param {!{line:number, ch:number}} pos
+ * @return {functionName: string, reason: string}
+ */
+function _getFunctionName(hostEditor, pos) {
+    let token = hostEditor._codeMirror.getTokenAt(pos, true);
 
-    /**
-     * Return the token string that is at the specified position.
-     *
-     * @param hostEditor {!Editor} editor
-     * @param {!{line:number, ch:number}} pos
-     * @return {functionName: string, reason: string}
-     */
-    function _getFunctionName(hostEditor, pos) {
-        var token = hostEditor._codeMirror.getTokenAt(pos, true);
+    // If the pos is at the beginning of a name, token will be the
+    // preceding whitespace or dot. In that case, try the next pos.
+    if (!/\S/.test(token.string) || token.string === ".") {
+        token = hostEditor._codeMirror.getTokenAt({line: pos.line, ch: pos.ch + 1}, true);
+    }
 
-        // If the pos is at the beginning of a name, token will be the
-        // preceding whitespace or dot. In that case, try the next pos.
-        if (!/\S/.test(token.string) || token.string === ".") {
-            token = hostEditor._codeMirror.getTokenAt({line: pos.line, ch: pos.ch + 1}, true);
-        }
-
-        // Return valid function expressions only (function call or reference)
-        if (!((token.type === "variable") ||
-              (token.type === "variable-2") ||
-              (token.type === "property"))) {
-            return {
-                functionName: null,
-                reason: Strings.ERROR_JSQUICKEDIT_FUNCTIONNOTFOUND
-            };
-        }
-
+    // Return valid function expressions only (function call or reference)
+    if (!((token.type === "variable") ||
+            (token.type === "variable-2") ||
+            (token.type === "property"))) {
         return {
-            functionName: token.string,
-            reason: null
+            functionName: null,
+            reason: Strings.ERROR_JSQUICKEDIT_FUNCTIONNOTFOUND
         };
     }
 
-    /**
-     * @private
-     * For unit and performance tests. Allows lookup by function name instead of editor offset
-     * without constructing an inline editor.
-     *
-     * @param {!string} functionName
-     * @return {$.Promise} a promise that will be resolved with an array of function offset information
-     */
-    function _findInProject(functionName) {
-        var result = new $.Deferred();
+    return {
+        functionName: token.string,
+        reason: null
+    };
+}
 
-        PerfUtils.markStart(PerfUtils.JAVASCRIPT_FIND_FUNCTION);
+/**
+ * @private
+ * For unit and performance tests. Allows lookup by function name instead of editor offset
+ * without constructing an inline editor.
+ *
+ * @param {!string} functionName
+ * @return {$.Promise} a promise that will be resolved with an array of function offset information
+ */
+// Export for unit tests only
+export function _findInProject(functionName) {
+    const result = $.Deferred<Array<any>>();
 
-        function _nonBinaryFileFilter(file) {
-            return !LanguageManager.getLanguageForPath(file.fullPath).isBinary();
-        }
+    PerfUtils.markStart((PerfUtils as any).JAVASCRIPT_FIND_FUNCTION);
 
-        ProjectManager.getAllFiles(_nonBinaryFileFilter)
-            .done(function (files) {
-                JSUtils.findMatchingFunctions(functionName, files)
-                    .done(function (functions) {
-                        PerfUtils.addMeasurement(PerfUtils.JAVASCRIPT_FIND_FUNCTION);
-                        result.resolve(functions);
-                    })
-                    .fail(function () {
-                        PerfUtils.finalizeMeasurement(PerfUtils.JAVASCRIPT_FIND_FUNCTION);
-                        result.reject();
-                    });
-            })
-            .fail(function () {
-                result.reject();
-            });
-
-        return result.promise();
+    function _nonBinaryFileFilter(file) {
+        return !LanguageManager.getLanguageForPath(file.fullPath).isBinary();
     }
 
-    /**
-     * @private
-     * For unit and performance tests. Allows lookup by function name instead of editor offset .
-     *
-     * @param {!Editor} hostEditor
-     * @param {!string} functionName
-     * @return {?$.Promise} synchronously resolved with an InlineWidget, or
-     *         {string} if js other than function is detected at pos, or
-     *         null if we're not ready to provide anything.
-     */
-    function _createInlineEditor(hostEditor, functionName) {
-        // Use Tern jump-to-definition helper, if it's available, to find InlineEditor target.
-        var helper = brackets._jsCodeHintsHelper;
-        if (helper === null) {
-            return null;
-        }
+    ProjectManager.getAllFiles(_nonBinaryFileFilter)
+        .done(function (files) {
+            JSUtils.findMatchingFunctions(functionName, files)
+                .done(function (functions) {
+                    PerfUtils.addMeasurement((PerfUtils as any).JAVASCRIPT_FIND_FUNCTION);
+                    result.resolve(functions);
+                })
+                .fail(function () {
+                    PerfUtils.finalizeMeasurement((PerfUtils as any).JAVASCRIPT_FIND_FUNCTION);
+                    result.reject();
+                });
+        })
+        .fail(function () {
+            result.reject();
+        });
 
-        var result = new $.Deferred();
-        PerfUtils.markStart(PerfUtils.JAVASCRIPT_INLINE_CREATE);
+    return result.promise();
+}
 
-        var response = helper();
-        if (response.hasOwnProperty("promise")) {
-            response.promise.done(function (jumpResp) {
-                var resolvedPath = jumpResp.fullPath;
-                if (resolvedPath) {
+/**
+ * @private
+ * For unit and performance tests. Allows lookup by function name instead of editor offset .
+ *
+ * @param {!Editor} hostEditor
+ * @param {!string} functionName
+ * @return {?$.Promise} synchronously resolved with an InlineWidget, or
+ *         {string} if js other than function is detected at pos, or
+ *         null if we're not ready to provide anything.
+ */
+// Export for unit tests only
+export function _createInlineEditor(hostEditor, functionName) {
+    // Use Tern jump-to-definition helper, if it's available, to find InlineEditor target.
+    const helper = brackets._jsCodeHintsHelper;
+    if (helper === null) {
+        return null;
+    }
 
-                    // Tern doesn't always return entire function extent.
-                    // Use QuickEdit search now that we know which file to look at.
-                    var fileInfos = [];
-                    fileInfos.push({name: jumpResp.resultFile, fullPath: resolvedPath});
-                    JSUtils.findMatchingFunctions(functionName, fileInfos, true)
-                        .done(function (functions) {
-                            if (functions && functions.length > 0) {
-                                var jsInlineEditor = new MultiRangeInlineEditor(functions);
-                                jsInlineEditor.load(hostEditor);
+    const result = $.Deferred();
+    PerfUtils.markStart((PerfUtils as any).JAVASCRIPT_INLINE_CREATE);
 
-                                PerfUtils.addMeasurement(PerfUtils.JAVASCRIPT_INLINE_CREATE);
-                                result.resolve(jsInlineEditor);
-                            } else {
-                                // No matching functions were found
-                                PerfUtils.addMeasurement(PerfUtils.JAVASCRIPT_INLINE_CREATE);
-                                result.reject();
-                            }
-                        })
-                        .fail(function () {
-                            PerfUtils.addMeasurement(PerfUtils.JAVASCRIPT_INLINE_CREATE);
-                            result.reject();
-                        });
+    const response = helper();
+    if (response.hasOwnProperty("promise")) {
+        response.promise.done(function (jumpResp) {
+            const resolvedPath = jumpResp.fullPath;
+            if (resolvedPath) {
 
-                } else {        // no result from Tern.  Fall back to _findInProject().
-
-                    _findInProject(functionName).done(function (functions) {
+                // Tern doesn't always return entire function extent.
+                // Use QuickEdit search now that we know which file to look at.
+                const fileInfos: Array<{name: string, fullPath: string}> = [];
+                fileInfos.push({name: jumpResp.resultFile, fullPath: resolvedPath});
+                JSUtils.findMatchingFunctions(functionName, fileInfos, true)
+                    .done(function (functions) {
                         if (functions && functions.length > 0) {
-                            var jsInlineEditor = new MultiRangeInlineEditor(functions);
+                            const jsInlineEditor = new MultiRangeInlineEditor(functions);
                             jsInlineEditor.load(hostEditor);
 
-                            PerfUtils.addMeasurement(PerfUtils.JAVASCRIPT_INLINE_CREATE);
+                            PerfUtils.addMeasurement((PerfUtils as any).JAVASCRIPT_INLINE_CREATE);
                             result.resolve(jsInlineEditor);
                         } else {
                             // No matching functions were found
-                            PerfUtils.addMeasurement(PerfUtils.JAVASCRIPT_INLINE_CREATE);
+                            PerfUtils.addMeasurement((PerfUtils as any).JAVASCRIPT_INLINE_CREATE);
                             result.reject();
                         }
-                    }).fail(function () {
-                        PerfUtils.finalizeMeasurement(PerfUtils.JAVASCRIPT_INLINE_CREATE);
+                    })
+                    .fail(function () {
+                        PerfUtils.addMeasurement((PerfUtils as any).JAVASCRIPT_INLINE_CREATE);
                         result.reject();
                     });
-                }
 
-            }).fail(function () {
-                PerfUtils.finalizeMeasurement(PerfUtils.JAVASCRIPT_INLINE_CREATE);
-                result.reject();
-            });
+            } else {        // no result from Tern.  Fall back to _findInProject().
 
-        }
+                _findInProject(functionName).done(function (functions) {
+                    if (functions && functions.length > 0) {
+                        const jsInlineEditor = new MultiRangeInlineEditor(functions);
+                        jsInlineEditor.load(hostEditor);
 
-        return result.promise();
+                        PerfUtils.addMeasurement((PerfUtils as any).JAVASCRIPT_INLINE_CREATE);
+                        result.resolve(jsInlineEditor);
+                    } else {
+                        // No matching functions were found
+                        PerfUtils.addMeasurement((PerfUtils as any).JAVASCRIPT_INLINE_CREATE);
+                        result.reject();
+                    }
+                }).fail(function () {
+                    PerfUtils.finalizeMeasurement((PerfUtils as any).JAVASCRIPT_INLINE_CREATE);
+                    result.reject();
+                });
+            }
+
+        }).fail(function () {
+            PerfUtils.finalizeMeasurement((PerfUtils as any).JAVASCRIPT_INLINE_CREATE);
+            result.reject();
+        });
+
     }
 
-    /**
-     * This function is registered with EditorManager as an inline editor provider. It creates an inline editor
-     * when the cursor is on a JavaScript function name, finds all functions that match the name
-     * and shows (one/all of them) in an inline editor.
-     *
-     * @param {!Editor} editor
-     * @param {!{line:number, ch:number}} pos
-     * @return {$.Promise} a promise that will be resolved with an InlineWidget
-     *      or null if we're not ready to provide anything.
-     */
-    function javaScriptFunctionProvider(hostEditor, pos) {
-        // Only provide a JavaScript editor when cursor is in JavaScript content
-        if (hostEditor.getModeForSelection() !== "javascript") {
-            return null;
-        }
+    return result.promise();
+}
 
-        //Send analytics data for Quick Edit open
-        HealthLogger.sendAnalyticsData(
-            "QuickEditOpen",
-            "usage",
-            "quickEdit",
-            "open"
-        );
-        // Only provide JavaScript editor if the selection is within a single line
-        var sel = hostEditor.getSelection();
-        if (sel.start.line !== sel.end.line) {
-            return null;
-        }
-
-        // Always use the selection start for determining the function name. The pos
-        // parameter is usually the selection end.
-        var functionResult = _getFunctionName(hostEditor, sel.start);
-        if (!functionResult.functionName) {
-            return functionResult.reason || null;
-        }
-
-        return _createInlineEditor(hostEditor, functionResult.functionName);
+/**
+ * This function is registered with EditorManager as an inline editor provider. It creates an inline editor
+ * when the cursor is on a JavaScript function name, finds all functions that match the name
+ * and shows (one/all of them) in an inline editor.
+ *
+ * @param {!Editor} editor
+ * @param {!{line:number, ch:number}} pos
+ * @return {$.Promise} a promise that will be resolved with an InlineWidget
+ *      or null if we're not ready to provide anything.
+ */
+// Export for unit tests only
+export function javaScriptFunctionProvider(hostEditor, pos) {
+    // Only provide a JavaScript editor when cursor is in JavaScript content
+    if (hostEditor.getModeForSelection() !== "javascript") {
+        return null;
     }
 
-    // init
-    EditorManager.registerInlineEditProvider(javaScriptFunctionProvider);
-    PerfUtils.createPerfMeasurement("JAVASCRIPT_INLINE_CREATE", "JavaScript Inline Editor Creation");
-    PerfUtils.createPerfMeasurement("JAVASCRIPT_FIND_FUNCTION", "JavaScript Find Function");
+    // Send analytics data for Quick Edit open
+    HealthLogger.sendAnalyticsData(
+        "QuickEditOpen",
+        "usage",
+        "quickEdit",
+        "open"
+    );
+    // Only provide JavaScript editor if the selection is within a single line
+    const sel = hostEditor.getSelection();
+    if (sel.start.line !== sel.end.line) {
+        return null;
+    }
 
-    // for unit tests only
-    exports.javaScriptFunctionProvider  = javaScriptFunctionProvider;
-    exports._createInlineEditor         = _createInlineEditor;
-    exports._findInProject              = _findInProject;
-});
+    // Always use the selection start for determining the function name. The pos
+    // parameter is usually the selection end.
+    const functionResult = _getFunctionName(hostEditor, sel.start);
+    if (!functionResult.functionName) {
+        return functionResult.reason || null;
+    }
+
+    return _createInlineEditor(hostEditor, functionResult.functionName);
+}
+
+// init
+EditorManager.registerInlineEditProvider(javaScriptFunctionProvider);
+PerfUtils.createPerfMeasurement("JAVASCRIPT_INLINE_CREATE", "JavaScript Inline Editor Creation");
+PerfUtils.createPerfMeasurement("JAVASCRIPT_FIND_FUNCTION", "JavaScript Find Function");

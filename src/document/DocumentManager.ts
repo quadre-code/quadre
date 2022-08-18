@@ -334,7 +334,7 @@ export function getDocumentForPath(fullPath, fileObj?) {
 
     if (doc) {
         // use existing document
-        return $.Deferred().resolve(doc).promise();
+        return $.Deferred<DocumentModule.Document>().resolve(doc).promise();
     }
 
     const result = $.Deferred<DocumentModule.Document | null>();
@@ -393,7 +393,7 @@ export function getDocumentForPath(fullPath, fileObj?) {
  * initial active document is opened in an editor. This is essential to ensure that only
  * one Document exists for any File.
  * @private
- * @type {Object.<string, JQueryPromise<any>>}
+ * @type {Object.<string, JQueryPromise<DocumentModule.Document | null>>}
  */
 getDocumentForPath._pendingDocumentPromises = {};
 

@@ -182,7 +182,7 @@ export function setMenuItemStateForLanguage(languageId) {
     const oldFilePath = oldFile.fullPath;
     DocumentManager.getDocumentForPath(oldFilePath)
         .done(function (oldDoc) {
-            (oldDoc as DispatcherEvents).off("languageChanged.reference-in-files");
+            (oldDoc as unknown as DispatcherEvents).off("languageChanged.reference-in-files");
         });
 });
 
