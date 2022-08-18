@@ -293,12 +293,12 @@ function _computeOffsets(doc, functionName, functions, rangeResults) {
 function _readFile(fileInfo, result) {
     DocumentManager.getDocumentForPath(fileInfo.fullPath)
         .done(function (doc) {
-            const allFunctions = _findAllFunctionsInText(doc.getText());
+            const allFunctions = _findAllFunctionsInText(doc!.getText());
 
             // Cache the result in the fileInfo object
             fileInfo.JSUtils = {};
             fileInfo.JSUtils.functions = allFunctions;
-            fileInfo.JSUtils.timestamp = doc.diskTimestamp;
+            fileInfo.JSUtils.timestamp = doc!.diskTimestamp;
 
             result.resolve({doc: doc, functions: allFunctions});
         })
@@ -353,7 +353,7 @@ function _shouldGetFromCache(fileInfo) {
  */
 function _getOffsetsForFunction(docEntries, functionName) {
     // Filter for documents that contain the named function
-    const result              = $.Deferred();
+    const result              = $.Deferred<Array<any>>();
     const matchedDocuments: Array<any> = [];
     const rangeResults        = [];
 
@@ -466,8 +466,8 @@ function _getFunctionsInFiles(fileInfos) {
  *      source document, start line, and end line (0-based, inclusive range) for each matching function list.
  *      Does not addRef() the documents returned in the array.
  */
-export function findMatchingFunctions(functionName, fileInfos, keepAllFiles) {
-    const result  = $.Deferred();
+export function findMatchingFunctions(functionName, fileInfos, keepAllFiles?) {
+    const result  = $.Deferred<Array<any>>();
     let jsFiles = [];
 
     if (!keepAllFiles) {

@@ -140,7 +140,7 @@ export class MultiRangeInlineEditor extends InlineTextEditor {
      *      the results list (based on range.document.file). Defaults to FileUtils.comparePaths().
      * @extends {InlineTextEditor}
      */
-    constructor(ranges, messageCB, labelCB, fileComparator) {
+    constructor(ranges, messageCB?, labelCB?, fileComparator?) {
         super();
 
         // Store the results to show in the range list. This creates TextRanges bound to the Document,

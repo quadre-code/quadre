@@ -1540,7 +1540,7 @@ function _findMatchingRulesInCSSFiles(selector, resultSelectors: Array<Rule>): J
             .done(function (doc) {
                 // Find all matching rules for the given CSS file's content, and add them to the
                 // overall search result
-                const oneCSSFileMatches = _findAllMatchingSelectorsInText(doc.getText(), selector, doc.getLanguage().getMode());
+                const oneCSSFileMatches = _findAllMatchingSelectorsInText(doc!.getText(), selector, doc!.getLanguage().getMode());
                 _addSelectorsToResults(resultSelectors, oneCSSFileMatches, doc, 0);
 
                 oneFileResult.resolve();

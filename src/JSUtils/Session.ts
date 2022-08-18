@@ -173,7 +173,7 @@ class Session {
      * @param {{line: number, ch: number}} the line/col info
      * @return {number} - the offset into the current document of the cursor
      */
-    private getOffsetFromCursor(cursor) {
+    public getOffsetFromCursor(cursor) {
         return this.editor.indexFromPos(cursor);
     }
 
@@ -241,7 +241,7 @@ class Session {
      * @return {Object} - the CodeMirror token before the one at the given
      *      cursor position
      */
-    private _getPreviousToken(cursor) {
+    public _getPreviousToken(cursor) {
         const token   = this.getToken(cursor);
         let prev    = token;
         const doc     = this.editor.document;
@@ -272,7 +272,7 @@ class Session {
      * @return {Object} - the CodeMirror token after the one at the given
      *      cursor position
      */
-    private getNextToken(cursor, skipWhitespace) {
+    public getNextToken(cursor, skipWhitespace) {
         const token   = this.getToken(cursor);
         let next    = token;
         const doc     = this.editor.document;
@@ -364,7 +364,7 @@ class Session {
      * @return {{line:number, ch:number}} - the line, col info for where the previous "."
      *      in a property lookup occurred, or undefined if no previous "." was found.
      */
-    private findPreviousDot() {
+    public findPreviousDot() {
         const cursor = this.getCursor();
         let token = this.getToken(cursor);
 

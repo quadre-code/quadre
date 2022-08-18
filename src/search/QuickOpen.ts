@@ -852,8 +852,8 @@ function _setMenuItemStateForLanguage(languageId) {
 
     DocumentManager.getDocumentForPath(newFilePath)
         .done(function (newDoc) {
-            newDoc.on("languageChanged.quickFindDefinition", function () {
-                const changedLanguageId = LanguageManager.getLanguageForPath(newDoc.file.fullPath).getId();
+            (newDoc as unknown as DispatcherEvents).on("languageChanged.quickFindDefinition", function () {
+                const changedLanguageId = LanguageManager.getLanguageForPath(newDoc!.file.fullPath).getId();
                 _setMenuItemStateForLanguage(changedLanguageId);
             });
         }).fail(function (err) {
@@ -867,7 +867,7 @@ function _setMenuItemStateForLanguage(languageId) {
     const oldFilePath = oldFile.fullPath;
     DocumentManager.getDocumentForPath(oldFilePath)
         .done(function (oldDoc) {
-            oldDoc.off("languageChanged.quickFindDefinition");
+            (oldDoc as unknown as DispatcherEvents).off("languageChanged.quickFindDefinition");
         }).fail(function (err) {
             console.error(err);
         });
