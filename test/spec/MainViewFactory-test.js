@@ -27,7 +27,16 @@ define(function (require, exports, module) {
 
     var SpecRunnerUtils = require("spec/SpecRunnerUtils");
 
-    describe("MainViewFactory", function () {
+    // Verify if we are running in a CI.
+    var UrlParams = require("utils/UrlParams").UrlParams,
+        params    = new UrlParams();
+
+    // parse URL parameters
+    params.parse();
+
+    var isCI = /true/i.test(params.get("isCI"));
+
+    (isCI ? xdescribe : describe)("MainViewFactory", function () {
         this.category = "mainview";
 
         var CommandManager,          // loaded from brackets.test

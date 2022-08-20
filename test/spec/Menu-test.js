@@ -42,7 +42,7 @@ define(function (require, exports, module) {
 
     var isCI = /true/i.test(params.get("isCI"));
 
-    describe("Menus (Native Shell)", function () {
+    (isCI ? xdescribe : describe)("Menus (Native Shell)", function () {
 
         this.category = "integration";
 
@@ -360,7 +360,7 @@ define(function (require, exports, module) {
     });
 
 
-    describe("Menus (HTML)", function () {
+    (isCI ? xdescribe : describe)("Menus (HTML)", function () {
 
         this.category = "integration";
 

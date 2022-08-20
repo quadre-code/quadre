@@ -34,6 +34,15 @@ define(function (require, exports, module) {
         FileUtils           = require("file/FileUtils"),
         SpecRunnerUtils     = require("spec/SpecRunnerUtils");
 
+    // Verify if we are running in a CI.
+    var UrlParams = require("utils/UrlParams").UrlParams,
+        params    = new UrlParams();
+
+    // parse URL parameters
+    params.parse();
+
+    var isCI = /true/i.test(params.get("isCI"));
+
     var testPath = SpecRunnerUtils.getTestPath("/spec/JSUtils-test-files"),
         doneLoading = false;
 
@@ -563,7 +572,7 @@ define(function (require, exports, module) {
     }); // describe("JSUtils")
 
 
-    describe("JS Indexing", function () {
+    (isCI ? xdescribe : describe)("JS Indexing", function () {
 
         this.category = "integration";
 

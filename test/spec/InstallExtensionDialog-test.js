@@ -32,7 +32,16 @@ define(function (require, exports, module) {
         FileSystem,
         Strings         = require("strings");
 
-    describe("Install Extension Dialog", function () {
+    // Verify if we are running in a CI.
+    var UrlParams = require("utils/UrlParams").UrlParams,
+        params    = new UrlParams();
+
+    // parse URL parameters
+    params.parse();
+
+    var isCI = /true/i.test(params.get("isCI"));
+
+    (isCI ? xdescribe : describe)("Install Extension Dialog", function () {
         var testWindow, dialog, fields, closed,
             url = "http://brackets.io/extensions/myextension.zip";
 

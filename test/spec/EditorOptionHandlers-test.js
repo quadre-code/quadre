@@ -34,8 +34,16 @@ define(function (require, exports, module) {
         FileViewController,
         SpecRunnerUtils     = require("spec/SpecRunnerUtils");
 
+    // Verify if we are running in a CI.
+    var UrlParams = require("utils/UrlParams").UrlParams,
+        params    = new UrlParams();
 
-    describe("EditorOptionHandlers", function () {
+    // parse URL parameters
+    params.parse();
+
+    var isCI = /true/i.test(params.get("isCI"));
+
+    (isCI ? xdescribe : describe)("EditorOptionHandlers", function () {
         this.category = "integration";
 
         var testPath = SpecRunnerUtils.getTestPath("/spec/EditorOptionHandlers-test-files"),

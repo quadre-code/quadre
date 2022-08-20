@@ -120,7 +120,7 @@ define(function (require, exports, module) {
             });
         });
 
-        it("Delete remote file", function () {
+        (isCI ? xit : it)("Delete remote file", function () {
             createRemoteFile(REMOTE_FILE_PATH).done(function () {
                 expect(MainViewManager.getWorkingSet(MainViewManager.ACTIVE_PANE).length).toEqual(1);
                 spyOn(Dialogs, "showModalDialog").andCallFake(function (dlgClass, title, message, buttons) {

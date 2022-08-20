@@ -34,6 +34,15 @@ define(function (require, exports, module) {
         Strings            = require("strings"),
         StringUtils        = require("utils/StringUtils");
 
+    // Verify if we are running in a CI.
+    var UrlParams = require("utils/UrlParams").UrlParams,
+        params    = new UrlParams();
+
+    // parse URL parameters
+    params.parse();
+
+    var isCI = /true/i.test(params.get("isCI"));
+
     describe("FileFilters", function () {
 
         describe("Filter matching", function () {
@@ -484,7 +493,7 @@ define(function (require, exports, module) {
             });
         });
 
-        describe("Integration", function () {
+        (isCI ? xdescribe : describe)("Integration", function () {
 
             this.category = "integration";
 
