@@ -34,8 +34,16 @@ define(function (require, exports, module) {
         WorkingSetView,
         SpecRunnerUtils         = require("spec/SpecRunnerUtils");
 
+    // Verify if we are running in a CI.
+    var UrlParams = require("utils/UrlParams").UrlParams,
+        params    = new UrlParams();
 
-    describe("WorkingSetView", function () {
+    // parse URL parameters
+    params.parse();
+
+    var isCI = /true/i.test(params.get("isCI"));
+
+    (isCI ? xdescribe : describe)("WorkingSetView", function () {
 
         this.category = "integration";
 

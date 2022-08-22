@@ -656,7 +656,7 @@ define(function (require, exports, module) {
             // TODO: test auto-closing when removing last range
         });
 
-        describe("integration", function () {
+        (isCI ? xdescribe : describe)("integration", function () {
 
             this.category = "integration";
 

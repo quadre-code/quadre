@@ -34,6 +34,14 @@ define(function (require, exports, module) {
         MainViewManager,     // loaded from brackets.test
         SpecRunnerUtils     = require("spec/SpecRunnerUtils");
 
+    // Verify if we are running in a CI.
+    var UrlParams = require("utils/UrlParams").UrlParams,
+        params    = new UrlParams();
+
+    // parse URL parameters
+    params.parse();
+
+    var isCI = /true/i.test(params.get("isCI"));
 
     describe("Document", function () {
         describe("doMultipleEdits", function () {
@@ -233,7 +241,7 @@ define(function (require, exports, module) {
         });
     });
 
-    describe("Document Integration", function () {
+    (isCI ? xdescribe : describe)("Document Integration", function () {
         this.category = "integration";
 
         var testPath = SpecRunnerUtils.getTestPath("/spec/Document-test-files"),

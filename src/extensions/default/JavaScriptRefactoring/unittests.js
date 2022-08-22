@@ -40,7 +40,16 @@ define(function (require, exports, module) {
         testDoc         = null,
         testEditor;
 
-    describe("Javascript Refactoring ", function () {
+    // Verify if we are running in a CI.
+    var UrlParams = brackets.getModule("utils/UrlParams").UrlParams,
+        params    = new UrlParams();
+
+    // parse URL parameters
+    params.parse();
+
+    var isCI = /true/i.test(params.get("isCI"));
+
+    (isCI ? xdescribe : describe)("Javascript Refactoring ", function () {
 
         function setupTest(path, primePump) { // FIXME: primePump argument ignored even though used below
             DocumentManager.getDocumentForPath(path).done(function (doc) {

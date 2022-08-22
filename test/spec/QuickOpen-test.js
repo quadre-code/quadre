@@ -31,7 +31,16 @@ define(function (require, exports, module) {
         KeyEvent              = require("utils/KeyEvent"),
         SpecRunnerUtils       = require("spec/SpecRunnerUtils");
 
-    describe("QuickOpen", function () {
+    // Verify if we are running in a CI.
+    var UrlParams = require("utils/UrlParams").UrlParams,
+        params    = new UrlParams();
+
+    // parse URL parameters
+    params.parse();
+
+    var isCI = /true/i.test(params.get("isCI"));
+
+    (isCI ? xdescribe : describe)("QuickOpen", function () {
         this.category = "integration";
 
         var testPath = SpecRunnerUtils.getTestPath("/spec/QuickOpen-test-files");

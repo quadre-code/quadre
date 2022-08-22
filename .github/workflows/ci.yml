@@ -39,9 +39,20 @@ jobs:
     - name: Unit Test
       run: npm run test:unit
 
-    # - run: npm run test:integration
-    # - run: npm run test:mainview
-    # - run: npm run test:extension
+    # - name: Integration Test
+    #   uses: GabrielBB/xvfb-action@v1
+    #   with:
+    #     run: npm run test:integration
+
+    # - name: MainView Test
+    #   uses: GabrielBB/xvfb-action@v1
+    #   with:
+    #     run: npm run test:mainview
+
+    # - name: Extension Test
+    #   uses: GabrielBB/xvfb-action@v1
+    #   with:
+    #     run: npm run test:extension
 
     - name: Publish Mac
       if: ${{ fromJSON(env.PUSH_PACKAGES) }}
@@ -84,9 +95,20 @@ jobs:
     - name: Unit Test
       run: DISPLAY=:99.0 npm run test:unit
 
-    # - run: npm run test:integration
-    # - run: npm run test:mainview
-    # - run: npm run test:extension
+    # - name: Integration Test
+    #   uses: GabrielBB/xvfb-action@v1
+    #   with:
+    #     run: npm run test:integration
+
+    # - name: MainView Test
+    #   uses: GabrielBB/xvfb-action@v1
+    #   with:
+    #     run: npm run test:mainview
+
+    # - name: Extension Test
+    #   uses: GabrielBB/xvfb-action@v1
+    #   with:
+    #     run: npm run test:extension
 
     - name: Publish Linux
       if: ${{ fromJSON(env.PUSH_PACKAGES) }}
@@ -123,14 +145,14 @@ jobs:
     - name: Unit Test
       run: npm run test:unit
 
-    # - name: Integration Test
-    #   run: npm run test:integration
+    - name: Integration Test
+      run: npm run test:integration
 
-    # - name: MainView Test
-    #   run: npm run test:mainview
+    - name: MainView Test
+      run: npm run test:mainview
 
-    # - name: Extension Test
-    #   run: npm run test:extension
+    - name: Extension Test
+      run: npm run test:extension
 
     - name: Publish Windows
       if: ${{ fromJSON(env.PUSH_PACKAGES) }}

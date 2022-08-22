@@ -44,7 +44,7 @@ define(function (require, exports, module) {
 
     var isCI = /true/i.test(params.get("isCI"));
 
-    describe("MainViewManager", function () {
+    (isCI ? xdescribe : describe)("MainViewManager", function () {
         this.category = "mainview";
 
         var testPath = SpecRunnerUtils.getTestPath("/spec/MainViewManager-test-files"),

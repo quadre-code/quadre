@@ -48,7 +48,7 @@ define(function (require, exports, module) {
 
     var isCI = /true/i.test(params.get("isCI"));
 
-    describe("DocumentCommandHandlers", function () {
+    (isCI ? xdescribe : describe)("DocumentCommandHandlers", function () {
         this.category = "integration";
 
         var testPath = SpecRunnerUtils.getTestPath("/spec/DocumentCommandHandlers-test-files"),

@@ -30,8 +30,16 @@ define(function (require, exports, module) {
         SpecRunnerUtils     = require("spec/SpecRunnerUtils"),
         LESS_RESULT         = require("text!spec/ExtensionUtils-test-files/less.text");
 
+    // Verify if we are running in a CI.
+    var UrlParams = require("utils/UrlParams").UrlParams,
+        params    = new UrlParams();
 
-    describe("Extension Utils", function () {
+    // parse URL parameters
+    params.parse();
+
+    var isCI = /true/i.test(params.get("isCI"));
+
+    (isCI ? xdescribe : describe)("Extension Utils", function () {
         this.category = "integration";
 
         var testWindow;

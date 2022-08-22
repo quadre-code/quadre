@@ -498,7 +498,7 @@ define(function (require, exports, module) {
 
         });
 
-        describe("Document language updating", function () {
+        (isCI ? xdescribe : describe)("Document language updating", function () {
             this.category = "integration";
 
             (isCI ? xit : it)("should update the document's language when a file is renamed", function () {
