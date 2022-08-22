@@ -46,8 +46,14 @@ define(function (require, exports, module) {
     describe("RemoteFileAdapter", function () {
         var testWindow;
 
-        function createRemoteFile(filePath) {
-            return CommandManager.execute(Commands.FILE_OPEN, {fullPath: filePath});
+        function createRemoteFile(filePath, success) {
+            var promise = CommandManager.execute(Commands.FILE_OPEN, {fullPath: filePath});
+            if (success === false) {
+                waitsForFail(promise, "createRemoteFile", 5000);
+            } else {
+                waitsForDone(promise, "createRemoteFile", 5000);
+            }
+            return promise;
         }
 
         function deleteCurrentRemoteFile() {
@@ -63,7 +69,9 @@ define(function (require, exports, module) {
         }
 
         function closeRemoteFile(filePath) {
-            CommandManager.execute(Commands.FILE_CLOSE, {fullPath: filePath});
+            var promise = CommandManager.execute(Commands.FILE_CLOSE, {fullPath: filePath});
+            waitsForDone(promise, "closeRemoteFile", 5000);
+            return promise;
         }
 
         beforeEach(function () {
@@ -85,69 +93,79 @@ define(function (require, exports, module) {
 
 
         it("Open/close remote https file", function () {
-            createRemoteFile(REMOTE_FILE_PATH).done(function () {
-                expect(MainViewManager.getWorkingSet(MainViewManager.ACTIVE_PANE).length).toEqual(1);
-                closeRemoteFile(REMOTE_FILE_PATH).done(function () {
-                    expect(MainViewManager.getWorkingSet(MainViewManager.ACTIVE_PANE).length).toEqual(0);
+            runs(function () {
+                createRemoteFile(REMOTE_FILE_PATH).done(function () {
+                    expect(MainViewManager.getWorkingSet(MainViewManager.ACTIVE_PANE).length).toEqual(1);
+                    closeRemoteFile(REMOTE_FILE_PATH).done(function () {
+                        expect(MainViewManager.getWorkingSet(MainViewManager.ACTIVE_PANE).length).toEqual(0);
+                    });
                 });
             });
         });
 
         it("Open invalid remote file", function () {
-            spyOn(Dialogs, "showModalDialog").andCallFake(function (dlgClass, title, message, buttons) {
-                console.warn(title, message);
-                return {done: function (callback) { callback(Dialogs.DIALOG_BTN_OK); } };
-            });
-            createRemoteFile(INVALID_REMOTE_FILE_PATH).always(function () {
-                expect(MainViewManager.getWorkingSet(MainViewManager.ACTIVE_PANE).length).toEqual(0);
-                expect(Dialogs.showModalDialog).toHaveBeenCalled();
-                expect(Dialogs.showModalDialog.callCount).toBe(1);
-            });
-        });
-
-        (isCI ? xit : it)("Save remote file", function () {
-            createRemoteFile(REMOTE_FILE_PATH).done(function () {
+            runs(function () {
                 spyOn(Dialogs, "showModalDialog").andCallFake(function (dlgClass, title, message, buttons) {
                     console.warn(title, message);
                     return {done: function (callback) { callback(Dialogs.DIALOG_BTN_OK); } };
                 });
-                saveRemoteFile();
-                expect(Dialogs.showModalDialog).toHaveBeenCalled();
-                expect(Dialogs.showModalDialog.callCount).toBe(1);
-                closeRemoteFile(REMOTE_FILE_PATH).done(function () {
+                createRemoteFile(INVALID_REMOTE_FILE_PATH, false).always(function () {
                     expect(MainViewManager.getWorkingSet(MainViewManager.ACTIVE_PANE).length).toEqual(0);
+                    expect(Dialogs.showModalDialog).toHaveBeenCalled();
+                    expect(Dialogs.showModalDialog.callCount).toBe(1);
+                });
+            });
+        });
+
+        (isCI ? xit : it)("Save remote file", function () {
+            runs(function () {
+                createRemoteFile(REMOTE_FILE_PATH).done(function () {
+                    spyOn(Dialogs, "showModalDialog").andCallFake(function (dlgClass, title, message, buttons) {
+                        console.warn(title, message);
+                        return {done: function (callback) { callback(Dialogs.DIALOG_BTN_OK); } };
+                    });
+                    saveRemoteFile();
+                    expect(Dialogs.showModalDialog).toHaveBeenCalled();
+                    expect(Dialogs.showModalDialog.callCount).toBe(1);
+                    closeRemoteFile(REMOTE_FILE_PATH).done(function () {
+                        expect(MainViewManager.getWorkingSet(MainViewManager.ACTIVE_PANE).length).toEqual(0);
+                    });
                 });
             });
         });
 
         (isCI ? xit : it)("Delete remote file", function () {
-            createRemoteFile(REMOTE_FILE_PATH).done(function () {
-                expect(MainViewManager.getWorkingSet(MainViewManager.ACTIVE_PANE).length).toEqual(1);
-                spyOn(Dialogs, "showModalDialog").andCallFake(function (dlgClass, title, message, buttons) {
-                    console.warn(title, message);
-                    return {done: function (callback) { callback(Dialogs.DIALOG_BTN_OK); } };
-                });
-                deleteCurrentRemoteFile();
-                expect(Dialogs.showModalDialog).toHaveBeenCalled();
-                expect(Dialogs.showModalDialog.callCount).toBe(1);
-                expect(MainViewManager.getWorkingSet(MainViewManager.ACTIVE_PANE).length).toEqual(1);
-                closeRemoteFile(REMOTE_FILE_PATH).done(function () {
-                    expect(MainViewManager.getWorkingSet(MainViewManager.ACTIVE_PANE).length).toEqual(0);
+            runs(function () {
+                createRemoteFile(REMOTE_FILE_PATH).done(function () {
+                    expect(MainViewManager.getWorkingSet(MainViewManager.ACTIVE_PANE).length).toEqual(1);
+                    spyOn(Dialogs, "showModalDialog").andCallFake(function (dlgClass, title, message, buttons) {
+                        console.warn(title, message);
+                        return {done: function (callback) { callback(Dialogs.DIALOG_BTN_OK); } };
+                    });
+                    deleteCurrentRemoteFile();
+                    expect(Dialogs.showModalDialog).toHaveBeenCalled();
+                    expect(Dialogs.showModalDialog.callCount).toBe(1);
+                    expect(MainViewManager.getWorkingSet(MainViewManager.ACTIVE_PANE).length).toEqual(1);
+                    closeRemoteFile(REMOTE_FILE_PATH).done(function () {
+                        expect(MainViewManager.getWorkingSet(MainViewManager.ACTIVE_PANE).length).toEqual(0);
+                    });
                 });
             });
         });
 
         (isCI ? xit : it)("Rename remote file", function () {
-            createRemoteFile(REMOTE_FILE_PATH).done(function () {
-                expect(MainViewManager.getWorkingSet(MainViewManager.ACTIVE_PANE).length).toEqual(1);
-                spyOn(Dialogs, "showModalDialog").andCallFake(function (dlgClass, title, message, buttons) {
-                    console.warn(title, message);
-                    return {done: function (callback) { callback(Dialogs.DIALOG_BTN_OK); } };
+            runs(function () {
+                createRemoteFile(REMOTE_FILE_PATH).done(function () {
+                    expect(MainViewManager.getWorkingSet(MainViewManager.ACTIVE_PANE).length).toEqual(1);
+                    spyOn(Dialogs, "showModalDialog").andCallFake(function (dlgClass, title, message, buttons) {
+                        console.warn(title, message);
+                        return {done: function (callback) { callback(Dialogs.DIALOG_BTN_OK); } };
+                    });
+                    renameRemoteFile();
+                    expect(Dialogs.showModalDialog).toHaveBeenCalled();
+                    expect(Dialogs.showModalDialog.callCount).toBe(1);
+                    expect(MainViewManager.getWorkingSet(MainViewManager.ACTIVE_PANE).length).toEqual(1);
                 });
-                renameRemoteFile();
-                expect(Dialogs.showModalDialog).toHaveBeenCalled();
-                expect(Dialogs.showModalDialog.callCount).toBe(1);
-                expect(MainViewManager.getWorkingSet(MainViewManager.ACTIVE_PANE).length).toEqual(1);
             });
         });
     });

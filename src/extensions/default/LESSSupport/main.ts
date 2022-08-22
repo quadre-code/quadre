@@ -22,22 +22,21 @@
  *
  */
 
-define(function (require, exports, module) {
-    "use strict";
+const LanguageManager = brackets.getModule("language/LanguageManager");
 
-    var LanguageManager = brackets.getModule("language/LanguageManager");
-
-    LanguageManager.defineLanguage("less", {
-        name: "LESS",
-        mode: ["css", "text/x-less"],
-        fileExtensions: ["less"],
-        blockComment: ["/*", "*/"],
-        lineComment: ["//"]
-    }).done(function (lessLanguage) {
-        // Hack to make it so that when we see a "css" mode inside a LESS file,
-        // we know that it's really LESS. Ideally we would have a way to get the
-        // actual mime type from CodeMirror, so we know what mode configuration is
-        // in use (see #7345).
-        lessLanguage._setLanguageForMode("css", lessLanguage);
-    });
+LanguageManager.defineLanguage("less", {
+    name: "LESS",
+    mode: ["css", "text/x-less"],
+    fileExtensions: ["less"],
+    blockComment: ["/*", "*/"],
+    lineComment: ["//"]
+}).done(function (lessLanguage) {
+    // Hack to make it so that when we see a "css" mode inside a LESS file,
+    // we know that it's really LESS. Ideally we would have a way to get the
+    // actual mime type from CodeMirror, so we know what mode configuration is
+    // in use (see #7345).
+    lessLanguage!._setLanguageForMode("css", lessLanguage);
 });
+
+// See https://github.com/Microsoft/TypeScript/issues/20943
+export {};
