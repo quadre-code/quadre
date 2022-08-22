@@ -356,7 +356,7 @@ export function getDelimitedPerfData() {
  * Returns the measured value for the given measurement name.
  * @param {Object} id The measurement to retreive.
  */
-export function getData(id) {
+export function getData(id?) {
     if (!id) {
         return perfData;
     }

@@ -22,91 +22,88 @@
  *
  */
 
-define(function (require, exports, module) {
-    "use strict";
+/// <amd-dependency path="module" name="module"/>
 
-    var AppInit         = brackets.getModule("utils/AppInit"),
-        FileSystem      = brackets.getModule("filesystem/FileSystem"),
-        QuickOpen       = brackets.getModule("search/QuickOpen"),
-        PathUtils       = brackets.getModule("thirdparty/path-utils/path-utils"),
-        CommandManager  = brackets.getModule("command/CommandManager"),
-        Commands        = brackets.getModule("command/Commands"),
-        ExtensionUtils = brackets.getModule("utils/ExtensionUtils"),
-        WorkingSetView = brackets.getModule("project/WorkingSetView"),
-        MainViewManager = brackets.getModule("view/MainViewManager"),
-        Menus           = brackets.getModule("command/Menus"),
-        RemoteFile      = require("RemoteFile");
+const AppInit         = brackets.getModule("utils/AppInit");
+const FileSystem      = brackets.getModule("filesystem/FileSystem");
+const QuickOpen       = brackets.getModule("search/QuickOpen");
+const PathUtils       = brackets.getModule("thirdparty/path-utils/path-utils");
+const CommandManager  = brackets.getModule("command/CommandManager");
+const Commands        = brackets.getModule("command/Commands");
+const ExtensionUtils = brackets.getModule("utils/ExtensionUtils");
+const WorkingSetView = brackets.getModule("project/WorkingSetView");
+const MainViewManager = brackets.getModule("view/MainViewManager");
+const Menus           = brackets.getModule("command/Menus");
+import RemoteFile     = require("RemoteFile");
 
-    var HTTP_PROTOCOL = "http:",
-        HTTPS_PROTOCOL = "https:";
+const HTTP_PROTOCOL = "http:";
+const HTTPS_PROTOCOL = "https:";
 
-    ExtensionUtils.loadStyleSheet(module, "styles.css");
+ExtensionUtils.loadStyleSheet(module, "styles.css");
 
-    function protocolClassProvider(data) {
-        if (data.fullPath.startsWith("http://")) {
-            return "http";
-        }
-
-        if (data.fullPath.startsWith("https://")) {
-            return "https";
-        }
-
-        return "";
+function protocolClassProvider(data) {
+    if (data.fullPath.startsWith("http://")) {
+        return "http";
     }
 
-    /**
-     * Disable context menus which are not useful for remote file
-     */
-    function _setMenuItemsVisible() {
-        var file = MainViewManager.getCurrentlyViewedFile(MainViewManager.ACTIVE_PANE),
-            cMenuItems = [Commands.FILE_SAVE, Commands.FILE_RENAME, Commands.NAVIGATE_SHOW_IN_FILE_TREE, Commands.NAVIGATE_SHOW_IN_OS],
-            // Enable menu options when no file is present in active pane
-            enable = !file || (file.constructor.name !== "RemoteFile");
-
-        // Enable or disable commands based on whether the file is a remoteFile or not.
-        cMenuItems.forEach(function (item) {
-            CommandManager.get(item).setEnabled(enable);
-        });
+    if (data.fullPath.startsWith("https://")) {
+        return "https";
     }
 
-    AppInit.htmlReady(function () {
-        Menus.getContextMenu(Menus.ContextMenuIds.WORKING_SET_CONTEXT_MENU).on("beforeContextMenuOpen", _setMenuItemsVisible);
-        MainViewManager.on("currentFileChange", _setMenuItemsVisible);
+    return "";
+}
 
-        var protocolAdapter = {
-            priority: 0, // Default priority
-            fileImpl: RemoteFile,
-            canRead: function (filePath) {
-                return true; // Always claim true, we are the default adpaters
-            }
-        };
+/**
+ * Disable context menus which are not useful for remote file
+ */
+function _setMenuItemsVisible() {
+    const file = MainViewManager.getCurrentlyViewedFile(MainViewManager.ACTIVE_PANE);
+    const cMenuItems = [Commands.FILE_SAVE, Commands.FILE_RENAME, Commands.NAVIGATE_SHOW_IN_FILE_TREE, Commands.NAVIGATE_SHOW_IN_OS];
+    // Enable menu options when no file is present in active pane
+    const enable = !file || (file.constructor.name !== "RemoteFile");
 
-        // Register the custom object as HTTP and HTTPS protocol adapter
-        FileSystem.registerProtocolAdapter(HTTP_PROTOCOL, protocolAdapter);
-        FileSystem.registerProtocolAdapter(HTTPS_PROTOCOL, protocolAdapter);
-
-        // Register as quick open plugin for file URI's having HTTP:|HTTPS: protocol
-        QuickOpen.addQuickOpenPlugin(
-            {
-                name: "Remote file URI input",
-                languageIds: [], // for all language modes
-                search: function () {
-                    return $.Deferred().resolve([arguments[0]]);
-                },
-                match: function (query) {
-                    var protocol = PathUtils.parseUrl(query).protocol;
-                    return [HTTP_PROTOCOL, HTTPS_PROTOCOL].indexOf(protocol) !== -1;
-                },
-                itemFocus: function (query) {
-                    // Do nothing (no op)
-                },
-                itemSelect: function () {
-                    CommandManager.execute(Commands.FILE_OPEN, {fullPath: arguments[0]});
-                }
-            }
-        );
-
-        WorkingSetView.addClassProvider(protocolClassProvider);
+    // Enable or disable commands based on whether the file is a remoteFile or not.
+    cMenuItems.forEach(function (item) {
+        CommandManager.get(item).setEnabled(enable);
     });
+}
 
+AppInit.htmlReady(function () {
+    Menus.getContextMenu(Menus.ContextMenuIds.WORKING_SET_CONTEXT_MENU).on("beforeContextMenuOpen", _setMenuItemsVisible);
+    MainViewManager.on("currentFileChange", _setMenuItemsVisible);
+
+    const protocolAdapter = {
+        priority: 0, // Default priority
+        fileImpl: RemoteFile,
+        canRead: function (filePath) {
+            return true; // Always claim true, we are the default adpaters
+        }
+    };
+
+    // Register the custom object as HTTP and HTTPS protocol adapter
+    FileSystem.registerProtocolAdapter(HTTP_PROTOCOL, protocolAdapter);
+    FileSystem.registerProtocolAdapter(HTTPS_PROTOCOL, protocolAdapter);
+
+    // Register as quick open plugin for file URI's having HTTP:|HTTPS: protocol
+    QuickOpen.addQuickOpenPlugin(
+        {
+            name: "Remote file URI input",
+            languageIds: [], // for all language modes
+            search: function () {
+                return $.Deferred().resolve([arguments[0]]);
+            },
+            match: function (query) {
+                const protocol = PathUtils.parseUrl(query).protocol;
+                return [HTTP_PROTOCOL, HTTPS_PROTOCOL].indexOf(protocol) !== -1;
+            },
+            itemFocus: function (query) {
+                // Do nothing (no op)
+            },
+            itemSelect: function () {
+                CommandManager.execute(Commands.FILE_OPEN, {fullPath: arguments[0]});
+            }
+        }
+    );
+
+    WorkingSetView.addClassProvider(protocolClassProvider);
 });

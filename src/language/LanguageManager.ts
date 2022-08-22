@@ -935,8 +935,8 @@ export class Language {
  *
  * @return {$.Promise} A promise object that will be resolved with a Language object
  */
-export function defineLanguage(id, definition) {
-    const result = $.Deferred();
+export function defineLanguage(id, definition): JQueryPromise<Language> {
+    const result = $.Deferred<Language>();
 
     if (_pendingLanguages[id]) {
         result.reject("Language \"" + id + "\" is waiting to be resolved.");

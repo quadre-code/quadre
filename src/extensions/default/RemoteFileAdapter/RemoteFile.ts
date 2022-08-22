@@ -22,53 +22,85 @@
  *
  */
 
-define(function (require, exports, module) {
-    "use strict";
+const FileSystemError = brackets.getModule("filesystem/FileSystemError");
+const FileSystemStats = brackets.getModule("filesystem/FileSystemStats");
 
-    var FileSystemError = brackets.getModule("filesystem/FileSystemError"),
-        FileSystemStats = brackets.getModule("filesystem/FileSystemStats");
+const SESSION_START_TIME = new Date();
 
-    var SESSION_START_TIME = new Date();
+/**
+ * Create a new file stat. See the FileSystemStats class for more details.
+ *
+ * @param {!string} fullPath The full path for this File.
+ * @return {FileSystemStats} stats.
+ */
+function _getStats(uri) {
+    return new FileSystemStats({
+        isFile: true,
+        mtime: SESSION_START_TIME.toISOString(),
+        size: 0,
+        realPath: uri,
+        hash: uri
+    });
+}
 
+function _getFileName(filePath) {
+    let fileName = filePath.split("/").pop();
+
+    if (!fileName.trim()) {
+        fileName = filePath.trim().slice(0, -1);
+        fileName = fileName.split("/").pop();
+    }
+
+    return fileName;
+}
+
+/**
+ * Model for a RemoteFile.
+ *
+ * This class should *not* be instantiated directly. Use FileSystem.getFileForPath
+ *
+ * See the FileSystem class for more details.
+ */
+class RemoteFile {
     /**
-     * Create a new file stat. See the FileSystemStats class for more details.
-     *
-     * @param {!string} fullPath The full path for this File.
-     * @return {FileSystemStats} stats.
+     * Cached contents of this file. This value is nullable but should NOT be undefined.
+     * @private
+     * @type {?string}
      */
-    function _getStats(uri) {
-        return new FileSystemStats({
-            isFile: true,
-            mtime: SESSION_START_TIME.toISOString(),
-            size: 0,
-            realPath: uri,
-            hash: uri
-        });
-    }
-
-    function _getFileName(filePath) {
-        var fileName = filePath.split("/").pop();
-
-        if (!fileName.trim()) {
-            fileName = filePath.trim().slice(0, -1);
-            fileName = fileName.split("/").pop();
-        }
-
-        return fileName;
-    }
+    private _contents = null;
 
     /**
-     * Model for a RemoteFile.
-     *
-     * This class should *not* be instantiated directly. Use FileSystem.getFileForPath
-     *
-     * See the FileSystem class for more details.
-     *
+     * @private
+     * @type {?string}
+     */
+    private _encoding = "utf8";
+
+    /**
+     * @private
+     * @type {?bool}
+     */
+    // @ts-ignore
+    private _preserveBOM = false;
+
+    private _isFile: boolean;
+    private _isDirectory: boolean;
+    public readOnly: boolean;
+    private _path: string;
+    private _stat;
+    private _id: string;
+    private _name: string;
+    private _fileSystem;
+    public donotWatch: boolean;
+    public protocol;
+    public encodedPath: string;
+    private _parentPath: string;
+
+    /**
      * @constructor
      * @param {!string} fullPath The full path for this File.
      * @param {!FileSystem} fileSystem The file system associated with this File.
      */
-    function RemoteFile(protocol, fullPath, fileSystem) {
+    constructor(protocol, fullPath, fileSystem) {
         this._isFile = true;
         this._isDirectory = false;
         this.readOnly = true;
@@ -83,43 +115,33 @@ define(function (require, exports, module) {
     }
 
     // Add "fullPath", "name", "parent", "id", "isFile" and "isDirectory" getters
-    Object.defineProperties(RemoteFile.prototype, {
-        "fullPath": {
-            get: function () { return this._path; },
-            set: function () { throw new Error("Cannot set fullPath"); }
-        },
-        "name": {
-            get: function () { return this._name; },
-            set: function () { throw new Error("Cannot set name"); }
-        },
-        "parentPath": {
-            get: function () { return this._parentPath; },
-            set: function () { throw new Error("Cannot set parentPath"); }
-        },
-        "id": {
-            get: function () { return this._id; },
-            set: function () { throw new Error("Cannot set id"); }
-        },
-        "isFile": {
-            get: function () { return this._isFile; },
-            set: function () { throw new Error("Cannot set isFile"); }
-        },
-        "isDirectory": {
-            get: function () { return this._isDirectory; },
-            set: function () { throw new Error("Cannot set isDirectory"); }
-        },
-        "_impl": {
-            get: function () { return this._fileSystem._impl; },
-            set: function () { throw new Error("Cannot set _impl"); }
-        }
-    });
+    get fullPath() { return this._path; }
+    set fullPath(value: string) { throw new Error("Cannot set fullPath"); }
+
+    get name() { return this._name; }
+    set name(value: string) { throw new Error("Cannot set name"); }
+
+    get parentPath() { return this._parentPath; }
+    set parentPath(value: string) { throw new Error("Cannot set parentPath"); }
+
+    get id() { return this._id; }
+    set id(value: string) { throw new Error("Cannot set id"); }
+
+    get isFile() { return this._isFile; }
+    set isFile(value: boolean) { throw new Error("Cannot set isFile"); }
+
+    get isDirectory() { return this._isDirectory; }
+    set isDirectory(value: boolean) { throw new Error("Cannot set isDirectory"); }
+
+    get _impl() { return this._fileSystem._impl; }
+    set _impl(value: string) { throw new Error("Cannot set _impl"); }
 
     /**
      * Helpful toString for debugging and equality check purposes
      */
-    RemoteFile.prototype.toString = function () {
+    public toString() {
         return "[RemoteFile " + this._path + "]";
-    };
+    }
 
     /**
      * Returns the stats for the remote entry.
@@ -127,45 +149,23 @@ define(function (require, exports, module) {
      * @param {function (?string, FileSystemStats=)} callback Callback with a
      *      FileSystemError string or FileSystemStats object.
      */
-    RemoteFile.prototype.stat = function (callback) {
+    public stat(callback) {
         if (this._stat) {
             callback(null, this._stat);
         } else {
             callback(FileSystemError.NOT_FOUND);
         }
-    };
-
-    RemoteFile.prototype.constructor = RemoteFile;
-
-    /**
-     * Cached contents of this file. This value is nullable but should NOT be undefined.
-     * @private
-     * @type {?string}
-     */
-    RemoteFile.prototype._contents = null;
-
-
-    /**
-     * @private
-     * @type {?string}
-     */
-    RemoteFile.prototype._encoding = "utf8";
-
-    /**
-     * @private
-     * @type {?bool}
-     */
-    RemoteFile.prototype._preserveBOM = false;
-
+    }
 
     /**
      * Clear any cached data for this file. Note that this explicitly does NOT
      * clear the file's hash.
      * @private
      */
-    RemoteFile.prototype._clearCachedData = function () {
+    // @ts-ignore
+    private _clearCachedData() {
         // no-op
-    };
+    }
 
     /**
      * Reads a remote file.
@@ -174,7 +174,7 @@ define(function (require, exports, module) {
      * @param {function (?string, string=, FileSystemStats=)} callback Callback that is passed the
      *              FileSystemError string or the file's contents and its stats.
      */
-    RemoteFile.prototype.read = function (options, callback) {
+    public read(options, callback) {
         if (typeof (options) === "function") {
             callback = options;
         }
@@ -185,7 +185,7 @@ define(function (require, exports, module) {
             return;
         }
 
-        var self = this;
+        const self = this;
         $.ajax({
             url: this.fullPath
         })
@@ -196,7 +196,7 @@ define(function (require, exports, module) {
             .fail(function (e) {
                 callback(FileSystemError.NOT_FOUND);
             });
-    };
+    }
 
     /**
      * Write a file.
@@ -206,29 +206,29 @@ define(function (require, exports, module) {
      * @param {function (?string, FileSystemStats=)=} callback Callback that is passed the
      *              FileSystemError string or the file's new stats.
      */
-    RemoteFile.prototype.write = function (data, encoding, callback) {
+    public write(data, encoding, callback) {
         if (typeof (encoding) === "function") {
             callback = encoding;
         }
         callback(FileSystemError.NOT_FOUND);
-    };
+    }
 
-    RemoteFile.prototype.exists = function (callback) {
+    public exists(callback) {
         callback(null, true);
-    };
+    }
 
-    RemoteFile.prototype.unlink = function (callback) {
+    public unlink(callback) {
         callback(FileSystemError.NOT_FOUND);
-    };
+    }
 
-    RemoteFile.prototype.rename = function (newName, callback) {
+    public rename(newName, callback) {
         callback(FileSystemError.NOT_FOUND);
-    };
+    }
 
-    RemoteFile.prototype.moveToTrash = function (callback) {
+    public moveToTrash(callback) {
         callback(FileSystemError.NOT_FOUND);
-    };
+    }
+}
 
-    // Export this class
-    module.exports = RemoteFile;
-});
+// Export this class
+export = RemoteFile;

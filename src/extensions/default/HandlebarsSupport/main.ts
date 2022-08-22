@@ -22,31 +22,30 @@
  *
  */
 
-define(function (require, exports, module) {
-    "use strict";
+const LanguageManager = brackets.getModule("language/LanguageManager");
+const CodeMirror      = brackets.getModule("thirdparty/CodeMirror/lib/codemirror");
 
-    var LanguageManager = brackets.getModule("language/LanguageManager"),
-        CodeMirror      = brackets.getModule("thirdparty/CodeMirror/lib/codemirror");
+brackets.getModule(["thirdparty/CodeMirror/mode/handlebars/handlebars"], function () {
+    CodeMirror.defineMode("htmlhandlebars", function (config) {
+        return (CodeMirror as any).multiplexingMode(
+            CodeMirror.getMode(config, "text/html"),
+            {
+                open: "{{",
+                close: "}}",
+                mode: CodeMirror.getMode(config, "handlebars"),
+                parseDelimiters: true
+            }
+        );
+    });
+    CodeMirror.defineMIME("text/x-handlebars-template", "htmlhandlebars");
 
-    brackets.getModule(["thirdparty/CodeMirror/mode/handlebars/handlebars"], function () {
-        CodeMirror.defineMode("htmlhandlebars", function (config) {
-            return CodeMirror.multiplexingMode(
-                CodeMirror.getMode(config, "text/html"),
-                {
-                    open: "{{",
-                    close: "}}",
-                    mode: CodeMirror.getMode(config, "handlebars"),
-                    parseDelimiters: true
-                }
-            );
-        });
-        CodeMirror.defineMIME("text/x-handlebars-template", "htmlhandlebars");
-
-        LanguageManager.defineLanguage("handlebars", {
-            name: "Handlebars",
-            mode: ["htmlhandlebars", "text/x-handlebars-template"],
-            fileExtensions: ["hbs", "handlebars"],
-            blockComment: ["{{!", "}}"]
-        });
+    LanguageManager.defineLanguage("handlebars", {
+        name: "Handlebars",
+        mode: ["htmlhandlebars", "text/x-handlebars-template"],
+        fileExtensions: ["hbs", "handlebars"],
+        blockComment: ["{{!", "}}"]
     });
 });
+
+// See https://github.com/Microsoft/TypeScript/issues/20943
+export {};
