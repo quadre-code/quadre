@@ -22,8 +22,6 @@
  *
  */
 
-/*jslint regexp: true */
-
 // Load dependent modules
 import * as AppInit from "utils/AppInit";
 import * as CommandManager from "command/CommandManager";
@@ -285,7 +283,7 @@ function handleDirtyChange(event, changedDoc) {
  * @param {!FileSystemError} name
  * @return {!Dialog}
  */
-export function showFileOpenError(name, path) {
+export function showFileOpenError(name: FileSystemError, path: string): Dialogs.Dialog {
     return Dialogs.showModalDialog(
         DefaultDialogs.DIALOG_ID_ERROR,
         Strings.ERROR_OPENING_FILE_TITLE,
@@ -423,7 +421,7 @@ function _doOpenWithOptionalPath(fullPath, silent, paneId, options) {
                         .done(function (file) {
                             _defaultOpenDialogFullPath =
                                 FileUtils.getDirectoryPath(
-                                    MainViewManager.getCurrentlyViewedPath(paneId)
+                                    MainViewManager.getCurrentlyViewedPath(paneId)!
                                 );
                         })
                         // Send the resulting document that was opened

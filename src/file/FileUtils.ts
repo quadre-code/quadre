@@ -22,14 +22,16 @@
  *
  */
 
-/*jslint regexp: true */
-
 /**
  * Set of utilities for working with files and text content.
  */
 
+import type { Dialog } from "widgets/Dialogs";
+import type * as TDocumentCommandHandlers from "document/DocumentCommandHandlers";
+
 import "utils/Global";
 
+import File = require("filesystem/File");
 import FileSystemError = require("filesystem/FileSystemError");
 import * as DeprecationWarning from "utils/DeprecationWarning";
 import * as LanguageManager from "language/LanguageManager";
@@ -38,7 +40,7 @@ import * as Strings from "strings";
 import * as StringUtils from "utils/StringUtils";
 
 // These will be loaded asynchronously
-let DocumentCommandHandlers;
+let DocumentCommandHandlers: typeof TDocumentCommandHandlers;
 let LiveDevelopmentUtils;
 
 /**
@@ -102,8 +104,8 @@ export function readAsText(file): JQueryPromise<string> {
  * @return {$.Promise} a jQuery promise that will be resolved when
  * file writing completes, or rejected with a FileSystemError string constant.
  */
-export function writeText(file, text, allowBlindWrite?) {
-    const result = $.Deferred();
+export function writeText(file: File, text: string, allowBlindWrite?: boolean): JQueryPromise<void> {
+    const result = $.Deferred<void>();
     const options: any = {};
 
     if (allowBlindWrite) {
@@ -161,7 +163,7 @@ export function sniffLineEndings(text): LineEndings | null {
  * @param {null|LINE_ENDINGS_CRLF|LINE_ENDINGS_LF} lineEndings
  * @return {string}
  */
-export function translateLineEndings(text, lineEndings) {
+export function translateLineEndings(text: string, lineEndings: LineEndings | null): string {
     if (lineEndings !== LINE_ENDINGS_CRLF && lineEndings !== LINE_ENDINGS_LF) {
         lineEndings = getPlatformLineEndings();
     }
@@ -176,7 +178,7 @@ export function translateLineEndings(text, lineEndings) {
  * @param {!FileSystemError} name
  * @return {!string} User-friendly, localized error message
  */
-export function getFileErrorString(name) {
+export function getFileErrorString(name: FileSystemError): string {
     // There are a few error codes that we have specific error messages for. The rest are
     // displayed with a generic "(error N)" message.
     let result;
@@ -185,6 +187,7 @@ export function getFileErrorString(name) {
         result = Strings.NOT_FOUND_ERR;
     } else if (name === FileSystemError.NOT_READABLE) {
         result = Strings.NOT_READABLE_ERR;
+    // @ts-ignore
     } else if (name === FileSystemError.NOT_WRITABLE) {
         result = Strings.NO_MODIFICATION_ALLOWED_ERR_FILE;
     } else if (name === FileSystemError.CONTENTS_MODIFIED) {
@@ -213,7 +216,7 @@ export function getFileErrorString(name) {
  * @param {!FileSystemError} name
  * @return {!Dialog}
  */
-export function showFileOpenError(name, path) {
+export function showFileOpenError(name: FileSystemError, path): Dialog {
     DeprecationWarning.deprecationWarning("FileUtils.showFileOpenError() has been deprecated. " +
                                           "Please use DocumentCommandHandlers.showFileOpenError() instead.");
     return DocumentCommandHandlers.showFileOpenError(name, path);
@@ -223,7 +226,7 @@ export function showFileOpenError(name, path) {
  * Creates an HTML string for a list of files to be reported on, suitable for use in a dialog.
  * @param {Array.<string>} Array of filenames or paths to display.
  */
-export function makeDialogFileList(paths) {
+export function makeDialogFileList(paths: Array<string>): string {
     let result = "<ul class='dialog-list'>";
     paths.forEach(function (path) {
         result += "<li><span class='dialog-filename'>";
@@ -242,7 +245,7 @@ export function makeDialogFileList(paths) {
  * @param {!string} path
  * @return {string}
  */
-export function convertToNativePath(path) {
+export function convertToNativePath(path: string): string {
     path = unescape(path);
     if (path.indexOf(":") !== -1 && path[0] === "/") {
         return path.substr(1);
@@ -260,7 +263,7 @@ export function convertToNativePath(path) {
  * @param {string} path A native-style path.
  * @return {string} A Unix-style path.
  */
-export function convertWindowsPathToUnixPath(path) {
+export function convertWindowsPathToUnixPath(path: string): string {
     if (brackets.platform === "win") {
         path = path.replace(/\\/g, "/");
     }
@@ -275,7 +278,7 @@ export function convertWindowsPathToUnixPath(path) {
  * @param {string} path
  * @return {string}
  */
-export function stripTrailingSlash(path) {
+export function stripTrailingSlash(path): string {
     if (path && path[path.length - 1] === "/") {
         return path.slice(0, -1);
     }
@@ -289,7 +292,7 @@ export function stripTrailingSlash(path) {
  * @return {string} Returns the base name of a file or the name of a
  * directory
  */
-export function getBaseName(fullPath) {
+export function getBaseName(fullPath: string): string {
     const lastSlash = fullPath.lastIndexOf("/");
     if (lastSlash === fullPath.length - 1) {  // directory: exclude trailing "/" too
         return fullPath.slice(fullPath.lastIndexOf("/", fullPath.length - 2) + 1, -1);
@@ -306,7 +309,7 @@ export function getBaseName(fullPath) {
  * WARNING: unlike most paths in Brackets, this path EXCLUDES the trailing "/".
  * @return {string}
  */
-export function getNativeBracketsDirectoryPath() {
+export function getNativeBracketsDirectoryPath(): string {
     const pathname = decodeURI(window.location.pathname);
     const directory = pathname.substr(0, pathname.lastIndexOf("/"));
     return convertToNativePath(directory);
@@ -320,7 +323,7 @@ export function getNativeBracketsDirectoryPath() {
  * WARNING: unlike most paths in Brackets, this path EXCLUDES the trailing "/".
  * @return {string}
  */
-export function getNativeModuleDirectoryPath(module) {
+export function getNativeModuleDirectoryPath(module): string {
     let path;
 
     if (module && module.uri) {
@@ -341,7 +344,7 @@ export function getNativeModuleDirectoryPath(module) {
  * @return {string} Returns the extension of a filename or empty string if
  * the argument is a directory or a filename with no extension
  */
-export function getFileExtension(fullPath) {
+export function getFileExtension(fullPath): string {
     const baseName = getBaseName(fullPath);
     const idx      = baseName.lastIndexOf(".");
 
@@ -364,7 +367,7 @@ export function getFileExtension(fullPath) {
  * @return {string} Returns the extension of a filename or empty string if
  * the argument is a directory or a filename with no extension
  */
-export function getSmartFileExtension(fullPath) {
+export function getSmartFileExtension(fullPath: string): string {
     DeprecationWarning.deprecationWarning("FileUtils.getSmartFileExtension() has been deprecated. " +
                                           "Please use LanguageManager.getCompoundFileExtension() instead.");
     return LanguageManager.getCompoundFileExtension(fullPath);
@@ -382,7 +385,7 @@ export function getSmartFileExtension(fullPath) {
  * @param {string} filename Full path to the file for which we are computing a relative path
  * @return {string} relative path
  */
-export function getRelativeFilename(basePath, filename) {
+export function getRelativeFilename(basePath: string, filename: string): string | undefined {
     if (!filename || filename.substr(0, basePath.length) !== basePath) {
         return;
     }
@@ -395,7 +398,7 @@ export function getRelativeFilename(basePath, filename) {
  * @param {string} filePath could be a path, a file name or just a file extension
  * @return {boolean} Returns true if fileExt is in the list
  */
-export function isStaticHtmlFileExt(filePath) {
+export function isStaticHtmlFileExt(filePath: string): boolean {
     DeprecationWarning.deprecationWarning("FileUtils.isStaticHtmlFileExt() has been deprecated. " +
                                           "Please use LiveDevelopmentUtils.isStaticHtmlFileExt() instead.");
     return LiveDevelopmentUtils.isStaticHtmlFileExt(filePath);
@@ -407,7 +410,7 @@ export function isStaticHtmlFileExt(filePath) {
  * @return {string} Returns the path to the parent directory of a file or the path of a directory,
  *                  including trailing "/"
  */
-export function getDirectoryPath(fullPath) {
+export function getDirectoryPath(fullPath: string): string {
     return fullPath.substr(0, fullPath.lastIndexOf("/") + 1);
 }
 
@@ -418,7 +421,7 @@ export function getDirectoryPath(fullPath) {
  * @param {string} fullPath full path to a file or directory
  * @return {string} Path of containing folder (including trailing "/"); or "" if path was the root
  */
-export function getParentPath(fullPath) {
+export function getParentPath(fullPath: string): string {
     if (fullPath === "/") {
         return "";
     }
@@ -430,7 +433,7 @@ export function getParentPath(fullPath) {
  * @param {string} filename File name of a file or directory, without preceding path
  * @return {string} Returns the file name without the extension
  */
-export function getFilenameWithoutExtension(filename) {
+export function getFilenameWithoutExtension(filename: string): string {
     const index = filename.lastIndexOf(".");
     return index === -1 ? filename : filename.slice(0, index);
 }
@@ -440,10 +443,10 @@ export function getFilenameWithoutExtension(filename) {
  * OS-specific helper for `compareFilenames()`
  * @return {Function} The OS-specific compare function
  */
-const _cmpNames = (function () {
+const _cmpNames = (function (): (filename1, filename2, lang) => number {
     if (brackets.platform === "win") {
         // Use this function on Windows
-        return function (filename1, filename2, lang) {
+        return function (filename1, filename2, lang): number {
             const f1 = getFilenameWithoutExtension(filename1);
             const f2 = getFilenameWithoutExtension(filename2);
             return f1.localeCompare(f2, lang, {numeric: true});
@@ -451,7 +454,7 @@ const _cmpNames = (function () {
     }
 
     // Use this function other OSes
-    return function (filename1, filename2, lang) {
+    return function (filename1, filename2, lang): number {
         return filename1.localeCompare(filename2, lang, {numeric: true});
     };
 }());
@@ -464,19 +467,19 @@ const _cmpNames = (function () {
  * @param {boolean} extFirst If true it compares the extensions first and then the file names.
  * @return {number} The result of the compare function
  */
-export function compareFilenames(filename1, filename2, extFirst = false) {
+export function compareFilenames(filename1, filename2, extFirst = false): number {
     const lang = brackets.getLocale();
 
     filename1 = filename1.toLocaleLowerCase();
     filename2 = filename2.toLocaleLowerCase();
 
-    function cmpExt() {
+    function cmpExt(): number {
         const ext1 = getFileExtension(filename1);
         const ext2 = getFileExtension(filename2);
         return ext1.localeCompare(ext2, lang, {numeric: true});
     }
 
-    function cmpNames() {
+    function cmpNames(): number {
         return _cmpNames(filename1, filename2, lang);
     }
 
@@ -492,7 +495,7 @@ export function compareFilenames(filename1, filename2, extFirst = false) {
  * @return {number} -1, 0, or 1 depending on whether path1 is less than, equal to, or greater than
  *     path2 according to this ordering.
  */
-export function comparePaths(path1, path2) {
+export function comparePaths(path1: string, path2: string): number {
     let entryName1;
     let entryName2;
     const pathParts1 = path1.split("/");
@@ -527,7 +530,7 @@ export function comparePaths(path1, path2) {
  * @return {string} URI-encoded version suitable for appending to 'file:///`. It's not safe to use encodeURI()
  *     directly since it doesn't escape chars like "#".
  */
-export function encodeFilePath(path) {
+export function encodeFilePath(path: string): string {
     let pathArray = path.split("/");
     pathArray = pathArray.map(function (subPath) {
         return encodeURIComponent(subPath);
