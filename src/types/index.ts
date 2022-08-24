@@ -7,6 +7,7 @@ import * as Menus from "command/Menus";
 import * as DocumentManager from "document/DocumentManager";
 import * as CodeHintManager from "editor/CodeHintManager";
 import * as EditorManager from "editor/EditorManager";
+import * as InlineWidget from "editor/InlineWidget";
 import * as MultiRangeInlineEditor from "editor/MultiRangeInlineEditor";
 import * as ExtensionManager from "extensibility/ExtensionManager";
 import * as ParameterHintsManager from "features/ParameterHintsManager";
@@ -87,6 +88,7 @@ declare global {
             : T extends "document/DocumentManager" ? typeof DocumentManager
             : T extends "editor/CodeHintManager" ? typeof CodeHintManager
             : T extends "editor/EditorManager" ? typeof EditorManager & EventDispatcher.DispatcherEvents
+            : T extends "editor/InlineWidget" ? typeof InlineWidget
             : T extends "editor/MultiRangeInlineEditor" ? typeof MultiRangeInlineEditor
             : T extends "extensibility/ExtensionManager" ? typeof ExtensionManager & EventDispatcher.DispatcherEvents
             : T extends "features/ParameterHintsManager" ? typeof ParameterHintsManager
