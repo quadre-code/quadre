@@ -22,96 +22,90 @@
  *
  */
 
-define(function (require, exports, module) {
-    "use strict";
+/// <amd-dependency path="module" name="module"/>
 
-    var EditorManager       = brackets.getModule("editor/EditorManager"),
-        ExtensionUtils      = brackets.getModule("utils/ExtensionUtils"),
-        InlineColorEditor   = require("InlineColorEditor").InlineColorEditor,
-        ColorUtils          = brackets.getModule("utils/ColorUtils");
+const EditorManager       = brackets.getModule("editor/EditorManager");
+const ExtensionUtils      = brackets.getModule("utils/ExtensionUtils");
+import { InlineColorEditor } from "InlineColorEditor";
+const ColorUtils          = brackets.getModule("utils/ColorUtils");
 
 
-    /**
-     * Prepare hostEditor for an InlineColorEditor at pos if possible. Return
-     * editor context if so; otherwise null.
-     *
-     * @param {Editor} hostEditor
-     * @param {{line:Number, ch:Number}} pos
-     * @return {?{color:String, marker:TextMarker}}
-     */
-    function prepareEditorForProvider(hostEditor, pos) {
-        var colorRegEx, cursorLine, match, sel, start, end, endPos, marker;
-
-        sel = hostEditor.getSelection();
-        if (sel.start.line !== sel.end.line) {
-            return null;
-        }
-
-        colorRegEx = new RegExp(ColorUtils.COLOR_REGEX);
-        cursorLine = hostEditor.document.getLine(pos.line);
-
-        // Loop through each match of colorRegEx and stop when the one that contains pos is found.
-        do {
-            match = colorRegEx.exec(cursorLine);
-            if (match) {
-                start = match.index;
-                end = start + match[0].length;
-            }
-        } while (match && (pos.ch < start || pos.ch > end));
-
-        if (!match) {
-            return null;
-        }
-
-        // Adjust pos to the beginning of the match so that the inline editor won't get
-        // dismissed while we're updating the color with the new values from user's inline editing.
-        pos.ch = start;
-        endPos = {line: pos.line, ch: end};
-
-        marker = hostEditor._codeMirror.markText(pos, endPos);
-        hostEditor.setSelection(pos, endPos);
-
-        return {
-            color: match[0],
-            marker: marker
-        };
+/**
+ * Prepare hostEditor for an InlineColorEditor at pos if possible. Return
+ * editor context if so; otherwise null.
+ *
+ * @param {Editor} hostEditor
+ * @param {{line:Number, ch:Number}} pos
+ * @return {?{color:String, marker:TextMarker}}
+ */
+// export for use by other InlineColorEditors
+export function prepareEditorForProvider(hostEditor, pos) {
+    const sel = hostEditor.getSelection();
+    if (sel.start.line !== sel.end.line) {
+        return null;
     }
 
-    /**
-     * Registered as an inline editor provider: creates an InlineEditorColor when the cursor
-     * is on a color value (in any flavor of code).
-     *
-     * @param {!Editor} hostEditor
-     * @param {!{line:Number, ch:Number}} pos
-     * @return {?$.Promise} synchronously resolved with an InlineWidget, or null if there's
-     *      no color at pos.
-     */
-    function inlineColorEditorProvider(hostEditor, pos) {
-        var context = prepareEditorForProvider(hostEditor, pos),
-            inlineColorEditor,
-            result;
+    const colorRegEx = new RegExp(ColorUtils.COLOR_REGEX);
+    const cursorLine = hostEditor.document.getLine(pos.line);
 
-        if (!context) {
-            return null;
+    let match;
+    let start;
+    let end;
+
+    // Loop through each match of colorRegEx and stop when the one that contains pos is found.
+    do {
+        match = colorRegEx.exec(cursorLine);
+        if (match) {
+            start = match.index;
+            end = start + match[0].length;
         }
+    } while (match && (pos.ch < start || pos.ch > end));
 
-        inlineColorEditor = new InlineColorEditor(context.color, context.marker);
-        inlineColorEditor.load(hostEditor);
-
-        result = new $.Deferred();
-        result.resolve(inlineColorEditor);
-        return result.promise();
+    if (!match) {
+        return null;
     }
 
+    // Adjust pos to the beginning of the match so that the inline editor won't get
+    // dismissed while we're updating the color with the new values from user's inline editing.
+    pos.ch = start;
+    const endPos = {line: pos.line, ch: end};
 
-    // Initialize extension
-    ExtensionUtils.loadStyleSheet(module, "css/main.less");
+    const marker = hostEditor._codeMirror.markText(pos, endPos);
+    hostEditor.setSelection(pos, endPos);
 
-    EditorManager.registerInlineEditProvider(inlineColorEditorProvider);
+    return {
+        color: match[0],
+        marker: marker
+    };
+}
 
-    // for use by other InlineColorEditors
-    exports.prepareEditorForProvider = prepareEditorForProvider;
+/**
+ * Registered as an inline editor provider: creates an InlineEditorColor when the cursor
+ * is on a color value (in any flavor of code).
+ *
+ * @param {!Editor} hostEditor
+ * @param {!{line:Number, ch:Number}} pos
+ * @return {?$.Promise} synchronously resolved with an InlineWidget, or null if there's
+ *      no color at pos.
+ */
+// Export for unit tests only
+export function inlineColorEditorProvider(hostEditor, pos) {
+    const context = prepareEditorForProvider(hostEditor, pos);
 
-    // for unit tests only
-    exports.inlineColorEditorProvider = inlineColorEditorProvider;
-});
+    if (!context) {
+        return null;
+    }
+
+    const inlineColorEditor = new InlineColorEditor(context.color, context.marker);
+    inlineColorEditor.load(hostEditor);
+
+    const result = $.Deferred();
+    result.resolve(inlineColorEditor);
+    return result.promise();
+}
+
+
+// Initialize extension
+ExtensionUtils.loadStyleSheet(module, "css/main.less");
+
+EditorManager.registerInlineEditProvider(inlineColorEditorProvider);

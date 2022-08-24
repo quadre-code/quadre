@@ -22,26 +22,57 @@
  *
  */
 
-define(function (require, exports, module) {
-    "use strict";
-
-    var InlineWidget         = brackets.getModule("editor/InlineWidget").InlineWidget,
-        BezierCurveEditor    = require("BezierCurveEditor").BezierCurveEditor,
-        StepEditor           = require("StepEditor").StepEditor,
-        TimingFunctionUtils  = require("TimingFunctionUtils");
+const InlineWidget         = brackets.getModule("editor/InlineWidget").InlineWidget;
+import { BezierCurveEditor } from "BezierCurveEditor";
+import { StepEditor } from "StepEditor";
+import * as TimingFunctionUtils from "TimingFunctionUtils";
 
 
-    /** @type {number} Global var used to provide a unique ID for each timingFunction editor instance's _origin field. */
-    var lastOriginId = 1;
+/** @type {number} Global var used to provide a unique ID for each timingFunction editor instance's _origin field. */
+let lastOriginId = 1;
+
+/**
+ * Constructor for inline widget containing a BezierCurveEditor control
+ */
+export class InlineTimingFunctionEditor extends InlineWidget {
+    /** @type {!BezierCurveEditor} BezierCurveEditor instance */
+    public timingFunctionEditor: BezierCurveEditor | StepEditor | null = null;
+
+    /** @type {!string} Current value of the timing function editor control */
+    private _timingFunction = null;
 
     /**
-     * Constructor for inline widget containing a BezierCurveEditor control
+     * Start of the range of code we're attached to; _startBookmark.find() may by null if sync is lost.
+     * @type {!CodeMirror.Bookmark}
+     */
+    private _startBookmark: any = null;
+
+    /**
+     * End of the range of code we're attached to; _endBookmark.find() may by null if sync is lost or even
+     * in some cases when it's not. Call getCurrentRange() for the definitive text range we're attached to.
+     * @type {!CodeMirror.Bookmark}
+     */
+    private _endBookmark: any = null;
+
+    /** @type {boolean} True while we're syncing a timing function editor change into the code editor */
+    private _isOwnChange: boolean | null = null;
+
+    /** @type {boolean} True while we're syncing a code editor change into the timing function editor */
+    private _isHostChange: boolean | null = null;
+
+    /** @type {number} ID used to identify edits coming from this inline widget for undo batching */
+    private _origin: string | null = null;
+
+    /**
+     * @constructor
      *
      * @param {!RegExpMatch} timingFunction  RegExp match object of initially selected timingFunction
      * @param {!CodeMirror.Bookmark} startBookmark
      * @param {!CodeMirror.Bookmark} endBookmark
      */
-    function InlineTimingFunctionEditor(timingFunction, startBookmark, endBookmark) {
+    constructor(timingFunction, startBookmark, endBookmark) {
+        super();
+
         this._timingFunction = timingFunction;
         this._startBookmark = startBookmark;
         this._endBookmark = endBookmark;
@@ -51,42 +82,7 @@ define(function (require, exports, module) {
 
         this._handleTimingFunctionChange = this._handleTimingFunctionChange.bind(this);
         this._handleHostDocumentChange = this._handleHostDocumentChange.bind(this);
-
-        Object.assign(this, new InlineWidget());
     }
-
-    InlineTimingFunctionEditor.prototype = Object.create(InlineWidget.prototype);
-    InlineTimingFunctionEditor.prototype.constructor = InlineTimingFunctionEditor;
-    InlineTimingFunctionEditor.prototype.parentClass = InlineWidget.prototype;
-
-    /** @type {!BezierCurveEditor} BezierCurveEditor instance */
-    InlineTimingFunctionEditor.prototype.timingFunctionEditor = null;
-
-    /** @type {!string} Current value of the timing function editor control */
-    InlineTimingFunctionEditor.prototype._timingFunction = null;
-
-    /**
-     * Start of the range of code we're attached to; _startBookmark.find() may by null if sync is lost.
-     * @type {!CodeMirror.Bookmark}
-     */
-    InlineTimingFunctionEditor.prototype._startBookmark = null;
-
-    /**
-     * End of the range of code we're attached to; _endBookmark.find() may by null if sync is lost or even
-     * in some cases when it's not. Call getCurrentRange() for the definitive text range we're attached to.
-     * @type {!CodeMirror.Bookmark}
-     */
-    InlineTimingFunctionEditor.prototype._endBookmark = null;
-
-    /** @type {boolean} True while we're syncing a timing function editor change into the code editor */
-    InlineTimingFunctionEditor.prototype._isOwnChange = null;
-
-    /** @type {boolean} True while we're syncing a code editor change into the timing function editor */
-    InlineTimingFunctionEditor.prototype._isHostChange = null;
-
-    /** @type {number} ID used to identify edits coming from this inline widget for undo batching */
-    InlineTimingFunctionEditor.prototype._origin = null;
-
 
     /**
      * Returns the current text range of the timingFunction we're attached to, or null if
@@ -98,15 +94,13 @@ define(function (require, exports, module) {
      *              match: {RegExpMatch}
      *          }}
      */
-    InlineTimingFunctionEditor.prototype.getCurrentRange = function () {
-        var start, end;
-
-        start = this._startBookmark.find();
+    public getCurrentRange() {
+        const start = this._startBookmark.find();
         if (!start) {
             return null;
         }
 
-        end = this._endBookmark.find();
+        let end = this._endBookmark.find();
         if (!end) {
             end = { line: start.line };
         }
@@ -118,22 +112,21 @@ define(function (require, exports, module) {
         // FUTURE: when we migrate to CodeMirror v3, we might be able to use markText()
         // instead of two bookmarks to track the range. (In our current old version of
         // CodeMirror v2, markText() isn't robust enough for this case.)
-        var line = this.hostEditor.document.getLine(start.line),
-            matches = TimingFunctionUtils.timingFunctionMatch(line.substr(start.ch), true),
-            originalLength;
+        const line = this.hostEditor!.document.getLine(start.line);
+        const matches = TimingFunctionUtils.timingFunctionMatch(line.substr(start.ch), true);
 
         // No longer have a match
         if (!matches) {
             return null;
         }
 
-        originalLength = ((matches.originalString && matches.originalString.length) || matches[0].length);
+        const originalLength = ((matches.originalString && matches.originalString.length) || matches[0].length);
         // Note that end.ch is exclusive, so we don't need to add 1 before comparing to
         // the matched length here.
         if (end.ch === undefined || (end.ch - start.ch) !== originalLength) {
             end.ch = start.ch + originalLength;
             this._endBookmark.clear();
-            this._endBookmark = this.hostEditor._codeMirror.setBookmark(end);
+            this._endBookmark = this.hostEditor!._codeMirror.setBookmark(end);
         }
 
         if (end.ch === undefined) {
@@ -147,17 +140,17 @@ define(function (require, exports, module) {
             match: matches,
             originalLength: originalLength
         };
-    };
+    }
 
     /**
      * When the timing function editor's selected timingFunction changes, update text in code editor
      * @param {!string} timingFunctionString
      */
-    InlineTimingFunctionEditor.prototype._handleTimingFunctionChange = function (timingFunctionString) {
-        var self                = this,
-            timingFunctionMatch = TimingFunctionUtils.timingFunctionMatch(timingFunctionString, true);
+    private _handleTimingFunctionChange(timingFunctionString) {
+        const self                = this;
+        const timingFunctionMatch = TimingFunctionUtils.timingFunctionMatch(timingFunctionString, true);
         if (timingFunctionMatch !== this._timingFunction) {
-            var range = this.getCurrentRange();
+            const range = this.getCurrentRange();
             if (!range) {
                 return;
             }
@@ -165,60 +158,60 @@ define(function (require, exports, module) {
             // Don't push the change back into the host editor if it came from the host editor.
             if (!this._isHostChange) {
                 this._isOwnChange = true;
-                this.hostEditor.document.batchOperation(function () {
+                this.hostEditor!.document.batchOperation(function () {
                     // Replace old timingFunction in code with the editor's timing function, and select it
-                    self.hostEditor.document.replaceRange(timingFunctionString, range.start, range.end, self._origin);
-                    var newEnd = { line: range.start.line, ch: range.start.ch + timingFunctionString.length };
-                    self.hostEditor.setSelection(range.start, newEnd, false, 0, self._origin);
+                    self.hostEditor!.document.replaceRange(timingFunctionString, range.start, range.end, self._origin);
+                    const newEnd = { line: range.start.line, ch: range.start.ch + timingFunctionString.length };
+                    self.hostEditor!.setSelection(range.start, newEnd, false, 0, self._origin);
                 });
                 this._isOwnChange = false;
             }
 
             this._timingFunction = timingFunctionMatch;
         }
-    };
+    }
 
     /**
      * @override
      * @param {!Editor} hostEditor
      */
-    InlineTimingFunctionEditor.prototype.load = function (hostEditor) {
-        InlineTimingFunctionEditor.prototype.parentClass.load.apply(this, arguments);
+    public load(hostEditor) {
+        super.load(hostEditor);
 
         // Create appropriate timing function editor control
-        if (this._timingFunction.isBezier) {
+        if ((this._timingFunction as any).isBezier) {
             this.timingFunctionEditor = new BezierCurveEditor(this.$htmlContent, this._timingFunction, this._handleTimingFunctionChange);
-        } else if (this._timingFunction.isStep) {
+        } else if ((this._timingFunction as any).isStep) {
             this.timingFunctionEditor = new StepEditor(this.$htmlContent, this._timingFunction, this._handleTimingFunctionChange);
         } else {
             window.console.log("InlineTimingFunctionEditor.load tried to load an unkown timing function type");
         }
-    };
+    }
 
     /**
      * @override
      * Perform sizing & focus once we've been added to Editor's DOM
      */
-    InlineTimingFunctionEditor.prototype.onAdded = function () {
-        InlineTimingFunctionEditor.prototype.parentClass.onAdded.apply(this, arguments);
+    public onAdded() {
+        super.onAdded();
 
-        var doc = this.hostEditor.document;
+        const doc = this.hostEditor!.document;
         doc.addRef();
         doc.on("change", this._handleHostDocumentChange);
 
-        this.hostEditor.setInlineWidgetHeight(this, this.timingFunctionEditor.getRootElement().outerHeight(), true);
+        this.hostEditor!.setInlineWidgetHeight(this, this.timingFunctionEditor!.getRootElement().outerHeight(), true);
 
-        this.timingFunctionEditor.focus();
-    };
+        this.timingFunctionEditor!.focus();
+    }
 
     /**
      * @override
      * Called whenever the inline widget is closed, whether automatically or explicitly
      */
-    InlineTimingFunctionEditor.prototype.onClosed = function () {
-        InlineTimingFunctionEditor.prototype.parentClass.onClosed.apply(this, arguments);
+    public onClosed() {
+        super.onClosed();
 
-        this.timingFunctionEditor.destroy();
+        this.timingFunctionEditor!.destroy();
 
         if (this._startBookmark) {
             this._startBookmark.clear();
@@ -227,33 +220,31 @@ define(function (require, exports, module) {
             this._endBookmark.clear();
         }
 
-        var doc = this.hostEditor.document;
+        const doc = this.hostEditor!.document;
         doc.off("change", this._handleHostDocumentChange);
         doc.releaseRef();
-    };
+    }
 
     /**
      * When text in the code editor changes, update timing function editor to reflect it
      */
-    InlineTimingFunctionEditor.prototype._handleHostDocumentChange = function () {
+    private _handleHostDocumentChange() {
         // Don't push the change into the timingFunction editor if it came from the timingFunction editor.
         if (this._isOwnChange) {
             return;
         }
 
-        var range = this.getCurrentRange();
+        const range = this.getCurrentRange();
         if (range) {
             if (range.match !== this._timingFunction) {
                 this._isHostChange = true;
                 this._isHostChange = false;
                 this._timingFunction = range.match;
-                this.timingFunctionEditor.handleExternalUpdate(range.match);
+                this.timingFunctionEditor!.handleExternalUpdate(range.match);
             }
         } else {
             // The edit caused our range to become invalid. Close the editor.
             this.close();
         }
-    };
-
-    exports.InlineTimingFunctionEditor = InlineTimingFunctionEditor;
-});
+    }
+}
