@@ -130,6 +130,17 @@ module.exports = {
             "env": {
                 "node": true
             }
+        },
+        // Add incrementally
+        {
+            "files": [
+                "src/file/**",
+                "src/help/**",
+                "src/nls/**",
+            ],
+            "rules": {
+                "@typescript-eslint/explicit-function-return-type": "error"
+            }
         }
     ]
 };

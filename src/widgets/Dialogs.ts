@@ -214,7 +214,7 @@ const _keydownHook = function (this: JQuery, e, autoDismiss) {
  * @param {$.Promise} promise A promise that will be resolved with the ID of the clicked button when the dialog
  *     is dismissed. Never rejected.
  */
-class Dialog {
+export class Dialog {
     private _$dlg: JQuery;
     private _promise: JQueryPromise<any>;
 

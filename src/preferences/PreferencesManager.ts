@@ -51,7 +51,7 @@ interface Project {
 
 let currentFilename: string | null = null; // the filename currently being edited
 let currentLanguageId       = null; // the language id of the file currently being edited
-let projectDirectory        = null;
+let projectDirectory: string | null = null;
 let projectScopeIsIncluded  = true;
 
 /**

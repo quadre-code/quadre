@@ -39,6 +39,10 @@ import * as Mustache from "thirdparty/mustache/mustache";
 // make sure the global brackets variable is loaded
 import "utils/Global";
 
+interface Contributor {
+    avatar_url: string;
+}
+
 /**
  * This is the thirdparty API's (GitHub) maximum contributors per page limit
  * @const {number}
@@ -48,12 +52,12 @@ const CONTRIBUTORS_PER_PAGE   = 100;
 let buildInfo;
 
 // @ts-ignore
-function _handleCheckForUpdates() { // eslint-disable-line @typescript-eslint/no-unused-vars
+function _handleCheckForUpdates(): void { // eslint-disable-line @typescript-eslint/no-unused-vars
     UpdateNotification.checkForUpdate(true);
 }
 
 function _handleLinkMenuItem(url) {
-    return function () {
+    return function (): void {
         if (!url) {
             return;
         }
@@ -61,7 +65,7 @@ function _handleLinkMenuItem(url) {
     };
 }
 
-function _handleShowExtensionsFolder() {
+function _handleShowExtensionsFolder(): void {
     brackets.app.showExtensionsFolder(
         FileUtils.convertToNativePath(decodeURI(window.location.href)),
         function (err) {
@@ -70,7 +74,7 @@ function _handleShowExtensionsFolder() {
     );
 }
 
-function _handleAboutDialog() {
+function _handleAboutDialog(): void {
     const templateVars = {
         ABOUT_ICON          : brackets.config.about_icon,
         APP_NAME_ABOUT_BOX  : brackets.config.app_name_about,
@@ -86,7 +90,7 @@ function _handleAboutDialog() {
     const $contributors   = $dlg.find(".about-contributors");
     const $spinner        = $dlg.find(".spinner");
     const contributorsUrl = brackets.config.contributors_url;
-    let page;
+    let page: number | undefined;
 
     if (contributorsUrl.indexOf("{1}") !== -1) { // pagination enabled
         page = 1;
@@ -94,7 +98,7 @@ function _handleAboutDialog() {
 
     $spinner.addClass("spin");
 
-    function loadContributors(rawUrl, page, contributors?, deferred?) {
+    function loadContributors(rawUrl, page: number | undefined, contributors?, deferred?): JQueryPromise<Array<Contributor>> {
         deferred = deferred || $.Deferred();
         contributors = contributors || [];
         const url = StringUtils.format(rawUrl, CONTRIBUTORS_PER_PAGE, page);
@@ -125,10 +129,10 @@ function _handleAboutDialog() {
     loadContributors(contributorsUrl, page) // Load the contributors
         .done(function (allContributors) {
             // Populate the contributors data
-            const totalContributors = allContributors.length;
+            const totalContributors = allContributors!.length;
             let contributorsCount = 0;
 
-            allContributors.forEach(function (contributor) {
+            allContributors!.forEach(function (contributor) {
                 // remove any UrlParams delivered via the GitHub API
                 contributor.avatar_url = contributor.avatar_url.split("?")[0];
             });
