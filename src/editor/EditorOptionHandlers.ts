@@ -91,7 +91,7 @@ function _getToggler(prefName) {
 }
 
 function _init() {
-    _.each(_optionMapping, function (commandName, prefName) {
+    _.each(_optionMapping, function (commandName: string, prefName: string): void {
         CommandManager.get(commandName).setChecked(PreferencesManager.get(prefName));
     });
 

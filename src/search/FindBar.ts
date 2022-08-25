@@ -245,7 +245,7 @@ export class FindBar extends EventDispatcher.EventDispatcherBase {
         if (replaceShortcut) {
             let oldTitle = $elem.attr("title");
             oldTitle = (oldTitle ? oldTitle + " " : "");
-            $elem.attr("title", oldTitle + "(" + KeyBindingManager.formatKeyDescriptor(replaceShortcut.displayKey) + ")");
+            $elem.attr("title", oldTitle + "(" + KeyBindingManager.formatKeyDescriptor(replaceShortcut.displayKey!) + ")");
         }
     }
 

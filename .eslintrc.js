@@ -134,6 +134,7 @@ module.exports = {
         // Add incrementally
         {
             "files": [
+                "src/command/**",
                 "src/file/**",
                 "src/help/**",
                 "src/nls/**",
