@@ -533,14 +533,14 @@ CommandManager.register(Strings.CMD_SCROLL_LINE_UP,     Commands.VIEW_SCROLL_LIN
 CommandManager.register(Strings.CMD_SCROLL_LINE_DOWN,   Commands.VIEW_SCROLL_LINE_DOWN,    _handleScrollLineDown);
 CommandManager.register(Strings.CMD_THEMES,             Commands.CMD_THEMES_OPEN_SETTINGS, _handleThemeSettings);
 
-(prefs.definePreference("fontSize",   "string", DEFAULT_FONT_SIZE + "px", {
+prefs.definePreference("fontSize",   "string", DEFAULT_FONT_SIZE + "px", {
     description: Strings.DESCRIPTION_FONT_SIZE
-}) as unknown as EventDispatcher.DispatcherEvents).on("change", function () {
+}).on("change", function () {
     setFontSize(prefs.get("fontSize"));
 });
-(prefs.definePreference("fontFamily", "string", DEFAULT_FONT_FAMILY, {
+prefs.definePreference("fontFamily", "string", DEFAULT_FONT_FAMILY, {
     description: Strings.DESCRIPTION_FONT_FAMILY
-}) as unknown as EventDispatcher.DispatcherEvents).on("change", function () {
+}).on("change", function () {
     setFontFamily(prefs.get("fontFamily"));
 });
 
@@ -550,10 +550,10 @@ CommandManager.register(Strings.CMD_THEMES,             Commands.CMD_THEMES_OPEN
 // to "antialiased", that would set text rendering AA to use
 // gray scale antialiasing.
 if (brackets.platform === "mac") {
-    (prefs.definePreference("fontSmoothing", "string", "subpixel-antialiased", {
+    prefs.definePreference("fontSmoothing", "string", "subpixel-antialiased", {
         description: Strings.DESCRIPTION_FONT_SMOOTHING,
         values: ["subpixel-antialiased", "antialiased"]
-    }) as unknown as EventDispatcher.DispatcherEvents).on("change", function () {
+    }).on("change", function () {
         setMacFontSmoothingType(prefs.get("fontSmoothing"));
     });
 }

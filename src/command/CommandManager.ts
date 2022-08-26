@@ -62,7 +62,7 @@ let _commandsOriginal = {};
  *
  * TODO: where should this be triggered, The Command or Exports?
  */
-class Command {
+class Command extends EventDispatcher.EventDispatcherBase {
     private _name;
     private _id;
     private _commandFn;
@@ -70,6 +70,8 @@ class Command {
     private _enabled;
 
     constructor(name, id, commandFn) {
+        super();
+
         this._name = name;
         this._id = id;
         this._commandFn = commandFn;
@@ -123,7 +125,7 @@ class Command {
         this._enabled = enabled;
 
         if (changed) {
-            (this as unknown as EventDispatcher.DispatcherEvents).trigger("enabledStateChange");
+            this.trigger("enabledStateChange");
         }
     }
 
@@ -137,7 +139,7 @@ class Command {
         this._checked = checked;
 
         if (changed) {
-            (this as unknown as EventDispatcher.DispatcherEvents).trigger("checkedStateChange");
+            this.trigger("checkedStateChange");
         }
     }
 
@@ -164,7 +166,7 @@ class Command {
         this._name = name;
 
         if (changed) {
-            (this as unknown as EventDispatcher.DispatcherEvents).trigger("nameChange");
+            this.trigger("nameChange");
         }
     }
 
@@ -176,7 +178,6 @@ class Command {
         return this._name;
     }
 }
-EventDispatcher.makeEventDispatcher(Command.prototype);
 
 
 /**

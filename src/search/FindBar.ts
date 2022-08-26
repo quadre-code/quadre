@@ -94,7 +94,7 @@ let lastKeyCode; // eslint-disable-line @typescript-eslint/no-unused-vars
  * @param {string=}  options.initialQuery - query to populate in the Find field on open - default empty string
  * @param {string=}  scopeLabel - HTML label to show for the scope of the search, expected to be already escaped - default empty string
  */
-export class FindBar {
+export class FindBar extends EventDispatcher.EventDispatcherBase {
     private static _bars: Array<FindBar>;
 
     /*
@@ -131,6 +131,8 @@ export class FindBar {
     private searchField: QuickSearchField;
 
     constructor(options) {
+        super();
+
         const defaults = {
             multifile: false,
             replace: false,
@@ -310,7 +312,7 @@ export class FindBar {
         window.document.body.addEventListener("keydown", _handleKeydown, true);
 
         // When the ModalBar closes, clean ourselves up.
-        (this._modalBar as unknown as EventDispatcher.DispatcherEvents).on("close", function (event) {
+        this._modalBar.on("close", function (event) {
             window.document.body.removeEventListener("keydown", _handleKeydown, true);
 
             // Hide error popup, since it hangs down low enough to make the slide-out look awkward
@@ -322,7 +324,7 @@ export class FindBar {
             lastTypedTime = 0;
             FindBar._removeFindBar(self);
             MainViewManager.focusActivePane();
-            (self as unknown as EventDispatcher.DispatcherEvents).trigger("close");
+            self.trigger("close");
             if (self.searchField) {
                 self.searchField.destroy();
             }
@@ -334,7 +336,7 @@ export class FindBar {
 
         $root
             .on("input", "#find-what", function () {
-                (self as unknown as EventDispatcher.DispatcherEvents).trigger("queryChange");
+                self.trigger("queryChange");
                 const queryInfo = self.getQueryInfo();
                 lastTypedText = queryInfo.query;
                 lastTypedTextWasRegexp = queryInfo.isRegexp;
@@ -342,9 +344,9 @@ export class FindBar {
             .on("click", ".find-toggle", function (e) {
                 $(e.currentTarget).toggleClass("active");
                 self._updatePrefsFromSearchBar();
-                (self as unknown as EventDispatcher.DispatcherEvents).trigger("queryChange");
+                self.trigger("queryChange");
                 if (self._options.multifile) {  // instant search
-                    (self as unknown as EventDispatcher.DispatcherEvents).trigger("doFind");
+                    self.trigger("doFind");
                 }
             })
             .on("click", ".dropdown-icon", function (e) {
@@ -382,7 +384,7 @@ export class FindBar {
                             if ($(e.target).is("#find-what")) {
                                 if (!self._options.replace) {
                                     HealthLogger.searchDone(HealthLogger.SEARCH_INSTANT);
-                                    (self as unknown as EventDispatcher.DispatcherEvents).trigger("doFind");
+                                    self.trigger("doFind");
                                     lastQueriedText = self.getQueryInfo().query;
                                 }
                             }
@@ -405,16 +407,16 @@ export class FindBar {
                             } else {
                                 HealthLogger.searchDone(HealthLogger.SEARCH_ON_RETURN_KEY);
                                 // Trigger a Find (which really means "Find All" in this context).
-                                (self as unknown as EventDispatcher.DispatcherEvents).trigger("doFind");
+                                self.trigger("doFind");
                             }
                         } else {
                             HealthLogger.searchDone(HealthLogger.SEARCH_REPLACE_ALL);
-                            (self as unknown as EventDispatcher.DispatcherEvents).trigger("doReplaceBatch");
+                            self.trigger("doReplaceBatch");
                         }
                     } else {
                         // In the single file case, we just want to trigger a Find Next (or Find Previous
                         // if Shift is held down).
-                        (self as unknown as EventDispatcher.DispatcherEvents).trigger("doFind", e.shiftKey);
+                        self.trigger("doFind", e.shiftKey);
                     }
                 } else if (e.keyCode === KeyEvent.DOM_VK_DOWN || e.keyCode === KeyEvent.DOM_VK_UP) {
                     const quickSearchContainer = $(".quick-search-container");
@@ -434,10 +436,10 @@ export class FindBar {
             this._addShortcutToTooltip($("#find-prev"), Commands.CMD_FIND_PREVIOUS);
             $root
                 .on("click", "#find-next", function (e) {
-                    (self as unknown as EventDispatcher.DispatcherEvents).trigger("doFind", false);
+                    self.trigger("doFind", false);
                 })
                 .on("click", "#find-prev", function (e) {
-                    (self as unknown as EventDispatcher.DispatcherEvents).trigger("doFind", true);
+                    self.trigger("doFind", true);
                 });
         }
 
@@ -445,13 +447,13 @@ export class FindBar {
             this._addShortcutToTooltip($("#replace-yes"), Commands.CMD_REPLACE);
             $root
                 .on("click", "#replace-yes", function (e) {
-                    (self as unknown as EventDispatcher.DispatcherEvents).trigger("doReplace");
+                    self.trigger("doReplace");
                 })
                 .on("click", "#replace-batch", function (e) {
-                    (self as unknown as EventDispatcher.DispatcherEvents).trigger("doReplaceBatch");
+                    self.trigger("doReplaceBatch");
                 })
                 .on("click", "#replace-all", function (e) {
-                    (self as unknown as EventDispatcher.DispatcherEvents).trigger("doReplaceAll");
+                    self.trigger("doReplaceAll");
                 })
                 // One-off hack to make Find/Replace fields a self-contained tab cycle
                 // TODO: remove once https://trello.com/c/lTSJgOS2 implemented
@@ -499,7 +501,7 @@ export class FindBar {
             onCommit: function (selectedItem, query) {
                 if (selectedItem) {
                     self.$("#find-what").val(selectedItem);
-                    (self as unknown as EventDispatcher.DispatcherEvents).trigger("queryChange");
+                    self.trigger("queryChange");
                 } else if (query.length) {
                     self.searchField.setText(query);
                 }
@@ -694,7 +696,7 @@ export class FindBar {
      * Force a search again
      */
     public redoInstantSearch() {
-        (this as unknown as EventDispatcher.DispatcherEvents).trigger("doFind");
+        this.trigger("doFind");
     }
 
     /*
@@ -748,7 +750,6 @@ export class FindBar {
         return {query: query, replaceText: replaceText};
     }
 }
-EventDispatcher.makeEventDispatcher(FindBar.prototype);
 
 PreferencesManager.stateManager.definePreference("caseSensitive", "boolean", false);
 PreferencesManager.stateManager.definePreference("wholeWord", "boolean", false);

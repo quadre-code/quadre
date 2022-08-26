@@ -280,7 +280,7 @@ function _renameItem(oldPath, newPath, newName, isFolder) {
  * - EVENT_SHOULD_FOCUS (`focus`)
  * - ERROR_CREATION (`creationError`) - Triggered when there's a problem creating a file
  */
-export class ProjectModel {
+export class ProjectModel extends EventDispatcher.EventDispatcherBase {
     /**
      * @type {Directory}
      *
@@ -340,6 +340,8 @@ export class ProjectModel {
     private _allFilesCachePromise: JQueryPromise<Array<File>> | null = null;
 
     constructor(initial) {
+        super();
+
         initial = initial || {};
         if (initial.projectRoot) {
             this.projectRoot = initial.projectRoot;
@@ -349,8 +351,8 @@ export class ProjectModel {
             this._focused = initial.focused;
         }
         this._viewModel = new FileTreeViewModel.FileTreeViewModel();
-        (this._viewModel as unknown as EventDispatcher.DispatcherEvents).on(FileTreeViewModel.EVENT_CHANGE, function (this: ProjectModel) {
-            (this as unknown as EventDispatcher.DispatcherEvents).trigger(EVENT_CHANGE);
+        this._viewModel.on(FileTreeViewModel.EVENT_CHANGE, function (this: ProjectModel) {
+            this.trigger(EVENT_CHANGE);
         }.bind(this));
         this._selections = {};
     }
@@ -755,14 +757,14 @@ export class ProjectModel {
 
         if (path) {
             if (!doNotOpen) {
-                (this as unknown as EventDispatcher.DispatcherEvents).trigger(EVENT_SHOULD_SELECT, {
+                this.trigger(EVENT_SHOULD_SELECT, {
                     path: path,
                     previousPath: previousSelection,
                     hadFocus: this._focused
                 });
             }
 
-            (this as unknown as EventDispatcher.DispatcherEvents).trigger(EVENT_SHOULD_FOCUS);
+            this.trigger(EVENT_SHOULD_FOCUS);
         }
     }
 
@@ -791,7 +793,7 @@ export class ProjectModel {
      */
     public selectInWorkingSet(path) {
         this.performRename();
-        (this as unknown as EventDispatcher.DispatcherEvents).trigger(EVENT_SHOULD_SELECT, {
+        this.trigger(EVENT_SHOULD_SELECT, {
             path: path,
             add: true
         });
@@ -1045,7 +1047,7 @@ export class ProjectModel {
                 self.selectInWorkingSet(entry.fullPath);
             }
         }).fail(function (error) {
-            (self as unknown as EventDispatcher.DispatcherEvents).trigger(ERROR_CREATION, {
+            self.trigger(ERROR_CREATION, {
                 type: error,
                 name: name,
                 isFolder: isFolder
@@ -1289,7 +1291,6 @@ export class ProjectModel {
         return d.promise();
     }
 }
-EventDispatcher.makeEventDispatcher(ProjectModel.prototype);
 
 
 /**

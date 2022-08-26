@@ -246,7 +246,7 @@ export function _showFindBar(scope, showReplace?) {
         startSearch(_findBar!.getReplaceText());
     }
 
-    (_findBar as unknown as DispatcherEvents)
+    _findBar
         .on("doFind.FindInFiles", function () {
             // Subtle issue: we can't just pass startSearch directly as the handler, because
             // we don't want it to get the event object as an argument.
@@ -254,14 +254,14 @@ export function _showFindBar(scope, showReplace?) {
         })
         .on("queryChange.FindInFiles", handleQueryChange)
         .on("close.FindInFiles", function (e) {
-            (_findBar as unknown as DispatcherEvents).off(".FindInFiles");
+            _findBar!.off(".FindInFiles");
             _findBar = null;
         });
 
     if (showReplace) {
         // We shouldn't get a "doReplace" in this case, since the Replace button
         // is hidden when we set options.multifile.
-        (_findBar as unknown as DispatcherEvents).on("doReplaceBatch.FindInFiles", startReplace);
+        _findBar.on("doReplaceBatch.FindInFiles", startReplace);
     }
 
     const oldModalBarHeight = _findBar._modalBar!.height();
@@ -463,7 +463,7 @@ export function closeResultsPanel() {
 AppInit.htmlReady(function () {
     const model = FindInFiles.searchModel;
     _resultsView = new SearchResultsView(model, "find-in-files-results", "find-in-files.results");
-    (_resultsView as unknown as DispatcherEvents)
+    _resultsView
         .on("replaceBatch", function () {
             _finishReplaceBatch(model);
         })

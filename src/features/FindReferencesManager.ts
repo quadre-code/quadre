@@ -35,7 +35,6 @@ import { SearchResultsView } from "search/SearchResultsView";
 import { SearchModel } from "search/SearchModel";
 import * as Strings from "strings";
 import { DispatcherEvents } from "utils/EventDispatcher";
-import { Document } from "document/Document";
 
 const _providerRegistrationHandler = new ProviderRegistrationHandler();
 export const registerFindReferencesProvider = _providerRegistrationHandler.registerProvider.bind(
@@ -168,9 +167,9 @@ export function setMenuItemStateForLanguage(languageId) {
     setMenuItemStateForLanguage(newLanguageId);
 
     DocumentManager.getDocumentForPath(newFilePath)
-        .done(function (newDoc: Document) {
-            (newDoc as unknown as DispatcherEvents).on("languageChanged.reference-in-files", function () {
-                const changedLanguageId = LanguageManager.getLanguageForPath(newDoc.file.fullPath).getId();
+        .done(function (newDoc) {
+            newDoc!.on("languageChanged.reference-in-files", function () {
+                const changedLanguageId = LanguageManager.getLanguageForPath(newDoc!.file.fullPath).getId();
                 setMenuItemStateForLanguage(changedLanguageId);
             });
         });
@@ -182,7 +181,7 @@ export function setMenuItemStateForLanguage(languageId) {
     const oldFilePath = oldFile.fullPath;
     DocumentManager.getDocumentForPath(oldFilePath)
         .done(function (oldDoc) {
-            (oldDoc as unknown as DispatcherEvents).off("languageChanged.reference-in-files");
+            oldDoc!.off("languageChanged.reference-in-files");
         });
 });
 

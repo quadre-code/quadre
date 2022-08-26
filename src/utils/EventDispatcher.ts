@@ -254,6 +254,24 @@ export function makeEventDispatcher(obj) {
     //   eventName to deprecation warning info
 }
 
+export function withEventDispatcher<T extends { new(...args: Array<any>) }>(Base: T) {
+    return class extends Base implements DispatcherEvents {
+        public on = on;
+        public off = off;
+        public one = one;
+        public trigger = trigger;
+        public _EventDispatcher = true;
+    };
+}
+
+export abstract class EventDispatcherBase implements DispatcherEvents {
+    public on = on;
+    public off = off;
+    public one = one;
+    public trigger = trigger;
+    public _EventDispatcher = true;
+}
+
 /**
  * Utility for calling on() with an array of arguments to pass to event handlers (rather than a varargs
  * list). makeEventDispatcher() must have previously been called on 'dispatcher'.

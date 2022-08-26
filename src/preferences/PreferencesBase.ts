@@ -123,10 +123,14 @@ const SCOPEORDER_CHANGE = "scopeOrderChange";
  * @constructor
  * @param {?Object} data Initial data for the storage.
  */
-export class MemoryStorage implements Storage {
+
+// MemoryStorage never actually dispatches change events, but Storage interface requires implementing on()/off()
+export class MemoryStorage extends EventDispatcher.EventDispatcherBase implements Storage {
     private data;
 
     constructor(data?) {
+        super();
+
         this.data = data || {};
     }
 
@@ -166,9 +170,6 @@ export class MemoryStorage implements Storage {
     }
 }
 
-// MemoryStorage never actually dispatches change events, but Storage interface requires implementing on()/off()
-EventDispatcher.makeEventDispatcher(MemoryStorage.prototype);
-
 
 /**
  * Error type for problems parsing preference files.
@@ -197,13 +198,15 @@ class ParsingError extends Error {
  *                              Invalid- Either unreadable or unparseable.
  *                              The invalid copy will be sent to trash in case the user wants to refer to it.
  */
-export class FileStorage {
+export class FileStorage extends EventDispatcher.EventDispatcherBase {
     private path: string;
     private createIfMissing: boolean;
     private recreateIfInvalid: boolean;
     private _lineEndings: FileUtils.LineEndings | null;
 
     constructor(path, createIfMissing, recreateIfInvalid?) {
+        super();
+
         this.path = path;
         this.createIfMissing = createIfMissing;
         this.recreateIfInvalid = recreateIfInvalid;
@@ -319,7 +322,7 @@ export class FileStorage {
      */
     public setPath(newPath) {
         this.path = newPath;
-        (this as unknown as EventDispatcher.DispatcherEvents).trigger("changed");
+        this.trigger("changed");
     }
 
     /**
@@ -329,12 +332,10 @@ export class FileStorage {
      */
     public fileChanged(filePath) {
         if (filePath === this.path) {
-            (this as unknown as EventDispatcher.DispatcherEvents).trigger("changed");
+            this.trigger("changed");
         }
     }
 }
-
-EventDispatcher.makeEventDispatcher(FileStorage.prototype);
 
 
 /**
@@ -346,7 +347,7 @@ EventDispatcher.makeEventDispatcher(FileStorage.prototype);
  * @constructor
  * @param {Storage} storage Storage object from which prefs are loaded/saved
  */
-export class Scope {
+export class Scope extends EventDispatcher.EventDispatcherBase {
     private storage: Storage;
     private data = {};
     private _dirty = false;
@@ -355,6 +356,8 @@ export class Scope {
     private _exclusions: Array<string> = [];
 
     constructor(storage: Storage) {
+        super();
+
         this.storage = storage;
         storage.on!("changed", this.load.bind(this));
         this.data = {};
@@ -376,7 +379,7 @@ export class Scope {
                 const oldKeys = this.getKeys();
                 this.data = data;
                 result.resolve();
-                (this as unknown as EventDispatcher.DispatcherEvents).trigger(PREFERENCE_CHANGE, {
+                this.trigger(PREFERENCE_CHANGE, {
                     ids: _.union(this.getKeys(), oldKeys)
                 });
             }.bind(this))
@@ -560,7 +563,7 @@ export class Scope {
         this._layers.push(layer);
         this._layerMap[layer.key] = layer;
         this._exclusions.push(layer.key);
-        (this as unknown as EventDispatcher.DispatcherEvents).trigger(PREFERENCE_CHANGE, {
+        this.trigger(PREFERENCE_CHANGE, {
             ids: layer.getKeys(this.data[layer.key], {})
         });
     }
@@ -600,8 +603,6 @@ export class Scope {
         return _.union.apply(null, changes);
     }
 }
-
-EventDispatcher.makeEventDispatcher(Scope.prototype);
 
 
 // Utility functions for the PathLayer
@@ -1069,13 +1070,13 @@ export class PathLayer implements Layer {
  * @constructor
  * @param {Object} properties Information about the Preference that is stored on this object
  */
-class Preference {
+class Preference extends EventDispatcher.EventDispatcherBase {
     constructor(properties) {
+        super();
+
         _.extend(this, properties);
     }
 }
-
-EventDispatcher.makeEventDispatcher(Preference.prototype);
 
 
 /**

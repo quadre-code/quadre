@@ -481,7 +481,7 @@ export function notifyFileDeleted(file) {
     const doc = getOpenDocumentForPath(file.fullPath);
 
     if (doc) {
-        (doc as unknown as EventDispatcher.DispatcherEvents).trigger("deleted");
+        doc.trigger("deleted");
     }
 
     // At this point, all those other views SHOULD have released the Doc
@@ -685,12 +685,12 @@ AppInit.extensionsLoaded(function () {
     }
 
     if (oldDoc) {
-        (oldDoc as unknown as EventDispatcher.DispatcherEvents).off("languageChanged.DocumentManager");
+        oldDoc.off("languageChanged.DocumentManager");
     }
 
     if (newDoc) {
         PreferencesManager._setCurrentLanguage(newDoc.getLanguage().getId());
-        (newDoc as unknown as EventDispatcher.DispatcherEvents).on("languageChanged.DocumentManager", function (e, oldLang, newLang) {
+        newDoc.on("languageChanged.DocumentManager", function (e, oldLang, newLang) {
             PreferencesManager._setCurrentLanguage(newLang.getId());
             (exports as unknown as EventDispatcher.DispatcherEvents).trigger("currentDocumentLanguageChanged", [oldLang, newLang]);
         });

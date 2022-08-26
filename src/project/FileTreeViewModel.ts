@@ -660,7 +660,7 @@ function _addNewEntries(treeData, added) {
  * Instances dispatch the following events:
  * - "change" (FileTreeViewModel.EVENT_CHANGE constant): Fired any time there's a change that should be reflected in the view.
  */
-export class FileTreeViewModel {
+export class FileTreeViewModel extends EventDispatcher.EventDispatcherBase {
     /**
      * @type {boolean}
      *
@@ -705,6 +705,8 @@ export class FileTreeViewModel {
     });
 
     constructor() {
+        super();
+
         // For convenience in callbacks, make a bound version of this method so that we can
         // just refer to it as this._commit when passing in a callback.
         this._commit = this._commit.bind(this);
@@ -749,7 +751,7 @@ export class FileTreeViewModel {
             changed = true;
         }
         if (changed) {
-            (this as unknown as EventDispatcher.DispatcherEvents).trigger(EVENT_CHANGE);
+            this.trigger(EVENT_CHANGE);
         }
     }
 
@@ -1110,7 +1112,7 @@ export class FileTreeViewModel {
     public setSortDirectoriesFirst(sortDirectoriesFirst) {
         if (sortDirectoriesFirst !== this.sortDirectoriesFirst) {
             this.sortDirectoriesFirst = sortDirectoriesFirst;
-            (this as unknown as EventDispatcher.DispatcherEvents).trigger(EVENT_CHANGE);
+            this.trigger(EVENT_CHANGE);
         }
     }
 
@@ -1149,4 +1151,3 @@ export class FileTreeViewModel {
         // Does not emit change event. See SPECIAL CASE NOTE in docstring above.
     }
 }
-EventDispatcher.makeEventDispatcher(FileTreeViewModel.prototype);

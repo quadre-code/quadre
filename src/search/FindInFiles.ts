@@ -1057,4 +1057,4 @@ export function getAllSearchResults() {
 (FindUtils as unknown as DispatcherEvents).on(FindUtils.SEARCH_FILE_FILTERS_CHANGED, _searchScopeChanged);
 (FindUtils as unknown as DispatcherEvents).on(FindUtils.SEARCH_SCOPE_CHANGED, _searchScopeChanged);
 (FindUtils as unknown as DispatcherEvents).on(FindUtils.SEARCH_COLLAPSE_RESULTS, _searchcollapseResults);
-(searchDomain as any).on("crawlComplete", nodeFileCacheComplete);
+searchDomain.on("crawlComplete", nodeFileCacheComplete);

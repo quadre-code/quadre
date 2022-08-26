@@ -81,7 +81,7 @@ function oneOrEach(itemOrArr, cb) {
  * @param {!Date} initialTimestamp  File's timestamp when we read it off disk.
  * @param {!string} rawText  Text content of the file.
  */
-export class Document {
+export class Document extends EventDispatcher.EventDispatcherBase {
     private _associatedFullEditors;
 
     /**
@@ -163,6 +163,8 @@ export class Document {
     public _lineEndings: FileUtils.LineEndings | null = null;
 
     constructor(file, initialTimestamp, rawText) {
+        super();
+
         this.file = file;
         this.editable = !file.readOnly;
         this._updateLanguage();
@@ -351,7 +353,7 @@ export class Document {
      * @param {Object} changeList Changelist in CodeMirror format
      */
     private _notifyDocumentChange(changeList) {
-        (this as unknown as EventDispatcher.DispatcherEvents).trigger("change", this, changeList);
+        this.trigger("change", this, changeList);
         (exports as unknown as EventDispatcher.DispatcherEvents).trigger("documentChange", this, changeList);
     }
 
@@ -743,7 +745,7 @@ export class Document {
         const oldLanguage = this.language;
         this.language = LanguageManager.getLanguageForPath(this.file.fullPath);
         if (oldLanguage && oldLanguage !== this.language) {
-            (this as unknown as EventDispatcher.DispatcherEvents).trigger("languageChanged", oldLanguage, this.language);
+            this.trigger("languageChanged", oldLanguage, this.language);
         }
     }
 
@@ -781,7 +783,6 @@ export class Document {
         return $deferred.promise();
     }
 }
-EventDispatcher.makeEventDispatcher(Document.prototype);
 
 // We dispatch events from the module level, and the instance level. Instance events are wired up
 // in the Document constructor.

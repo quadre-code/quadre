@@ -71,7 +71,7 @@ const RESULTS_PER_PAGE = 100;
  */
 const UPDATE_TIMEOUT   = 400;
 
-export class SearchResultsView {
+export class SearchResultsView extends EventDispatcher.EventDispatcherBase {
 
     /** @type {SearchModel} The search results model we're viewing. */
     private _model;
@@ -122,6 +122,8 @@ export class SearchResultsView {
      * @param {string} type type to identify if it is reference search or string match serach
      */
     constructor(model, panelID, panelName, type?) {
+        super();
+
         const panelHtml  = Mustache.render(searchPanelTemplate, {panelID: panelID});
 
         this._panel    = WorkspaceManager.createBottomPanel(panelName, $(panelHtml), 100);
@@ -186,12 +188,12 @@ export class SearchResultsView {
             })
             // The link to go to the next page
             .on("click.searchResults", ".next-page:not(.disabled)", function () {
-                (self as unknown as EventDispatcher.DispatcherEvents).trigger("getNextPage");
+                self.trigger("getNextPage");
                 HealthLogger.searchDone(HealthLogger.SEARCH_NEXT_PAGE);
             })
             // The link to go to the last page
             .on("click.searchResults", ".last-page:not(.disabled)", function () {
-                (self as unknown as EventDispatcher.DispatcherEvents).trigger("getLastPage");
+                self.trigger("getLastPage");
                 HealthLogger.searchDone(HealthLogger.SEARCH_LAST_PAGE);
             })
 
@@ -347,7 +349,7 @@ export class SearchResultsView {
                     e.stopPropagation();
                 })
                 .on("click.searchResults", ".replace-checked", function (e) {
-                    (self as unknown as EventDispatcher.DispatcherEvents).trigger("replaceBatch");
+                    self.trigger("replaceBatch");
                 });
         }
     }
@@ -610,8 +612,7 @@ export class SearchResultsView {
             this._panel.hide();
             this._panel.$panel.off(".searchResults");
             this._model.off("change.SearchResultsView");
-            (this as unknown as EventDispatcher.DispatcherEvents).trigger("close");
+            this.trigger("close");
         }
     }
 }
-EventDispatcher.makeEventDispatcher(SearchResultsView.prototype);

@@ -52,7 +52,7 @@ const _tmpLink = window.document.createElement("a");
  * with initialize(). When the view is closed, dispose() must be called.
  * @constructor
  */
-export class ExtensionManagerView {
+export class ExtensionManagerView extends EventDispatcher.EventDispatcherBase {
     /**
      * @type {jQueryObject}
      * The root of the view's DOM tree.
@@ -94,7 +94,7 @@ export class ExtensionManagerView {
     private _$infoMessage: JQuery;
 
     constructor() {
-        // Do nothing.
+        super();
     }
 
     /**
@@ -161,7 +161,7 @@ export class ExtensionManagerView {
         const self = this;
 
         // Listen for model data and filter changes.
-        (this.model as unknown as EventDispatcher.DispatcherEvents)
+        this.model
             .on("filter", function () {
                 self._render();
             })
@@ -415,7 +415,7 @@ export class ExtensionManagerView {
             $item.appendTo(self._$table);
         });
 
-        (this as unknown as EventDispatcher.DispatcherEvents).trigger("render");
+        this.trigger("render");
     }
 
     /**
@@ -446,4 +446,3 @@ export class ExtensionManagerView {
         this.model.filter(query);
     }
 }
-EventDispatcher.makeEventDispatcher(ExtensionManagerView.prototype);

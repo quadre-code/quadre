@@ -56,7 +56,7 @@ const EVENT_NAMESPACE = ".NodeDomainEvent";
  * @param {string} domainName Name of the registered Node Domain
  * @param {string} domainPath Full path of the JavaScript Node domain specification
  */
-class NodeDomain {
+class NodeDomain extends EventDispatcher.EventDispatcherBase {
     /**
      * The underlying Node connection object for this domain.
      *
@@ -98,6 +98,8 @@ class NodeDomain {
     private _domainLoaded = false;
 
     constructor(domainName, domainPath) {
+        super();
+
         const connection = new NodeConnection();
 
         this.connection = connection;
@@ -108,8 +110,8 @@ class NodeDomain {
         this._connectionPromise = connection.connect(true)
             .then(this._load);
 
-        (connection as unknown as EventDispatcher.DispatcherEvents).on("close", function (this: NodeDomain, event, promise) {
-            (this.connection as unknown as EventDispatcher.DispatcherEvents).off(EVENT_NAMESPACE);
+        connection.on("close", function (this: NodeDomain, event, promise) {
+            this.connection.off(EVENT_NAMESPACE);
             this._domainLoaded = false;
             // in case of calling .disconnect() on connection, promise is undefined
             this._connectionPromise = promise ? promise.then(this._load) : null;
@@ -135,7 +137,7 @@ class NodeDomain {
                 eventNames.forEach(function (this: NodeDomain, domainEvent) {
                     const connectionEvent = this._domainName + ":" + domainEvent + EVENT_NAMESPACE;
 
-                    (connection as unknown as EventDispatcher.DispatcherEvents).on(connectionEvent, function (this: NodeDomain) {
+                    connection.on(connectionEvent, function (this: NodeDomain) {
                         const params = Array.prototype.slice.call(arguments, 1);
                         EventDispatcher.triggerWithArray(this, domainEvent, params);
                     }.bind(this));
@@ -215,7 +217,5 @@ class NodeDomain {
         return result;
     }
 }
-
-EventDispatcher.makeEventDispatcher(NodeDomain.prototype);
 
 export = NodeDomain;

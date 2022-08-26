@@ -58,7 +58,7 @@ const _searchFields = [["metadata", "name"], ["metadata", "title"], ["metadata",
  *
  * @constructor
  */
-export abstract class ExtensionManagerViewModel {
+export abstract class ExtensionManagerViewModel extends EventDispatcher.EventDispatcherBase {
     /**
      * @type {string}
      * Constant indicating that this model/view should initialize from the main extension registry.
@@ -141,6 +141,8 @@ export abstract class ExtensionManagerViewModel {
     public scrollPos;
 
     constructor(source: Source) {
+        super();
+
         this._handleStatusChange = this._handleStatusChange.bind(this);
 
         // Listen for extension status changes.
@@ -163,7 +165,7 @@ export abstract class ExtensionManagerViewModel {
     protected _setInitialFilter() {
         // Initial filtered list is the same as the sorted list.
         this.filterSet = _.clone(this.sortedFullSet);
-        (this as unknown as EventDispatcher.DispatcherEvents).trigger("filter");
+        this.trigger("filter");
     }
 
     /**
@@ -198,7 +200,7 @@ export abstract class ExtensionManagerViewModel {
      * @param {string} id The id of the extension whose status changed.
      */
     protected _handleStatusChange(e, id) {
-        (this as unknown as EventDispatcher.DispatcherEvents).trigger("change", id);
+        this.trigger("change", id);
     }
 
     /**
@@ -246,7 +248,7 @@ export abstract class ExtensionManagerViewModel {
 
         this._updateMessage();
 
-        (this as unknown as EventDispatcher.DispatcherEvents).trigger("filter");
+        this.trigger("filter");
     }
 
     /**
@@ -328,7 +330,6 @@ export abstract class ExtensionManagerViewModel {
             });
     }
 }
-EventDispatcher.makeEventDispatcher(ExtensionManagerViewModel.prototype);
 
 
 /**

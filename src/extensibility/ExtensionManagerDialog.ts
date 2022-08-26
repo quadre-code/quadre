@@ -42,7 +42,6 @@ import { ExtensionManagerView } from "extensibility/ExtensionManagerView";
 import * as ExtensionManagerViewModel from "extensibility/ExtensionManagerViewModel";
 import * as PreferencesManager from "preferences/PreferencesManager";
 import File = require("filesystem/File");
-import { DispatcherEvents } from "utils/EventDispatcher";
 
 import * as dialogTemplate from "text!htmlContent/extension-manager-dialog.html";
 
@@ -482,7 +481,7 @@ function _showDialog() {
 
         // Disable the search field when there are no items in the model
         models.forEach(function (model, index) {
-            (model as unknown as DispatcherEvents).on("change", function () {
+            model.on("change", function () {
                 if (_activeTabIndex === index) {
                     updateSearchDisabled();
                 }
