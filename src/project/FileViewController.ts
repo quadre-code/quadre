@@ -203,7 +203,7 @@ export function openAndSelectDocument(fullPath, fileSelectionFocus, paneId?) {
  */
 export function openFileAndAddToWorkingSet(fullPath, paneId?): JQueryPromise<File> {
     const result = $.Deferred<File>();
-    const promise = CommandManager.execute(Commands.CMD_ADD_TO_WORKINGSET_AND_OPEN, {
+    const promise = CommandManager.execute<File>(Commands.CMD_ADD_TO_WORKINGSET_AND_OPEN, {
         fullPath: fullPath,
         paneId: paneId
     });

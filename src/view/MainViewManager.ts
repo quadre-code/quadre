@@ -1463,7 +1463,7 @@ export function _destroyEditorIfNotNeeded(document) {
  */
 function _loadViewState(e) {
     // file root is appended for each project
-    let promises: Array<JQueryDeferred<any>> = [];
+    let promises: Array<JQueryDeferred<any> | JQueryPromise<DocumentManager.Document | null>> = [];
     const context = {
         location: {
             scope: "user",
@@ -1576,7 +1576,7 @@ function _loadViewState(e) {
 
             opensList.forEach(function (openData) {
                 if (openData) {
-                    promises.push(CommandManager.execute(Commands.FILE_OPEN, openData));
+                    promises.push(CommandManager.execute<DocumentManager.Document | null>(Commands.FILE_OPEN, openData));
                 }
             });
 

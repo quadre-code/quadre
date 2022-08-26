@@ -1757,7 +1757,7 @@ function browserReload(href) {
         // Disable the cache to make reloads work
         _disableCache().always(function () {
             // Remove all menus to assure every part of Brackets is reloaded
-            _.forEach(Menus.getAllMenus(), function (value, key) {
+            _.forEach(Menus.getAllMenus(), function (value, key: string) {
                 Menus.removeMenu(key);
             });
 

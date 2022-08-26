@@ -41,6 +41,12 @@ interface MenuItemMap {
     [menuItemID: string]: MenuItem;
 }
 
+export interface ContextMenuAdapter {
+    open: (mouseOrLocation?) => void;
+    close: () => void;
+    isOpen: () => boolean;
+}
+
 /**
  * Brackets Application Menu Constants
  * @enum {string}
@@ -68,6 +74,10 @@ export const ContextMenuIds = {
     SPLITVIEW_MENU:                 "splitview-menu"
 };
 
+interface RelativeID {
+    sectionMarker: string;
+}
+
 /**
  * Brackets Application Menu Section Constants
  * It is preferred that plug-ins specify the location of new MenuItems
@@ -79,7 +89,7 @@ export const ContextMenuIds = {
  *
  * Menu sections are denoted by dividers or the beginning/end of a menu
  */
-export const MenuSection = {
+export const MenuSection: Record<string, RelativeID> = {
     // Menu Section                     Command ID to mark the section
     FILE_OPEN_CLOSE_COMMANDS:           {sectionMarker: Commands.FILE_NEW},
     FILE_SAVE_COMMANDS:                 {sectionMarker: Commands.FILE_SAVE},
@@ -123,6 +133,14 @@ export const LAST             = "last";
 export const FIRST_IN_SECTION = "firstInSection";
 export const LAST_IN_SECTION  = "lastInSection";
 
+type Position =
+    | typeof BEFORE
+    | typeof AFTER
+    | typeof FIRST
+    | typeof LAST
+    | typeof FIRST_IN_SECTION
+    | typeof LAST_IN_SECTION;
+
 /**
  * Other constants
  */
@@ -142,13 +160,13 @@ const ERR_NOT_FOUND      = 3;
  * Maps menuID's to Menu objects
  * @type {Object.<string, Menu>}
  */
-const menuMap = {};
+const menuMap: Record<string, Menu> = {};
 
 /**
  * Maps contextMenuID's to ContextMenu objects
  * @type {Object.<string, ContextMenu>}
  */
-const contextMenuMap = {};
+const contextMenuMap: Record<string, ContextMenu> = {};
 
 /**
  * Maps menuItemID's to MenuItem objects
@@ -161,7 +179,7 @@ const menuItemMap: MenuItemMap = {};
  * @param {string} id
  * @return {Menu}
  */
-export function getMenu(id) {
+export function getMenu(id: string): Menu {
     return menuMap[id];
 }
 
@@ -169,7 +187,7 @@ export function getMenu(id) {
  * Retrieves the map of all Menu objects.
  * @return {Object.<string, Menu>}
  */
-export function getAllMenus() {
+export function getAllMenus(): Record<string, Menu> {
     return menuMap;
 }
 
@@ -178,15 +196,15 @@ export function getAllMenus() {
  * @param {string} id
  * @return {ContextMenu}
  */
-export function getContextMenu(id) {
+export function getContextMenu(id: string): ContextMenu {
     return contextMenuMap[id];
 }
 
 /**
  * Removes the attached event listeners from the corresponding object.
- * @param {ManuItem} menuItem
+ * @param {MenuItem} menuItem
  */
-function removeMenuItemEventListeners(menuItem) {
+function removeMenuItemEventListeners(menuItem: MenuItem): void {
     menuItem._command
         .off("enabledStateChange", menuItem._enabledChanged)
         .off("checkedStateChange", menuItem._checkedChanged)
@@ -200,11 +218,11 @@ function removeMenuItemEventListeners(menuItem) {
  * @param {string} id
  * @return {boolean}
  */
-function _isContextMenu(id) {
+function _isContextMenu(id: string): boolean {
     return !!getContextMenu(id);
 }
 
-function _isHTMLMenu(id) {
+function _isHTMLMenu(id: string): boolean {
     return (!brackets.nativeMenus || _isContextMenu(id));
 }
 
@@ -213,19 +231,19 @@ function _isHTMLMenu(id) {
  * @param {string} id
  * @return {MenuItem}
  */
-export function getMenuItem(id) {
+export function getMenuItem(id: string): MenuItem {
     return menuItemMap[id];
 }
 
-function _getHTMLMenu(id) {
+function _getHTMLMenu(id: string): HTMLElement {
     return $("#" + StringUtils.jQueryIdEscape(id)).get(0);
 }
 
-function _getHTMLMenuItem(id) {
+function _getHTMLMenuItem(id: string): HTMLElement {
     return $("#" + StringUtils.jQueryIdEscape(id)).get(0);
 }
 
-function _addKeyBindingToMenuItem($menuItem, key, displayKey) {
+function _addKeyBindingToMenuItem($menuItem: JQuery, key: string, displayKey: string): void {
     let $shortcut = $menuItem.find(".menu-shortcut");
 
     if ($shortcut.length === 0) {
@@ -237,26 +255,26 @@ function _addKeyBindingToMenuItem($menuItem, key, displayKey) {
     $shortcut.text(KeyBindingManager.formatKeyDescriptor(displayKey));
 }
 
-function _addExistingKeyBinding(menuItem) {
+function _addExistingKeyBinding(menuItem: MenuItem): KeyBindingManager.KeyBinding | null {
     const bindings = KeyBindingManager.getKeyBindings(menuItem.getCommand().getID());
     let binding: KeyBindingManager.KeyBinding | null = null;
 
     if (bindings.length > 0) {
         // add the latest key binding
         binding = bindings[bindings.length - 1];
-        _addKeyBindingToMenuItem($(_getHTMLMenuItem(menuItem.id)), binding.key, binding.displayKey);
+        _addKeyBindingToMenuItem($(_getHTMLMenuItem(menuItem.id)), binding.key, binding.displayKey!);
     }
 
     return binding;
 }
 
 let _menuDividerIDCount = 1;
-function _getNextMenuItemDividerID() {
+function _getNextMenuItemDividerID(): string {
     return "brackets-menuDivider-" + _menuDividerIDCount++;
 }
 
 // Help function for inserting elements into a list
-function _insertInList($list, $element, position, $relativeElement) {
+function _insertInList($list: JQuery, $element: JQuery, position?: Position, $relativeElement?: JQuery | null): void {
     // Determine where to insert. Default is LAST.
     let inserted = false;
     if (position) {
@@ -307,11 +325,11 @@ export class Menu {
     protected id: string;
     public openSubMenu: any;
 
-    constructor(id) {
+    constructor(id: string) {
         this.id = id;
     }
 
-    private _getMenuItemId(commandId) {
+    private _getMenuItemId(commandId: string): string {
         return (this.id + "-" + commandId);
     }
 
@@ -321,7 +339,7 @@ export class Menu {
      * @param {Command} command - the command to search for.
      * @return {?HTMLLIElement} menu item list element
      */
-    private _getMenuItemForCommand(command) {
+    private _getMenuItemForCommand(command: CommandManager.Command): JQuery | null {
         if (!command) {
             return null;
         }
@@ -339,7 +357,7 @@ export class Menu {
      * @param {?string} position - only needed when relativeID is a MenuSection
      * @return {?HTMLLIElement} menu item list element
      */
-    private _getRelativeMenuItem(relativeID, position) {
+    private _getRelativeMenuItem(relativeID?: RelativeID | string, position?: Position): JQuery | null {
         let $relativeElement;
 
         if (relativeID) {
@@ -349,12 +367,14 @@ export class Menu {
                     return null;
                 }
 
+                const sectionMarker = (relativeID as RelativeID).sectionMarker;
+
                 // Determine the $relativeElement by traversing the sibling list and
                 // stop at the first divider found
                 // TODO: simplify using nextUntil()/prevUntil()
-                const $sectionMarker = this._getMenuItemForCommand(CommandManager.get(relativeID.sectionMarker));
+                const $sectionMarker = this._getMenuItemForCommand(CommandManager.get(sectionMarker));
                 if (!$sectionMarker) {
-                    console.error("_getRelativeMenuItem(): MenuSection " + relativeID.sectionMarker +
+                    console.error("_getRelativeMenuItem(): MenuSection " + sectionMarker +
                                   " not found in Menu " + this.id);
                     return null;
                 }
@@ -378,7 +398,7 @@ export class Menu {
                 }
 
                 // handle FIRST, LAST, BEFORE, & AFTER
-                const command = CommandManager.get(relativeID);
+                const command = CommandManager.get(relativeID as string);
                 if (command) {
                     // Lookup Command for this Command id
                     // Find MenuItem that has this command
@@ -409,7 +429,7 @@ export class Menu {
      *
      * @param {!string | Command} command - command the menu would execute if we weren't deleting it.
      */
-    public removeMenuItem(command) {
+    public removeMenuItem(command: CommandManager.Command | string): void {
         let commandID;
 
         if (!command) {
@@ -452,7 +472,7 @@ export class Menu {
      *
      * @param {!string} menuItemID - the menu item id of the divider to remove.
      */
-    public removeMenuDivider(menuItemID) {
+    public removeMenuDivider(menuItemID: string): void {
         let $HTMLMenuItem;
 
         if (!menuItemID) {
@@ -525,7 +545,7 @@ export class Menu {
      *
      * @return {MenuItem} the newly created MenuItem
      */
-    public addMenuItem(command, keyBindings?, position?, relativeID?) {
+    public addMenuItem(command: CommandManager.Command | string, keyBindings?, position?: Position, relativeID?: RelativeID | string): MenuItem | null {
         const menuID = this.id;
         let $menuItem;
         let name;
@@ -585,7 +605,7 @@ export class Menu {
             }
 
             // Insert menu item
-            const $relativeElement = this._getRelativeMenuItem(relativeID, position);
+            const $relativeElement = this._getRelativeMenuItem(relativeID!, position!);
             _insertInList(
                 $("li#" + StringUtils.jQueryIdEscape(this.id) + " > ul.dropdown-menu"),
                 $menuItem,
@@ -608,13 +628,13 @@ export class Menu {
             }
 
             if (position === FIRST_IN_SECTION || position === LAST_IN_SECTION) {
-                if (!relativeID.hasOwnProperty("sectionMarker")) {
+                if (!relativeID!.hasOwnProperty("sectionMarker")) {
                     console.error("Bad Parameter in _getRelativeMenuItem(): relativeID must be a MenuSection when position refers to a menu section");
                     return null;
                 }
 
                 // For sections, pass in the marker for that section.
-                relativeID = relativeID.sectionMarker;
+                relativeID = (relativeID as RelativeID).sectionMarker;
             }
 
             const winId = electronRemote.getCurrentWindow().id;
@@ -670,7 +690,7 @@ export class Menu {
      *
      * @return {MenuItem} the newly created divider
      */
-    public addMenuDivider(position?, relativeID?) {
+    public addMenuDivider(position?: Position, relativeID?: RelativeID | string): MenuItem | null {
         return this.addMenuItem(DIVIDER, "", position, relativeID);
     }
 
@@ -727,7 +747,7 @@ export class Menu {
      *
      * @return {Menu} the newly created submenu
      */
-    public addSubMenu(name, id, position, relativeID) {
+    public addSubMenu(name: string, id: string, position?: Position, relativeID?: RelativeID | string): ContextMenu | null {
 
         if (!name || !id) {
             console.error("addSubMenu(): missing required parameters: name and id");
@@ -775,7 +795,7 @@ export class Menu {
             });
 
             // Insert menu item
-            const $relativeElement = this._getRelativeMenuItem(relativeID, position);
+            const $relativeElement = this._getRelativeMenuItem(relativeID, position)!;
             _insertInList($("li#" + StringUtils.jQueryIdEscape(this.id) + " > ul.dropdown-menu"),
                 $menuItem, position, $relativeElement);
         } else {
@@ -793,8 +813,8 @@ export class Menu {
      *
      * @param {!string} subMenuID - the menu id of the submenu to remove.
      */
-    public removeSubMenu(subMenuID) {
-        let commandID = "";
+    public removeSubMenu(subMenuID: string): void {
+        let commandID: CommandManager.Command | string = "";
 
         if (!subMenuID) {
             console.error("removeSubMenu(): missing required parameters: subMenuID");
@@ -817,7 +837,7 @@ export class Menu {
         }
 
         // Remove all of the menu items in the submenu
-        _.forEach(menuItemMap, function (value, key) {
+        _.forEach(menuItemMap, function (value, key: string) {
             if (_.startsWith(key, subMenuID)) {
                 if (value.isDivider) {
                     subMenu.removeMenuDivider(key);
@@ -843,7 +863,7 @@ export class Menu {
     /**
      * Closes the submenu if the menu has a submenu open.
      */
-    public closeSubMenu() {
+    public closeSubMenu(): void {
         if (this.openSubMenu) {
             this.openSubMenu.close();
             this.openSubMenu = null;
@@ -922,7 +942,7 @@ export class MenuItem {
      * Gets the Command associated with a MenuItem
      * @return {Command}
      */
-    public getCommand() {
+    public getCommand(): CommandManager.Command {
         return this._command;
     }
 
@@ -939,7 +959,7 @@ export class MenuItem {
      * Returns the parent Menu for this MenuItem
      * @return {Menu}
      */
-    public getParentMenu() {
+    public getParentMenu(): Menu | null {
         const parent = $(_getHTMLMenuItem(this.id)).parents(".dropdown").get(0);
         if (!parent) {
             return null;
@@ -951,7 +971,7 @@ export class MenuItem {
     /**
      * Synchronizes MenuItem checked state with underlying Command checked state
      */
-    public _checkedChanged() {
+    public _checkedChanged(): void {
         const checked = !!this._command.getChecked();
         if (this.isNative) {
             const winId = electronRemote.getCurrentWindow().id;
@@ -969,7 +989,7 @@ export class MenuItem {
     /**
      * Synchronizes MenuItem enabled state with underlying Command enabled state
      */
-    public _enabledChanged() {
+    public _enabledChanged(): void {
         if (this.isNative) {
             const winId = electronRemote.getCurrentWindow().id;
             const enabled = !!this._command.getEnabled();
@@ -987,7 +1007,7 @@ export class MenuItem {
     /**
      * Synchronizes MenuItem name with underlying Command name
      */
-    public _nameChanged() {
+    public _nameChanged(): void {
         if (this.isNative) {
             const winId = electronRemote.getCurrentWindow().id;
             brackets.app.setMenuTitle(winId, this._command.getID(), this._command.getName(), function (err) {
@@ -1004,7 +1024,7 @@ export class MenuItem {
      * @private
      * Updates MenuItem DOM with a keyboard shortcut label
      */
-    private _keyBindingAdded(event, keyBinding) {
+    public _keyBindingAdded(event, keyBinding): void {
         if (this.isNative) {
             const winId = electronRemote.getCurrentWindow().id;
             const shortcutKey = keyBinding.displayKey || keyBinding.key;
@@ -1022,7 +1042,7 @@ export class MenuItem {
      * @private
      * Updates MenuItem DOM to remove keyboard shortcut label
      */
-    private _keyBindingRemoved(event, keyBinding) {
+    public _keyBindingRemoved(event, keyBinding): void {
         if (this.isNative) {
             const winId = electronRemote.getCurrentWindow().id;
             brackets.app.setMenuItemShortcut(winId, this._command.getID(), "", "", function (err) {
@@ -1047,7 +1067,7 @@ export class MenuItem {
 /**
  * Closes all menus that are open
  */
-export function closeAll() {
+export function closeAll(): void {
     $(".dropdown").removeClass("open");
 }
 
@@ -1066,7 +1086,7 @@ export function closeAll() {
  *
  * @return {?Menu} the newly created Menu
  */
-export function addMenu(name, id, position?, relativeID?) {
+export function addMenu(name: string, id: string, position?: Position, relativeID?: RelativeID | string): Menu | null {
     name = _.escape(name);
     const $menubar = $("#titlebar .nav");
 
@@ -1117,8 +1137,8 @@ export function addMenu(name, id, position?, relativeID?) {
     const $newMenu = $("<li class='dropdown' id='" + id + "'></li>").append($toggle).append($popUp);
 
     // Insert menu
-    const $relativeElement = relativeID && $(_getHTMLMenu(relativeID));
-    _insertInList($menubar, $newMenu, position, $relativeElement);
+    const $relativeElement = relativeID && $(_getHTMLMenu(relativeID as string));
+    _insertInList($menubar, $newMenu, position, $relativeElement as JQuery);
 
     // Install ESC key handling
     PopUpManager.addPopUp($popUp, closeAll, false);
@@ -1135,8 +1155,8 @@ export function addMenu(name, id, position?, relativeID?) {
  *      Core Menus in Brackets use a simple title as an id, for example "file-menu".
  *      Extensions should use the following format: "author.myextension.mymenuname".
  */
-export function removeMenu(id) {
-    let commandID = "";
+export function removeMenu(id: string): void {
+    let commandID: CommandManager.Command | string = "";
 
     if (!id) {
         console.error("removeMenu(): missing required parameter: id");
@@ -1151,7 +1171,7 @@ export function removeMenu(id) {
     // Remove all of the menu items in the menu
     const menu = getMenu(id);
 
-    _.forEach(menuItemMap, function (value, key) {
+    _.forEach(menuItemMap, function (value, key: string) {
         if (_.startsWith(key, id)) {
             if (value.isDivider) {
                 menu.removeMenuDivider(key);
@@ -1192,7 +1212,7 @@ export function removeMenu(id) {
  * @constructor
  * @extends {Menu}
  */
-export class ContextMenu extends EventDispatcher.withEventDispatcher(Menu) {
+export class ContextMenu extends EventDispatcher.withEventDispatcher(Menu) implements ContextMenuAdapter {
     public parentClass = Menu.prototype;
     public parentMenuItem: MenuItem;
 
@@ -1236,7 +1256,7 @@ export class ContextMenu extends EventDispatcher.withEventDispatcher(Menu) {
      *      for a specific location.This paramter is not used for submenus. Submenus are always
      *      displayed at a position relative to the parent menu.
      */
-    public open(mouseOrLocation?) {
+    public open(mouseOrLocation?): void {
 
         if (!this.parentMenuItem &&
             (!mouseOrLocation || !mouseOrLocation.hasOwnProperty("pageX") || !mouseOrLocation.hasOwnProperty("pageY"))) {
@@ -1325,7 +1345,7 @@ export class ContextMenu extends EventDispatcher.withEventDispatcher(Menu) {
     /**
      * Closes the context menu.
      */
-    public close() {
+    public close(): void {
         if (this.parentMenuItem) {
             this.trigger("beforeSubMenuClose");
         } else {
@@ -1338,7 +1358,7 @@ export class ContextMenu extends EventDispatcher.withEventDispatcher(Menu) {
     /**
      * Detect if current context menu is already open
      */
-    public isOpen() {
+    public isOpen(): boolean {
         return $("#" + StringUtils.jQueryIdEscape(this.id)).hasClass("open");
     }
 
@@ -1347,7 +1367,7 @@ export class ContextMenu extends EventDispatcher.withEventDispatcher(Menu) {
      * This static function take care of registering event handlers for the click event
      * listener and passing the right "position" object to the Context#open method
      */
-    public static assignContextMenuToSelector(selector, cmenu) {
+    public static assignContextMenuToSelector(selector: string, cmenu: ContextMenu | ContextMenuAdapter): void {
         $(selector).on("click", function (this: any, e) {
             let buttonOffset;
             let buttonHeight;

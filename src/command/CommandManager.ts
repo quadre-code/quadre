@@ -38,14 +38,14 @@ import * as EventDispatcher from "utils/EventDispatcher";
  * Map of all registered global commands
  * @type {Object.<commandID: string, Command>}
  */
-let _commands = {};
+let _commands: Record<string, Command> = {};
 
 /**
  * Temporary copy of commands map for restoring after testing
  * TODO (issue #1039): implement separate require contexts for unit tests
  * @type {Object.<commandID: string, Command>}
  */
-let _commandsOriginal = {};
+let _commandsOriginal: Record<string, Command> = {};
 
 /**
  * Events:
@@ -62,7 +62,7 @@ let _commandsOriginal = {};
  *
  * TODO: where should this be triggered, The Command or Exports?
  */
-class Command extends EventDispatcher.EventDispatcherBase {
+export class Command extends EventDispatcher.EventDispatcherBase {
     private _name;
     private _id;
     private _commandFn;
@@ -83,7 +83,7 @@ class Command extends EventDispatcher.EventDispatcherBase {
      * Get command id
      * @return {string}
      */
-    public getID() {
+    public getID(): string {
         return this._id;
     }
 
@@ -92,16 +92,16 @@ class Command extends EventDispatcher.EventDispatcherBase {
      *
      * @return {$.Promise} a jQuery promise that will be resolved when the command completes.
      */
-    public execute() {
+    public execute(...args: Array<any>): JQueryPromise<void> {
         if (!this._enabled) {
-            return $.Deferred().reject().promise();
+            return $.Deferred<void>().reject().promise();
         }
 
-        const result = this._commandFn.apply(this, arguments);
+        const result = this._commandFn.apply(this, args);
         if (!result) {
             // If command does not return a promise, assume that it handled the
             // command and return a resolved promise
-            return $.Deferred().resolve().promise();
+            return $.Deferred<void>().resolve().promise();
         }
 
         return result;
@@ -111,7 +111,7 @@ class Command extends EventDispatcher.EventDispatcherBase {
      * Is command enabled?
      * @return {boolean}
      */
-    public getEnabled() {
+    public getEnabled(): boolean {
         return this._enabled;
     }
 
@@ -120,7 +120,7 @@ class Command extends EventDispatcher.EventDispatcherBase {
      * when the enabled state changes.
      * @param {boolean} enabled
      */
-    public setEnabled(enabled) {
+    public setEnabled(enabled: boolean): void {
         const changed = this._enabled !== enabled;
         this._enabled = enabled;
 
@@ -134,7 +134,7 @@ class Command extends EventDispatcher.EventDispatcherBase {
      * when the enabled state changes.
      * @param {boolean} checked
      */
-    public setChecked(checked) {
+    public setChecked(checked: boolean): void {
         const changed = this._checked !== checked;
         this._checked = checked;
 
@@ -147,7 +147,7 @@ class Command extends EventDispatcher.EventDispatcherBase {
      * Is command checked?
      * @return {boolean}
      */
-    public getChecked() {
+    public getChecked(): boolean {
         return this._checked;
     }
 
@@ -161,7 +161,7 @@ class Command extends EventDispatcher.EventDispatcherBase {
      *
      * @param {string} name
      */
-    public setName(name) {
+    public setName(name: string): void {
         const changed = this._name !== name;
         this._name = name;
 
@@ -174,11 +174,10 @@ class Command extends EventDispatcher.EventDispatcherBase {
      * Get command name
      * @return {string}
      */
-    public getName() {
+    public getName(): string {
         return this._name;
     }
 }
-
 
 /**
  * Registers a global command.
@@ -193,7 +192,7 @@ class Command extends EventDispatcher.EventDispatcherBase {
  *     CommandManager will assume it is synchronous, and return a promise that is already resolved.
  * @return {?Command}
  */
-export function register(name, id, commandFn) {
+export function register(name: string, id: string, commandFn): Command | null {
     if (_commands[id]) {
         console.log("Attempting to register an already-registered command: " + id);
         return null;
@@ -223,7 +222,7 @@ export function register(name, id, commandFn) {
  *     CommandManager will assume it is synchronous, and return a promise that is already resolved.
  * @return {?Command}
  */
-export function registerInternal(id, commandFn) {
+export function registerInternal(id: string, commandFn): Command | null {
     if (_commands[id]) {
         console.log("Attempting to register an already-registered command: " + id);
         return null;
@@ -245,7 +244,7 @@ export function registerInternal(id, commandFn) {
  * Clear all commands for unit testing, but first make copy of commands so that
  * they can be restored afterward
  */
-export function _testReset() {
+export function _testReset(): void {
     _commandsOriginal = _commands;
     _commands = {};
 }
@@ -253,7 +252,7 @@ export function _testReset() {
 /**
  * Restore original commands after test and release copy
  */
-export function _testRestore() {
+export function _testRestore(): void {
     _commands = _commandsOriginal;
     _commandsOriginal = {};
 }
@@ -263,7 +262,7 @@ export function _testRestore() {
  * @param {string} id
  * @return {Command}
  */
-export function get(id) {
+export function get(id: string): Command {
     return _commands[id];
 }
 
@@ -271,7 +270,7 @@ export function get(id) {
  * Returns the ids of all registered commands
  * @return {Array.<string>}
  */
-export function getAll() {
+export function getAll(): Array<string> {
     return Object.keys(_commands);
 }
 
@@ -281,7 +280,7 @@ export function getAll() {
  * @param {string} id The ID of the command to run.
  * @return {$.Promise} a jQuery promise that will be resolved when the command completes.
  */
-export function execute(id, ...args) {
+export function execute<T = void>(id: string, ...args: Array<any>): JQueryPromise<T> {
     const command = _commands[id];
 
     if (command) {
@@ -291,10 +290,10 @@ export function execute(id, ...args) {
             console.error(err);
         }
 
-        return command.execute.apply(command, Array.prototype.slice.call(arguments, 1));
+        return command.execute.apply(command, args);
     }
 
-    return $.Deferred().reject().promise();
+    return $.Deferred<T>().reject().promise();
 }
 
 EventDispatcher.makeEventDispatcher(exports);

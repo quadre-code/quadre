@@ -39,7 +39,7 @@ import * as CommandManager from "command/CommandManager";
  * @param {boolean} enabled
  * @param {array} items
  */
-function _setContextMenuItemsVisible(enabled, items) {
+function _setContextMenuItemsVisible(enabled: boolean, items: Array<string>): void {
     items.forEach(function (item) {
         CommandManager.get(item).setEnabled(enabled);
     });
@@ -49,7 +49,7 @@ function _setContextMenuItemsVisible(enabled, items) {
  * Checks if file saved and present on system and
  * disables menu items accordingly
  */
-function _setMenuItemsVisible() {
+function _setMenuItemsVisible(): void {
     const file = MainViewManager.getCurrentlyViewedFile(MainViewManager.ACTIVE_PANE);
     if (file) {
         file.exists(function (err, isPresent) {
@@ -61,7 +61,7 @@ function _setMenuItemsVisible() {
     }
 }
 
-AppInit.htmlReady(function () {
+AppInit.htmlReady(function (): void {
     let menu;
 
     // prepare the OSX app menu

@@ -128,7 +128,7 @@ function _handleRefactor(functionName) {
 AppInit.appReady(function () {
 
     if (jsRefactoringEnabled) {
-        const subMenu = Menus.getContextMenu(Menus.ContextMenuIds.EDITOR_MENU).addSubMenu(Strings.CMD_REFACTOR, "refactor-submenu");
+        const subMenu = Menus.getContextMenu(Menus.ContextMenuIds.EDITOR_MENU).addSubMenu(Strings.CMD_REFACTOR, "refactor-submenu")!;
 
         const menuLocation = Menus.AppMenuBar.EDIT_MENU;
 

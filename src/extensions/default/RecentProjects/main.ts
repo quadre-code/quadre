@@ -24,6 +24,8 @@
 
 /// <amd-dependency path="module" name="module"/>
 
+import type { ContextMenuAdapter } from "command/Menus";
+
 // Brackets modules
 const ProjectManager          = brackets.getModule("project/ProjectManager");
 const SidebarView             = brackets.getModule("project/SidebarView");
@@ -467,7 +469,8 @@ AppInit.htmlReady(function () {
         .wrap("<div id='project-dropdown-toggle' class='btn-alt-quiet'></div>")
         .after("<span class='dropdown-arrow'></span>");
 
-    const cmenuAdapter = {
+    // TODO: create real ContextMenu?
+    const cmenuAdapter: ContextMenuAdapter = {
         open: showDropdown,
         close: closeDropdown,
         isOpen: function () {
