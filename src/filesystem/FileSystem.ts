@@ -173,7 +173,7 @@ const _DUPLICATED_SLASH_RE = /\/{2,}/g;
  * The FileSystem is not usable until init() signals its callback.
  * @constructor
  */
-class FileSystem {
+class FileSystem extends EventDispatcher.EventDispatcherBase {
     /**
      * The low-level file system implementation used by this object.
      * This is set in the init() function and cannot be changed.
@@ -218,6 +218,8 @@ class FileSystem {
     private _watchedRoots: { [fullpath: string]: WatchedRoot };
 
     constructor() {
+        super();
+
         // Create a file index
         this._index = new FileIndex();
 
@@ -752,7 +754,7 @@ class FileSystem {
      * @param {string} newPath The entry's current fullPath
      */
     public _fireRenameEvent(oldPath, newPath) {
-        (this as unknown as EventDispatcher.DispatcherEvents).trigger("rename", oldPath, newPath);
+        this.trigger("rename", oldPath, newPath);
     }
 
     /**
@@ -765,7 +767,7 @@ class FileSystem {
      *      is a set of removed entries from the directory.
      */
     public _fireChangeEvent(entry, added?, removed?) {
-        (this as unknown as EventDispatcher.DispatcherEvents).trigger("change", entry, added, removed);
+        this.trigger("change", entry, added, removed);
     }
 
     /**
@@ -1051,7 +1053,6 @@ class FileSystem {
         this._handleExternalChange(null);
     }
 }
-EventDispatcher.makeEventDispatcher(FileSystem.prototype);
 
 function _wrap(func) {
     return function (...args) {
@@ -1087,7 +1088,7 @@ export const _getActiveChangeCount = _wrap(FileSystem.prototype._getActiveChange
  * @param {function} handler The handler for the event
  */
 export function on(event, handler) {
-    (_instance as unknown as EventDispatcher.DispatcherEvents).on(event, handler);
+    _instance.on(event, handler);
 }
 
 /**
@@ -1097,7 +1098,7 @@ export function on(event, handler) {
  * @param {function} handler The handler for the event
  */
 export function off(event, handler) {
-    (_instance as unknown as EventDispatcher.DispatcherEvents).off(event, handler);
+    _instance.off(event, handler);
 }
 
 // Export the FileSystem class as "private" for unit testing only.

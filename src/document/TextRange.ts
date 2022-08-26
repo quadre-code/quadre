@@ -51,7 +51,7 @@ import * as EventDispatcher from "utils/EventDispatcher";
  * @param {number} startLine First line in range (0-based, inclusive)
  * @param {number} endLine   Last line in range (0-based, inclusive)
  */
-export class TextRange {
+export class TextRange extends EventDispatcher.EventDispatcherBase {
     /**
      * Containing document
      * @type {!Document}
@@ -71,6 +71,8 @@ export class TextRange {
     public endLine;
 
     constructor(document, startLine, endLine) {
+        super();
+
         this.startLine = startLine;
         this.endLine = endLine;
 
@@ -177,16 +179,16 @@ export class TextRange {
 
             // If we lost sync with the range, just bail now
             if (this.startLine === null || this.endLine === null) {
-                (this as unknown as EventDispatcher.DispatcherEvents).trigger("lostSync");
+                this.trigger("lostSync");
                 break;
             }
         }
 
         if (hasChanged) {
-            (this as unknown as EventDispatcher.DispatcherEvents).trigger("change");
+            this.trigger("change");
         }
         if (hasContentChanged) {
-            (this as unknown as EventDispatcher.DispatcherEvents).trigger("contentChange");
+            this.trigger("contentChange");
         }
     }
 
@@ -195,7 +197,7 @@ export class TextRange {
     }
 
     private _handleDocumentDeleted(event) {
-        (this as unknown as EventDispatcher.DispatcherEvents).trigger("lostSync");
+        this.trigger("lostSync");
     }
 
     /* (pretty toString(), to aid debugging) */
@@ -203,4 +205,3 @@ export class TextRange {
         return "[TextRange " + this.startLine + "-" + this.endLine + " in " + this.document + "]";
     }
 }
-EventDispatcher.makeEventDispatcher(TextRange.prototype);

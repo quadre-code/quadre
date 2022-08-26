@@ -259,7 +259,7 @@ function _ensurePaneIsFocused(paneId) {
  * @param {!string} id - The id to use to identify this pane
  * @param {!JQuery} $container - The parent $container to place the pane view
  */
-export class Pane {
+export class Pane extends EventDispatcher.EventDispatcherBase {
 
     /**
      * id of the pane
@@ -357,6 +357,8 @@ export class Pane {
     public _lastFocusedElement?;
 
     constructor(id, $container) {
+        super();
+
         this._initialize();
 
         // Setup the container and the element we're inserting
@@ -398,8 +400,8 @@ export class Pane {
                 CommandManager.execute(Commands.FILE_OPEN, {fullPath: currentFile.fullPath,
                     paneId: otherPaneId}).always(function () {
                     // Trigger view list changes for both panes
-                    (self as unknown as EventDispatcher.DispatcherEvents).trigger("viewListChange");
-                    (otherPane as unknown as EventDispatcher.DispatcherEvents).trigger("viewListChange");
+                    self.trigger("viewListChange");
+                    otherPane.trigger("viewListChange");
                     _ensurePaneIsFocused(activePaneIdBeforeFlip);
                 });
             });
@@ -702,7 +704,7 @@ export class Pane {
 
         // Destroy temporary views
         _.forEach(viewsToDestroy, function (view) {
-            (self as unknown as EventDispatcher.DispatcherEvents).trigger("viewDestroy", view);
+            self.trigger("viewDestroy", view);
             view.destroy();
         });
 
@@ -918,7 +920,7 @@ export class Pane {
     private _notifyCurrentViewChange(newView, oldView) {
         this.updateHeaderText();
 
-        (this as unknown as EventDispatcher.DispatcherEvents).trigger("currentViewChange", newView, oldView);
+        this.trigger("currentViewChange", newView, oldView);
     }
 
 
@@ -935,7 +937,7 @@ export class Pane {
             this._hideCurrentView();
         }
         delete this._views[view.getFile().fullPath];
-        (this as unknown as EventDispatcher.DispatcherEvents).trigger("viewDestroy", view);
+        this.trigger("viewDestroy", view);
         view.destroy();
     }
 
@@ -1120,7 +1122,7 @@ export class Pane {
 
         // dispatch the change event
         if (dispatchEvent) {
-            (this as unknown as EventDispatcher.DispatcherEvents).trigger("viewListChange");
+            this.trigger("viewListChange");
         }
     }
 
@@ -1132,7 +1134,7 @@ export class Pane {
      */
     private _handleFileDeleted(e, fullPath) {
         if (this.removeView({fullPath: fullPath})) {
-            (this as unknown as EventDispatcher.DispatcherEvents).trigger("viewListChange");
+            this.trigger("viewListChange");
         }
     }
 
@@ -1309,7 +1311,7 @@ export class Pane {
             const file = view.getFile();
             const path = file && file.fullPath;
             delete this._views[path];
-            (this as unknown as EventDispatcher.DispatcherEvents).trigger("viewDestroy", view);
+            this.trigger("viewDestroy", view);
             view.destroy();
         }
     }
@@ -1343,7 +1345,7 @@ export class Pane {
 
         // Now destroy the views
         views.forEach(function (_view) {
-            (self as unknown as EventDispatcher.DispatcherEvents).trigger("viewDestroy", _view);
+            self.trigger("viewDestroy", _view);
             _view.destroy();
         });
     }
@@ -1604,5 +1606,3 @@ export class Pane {
         }
     }
 }
-
-EventDispatcher.makeEventDispatcher(Pane.prototype);

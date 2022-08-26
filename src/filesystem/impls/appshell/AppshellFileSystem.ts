@@ -30,7 +30,6 @@ import FileUtils       = require("file/FileUtils");
 import FileSystemStats = require("filesystem/FileSystemStats");
 import FileSystemError = require("filesystem/FileSystemError");
 import NodeDomain      = require("utils/NodeDomain");
-import { DispatcherEvents } from "utils/EventDispatcher";
 
 /**
  * @const
@@ -66,7 +65,7 @@ const _domainPath   = [_bracketsPath, _modulePath, _nodePath].join("/");
 const _nodeDomain   = new NodeDomain("fileWatcher", _domainPath);
 
 // If the connection closes, notify the FileSystem that watchers have gone offline.
-(_nodeDomain.connection as unknown as DispatcherEvents).on("close", (event: any, reconnectPromise?: JQueryPromise<any>) => {
+_nodeDomain.connection.on("close", (event: any, reconnectPromise?: JQueryPromise<any>) => {
     if (_offlineCallback) {
         _offlineCallback();
     }
@@ -129,7 +128,7 @@ function _fileWatcherChange(evt: any, event: string, parentDirPath: string, entr
 }
 
 // Setup the change handler. This only needs to happen once.
-(_nodeDomain as unknown as DispatcherEvents).on("change", _fileWatcherChange);
+_nodeDomain.on("change", _fileWatcherChange);
 
 /**
  * Convert appshell error codes to FileSystemError values.

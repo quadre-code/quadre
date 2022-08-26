@@ -226,13 +226,13 @@ class ActionCreator {
         // Change events are the standard Flux signal to rerender the view. Note that
         // current Flux style is to have the view itself listen to the Store for change events
         // and re-render itself.
-        (this.model as unknown as EventDispatcher.DispatcherEvents).on(ProjectModel.EVENT_CHANGE, function () {
+        this.model.on(ProjectModel.EVENT_CHANGE, function () {
             _renderTree();
         });
 
         // The "should select" event signals that we need to open the document based on file tree
         // activity.
-        (this.model as unknown as EventDispatcher.DispatcherEvents).on(ProjectModel.EVENT_SHOULD_SELECT, function (e, data) {
+        this.model.on(ProjectModel.EVENT_SHOULD_SELECT, function (e, data) {
             if (data.add) {
                 FileViewController.openFileAndAddToWorkingSet(data.path).fail(_.partial(_revertSelection, data.previousPath, !data.hadFocus));
             } else {
@@ -240,11 +240,11 @@ class ActionCreator {
             }
         });
 
-        (this.model as unknown as EventDispatcher.DispatcherEvents).on(ProjectModel.EVENT_SHOULD_FOCUS, function () {
+        this.model.on(ProjectModel.EVENT_SHOULD_FOCUS, function () {
             FileViewController.setFileViewFocus(FileViewController.PROJECT_MANAGER);
         });
 
-        (this.model as unknown as EventDispatcher.DispatcherEvents).on(ProjectModel.ERROR_CREATION, _displayCreationError);
+        this.model.on(ProjectModel.ERROR_CREATION, _displayCreationError);
     }
 
     /**

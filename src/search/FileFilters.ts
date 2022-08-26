@@ -37,7 +37,6 @@ import * as PreferencesManager from "preferences/PreferencesManager";
 import * as FindUtils from "search/FindUtils";
 import * as EditFilterTemplate from "text!htmlContent/edit-filter-dialog.html";
 import * as FilterNameTemplate from "text!htmlContent/filter-name.html";
-import { DispatcherEvents } from "utils/EventDispatcher";
 
 interface ContextInfo {
     label: string;
@@ -544,9 +543,9 @@ export function createFilterPicker(context) {
     _picker.$button.addClass("file-filter-picker no-focus");
 
     // Set up mouse click event listeners for 'Delete' and 'Edit' buttons
-    (_picker as unknown as DispatcherEvents).on("listRendered", _handleListRendered);
+    _picker.on("listRendered", _handleListRendered);
 
-    (_picker as unknown as DispatcherEvents).on("select", function (event, item, itemIndex) {
+    _picker.on("select", function (event, item, itemIndex) {
         if (itemIndex === 0) {
             // Close the dropdown first before opening the edit filter dialog
             // so that it will restore focus to the DOM element that has focus

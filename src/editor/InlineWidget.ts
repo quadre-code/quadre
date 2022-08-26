@@ -32,7 +32,7 @@ import { Editor } from "editor/Editor";
  * @constructor
  *
  */
-export class InlineWidget {
+export class InlineWidget extends EventDispatcher.EventDispatcherBase {
     public htmlContent: HTMLElement;
     public $htmlContent: JQuery;
     public id = null;
@@ -40,6 +40,8 @@ export class InlineWidget {
     private $closeBtn: JQuery;
 
     constructor() {
+        super();
+
         const self = this;
 
         // create the outer wrapper div
@@ -92,7 +94,7 @@ export class InlineWidget {
      * Called any time inline is closed, whether manually or automatically.
      */
     public onClosed() {
-        (this as unknown as EventDispatcher.DispatcherEvents).trigger("close");
+        this.trigger("close");
     }
 
     /**
@@ -103,7 +105,7 @@ export class InlineWidget {
      * set the initial height (required to animate it open). The widget will never open otherwise.
      */
     public onAdded() {
-        (this as unknown as EventDispatcher.DispatcherEvents).trigger("add");
+        this.trigger("add");
     }
 
     /**
@@ -127,4 +129,3 @@ export class InlineWidget {
         // do nothing - base implementation
     }
 }
-EventDispatcher.makeEventDispatcher(InlineWidget.prototype);

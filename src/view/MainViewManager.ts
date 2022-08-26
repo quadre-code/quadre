@@ -1327,7 +1327,7 @@ function _mergePanes() {
         setActivePaneId(firstPane.id);
 
         secondPane.$el.off(".mainview");
-        (secondPane as unknown as EventDispatcher.DispatcherEvents).off(".mainview");
+        secondPane.off(".mainview");
 
         secondPane.destroy();
         delete _panes[SECOND_PANE];

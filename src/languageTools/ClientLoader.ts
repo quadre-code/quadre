@@ -167,7 +167,7 @@ function initDomainAndHandleNodeCrash() {
         // event on the websocket connection object. Brackets then spawns another process and
         // restablishes the connection. Once the connection is restablished we send reinitialize
         // the LanguageClient info.
-        (clientInfoDomain!.connection as unknown as EventDispatcher.DispatcherEvents).on("close", function (event, reconnectedPromise) {
+        clientInfoDomain!.connection.on("close", function (event, reconnectedPromise) {
             reconnectedPromise.done(sendLanguageClientInfo);
         });
     }).fail(function (err) {

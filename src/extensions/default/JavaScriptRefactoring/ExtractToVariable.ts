@@ -23,7 +23,6 @@
 */
 
 type TSession = any;
-import type { DispatcherEvents } from "utils/EventDispatcher";
 
 const ASTWalker           = brackets.getModule("thirdparty/acorn/walk");
 const EditorManager       = brackets.getModule("editor/EditorManager");
@@ -317,15 +316,15 @@ export function handleExtractToVariable() {
 
             inlineMenu.onHover(function (expnId) {
                 // Remove the scroll Handlers If already Attached.
-                (editor as unknown as DispatcherEvents).off("scroll.inlinemenu");
+                editor.off("scroll.inlinemenu");
                 // Add a scroll handler If Selection Range is not View.
                 // This is Added for a Bug, where Menu used not to open for the first Time
                 if (!editor.isLineVisible(editor.posFromIndex(expns[expnId].end).line)) {
-                    (editor as unknown as DispatcherEvents).on("scroll.inlinemenu", function () {
+                    editor.on("scroll.inlinemenu", function () {
                         // Remove the Handlers so that If scroll event is triggerd again by any other operation
                         // Menu should not be reopened.
                         // Menu Should be reopened only if Scroll event is triggered by onHover.
-                        (editor as unknown as DispatcherEvents).off("scroll.inlinemenu");
+                        editor.off("scroll.inlinemenu");
                         inlineMenu.openRemovedMenu();
                     });
                 }

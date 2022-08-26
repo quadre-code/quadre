@@ -650,16 +650,16 @@ CommandManager.register(Strings.CMD_VIEW_TOGGLE_INSPECTION, Commands.VIEW_TOGGLE
 CommandManager.register(Strings.CMD_GOTO_FIRST_PROBLEM,     Commands.NAVIGATE_GOTO_FIRST_PROBLEM,   handleGotoFirstProblem);
 
 // Register preferences
-(prefs.definePreference(PREF_ENABLED, "boolean", brackets.config["linting.enabled_by_default"], {
+prefs.definePreference(PREF_ENABLED, "boolean", brackets.config["linting.enabled_by_default"], {
     description: Strings.DESCRIPTION_LINTING_ENABLED
-}) as unknown as DispatcherEvents)
+})
     .on("change", function (e, data) {
         toggleEnabled(prefs.get(PREF_ENABLED), true);
     });
 
-(prefs.definePreference(PREF_COLLAPSED, "boolean", false, {
+prefs.definePreference(PREF_COLLAPSED, "boolean", false, {
     description: Strings.DESCRIPTION_LINTING_COLLAPSED
-}) as unknown as DispatcherEvents)
+})
     .on("change", function (e, data) {
         toggleCollapsed(prefs.get(PREF_COLLAPSED), true);
     });

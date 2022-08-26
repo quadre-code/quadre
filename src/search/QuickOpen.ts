@@ -709,7 +709,7 @@ class QuickNavigateDialog {
         const searchBarHTML = "<div align='right'><input type='text' autocomplete='off' id='quickOpenSearch' placeholder='" + Strings.CMD_QUICK_OPEN + "\u2026' style='width: 30em'><span class='find-dialog-label'></span></div>";
         this.modalBar = new ModalBar(searchBarHTML, true);
 
-        (this.modalBar as unknown as DispatcherEvents).on("close", this._handleCloseBar);
+        this.modalBar.on("close", this._handleCloseBar);
 
         this.$searchField = $("input#quickOpenSearch");
 
@@ -852,7 +852,7 @@ function _setMenuItemStateForLanguage(languageId) {
 
     DocumentManager.getDocumentForPath(newFilePath)
         .done(function (newDoc) {
-            (newDoc as unknown as DispatcherEvents).on("languageChanged.quickFindDefinition", function () {
+            newDoc!.on("languageChanged.quickFindDefinition", function () {
                 const changedLanguageId = LanguageManager.getLanguageForPath(newDoc!.file.fullPath).getId();
                 _setMenuItemStateForLanguage(changedLanguageId);
             });
@@ -867,7 +867,7 @@ function _setMenuItemStateForLanguage(languageId) {
     const oldFilePath = oldFile.fullPath;
     DocumentManager.getDocumentForPath(oldFilePath)
         .done(function (oldDoc) {
-            (oldDoc as unknown as DispatcherEvents).off("languageChanged.quickFindDefinition");
+            oldDoc!.off("languageChanged.quickFindDefinition");
         }).fail(function (err) {
             console.error(err);
         });

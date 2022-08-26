@@ -374,7 +374,7 @@ const _instances: Array<Editor> = [];
  *          to display in this editor. Inclusive.
  * @param {!Object} options If specified, contains editor options that can be passed to CodeMirror
  */
-export class Editor {
+export class Editor extends EventDispatcher.EventDispatcherBase {
     /**
      * The Document we're bound to
      * @type {!Document}
@@ -439,6 +439,8 @@ export class Editor {
     public $el: JQuery;
 
     constructor(document, makeMasterEditor, container, range?, options?) {
+        super();
+
         const self = this;
 
         const isReadOnly = (options && options.isReadOnly) || !document.editable;
@@ -574,16 +576,16 @@ export class Editor {
 
         this._renderGutters();
 
-        (this as unknown as EventDispatcher.DispatcherEvents).on("cursorActivity", function (event, editor) {
+        this.on("cursorActivity", function (event, editor) {
             self._handleCursorActivity(event);
         });
-        (this as unknown as EventDispatcher.DispatcherEvents).on("keypress", function (event, editor, domEvent) {
+        this.on("keypress", function (event, editor, domEvent) {
             self._handleKeypressEvents(domEvent);
         });
-        (this as unknown as EventDispatcher.DispatcherEvents).on("change", function (event, editor, changeList) {
+        this.on("change", function (event, editor, changeList) {
             self._handleEditorChange(changeList);
         });
-        (this as unknown as EventDispatcher.DispatcherEvents).on("focus", function (event, editor) {
+        this.on("focus", function (event, editor) {
             if (self._hostEditor) {
                 // Mark the host editor as the master editor for the hosting document
                 self._hostEditor.document._toggleMasterEditor(self._hostEditor);
@@ -651,7 +653,7 @@ export class Editor {
      * a read-only string-backed mode.
      */
     public destroy() {
-        (this as unknown as EventDispatcher.DispatcherEvents).trigger("beforeDestroy", this);
+        this.trigger("beforeDestroy", this);
 
         // CodeMirror docs for getWrapperElement() say all you have to do is "Remove this from your
         // tree to delete an editor instance."
@@ -1001,7 +1003,7 @@ export class Editor {
         // it to lose sync. If so, our whole view is stale - signal our owner to close us.
         if (this._visibleRange) {
             if (this._visibleRange.startLine === null || this._visibleRange.endLine === null) {
-                (this as unknown as EventDispatcher.DispatcherEvents).trigger("lostContent");
+                this.trigger("lostContent");
                 return;
             }
         }
@@ -1070,7 +1072,7 @@ export class Editor {
         // whereas the "change" event should be listened to on the document. Also the
         // Editor dispatches a change event before this event is dispatched, because
         // CodeHintManager needs to hook in here when other things are already done.
-        (this as unknown as EventDispatcher.DispatcherEvents).trigger("editorChange", this, changeList);
+        this.trigger("editorChange", this, changeList);
     }
 
     /**
@@ -1107,7 +1109,7 @@ export class Editor {
      */
     private _handleDocumentDeleted(event) {
         // Pass the delete event along as the cause (needed in MultiRangeInlineEditor)
-        (this as unknown as EventDispatcher.DispatcherEvents).trigger("lostContent", event);
+        this.trigger("lostContent", event);
     }
 
     /**
@@ -1127,8 +1129,8 @@ export class Editor {
 
         // Redispatch these CodeMirror key events as Editor events
         function _onKeyEvent(instance, event) {
-            (self as unknown as EventDispatcher.DispatcherEvents).trigger("keyEvent", self, event);  // deprecated
-            (self as unknown as EventDispatcher.DispatcherEvents).trigger(event.type, self, event);
+            self.trigger("keyEvent", self, event);  // deprecated
+            self.trigger(event.type, self, event);
             return event.defaultPrevented;   // false tells CodeMirror we didn't eat the event
         }
         this._codeMirror.on("keydown",  _onKeyEvent);
@@ -1141,16 +1143,16 @@ export class Editor {
         // Also, note that we use the new "changes" event in v4, which provides an array of
         // change objects. Our own event is still called just "change".
         this._codeMirror.on("changes", function (instance, changeList) {
-            (self as unknown as EventDispatcher.DispatcherEvents).trigger("change", self, changeList);
+            self.trigger("change", self, changeList);
         });
         this._codeMirror.on("beforeChange", function (instance, changeObj) {
-            (self as unknown as EventDispatcher.DispatcherEvents).trigger("beforeChange", self, changeObj);
+            self.trigger("beforeChange", self, changeObj);
         });
         this._codeMirror.on("cursorActivity", function (instance) {
-            (self as unknown as EventDispatcher.DispatcherEvents).trigger("cursorActivity", self);
+            self.trigger("cursorActivity", self);
         });
         this._codeMirror.on("beforeSelectionChange", function (instance, selectionObj) {
-            (self as unknown as EventDispatcher.DispatcherEvents).trigger("beforeSelectionChange", selectionObj);
+            self.trigger("beforeSelectionChange", selectionObj);
         });
         this._codeMirror.on("scroll", function (instance) {
             // If this editor is visible, close all dropdowns on scroll.
@@ -1160,25 +1162,25 @@ export class Editor {
                 Menus.closeAll();
             }
 
-            (self as unknown as EventDispatcher.DispatcherEvents).trigger("scroll", self);
+            self.trigger("scroll", self);
         });
 
         // Convert CodeMirror onFocus events to EditorManager activeEditorChanged
         this._codeMirror.on("focus", function () {
             self._focused = true;
-            (self as unknown as EventDispatcher.DispatcherEvents).trigger("focus", self);
+            self.trigger("focus", self);
         });
 
         this._codeMirror.on("blur", function () {
             self._focused = false;
-            (self as unknown as EventDispatcher.DispatcherEvents).trigger("blur", self);
+            self.trigger("blur", self);
         });
 
         this._codeMirror.on("update", function (instance) {
-            (self as unknown as EventDispatcher.DispatcherEvents).trigger("update", self);
+            self.trigger("update", self);
         });
         this._codeMirror.on("overwriteToggle", function (instance, newstate) {
-            (self as unknown as EventDispatcher.DispatcherEvents).trigger("overwriteToggle", self, newstate);
+            self.trigger("overwriteToggle", self, newstate);
         });
 
         // Disable CodeMirror's drop handling if a file/folder is dropped
@@ -1966,7 +1968,7 @@ export class Editor {
         const POPOVER_ARROW_HALF_BASE = POPOVER_ARROW_HALF_WIDTH + 3; // 3 is border radius
 
         function _removeListeners() {
-            (self as unknown as EventDispatcher.DispatcherEvents).off(".msgbox");
+            self.off(".msgbox");
         }
 
         // PopUpManager.removePopUp() callback
@@ -1987,7 +1989,7 @@ export class Editor {
         }
 
         function _addListeners() {
-            (self as unknown as EventDispatcher.DispatcherEvents)
+            self
                 .on("blur.msgbox",           _removeMessagePopover)
                 .on("change.msgbox",         _removeMessagePopover)
                 .on("cursorActivity.msgbox", _removeMessagePopover)
@@ -2071,7 +2073,7 @@ export class Editor {
 
                 // Don't add scroll listeners until open so we don't get event
                 // from scrolling cursor into view
-                (self as unknown as EventDispatcher.DispatcherEvents).on("scroll.msgbox", _removeMessagePopover);
+                self.on("scroll.msgbox", _removeMessagePopover);
 
                 // Animate closed -- which includes delay to show message
                 AnimationUtils.animateUsingClass(self._$messagePopover[0], "animateClose", 6000)
@@ -2459,7 +2461,7 @@ export class Editor {
                 this._codeMirror.setOption(cmOptions[prefName], newValue);
             }
 
-            (this as unknown as EventDispatcher.DispatcherEvents).trigger("optionChange", prefName, newValue);
+            this.trigger("optionChange", prefName, newValue);
         }
     }
 
@@ -2880,7 +2882,6 @@ export class Editor {
     public static CODE_FOLDING_GUTTER_PRIORITY = CODE_FOLDING_GUTTER_PRIORITY;
 }
 
-EventDispatcher.makeEventDispatcher(Editor.prototype);
 EventDispatcher.markDeprecated(Editor.prototype, "keyEvent", "'keydown/press/up'");
 
 // Set up listeners for preference changes

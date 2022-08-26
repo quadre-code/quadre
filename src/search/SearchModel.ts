@@ -39,7 +39,7 @@ interface WorkingSetFileMap {
  *      "change" - whenever the results have been updated. Note that it's up to people who
  *      edit the model to call fireChange() when necessary - it doesn't automatically fire.
  */
-export class SearchModel {
+export class SearchModel extends EventDispatcher.EventDispatcherBase {
     /**
      *  @const Constant used to define the maximum results found.
      *  Note that this is a soft limit - we'll likely go slightly over it since
@@ -111,6 +111,8 @@ export class SearchModel {
     public allResultsAvailable: boolean;
 
     constructor() {
+        super();
+
         this.clear();
     }
 
@@ -274,7 +276,6 @@ export class SearchModel {
      *      often, meaning that the view should buffer updates.
      */
     public fireChanged(quickChange?) {
-        (this as unknown as EventDispatcher.DispatcherEvents).trigger("change", quickChange);
+        this.trigger("change", quickChange);
     }
 }
-EventDispatcher.makeEventDispatcher(SearchModel.prototype);

@@ -182,11 +182,11 @@ function _handleCurrentFileChange(e, file) {
 function _createEditorForDocument(doc, makeMasterEditor, container, range?, editorOptions?) {
     const editor = new Editor(doc, makeMasterEditor, container, range, editorOptions);
 
-    (editor as unknown as EventDispatcher.DispatcherEvents).on("focus", function () {
+    editor.on("focus", function () {
         _notifyActiveEditorChanged(editor);
     });
 
-    (editor as unknown as EventDispatcher.DispatcherEvents).on("beforeDestroy", function () {
+    editor.on("beforeDestroy", function () {
         if (editor.$el.is(":visible")) {
             _saveEditorViewState(editor);
         }

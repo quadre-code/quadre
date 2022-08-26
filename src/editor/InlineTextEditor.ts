@@ -219,7 +219,7 @@ export class InlineTextEditor extends InlineWidget {
 
         // Destroy the previous editor if we had one and clear out the filename info.
         if (this.editor) {
-            (this.editor as unknown as EventDispatcher.DispatcherEvents).off(".InlineTextEditor");
+            this.editor.off(".InlineTextEditor");
             this.editor.destroy(); // remove from DOM and release ref on Document
             this.editor = null;
             this.$filename.off(".InlineTextEditor")
@@ -267,14 +267,14 @@ export class InlineTextEditor extends InlineWidget {
 
         // Always update the widget height when an inline editor completes a
         // display update
-        (this.editor as unknown as EventDispatcher.DispatcherEvents).on("update.InlineTextEditor", function (event, editor) {
+        this.editor.on("update.InlineTextEditor", function (event, editor) {
             self.sizeInlineWidgetToContents();
         });
 
         // Size editor to content whenever text changes (via edits here or any
         // other view of the doc: Editor fires "change" any time its text
         // changes, regardless of origin)
-        (this.editor as unknown as EventDispatcher.DispatcherEvents).on("change.InlineTextEditor", function (event, editor) {
+        this.editor.on("change.InlineTextEditor", function (event, editor) {
             if (self.hostEditor!.isFullyVisible()) {
                 self.sizeInlineWidgetToContents();
                 self._updateLineRange(editor);
@@ -282,7 +282,7 @@ export class InlineTextEditor extends InlineWidget {
         });
 
         // If Document's file is deleted, or Editor loses sync with Document, delegate to this._onLostContent()
-        (this.editor as unknown as EventDispatcher.DispatcherEvents).on("lostContent.InlineTextEditor", function () {
+        this.editor.on("lostContent.InlineTextEditor", function () {
             self._onLostContent.apply(self, arguments);
         });
 

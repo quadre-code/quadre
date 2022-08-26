@@ -64,7 +64,7 @@ interface ItemRendered {
  *          convert a single item to HTML (see itemRenderer() docs below). If not provided, items are
  *          assumed to be plain text strings.
  */
-export class DropdownButton {
+export class DropdownButton extends EventDispatcher.EventDispatcherBase {
     /**
      * Items in dropdown list - may be changed any time dropdown isn't open
      * @type {!Array.<*>}
@@ -104,6 +104,8 @@ export class DropdownButton {
     private _dropdownEventHandler;
 
     constructor(label: string, items: Array<any>, itemRenderer?) {
+        super();
+
         this.items = items;
 
         this.itemRenderer = itemRenderer || this.itemRenderer;
@@ -183,7 +185,7 @@ export class DropdownButton {
 
         // Also trigger listRendered handler so that custom event handlers can be
         // set up for any custom UI in the list.
-        (this as unknown as EventDispatcher.DispatcherEvents).trigger("listRendered", parent);
+        this.trigger("listRendered", parent);
 
         // Also need to re-register mouse event handlers with the updated list.
         if (this._dropdownEventHandler) {
@@ -349,8 +351,6 @@ export class DropdownButton {
      */
     private _onSelect($link) {
         const itemIndex = Number($link.data("index"));
-        (this as unknown as EventDispatcher.DispatcherEvents).trigger("select", this.items[itemIndex], itemIndex);
+        this.trigger("select", this.items[itemIndex], itemIndex);
     }
 }
-
-EventDispatcher.makeEventDispatcher(DropdownButton.prototype);

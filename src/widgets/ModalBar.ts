@@ -52,7 +52,7 @@ import * as WorkspaceManager from "view/WorkspaceManager";
  * @param {boolean} animate If true (the default), animate the dialog closed, otherwise
  *      close it immediately.
  */
-export class ModalBar {
+export class ModalBar extends EventDispatcher.EventDispatcherBase {
     /**
      * A jQuery object containing the root node of the ModalBar.
      */
@@ -76,6 +76,8 @@ export class ModalBar {
     public static CLOSE_API = "api";
 
     constructor(template, autoClose, animate?) {
+        super();
+
         if (animate === undefined) {
             animate = true;
         }
@@ -204,7 +206,7 @@ export class ModalBar {
             window.document.body.removeEventListener("focusin", this._handleFocusChange, true);
         }
 
-        (this as unknown as EventDispatcher.DispatcherEvents).trigger("close", _reason, result);
+        this.trigger("close", _reason, result);
 
         function doRemove() {
             self._$root.remove();
@@ -258,4 +260,3 @@ export class ModalBar {
         return this._$root;
     }
 }
-EventDispatcher.makeEventDispatcher(ModalBar.prototype);

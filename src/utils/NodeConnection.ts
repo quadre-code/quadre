@@ -125,7 +125,7 @@ interface NodeDomainEvent {
  * Provides an interface for interacting with the node server.
  * @constructor
  */
-class NodeConnection {
+class NodeConnection extends EventDispatcher.EventDispatcherBase {
     /**
      * @type {Object}
      * Exposes the domains registered with the server. This object will
@@ -195,6 +195,8 @@ class NodeConnection {
     private _pendingCommandDeferreds: Array<JQueryDeferred<any>>;
 
     constructor() {
+        super();
+
         this.domains = {};
         this._registeredModules = [];
         this._pendingInterfaceRefreshDeferreds = [];
@@ -275,10 +277,10 @@ class NodeConnection {
                 self._ws!.onclose = function () {
                     if (self._autoReconnect) {
                         const $promise = self.connect(true);
-                        (self as unknown as EventDispatcher.DispatcherEvents).trigger("close", $promise);
+                        self.trigger("close", $promise);
                     } else {
                         self._cleanup();
-                        (self as unknown as EventDispatcher.DispatcherEvents).trigger("close");
+                        self.trigger("close");
                     }
                 };
                 deferred.resolve();
@@ -600,7 +602,5 @@ class NodeConnection {
         return CONNECTION_TIMEOUT;
     }
 }
-
-EventDispatcher.makeEventDispatcher(NodeConnection.prototype);
 
 export = NodeConnection;

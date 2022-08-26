@@ -1192,7 +1192,7 @@ export function removeMenu(id) {
  * @constructor
  * @extends {Menu}
  */
-export class ContextMenu extends Menu {
+export class ContextMenu extends EventDispatcher.withEventDispatcher(Menu) {
     public parentClass = Menu.prototype;
     public parentMenuItem: MenuItem;
 
@@ -1262,7 +1262,7 @@ export class ContextMenu extends Menu {
         // adjust positioning so menu is not clipped off bottom or right
         if (this.parentMenuItem) { // If context menu is a submenu
 
-            (this as unknown as EventDispatcher.DispatcherEvents).trigger("beforeSubMenuOpen");
+            this.trigger("beforeSubMenuOpen");
 
             const $parentMenuItem = $(_getHTMLMenuItem(this.parentMenuItem.id));
 
@@ -1288,7 +1288,7 @@ export class ContextMenu extends Menu {
                 posLeft = Math.max(0, posLeft - $parentMenuItem.outerWidth() - $menuWindow.outerWidth());
             }
         } else {
-            (this as unknown as EventDispatcher.DispatcherEvents).trigger("beforeContextMenuOpen");
+            this.trigger("beforeContextMenuOpen");
 
             // close all other dropdowns
             closeAll();
@@ -1327,9 +1327,9 @@ export class ContextMenu extends Menu {
      */
     public close() {
         if (this.parentMenuItem) {
-            (this as unknown as EventDispatcher.DispatcherEvents).trigger("beforeSubMenuClose");
+            this.trigger("beforeSubMenuClose");
         } else {
-            (this as unknown as EventDispatcher.DispatcherEvents).trigger("beforeContextMenuClose");
+            this.trigger("beforeContextMenuClose");
         }
         this.closeSubMenu();
         $("#" + StringUtils.jQueryIdEscape(this.id)).removeClass("open");
@@ -1367,7 +1367,6 @@ export class ContextMenu extends Menu {
         });
     }
 }
-EventDispatcher.makeEventDispatcher(ContextMenu.prototype);
 
 
 /**
