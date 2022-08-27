@@ -22,6 +22,8 @@
  *
  */
 
+import type { ResultInfo } from "search/SearchModel";
+
 import * as Async from "utils/Async";
 import * as DocumentManager from "document/DocumentManager";
 import * as MainViewManager from "view/MainViewManager";
@@ -33,9 +35,39 @@ import * as EventDispatcher from "utils/EventDispatcher";
 import * as Strings from "strings";
 import * as StringUtils from "utils/StringUtils";
 import * as _ from "lodash";
+import FileSystemEntry = require("filesystem/FileSystemEntry");
 
 interface WorkingSetFileMap {
     [key: string]: boolean;
+}
+
+export interface QueryInfo {
+    query: string;
+    isCaseSensitive: boolean;
+    isRegexp: boolean;
+    isWholeWord: boolean;
+}
+
+// TODO: verify if we can change after updating the version of TypeScript.
+// type ParseQueryInfo =
+//     | { empty: true }
+//     | { valid: false, error: string }
+//     | { valid: true, queryExpr: RegExp };
+interface ParseQueryInfo {
+    empty?: true;
+    valid?: boolean;
+    error?: string;
+    queryExpr?: RegExp;
+}
+
+export interface ReplaceOptions {
+    forceFilesOpen: boolean;
+    isRegexp: boolean;
+}
+
+interface HealthReport {
+    prefNodeSearchDisabled: boolean;
+    prefInstantSearchDisabled: boolean;
 }
 
 export const ERROR_FILE_CHANGED = "fileChanged";
@@ -67,7 +99,7 @@ PreferencesManager.definePreference("findInFiles.instantSearch", "boolean", true
  * returns true if the used disabled node based search in his preferences
  * @return {boolean}
  */
-function _prefNodeSearchDisabled() {
+function _prefNodeSearchDisabled(): boolean {
     return !PreferencesManager.get("findInFiles.nodeSearch");
 }
 
@@ -75,7 +107,7 @@ function _prefNodeSearchDisabled() {
  * returns true if the used instant search in his preferences
  * @return {boolean}
  */
-function _prefInstantSearchDisabled() {
+function _prefInstantSearchDisabled(): boolean {
     return !PreferencesManager.get("findInFiles.instantSearch");
 }
 
@@ -88,7 +120,7 @@ function _prefInstantSearchDisabled() {
  * @param {Object} match The match data from the regexp.
  * @return {string} The replace text with the $-expressions substituted.
  */
-export function parseDollars(replaceWith, match) {
+export function parseDollars(replaceWith: string, match): string {
     replaceWith = replaceWith.replace(/(\$+)(\d{1,2}|&)/g, function (whole, dollars, index) {
         if (dollars.length % 2 === 1) { // make sure dollar signs don't escape themselves (like $$1, $$$$&)
             if (index === "&") { // handle $&
@@ -123,7 +155,7 @@ export function parseDollars(replaceWith, match) {
  * @param {string} string - The string to parse.
  * @return {string} The replaced text.
  */
-export function parseString(string) {
+export function parseString(string: string): string {
     return string.replace(/\\(.)/g, function (match, ch) {
         if (ch === "n") {
             return "\n";
@@ -145,7 +177,7 @@ export function parseString(string) {
  * @param {Object} match - The match data from the regexp.
  * @return {string} The replaced text.
  */
-export function parseRegexp(string, match) {
+export function parseRegexp(string: string, match): string {
     const str = parseDollars(string, match);
     return parseString(str);
 }
@@ -158,7 +190,7 @@ export function parseRegexp(string, match) {
  * @param {boolean=} isRegexp Whether the original query was a regexp.
  * @return {$.Promise} A promise that's resolved when the replacement is finished or rejected with an error if there were one or more errors.
  */
-function _doReplaceInDocument(doc, matchInfo, replaceText, isRegexp) {
+function _doReplaceInDocument(doc: DocumentManager.Document, matchInfo, replaceText: string, isRegexp: boolean): JQueryPromise<void> {
     // Double-check that the open document's timestamp matches the one we recorded. This
     // should normally never go out of sync, because if it did we wouldn't start the
     // replace in the first place (due to the fact that we immediately close the search
@@ -166,8 +198,8 @@ function _doReplaceInDocument(doc, matchInfo, replaceText, isRegexp) {
     // but we want to double-check in case we don't happen to get the change in time.
     // This will *not* handle cases where the document has been edited in memory since
     // the matchInfo was generated.
-    if (doc.diskTimestamp.getTime() !== matchInfo.timestamp.getTime()) {
-        return $.Deferred().reject(ERROR_FILE_CHANGED).promise();
+    if (doc.diskTimestamp!.getTime() !== matchInfo.timestamp.getTime()) {
+        return $.Deferred<void>().reject(ERROR_FILE_CHANGED).promise();
     }
 
     // Do the replacements in reverse document order so the offsets continue to be correct.
@@ -179,7 +211,7 @@ function _doReplaceInDocument(doc, matchInfo, replaceText, isRegexp) {
         });
     });
 
-    return $.Deferred().resolve().promise();
+    return $.Deferred<void>().resolve().promise();
 }
 
 /**
@@ -190,7 +222,7 @@ function _doReplaceInDocument(doc, matchInfo, replaceText, isRegexp) {
  * @param {boolean=} isRegexp Whether the original query was a regexp.
  * @return {$.Promise} A promise that's resolved when the replacement is finished or rejected with an error if there were one or more errors.
  */
-function _doReplaceOnDisk(fullPath, matchInfo, replaceText, isRegexp) {
+function _doReplaceOnDisk(fullPath: string, matchInfo, replaceText: string, isRegexp: boolean): JQueryPromise<any> {
     const file = FileSystem.getFileForPath(fullPath);
     return DocumentManager.getDocumentText(file, true).then(function (contents: string, timestamp: Date, lineEndings: string | null) {
         if (timestamp.getTime() !== matchInfo.timestamp.getTime()) {
@@ -235,14 +267,14 @@ function _doReplaceOnDisk(fullPath, matchInfo, replaceText, isRegexp) {
  *      isRegexp: boolean - Whether the original query was a regexp. If true, $-substitution is performed on the replaceText.
  * @return {$.Promise} A promise that's resolved when the replacement is finished or rejected with an error if there were one or more errors.
  */
-function _doReplaceInOneFile(fullPath, matchInfo, replaceText, options) {
+function _doReplaceInOneFile(fullPath: string, matchInfo, replaceText: string, options: ReplaceOptions): JQueryPromise<any> {
     const doc = DocumentManager.getOpenDocumentForPath(fullPath);
     options = options || {};
     // If we're forcing files open, or if the document is in the working set but not actually open
     // yet, we want to open the file and do the replacement in memory.
     if (!doc && (options.forceFilesOpen || MainViewManager.findInWorkingSet(MainViewManager.ALL_PANES, fullPath) !== -1)) {
         return DocumentManager.getDocumentForPath(fullPath).then(function (newDoc) {
-            return _doReplaceInDocument(newDoc, matchInfo, replaceText, options.isRegexp);
+            return _doReplaceInDocument(newDoc!, matchInfo, replaceText, options.isRegexp);
         });
     }
 
@@ -257,7 +289,7 @@ function _doReplaceInOneFile(fullPath, matchInfo, replaceText, options) {
  * @private
  * Returns true if a search result has any checked matches.
  */
-export function hasCheckedMatches(result) {
+export function hasCheckedMatches(result: ResultInfo): boolean {
     return result.matches.some(function (match) { return match.isChecked; });
 }
 
@@ -286,7 +318,7 @@ export function hasCheckedMatches(result) {
  *      where item is the full path to the file that could not be updated, and error is either a FileSystem error or one
  *      of the `FindUtils.ERROR_*` constants.
  */
-export function performReplacements(results, replaceText, options) {
+export function performReplacements(results: Record<string, ResultInfo>, replaceText: string, options: ReplaceOptions): JQueryPromise<any> {
     return Async.doInParallel_aggregateErrors(Object.keys(results), function (fullPath) {
         return _doReplaceInOneFile(fullPath, results[fullPath], replaceText, options);
     }).done(function () {
@@ -333,7 +365,7 @@ export function performReplacements(results, replaceText, options) {
  * @param {?Entry} scope
  * @return {string}
  */
-export function labelForScope(scope) {
+export function labelForScope(scope: FileSystemEntry | null): string {
     if (scope) {
         return StringUtils.format(
             Strings.FIND_IN_FILES_SCOPED,
@@ -355,7 +387,7 @@ export function labelForScope(scope) {
  *      empty - set to true if query was empty.
  *      error - set to an error string if valid is false and query is nonempty.
  */
-export function parseQueryInfo(queryInfo) {
+export function parseQueryInfo(queryInfo: QueryInfo): ParseQueryInfo {
     let queryExpr;
 
     if (!queryInfo || !queryInfo.query) {
@@ -397,7 +429,7 @@ export function parseQueryInfo(queryInfo) {
  * @param {?string} firstFile If specified, the path to the file that should be sorted to the top.
  * @return {Array.<*>}
  */
-export function prioritizeOpenFile(files, firstFile) {
+export function prioritizeOpenFile(files: Array<string>, firstFile: string | null): Array<string> {
     const workingSetFiles = MainViewManager.getWorkingSet(MainViewManager.ALL_PANES);
     const workingSetFileFound: WorkingSetFileMap = {};
     const startingWorkingFileSet: Array<string> = [];
@@ -436,7 +468,7 @@ export function prioritizeOpenFile(files, firstFile) {
  * Returns the path of the currently open file or null if there isn't one open
  * @return {?string}
  */
-export function getOpenFilePath() {
+export function getOpenFilePath(): string | null {
     const currentDoc = DocumentManager.getCurrentDocument();
     return currentDoc ? currentDoc.file.fullPath : null;
 }
@@ -445,7 +477,7 @@ export function getOpenFilePath() {
  * enable/disable instant search
  * @param {boolean} disable true to disable node based search
  */
-export function setInstantSearchDisabled(disable) {
+export function setInstantSearchDisabled(disable: boolean): void {
     instantSearchDisabled = disable;
 }
 
@@ -453,7 +485,7 @@ export function setInstantSearchDisabled(disable) {
  * if instant search is disabled, this will return true we can only do instant search through node
  * @return {boolean}
  */
-export function isInstantSearchDisabled() {
+export function isInstantSearchDisabled(): boolean {
     return _prefNodeSearchDisabled() || _prefInstantSearchDisabled() || nodeSearchDisabled || instantSearchDisabled;
 }
 
@@ -461,7 +493,7 @@ export function isInstantSearchDisabled() {
  * enable/disable node based search
  * @param {boolean} disable true to disable node based search
  */
-export function setNodeSearchDisabled(disable) {
+export function setNodeSearchDisabled(disable: boolean): void {
     if (disable) {
         // only set disable. Enabling node earch doesnt mean we have to enable instant search.
         setInstantSearchDisabled(disable);
@@ -473,7 +505,7 @@ export function setNodeSearchDisabled(disable) {
  * if node search is disabled, this will return true
  * @return {boolean}
  */
-export function isNodeSearchDisabled() {
+export function isNodeSearchDisabled(): boolean {
     return _prefNodeSearchDisabled() || nodeSearchDisabled;
 }
 
@@ -481,7 +513,7 @@ export function isNodeSearchDisabled() {
  * check if a search is progressing in node
  * @return {Boolean} true if search is processing in node
  */
-export function isNodeSearchInProgress() {
+export function isNodeSearchInProgress(): boolean {
     if (nodeSearchCount === 0) {
         return false;
     }
@@ -495,14 +527,14 @@ export function isNodeSearchInProgress() {
 /**
  * Raises an event when the file filters applied to a search changes
  */
-export function notifyFileFiltersChanged() {
+export function notifyFileFiltersChanged(): void {
     exports.trigger(SEARCH_FILE_FILTERS_CHANGED);
 }
 
 /**
  * Raises an event when the search scope changes[say search in a sub drictory in the project]
  */
-export function notifySearchScopeChanged() {
+export function notifySearchScopeChanged(): void {
     exports.trigger(SEARCH_SCOPE_CHANGED);
 }
 
@@ -510,7 +542,7 @@ export function notifySearchScopeChanged() {
  * Notifies that a node search has started so that we FindUtils can figure out
  * if any outstanding node search requests are pendind
  */
-export function notifyNodeSearchStarted() {
+export function notifyNodeSearchStarted(): void {
     nodeSearchCount++;
 }
 
@@ -518,14 +550,14 @@ export function notifyNodeSearchStarted() {
  * Notifies that a node search has finished so that we FindUtils can figure out
  * if any outstanding node search requests are pendind
  */
-export function notifyNodeSearchFinished() {
+export function notifyNodeSearchFinished(): void {
     nodeSearchCount--;
 }
 
 /**
  * Notifies that a node has started indexing the files
  */
-export function notifyIndexingStarted() {
+export function notifyIndexingStarted(): void {
     indexingInProgress = true;
     exports.trigger(SEARCH_INDEXING_STARTED);
 }
@@ -533,7 +565,7 @@ export function notifyIndexingStarted() {
 /**
  * Notifies that a node has finished indexing the files
  */
-export function notifyIndexingFinished() {
+export function notifyIndexingFinished(): void {
     indexingInProgress = false;
     exports.trigger(SEARCH_INDEXING_FINISHED);
 }
@@ -542,7 +574,7 @@ export function notifyIndexingFinished() {
  * Return true if indexing is in pregress in node
  * @return {boolean} true if files are being indexed in node
  */
-export function isIndexingInProgress() {
+export function isIndexingInProgress(): boolean {
     return indexingInProgress;
 }
 
@@ -550,7 +582,7 @@ export function isIndexingInProgress() {
  * Set if we need to collapse all results in the results pane
  * @param {boolean} collapse true to collapse
  */
-export function setCollapseResults(collapse) {
+export function setCollapseResults(collapse: boolean): void {
     collapseResults = collapse;
     exports.trigger(SEARCH_COLLAPSE_RESULTS);
 }
@@ -559,14 +591,14 @@ export function setCollapseResults(collapse) {
  * check if results should be collapsed
  * @return {boolean} true if results should be collapsed
  */
-export function isCollapsedResults() {
+export function isCollapsedResults(): boolean {
     return collapseResults;
 }
 
 /**
  * Returns the health data pertaining to Find in files
  */
-export function getHealthReport() {
+export function getHealthReport(): HealthReport {
     return {
         prefNodeSearchDisabled : _prefNodeSearchDisabled(),
         prefInstantSearchDisabled : _prefInstantSearchDisabled()

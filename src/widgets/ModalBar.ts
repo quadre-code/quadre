@@ -33,6 +33,11 @@ import * as KeyEvent from "utils/KeyEvent";
 import * as AnimationUtils from "utils/AnimationUtils";
 import * as WorkspaceManager from "view/WorkspaceManager";
 
+export type CloseReason =
+    | "escape"
+    | "blur"
+    | "api";
+
 /**
  * Creates a modal bar whose contents are the given template.
  *
@@ -71,9 +76,9 @@ export class ModalBar extends EventDispatcher.EventDispatcherBase {
      */
     public isLockedOpen;
 
-    public static CLOSE_ESCAPE = "escape";
-    public static CLOSE_BLUR = "blur";
-    public static CLOSE_API = "api";
+    public static CLOSE_ESCAPE: CloseReason = "escape";
+    public static CLOSE_BLUR: CloseReason = "blur";
+    public static CLOSE_API: CloseReason = "api";
 
     constructor(template, autoClose, animate?) {
         super();
@@ -185,7 +190,7 @@ export class ModalBar extends EventDispatcher.EventDispatcherBase {
      * @param {string=} _reason For internal use only.
      * @return {$.Promise} promise resolved when close is finished
      */
-    public close(restoreScrollPos?, animate?, _reason?) {
+    public close(restoreScrollPos?, animate?, _reason?: CloseReason) {
         const result = $.Deferred();
         const self = this;
 

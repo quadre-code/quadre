@@ -43,6 +43,12 @@ interface ScoreDebug {
     notStartingOnSpecial?: number;
 }
 
+export interface FileLocationBase {
+    line: number;
+    chFrom: number;
+    chTo: number;
+}
+
 /*
  * Performs matching that is useful for QuickOpen and similar searches.
  */
@@ -54,10 +60,16 @@ export class SearchResult {
     public scoreDebug?: ScoreDebug;
     public stringRanges?: Array<Range>;
     public label?: string;
+    public fileLocation?: FileLocationBase;
 
     constructor(label) {
         this.label = label;
     }
+}
+
+export interface StringMatcherOptions {
+    preferPrefixMatches?: boolean;
+    segmentedSearch?: boolean;
 }
 
 /*
@@ -795,7 +807,7 @@ function _prefixMatchResult(str, query) {
  *                  This is generally just used by StringMatcher for optimization.
  * @return {{ranges:Array.<{text:string, matched:boolean, includesLastSegment:boolean}>, matchGoodness:int, scoreDebug: Object}} matched ranges and score
  */
-export function stringMatch(str, query, options, special?) {
+export function stringMatch(str: string, query: string, options: StringMatcherOptions, special?): SearchResult {
     let result;
 
     options = options || {};
@@ -947,7 +959,7 @@ export function basicMatchSort(searchResults) {
  *                  segmentedSearch treats segments of the string specially.
  */
 export class StringMatcher {
-    private options;
+    private options: StringMatcherOptions;
     private _lastQuery;
 
     /**
@@ -964,7 +976,7 @@ export class StringMatcher {
      */
     private _noMatchCache;
 
-    constructor(options) {
+    constructor(options: StringMatcherOptions) {
         this.options = options;
         this.reset();
     }

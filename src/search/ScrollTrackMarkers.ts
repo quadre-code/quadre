@@ -28,6 +28,8 @@
  * It is assumed that markers are always clear()ed when switching editors.
  */
 
+import type { Editor } from "editor/Editor";
+
 import * as _ from "lodash";
 
 import * as WorkspaceManager from "view/WorkspaceManager";
@@ -38,7 +40,7 @@ import { DispatcherEvents } from "utils/EventDispatcher";
  * Editor the markers are currently shown for, or null if not shown
  * @type {?Editor}
  */
-let editor;
+let editor: Editor | null;
 
 /**
  * Top of scrollbar track area, relative to top of scrollbar
@@ -56,7 +58,7 @@ let trackHt;
  * Text positions of markers
  * @type {!Array.<{line: number, ch: number}>}
  */
-let marks = [];
+let marks: Array<CodeMirror.Position> = [];
 
 /**
  * Tickmark markCurrent() last called on, or null if never called / called with -1.
@@ -86,7 +88,7 @@ switch (brackets.platform) {
  * Vertical space above and below the scrollbar.
  * @return {number} amount Value in pixels
  */
-export function getScrollbarTrackOffset() {
+export function getScrollbarTrackOffset(): number {
     return scrollbarTrackOffset;
 }
 
@@ -95,18 +97,18 @@ export function getScrollbarTrackOffset() {
  * on the OS and may also be affected by extensions
  * @param {number} offset Value in pixels
  */
-export function setScrollbarTrackOffset(offset) {
+export function setScrollbarTrackOffset(offset: number): void {
     scrollbarTrackOffset = offset;
 }
 
-function _getScrollbar(editor) {
+function _getScrollbar(editor: Editor): JQuery {
     // Be sure to select only the direct descendant, not also elements within nested inline editors
     return $(editor.getRootElement()).children(".CodeMirror-vscrollbar");
 }
 
 /** Measure scrollbar track */
-function _calcScaling() {
-    const $sb = _getScrollbar(editor);
+function _calcScaling(): void {
+    const $sb = _getScrollbar(editor!);
 
     trackHt = $sb[0].offsetHeight;
 
@@ -115,31 +117,31 @@ function _calcScaling() {
         trackHt -= trackOffset * 2;
     } else {
         // No scrollbar: use the height of the entire code content
-        const codeContainer = $(editor.getRootElement()).find("> .CodeMirror-scroll > .CodeMirror-sizer > div > .CodeMirror-lines > div")[0];
+        const codeContainer = $(editor!.getRootElement()).find("> .CodeMirror-scroll > .CodeMirror-sizer > div > .CodeMirror-lines > div")[0];
         trackHt = codeContainer.offsetHeight;
         trackOffset = codeContainer.offsetTop;
     }
 }
 
 /** Add all the given tickmarks to the DOM in a batch */
-function _renderMarks(posArray) {
+function _renderMarks(posArray: Array<CodeMirror.Position>): void {
     let html = "";
-    const cm = editor._codeMirror;
+    const cm = editor!._codeMirror;
     const editorHt = cm.getScrollerElement().scrollHeight;
 
     // We've pretty much taken these vars and the getY function from CodeMirror's annotatescrollbar addon
     // https://github.com/codemirror/CodeMirror/blob/master/addon/scroll/annotatescrollbar.js
     const wrapping = cm.getOption("lineWrapping");
     const singleLineH = wrapping && cm.defaultTextHeight() * 1.5;
-    let curLine = null;
-    let curLineObj = null;
+    let curLine: number | null = null;
+    let curLineObj: CodeMirror.LineHandle | null = null;
 
-    function getY(cm, pos) {
+    function getY(cm: CodeMirror.Editor, pos: CodeMirror.Position): number {
         if (curLine !== pos.line) {
             curLine = pos.line;
             curLineObj = cm.getLineHandle(curLine);
         }
-        if (wrapping && (curLineObj as any).height > singleLineH) {
+        if (wrapping && (curLineObj as any).height > singleLineH!) {
             return cm.charCoords(pos, "local").top;
         }
         return cm.heightAtLine(curLineObj, "local");
@@ -152,7 +154,7 @@ function _renderMarks(posArray) {
 
         html += "<div class='tickmark' style='top:" + top + "px'></div>";
     });
-    $(".tickmark-track", editor.getRootElement()).append($(html));
+    $(".tickmark-track", editor!.getRootElement()).append($(html));
 }
 
 
@@ -160,7 +162,7 @@ function _renderMarks(posArray) {
  * Clear any markers in the editor's tickmark track, but leave it visible. Safe to call when
  * tickmark track is not visible also.
  */
-export function clear() {
+export function clear(): void {
     if (editor) {
         $(".tickmark-track", editor.getRootElement()).empty();
         marks = [];
@@ -169,7 +171,7 @@ export function clear() {
 }
 
 /** Add or remove the tickmark track from the editor's UI */
-export function setVisible(curEditor, visible) {
+export function setVisible(curEditor: Editor, visible: boolean): void {
     // short-circuit no-ops
     if ((visible && curEditor === editor) || (!visible && !editor)) {
         return;
@@ -194,7 +196,7 @@ export function setVisible(curEditor, visible) {
         (WorkspaceManager as unknown as DispatcherEvents).on("workspaceUpdateLayout.ScrollTrackMarkers", _.debounce(function () {
             if (marks.length) {
                 _calcScaling();
-                $(".tickmark-track", editor.getRootElement()).empty();
+                $(".tickmark-track", editor!.getRootElement()).empty();
                 _renderMarks(marks);
             }
         }, 300));
@@ -213,7 +215,7 @@ export function setVisible(curEditor, visible) {
  * @param curEditor {!Editor}
  * @param posArray {!Array.<{line:Number, ch:Number}>}
  */
-export function addTickmarks(curEditor, posArray) {
+export function addTickmarks(curEditor: Editor, posArray: Array<CodeMirror.Position>): void {
     console.assert(editor === curEditor);
 
     marks = marks.concat(posArray);
@@ -221,18 +223,18 @@ export function addTickmarks(curEditor, posArray) {
 }
 
 /** @param {number} index Either -1, or an index into the array passed to addTickmarks() */
-export function markCurrent(index) {
+export function markCurrent(index: number): void {
     // Remove previous highlight first
     if ($markedTickmark) {
         $markedTickmark.removeClass("tickmark-current");
         $markedTickmark = null;
     }
     if (index !== -1) {
-        $markedTickmark = $(".tickmark-track > .tickmark", editor.getRootElement()).eq(index).addClass("tickmark-current");
+        $markedTickmark = $(".tickmark-track > .tickmark", editor!.getRootElement()).eq(index).addClass("tickmark-current");
     }
 }
 
 // Private helper for unit tests
-export function _getTickmarks() {
+export function _getTickmarks(): Array<CodeMirror.Position> {
     return marks;
 }

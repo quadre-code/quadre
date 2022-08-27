@@ -494,7 +494,7 @@ export function chain(functions, args) {
  *      errback (not including the err argument) if err is null, or rejected with the err if
  *      non-null.
  */
-export function promisify(obj, method, ...varargs) {
+export function promisify(obj, method, ...varargs: Array<any>): JQueryPromise<any> {
     const result = $.Deferred();
     const args = Array.prototype.slice.call(arguments, 2);
     args.push(function (err) {

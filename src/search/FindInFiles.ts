@@ -39,7 +39,7 @@ import * as DocumentManager from "document/DocumentManager";
 import * as MainViewManager from "view/MainViewManager";
 import * as FileSystem from "filesystem/FileSystem";
 import * as LanguageManager from "language/LanguageManager";
-import { SearchModel } from "search/SearchModel";
+import { SearchModel, ResultInfo } from "search/SearchModel";
 import * as PerfUtils from "utils/PerfUtils";
 import NodeDomain = require("utils/NodeDomain");
 import * as FileUtils from "file/FileUtils";
@@ -48,10 +48,9 @@ import * as HealthLogger from "utils/HealthLogger";
 import { DispatcherEvents } from "utils/EventDispatcher";
 import File = require("filesystem/File");
 import FileSystemEntry = require("filesystem/FileSystemEntry");
-import Directory = require("filesystem/Directory");
 
 interface UpdateObject {
-    fileList: Array<File>;
+    fileList: Array<string>;
     filesInSearchScope?: Array<string>;
 }
 
@@ -60,7 +59,7 @@ interface Pos {
     ch: number;
 }
 
-interface SearchMatch {
+export interface SearchMatch {
     start: Pos;
     end: Pos;
     highlightOffset: number;
@@ -75,8 +74,8 @@ interface FileSystemEvent {
     event: any;
     entry?: FileSystemEntry;
     isDirectory: boolean;
-    added: Array<File | Directory>;
-    removed: Array<File | Directory>;
+    added: Array<FileSystemEntry>;
+    removed: Array<FileSystemEntry>;
 }
 
 interface FileSystemEventMap {
@@ -118,14 +117,14 @@ export const searchModel = new SearchModel();
 const FILE_SYSTEM_EVENT_DEBOUNCE_TIME = 100;
 
 /** Remove the listeners that were tracking potential search result changes */
-function _removeListeners() {
+function _removeListeners(): void {
     (DocumentModule as unknown as DispatcherEvents).off("documentChange", _documentChangeHandler);
     FileSystem.off("change", _debouncedFileSystemChangeHandler);
     (DocumentManager as unknown as DispatcherEvents).off("fileNameChange", _fileNameChangeHandler);
 }
 
 /** Add listeners to track events that might change the search result set */
-function _addListeners() {
+function _addListeners(): void {
     // Avoid adding duplicate listeners - e.g. if a 2nd search is run without closing the old results panel first
     _removeListeners();
 
@@ -134,7 +133,7 @@ function _addListeners() {
     (DocumentManager as unknown as DispatcherEvents).on("fileNameChange",  _fileNameChangeHandler);
 }
 
-function nodeFileCacheComplete(event, numFiles, cacheSize) {
+function nodeFileCacheComplete(event, numFiles: number, cacheSize: number): void {
     if (/\/test\/SpecRunner\.html$/.test(window.location.pathname)) {
         // Ignore the event in the SpecRunner window
         return;
@@ -164,7 +163,7 @@ function nodeFileCacheComplete(event, numFiles, cacheSize) {
  * @param {RegExp} queryExpr
  * @return {!Array.<{start: {line:number,ch:number}, end: {line:number,ch:number}, line: string}>}
  */
-function _getSearchMatches(contents, queryExpr: RegExp) {
+function _getSearchMatches(contents: string, queryExpr: RegExp): Array<SearchMatch>  {
     // Quick exit if not found or if we hit the limit
     if (searchModel.foundMaximum || contents.search(queryExpr) === -1) {
         return [];
@@ -261,7 +260,7 @@ function _getSearchMatches(contents, queryExpr: RegExp) {
  * @param {Array.<{from: {line:number,ch:number}, to: {line:number,ch:number}, text: !Array.<string>}>} changeList
  *      An array of changes as described in the Document constructor
  */
-function _updateResults(doc, changeList) {
+function _updateResults(doc: DocumentManager.Document, changeList: Array<DocumentModule.EditorChange>): void {
     let i;
     let diff;
     let matches;
@@ -285,7 +284,7 @@ function _updateResults(doc, changeList) {
             // TODO: add unit test exercising timestamp logic in this case
             // We don't just call _updateSearchMatches() here because we want to continue iterating through changes in
             // the list and update at the end.
-            resultInfo = {matches: _getSearchMatches(doc.getText(), searchModel.queryExpr!), timestamp: doc.diskTimestamp};
+            resultInfo = {matches: _getSearchMatches(doc.getText()!, searchModel.queryExpr!), timestamp: doc.diskTimestamp};
             resultsChanged = true;
 
         } else {
@@ -304,9 +303,9 @@ function _updateResults(doc, changeList) {
                 // Search the last match before a replacement, the amount of matches deleted and update
                 // the lines values for all the matches after the change
                 resultInfo.matches.forEach(function (item) {
-                    if (item.end.line < change.from.line) {
+                    if (item.end.line < change.from!.line) {
                         start++;
-                    } else if (item.end.line <= change.to.line) {
+                    } else if (item.end.line <= change.to!.line) {
                         howMany++;
                     } else {
                         item.start.line += diff;
@@ -326,8 +325,8 @@ function _updateResults(doc, changeList) {
             if (matches.length) {
                 // Updates the line numbers, since we only searched part of the file
                 matches.forEach(function (value, key) {
-                    matches[key].start.line += change.from.line;
-                    matches[key].end.line   += change.from.line;
+                    matches[key].start.line += change.from!.line;
+                    matches[key].end.line   += change.from!.line;
                 });
 
                 // If the file index exists, add the new matches to the file at the start index found before
@@ -367,7 +366,7 @@ function _updateResults(doc, changeList) {
  * @param {?FileSystemEntry} scope Search scope, or null if whole project
  * @return {boolean}
  */
-function _subtreeFilter(file, scope) {
+function _subtreeFilter(file: FileSystemEntry, scope: FileSystemEntry | null): boolean {
     if (scope) {
         if (scope.isDirectory) {
             // Dirs always have trailing slash, so we don't have to worry about being
@@ -385,7 +384,7 @@ function _subtreeFilter(file, scope) {
  * @param {string} fullPath
  * @return {boolean} True if the file's contents can be read as text
  */
-function _isReadableText(fullPath) {
+function _isReadableText(fullPath: string): boolean {
     return !LanguageManager.getLanguageForPath(fullPath).isBinary();
 }
 
@@ -395,8 +394,8 @@ function _isReadableText(fullPath) {
  * @param {?FileSystemEntry} scope Search scope, or null if whole project
  * @return {$.Promise} A promise that will be resolved with the list of files in the scope. Never rejected.
  */
-export function getCandidateFiles(scope) {
-    function filter(file) {
+export function getCandidateFiles(scope: FileSystemEntry | null): JQueryPromise<Array<File>> {
+    function filter(file: FileSystemEntry): boolean {
         return _subtreeFilter(file, scope) && _isReadableText(file.fullPath);
     }
 
@@ -404,7 +403,8 @@ export function getCandidateFiles(scope) {
     // trying to use ProjectManager.getAllFiles(), both for performance and because an individual
     // in-memory file might be an untitled document that doesn't show up in getAllFiles().
     if (scope && scope.isFile) {
-        return $.Deferred().resolve(filter(scope) ? [scope] : []).promise();
+        const file = scope as File;
+        return $.Deferred<Array<File>>().resolve(filter(file) ? [file] : []).promise();
     }
 
     return ProjectManager.getAllFiles(filter, true, true);
@@ -418,7 +418,7 @@ export function getCandidateFiles(scope) {
  * @param {!File} file
  * @return {boolean}
  */
-function _inSearchScope(file) {
+function _inSearchScope(file: FileSystemEntry): boolean {
     // Replicate the checks getCandidateFiles() does
     if (searchModel && searchModel.scope) {
         if (!_subtreeFilter(file, searchModel.scope)) {
@@ -451,7 +451,7 @@ function _inSearchScope(file) {
  * @param {<{from: {line:number,ch:number}, to: {line:number,ch:number}, text: !Array.<string>}>} change
  *      A change list as described in the Document constructor
  */
-export const _documentChangeHandler = function (event, document, change) {
+export const _documentChangeHandler = function (event, document: DocumentManager.Document, change: Array<DocumentModule.EditorChange>): void {
     if (!findOrReplaceInProgress) {
         changedFileList[document.file.fullPath] = true;
     } else {
@@ -480,7 +480,7 @@ function _doSearchInOneFile(file): JQueryPromise<boolean> {
         .done(function (text, timestamp) {
             // Note that we don't fire a model change here, since this is always called by some outer batch
             // operation that will fire it once it's done.
-            const matches = _getSearchMatches(text, searchModel.queryExpr!);
+            const matches = _getSearchMatches(text!, searchModel.queryExpr!);
             searchModel.setResults(file.fullPath, {matches: matches, timestamp: timestamp});
             result.resolve(!!matches.length);
         })
@@ -498,7 +498,7 @@ function _doSearchInOneFile(file): JQueryPromise<boolean> {
  * Inform node that the document has changed [along with its contents]
  * @param {string} docPath the path of the changed document
  */
-function _updateDocumentInNode(docPath) {
+function _updateDocumentInNode(docPath: string): void {
     DocumentManager.getDocumentForPath(docPath).done(function (doc) {
         if (doc) {
             const updateObject = {
@@ -514,7 +514,7 @@ function _updateDocumentInNode(docPath) {
  * @private
  * sends all changed documents that we have tracked to node
  */
-function _updateChangedDocs() {
+function _updateChangedDocs(): void {
     for (const key in changedFileList) {
         if (changedFileList.hasOwnProperty(key)) {
             _updateDocumentInNode(key);
@@ -531,7 +531,7 @@ function _updateChangedDocs() {
  * @return {?$.Promise} A promise that's resolved with the search results (or ZERO_FILES_TO_SEARCH) or rejected when the find competes.
  *      Will be null if the query is invalid.
  */
-function _doSearch(queryInfo, candidateFilesPromise, filter) {
+function _doSearch(queryInfo: FindUtils.QueryInfo, candidateFilesPromise: JQueryPromise<Array<File>>, filter: string | null): JQueryPromise<ResultInfo | typeof ZERO_FILES_TO_SEARCH> | null {
     searchModel.filter = filter;
 
     const queryResult = searchModel.setQueryInfo(queryInfo);
@@ -547,7 +547,7 @@ function _doSearch(queryInfo, candidateFilesPromise, filter) {
     return candidateFilesPromise
         .then(function (fileListResult) {
             // Filter out files/folders that match user's current exclusion filter
-            fileListResult = FileFilters.filterFileList(filter, fileListResult);
+            fileListResult = FileFilters.filterFileList(filter, fileListResult!);
 
             if (searchModel.isReplace || FindUtils.isNodeSearchDisabled()) {
                 if (fileListResult.length) {
@@ -646,7 +646,7 @@ function _doSearch(queryInfo, candidateFilesPromise, filter) {
  * Clears any previous search information, removing update listeners and clearing the model.
  * @param {?Entry} scope Project file/subfolder to search within; else searches whole project.
  */
-export const clearSearch = function () {
+export const clearSearch = function (): void {
     findOrReplaceInProgress = false;
     searchModel.clear();
 };
@@ -663,7 +663,7 @@ export const clearSearch = function () {
  *      getCandidateFiles(scope) would return.
  * @return {$.Promise} A promise that's resolved with the search results or rejected when the find competes.
  */
-export function doSearchInScope(queryInfo, scope, filter, replaceText, candidateFilesPromise?) {
+export function doSearchInScope(queryInfo: FindUtils.QueryInfo, scope: FileSystemEntry, filter: string | null, replaceText: string, candidateFilesPromise?: JQueryPromise<Array<File>>): JQueryPromise<ResultInfo | typeof ZERO_FILES_TO_SEARCH> | null {
     clearSearch();
     searchModel.scope = scope;
     if (replaceText !== undefined) {
@@ -689,7 +689,7 @@ export function doSearchInScope(queryInfo, scope, filter, replaceText, candidate
  *      where item is the full path to the file that could not be updated, and error is either a FileSystem error or one
  *      of the `FindInFiles.ERROR_*` constants.
  */
-export function doReplace(results, replaceText, options) {
+export function doReplace(results: Record<string, ResultInfo>, replaceText: string, options: FindUtils.ReplaceOptions): JQueryPromise<any> {
     return FindUtils.performReplacements(results, replaceText, options).always(function () {
         // For UI integration testing only
         exports._replaceDone = true;
@@ -700,14 +700,14 @@ export function doReplace(results, replaceText, options) {
  * @private
  * Flags that the search scope has changed, so that the file list for the following search is recomputed
  */
-const _searchScopeChanged = function () {
+const _searchScopeChanged = function (): void {
     searchScopeChanged = true;
 };
 
 /**
  * Notify node that the results should be collapsed
  */
-function _searchcollapseResults() {
+function _searchcollapseResults(): void {
     if (FindUtils.isNodeSearchDisabled()) {
         return;
     }
@@ -718,7 +718,7 @@ function _searchcollapseResults() {
  * Inform node that the list of files has changed.
  * @param {array} fileList The list of files that changed.
  */
-function filesChanged(fileList) {
+function filesChanged(fileList: Array<string>): void {
     if (FindUtils.isNodeSearchDisabled() || !fileList || fileList.length === 0) {
         return;
     }
@@ -736,7 +736,7 @@ function filesChanged(fileList) {
  * Inform node that the list of files have been removed.
  * @param {array} fileList The list of files that was removed.
  */
-function filesRemoved(fileList) {
+function filesRemoved(fileList: Array<string>): void {
     if (FindUtils.isNodeSearchDisabled() || !fileList || fileList.length === 0) {
         return;
     }
@@ -757,7 +757,7 @@ function filesRemoved(fileList) {
  * @param {string} oldName
  * @param {string} newName
  */
-export const _fileNameChangeHandler = function (event, oldName, newName) {
+export const _fileNameChangeHandler = function (event, oldName: string, newName: string): void {
     let resultsChanged = false;
 
     // Update the search results
@@ -788,14 +788,14 @@ export const _fileNameChangeHandler = function (event, oldName, newName) {
  * @param {Array.<FileSystemEntry>=} added Added children
  * @param {Array.<FileSystemEntry>=} removed Removed children
  */
-export const _fileSystemChangeHandler = function (event, entry, added, removed) {
+export const _fileSystemChangeHandler = function (event, entry: FileSystemEntry | null | undefined, added: Array<FileSystemEntry>, removed: Array<FileSystemEntry>): void {
     let resultsChanged = false;
 
     /*
      * Remove existing search results that match the given entry's path
      * @param {Array.<(File|Directory)>} entries
      */
-    function _removeSearchResultsForEntries(entries) {
+    function _removeSearchResultsForEntries(entries: Array<FileSystemEntry>): void {
         const fullPaths: Array<string> = [];
         entries.forEach(function (entry) {
             Object.keys(searchModel.results).forEach(function (fullPath) {
@@ -819,15 +819,15 @@ export const _fileSystemChangeHandler = function (event, entry, added, removed) 
      * @param {Array.<(File|Directory)>} entries
      * @return {jQuery.Promise} Resolves when the results have been added
      */
-    function _addSearchResultsForEntries(entries) {
+    function _addSearchResultsForEntries(entries: Array<FileSystemEntry>): JQueryPromise<any> {
         let fullPaths: Array<string> = [];
         return Async.doInParallel(entries, function (entry) {
-            const addedFiles: Array<File> = [];
+            const addedFiles: Array<FileSystemEntry> = [];
             const addedFilePaths: Array<string> = [];
             const deferred = $.Deferred();
 
             // gather up added files
-            const visitor = function (child) {
+            const visitor = function (child: FileSystemEntry): boolean {
                 // Replicate filtering that getAllFiles() does
                 if (ProjectManager.shouldShow(child)) {
                     if (child.isFile && _isReadableText(child.name)) {
@@ -939,7 +939,7 @@ const _processCachedFileSystemEvents = _.debounce(function () {
  * Wrapper function for _fileSystemChangeHandler which handles all incoming fs events
  * putting them to cache and executing a debounced function
  */
-const _debouncedFileSystemChangeHandler = function (event, entry, added, removed) {
+const _debouncedFileSystemChangeHandler = function (event, entry: FileSystemEntry, added: Array<FileSystemEntry>, removed: Array<FileSystemEntry>): void {
     // normalize this here so we don't need to handle null later
     let isDirectory = false;
     if (entry && entry.isDirectory) {
@@ -961,8 +961,8 @@ const _debouncedFileSystemChangeHandler = function (event, entry, added, removed
  * On project change, inform node about the new list of files that needs to be crawled.
  * Instant search is also disabled for the time being till the crawl is complete in node.
  */
-const _initCache = function () {
-    function filter(file) {
+const _initCache = function (): void {
+    function filter(file: File): boolean {
         return _subtreeFilter(file, null) && _isReadableText(file.fullPath);
     }
     FindUtils.setInstantSearchDisabled(true);
@@ -996,8 +996,8 @@ const _initCache = function () {
  * Gets the next page of search results to append to the result set.
  * @return {object} A promise that's resolved with the search results or rejected when the find competes.
  */
-export function getNextPageofSearchResults() {
-    const searchDeferred = $.Deferred();
+export function getNextPageofSearchResults(): JQueryPromise<void> {
+    const searchDeferred = $.Deferred<void>();
     if (searchModel.allResultsAvailable) {
         return searchDeferred.resolve().promise();
     }
@@ -1027,8 +1027,8 @@ export function getNextPageofSearchResults() {
     return searchDeferred.promise();
 }
 
-export function getAllSearchResults() {
-    const searchDeferred = $.Deferred();
+export function getAllSearchResults(): JQueryPromise<void> {
+    const searchDeferred = $.Deferred<void>();
     if (searchModel.allResultsAvailable) {
         return searchDeferred.resolve().promise();
     }

@@ -24,6 +24,8 @@
 
 /// <amd-dependency path="module" name="module"/>
 
+import type { SearchResult } from "utils/StringMatch";
+
 const AppInit         = brackets.getModule("utils/AppInit");
 const FileSystem      = brackets.getModule("filesystem/FileSystem");
 const QuickOpen       = brackets.getModule("search/QuickOpen");
@@ -90,7 +92,7 @@ AppInit.htmlReady(function () {
             name: "Remote file URI input",
             languageIds: [], // for all language modes
             search: function () {
-                return $.Deferred().resolve([arguments[0]]);
+                return $.Deferred<Array<SearchResult>>().resolve([arguments[0]]).promise();
             },
             match: function (query) {
                 const protocol = PathUtils.parseUrl(query).protocol;

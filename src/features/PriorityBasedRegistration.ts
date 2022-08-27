@@ -22,7 +22,15 @@
  *
  */
 
+import type { QuickOpenPlugin } from "search/QuickOpen";
+
 import * as PreferencesManager from "preferences/PreferencesManager";
+
+export interface Provider {
+    // TODO: it seems it can contain other type of provider (FindReference, JumpToDef, ParameterHints)
+    provider: QuickOpenPlugin;
+    priority: number;
+}
 
 /**
  * Comparator to sort providers from high to low priority
@@ -32,7 +40,7 @@ function _providerSort(a, b) {
 }
 
 export class RegistrationHandler {
-    private _providers: { [key: string]: Array<any> };
+    private _providers: { [key: string]: Array<Provider> };
 
     constructor() {
         this._providers = {
@@ -116,8 +124,8 @@ export class RegistrationHandler {
         });
     }
 
-    public getProvidersForLanguageId(languageId?) {
-        const providers = this._providers[languageId] || this._providers.all;
+    public getProvidersForLanguageId(languageId?: string): Array<Provider> {
+        const providers = this._providers[languageId!] || this._providers.all;
 
         // Exclude providers that are explicitly disabled in the preferences.
         // All providers that do not have their constructor

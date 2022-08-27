@@ -36,7 +36,20 @@
  *      input.no-results
  */
 
+import type { SearchResult } from "utils/StringMatch";
+
 import * as KeyEvent from "utils/KeyEvent";
+
+interface QuickSearchOption {
+    resultProvider: (query: string) => SearchResult | JQueryPromise<SearchResult> | Array<SearchResult> | JQueryPromise<Array<SearchResult>> | { error: string | null };
+    formatter: (item: string, query: string) => string;
+    onCommit: (selectedItem: string | SearchResult | null, query: string) => void;
+    onHighlight: (selectedItem: string, query: string, explicit: boolean) => void;
+    maxResults?: number;
+    verticalAdjust?: number;
+    firstHighlightIndex?: number | null;
+    highlightZeroResults?: boolean;
+}
 
 
 /**
@@ -77,7 +90,7 @@ import * as KeyEvent from "utils/KeyEvent";
  */
 export class QuickSearchField {
     /** @type {!Object} */
-    public options;
+    public options: QuickSearchOption;
 
     /** @type {?$.Promise} Promise corresponding to latest resultProvider call. Any earlier promises ignored */
     private _pending: JQueryPromise<any> | null;
@@ -86,7 +99,7 @@ export class QuickSearchField {
     private _commitPending = false;
 
     /** @type {?string} Value of $input corresponding to the _displayedResults list */
-    private _displayedQuery = null;
+    private _displayedQuery: string | null = null;
 
     /** @type {?Array.<*>}  Latest resultProvider result */
     private _displayedResults;
@@ -101,10 +114,10 @@ export class QuickSearchField {
     public $input: JQuery;
 
     private _highlightZeroResults: boolean;
-    private _firstHighlightIndex: number;
+    private _firstHighlightIndex?: number | null;
     private _dropdownTop: number;
 
-    constructor($input, options) {
+    constructor($input, options: QuickSearchOption) {
         this.$input = $input;
         this.options = options;
 
@@ -129,7 +142,7 @@ export class QuickSearchField {
     }
 
     /** When text field changes, update results list */
-    private _handleInput() {
+    private _handleInput(): void {
         this._pending = null;  // immediately invalidate any previous Promise
 
         const valueAtEvent = this.$input.val();
@@ -145,7 +158,7 @@ export class QuickSearchField {
     }
 
     /** Handle special keys: Enter, Up/Down */
-    private _handleKeyDown(event) {
+    private _handleKeyDown(event): void {
         if (event.keyCode === KeyEvent.DOM_VK_RETURN) {
             // Enter should always act on the latest results. If input has changed and we're still waiting for
             // new results, just flag the 'commit' for later
@@ -183,20 +196,20 @@ export class QuickSearchField {
     }
 
     /** Call onCommit() immediately */
-    private _doCommit(index?) {
+    private _doCommit(index?: number): void {
         let item;
         if (this._displayedResults && this._displayedResults.length) {
-            if (index >= 0) {
-                item = this._displayedResults[index];
+            if (index! >= 0) {
+                item = this._displayedResults[index!];
             } else if (this._highlightIndex >= 0) {
                 item = this._displayedResults[this._highlightIndex];
             }
         }
-        this.options.onCommit(item, this._displayedQuery);
+        this.options.onCommit(item, this._displayedQuery!);
     }
 
     /** Update display to reflect value of _highlightIndex, & call onHighlight() */
-    private _updateHighlight(explicit) {
+    private _updateHighlight(explicit): void {
         if (this._$dropdown) {
             const $items = this._$dropdown.find("li");
             $items.removeClass("highlight");
@@ -212,15 +225,15 @@ export class QuickSearchField {
      * Refresh the results dropdown, as if the user had changed the search text. Useful for providers that
      * want to show cached data initially, then update the results with fresher data once available.
      */
-    public updateResults() {
+    public updateResults(): void {
         this._pending = null;  // immediately invalidate any previous Promise
 
         const query = this.$input.val();
         const results = this.options.resultProvider(query);
-        if (results.done && results.fail) {
+        if ((results as any).done && (results as any).fail) {
             // Provider returned an async result - mark it as the latest Promise and if it's still latest when
             // it resolves, render the results then
-            this._pending = results;
+            this._pending = results as JQueryPromise<any>;
             const self = this;
             this._pending!.done(function (realResults) {
                 if (self._pending === results) {
@@ -244,7 +257,7 @@ export class QuickSearchField {
 
 
     /** Close dropdown result list if visible */
-    private _closeDropdown() {
+    private _closeDropdown(): void {
         if (this._$dropdown) {
             this._$dropdown.remove();
             this._$dropdown = null;
@@ -255,7 +268,7 @@ export class QuickSearchField {
      * Open dropdown result list & populate with the given content
      * @param {!string} htmlContent
      */
-    private _openDropdown(htmlContent) {
+    private _openDropdown(htmlContent: string): void {
         if (!this._$dropdown) {
             const self = this;
             this._$dropdown = $("<ol class='quick-search-container'/>").appendTo("body")
@@ -282,10 +295,10 @@ export class QuickSearchField {
      * @param {!Array.<*>} results
      * @param {!string} query
      */
-    private _render(results, query) {
+    private _render(results, query: string): void {
         this._displayedQuery = query;
         this._displayedResults = results;
-        if (this._firstHighlightIndex >= 0) {
+        if (this._firstHighlightIndex! >= 0) {
             this._highlightIndex = this._firstHighlightIndex;
         } else {
             this._highlightIndex = null;
@@ -308,7 +321,7 @@ export class QuickSearchField {
                 this.$input.removeClass("no-results");
             }
 
-            const count = Math.min(results.length, this.options.maxResults);
+            const count = Math.min(results.length, this.options.maxResults!);
             let html = "";
             for (let i = 0; i < count; i++) {
                 html += this.options.formatter(results[i], query);
@@ -331,7 +344,7 @@ export class QuickSearchField {
      * Programmatically changes the search text and updates the results.
      * @param {!string} value
      */
-    public setText(value) {
+    public setText(value: string): void {
         this.$input.val(value);
         this.updateResults();  // programmatic changes don't trigger "input" event
     }
@@ -339,7 +352,7 @@ export class QuickSearchField {
     /**
      * Closes the dropdown, and discards any pending Promises.
      */
-    public destroy() {
+    public destroy(): void {
         this._pending = null;  // immediately invalidate any pending Promise
         this._closeDropdown();
     }

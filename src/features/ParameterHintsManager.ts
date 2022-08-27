@@ -257,8 +257,9 @@ function popUpHint(editor, explicit?, onCursorActivity?) {
     const enabledProviders = _providerRegistrationHandler.getProvidersForLanguageId(language.getId());
 
     enabledProviders.some(function (item, index) {
-        if (item.provider.hasParameterHints(editor, lastChar)) {
-            sessionProvider = item.provider;
+        const provider: any = item.provider;
+        if (provider.hasParameterHints && provider.hasParameterHints(editor, lastChar)) {
+            sessionProvider = provider;
             return true;
         }
 

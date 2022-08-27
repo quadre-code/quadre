@@ -22,6 +22,8 @@
  *
  */
 
+import type { SearchMatch } from "search/FindInFiles";
+
 import * as FileUtils from "file/FileUtils";
 import * as EventDispatcher from "utils/EventDispatcher";
 import * as FindUtils from "search/FindUtils";
@@ -30,6 +32,17 @@ import FileSystemEntry = require("filesystem/FileSystemEntry");
 
 interface WorkingSetFileMap {
     [key: string]: boolean;
+}
+
+interface CountFilesMatches {
+    files: number;
+    matches: number;
+}
+
+export interface ResultInfo {
+    matches: Array<SearchMatch>;
+    collapsed?: boolean;
+    timestamp: Date | null;
 }
 
 /**
@@ -51,19 +64,19 @@ export class SearchModel extends EventDispatcher.EventDispatcherBase {
      * The current set of results.
      * @type {Object.<fullPath: string, {matches: Array.<Object>, collapsed: boolean, timestamp: Date}>}
      */
-    public results;
+    public results: Record<string, ResultInfo>;
 
     /**
      * The query that generated these results.
      * @type {{query: string, isCaseSensitive: boolean, isRegexp: boolean, isWholeWord: boolean}}
      */
-    public queryInfo = null;
+    public queryInfo: FindUtils.QueryInfo | null = null;
 
     /**
      * The compiled query, expressed as a regexp.
      * @type {RegExp}
      */
-    public queryExpr = null;
+    public queryExpr: RegExp | null = null;
 
     /**
      * Whether this is a find/replace query.
@@ -75,7 +88,7 @@ export class SearchModel extends EventDispatcher.EventDispatcherBase {
      * The replacement text specified for this query, if any.
      * @type {string}
      */
-    public replaceText = null;
+    public replaceText: string | null = null;
 
     /**
      * The file/folder path representing the scope that this query was performed in.
@@ -87,7 +100,7 @@ export class SearchModel extends EventDispatcher.EventDispatcherBase {
      * A file filter (as returned from FileFilters) to apply within the main scope.
      * @type {string}
      */
-    public filter = null;
+    public filter: string | null = null;
 
     /**
      * The total number of matches in the model.
@@ -119,7 +132,7 @@ export class SearchModel extends EventDispatcher.EventDispatcherBase {
     /**
      * Clears out the model to an empty state.
      */
-    public clear() {
+    public clear(): void {
         const numMatchesBefore = this.numMatches;
         this.results = {};
         this.queryInfo = null;
@@ -141,11 +154,12 @@ export class SearchModel extends EventDispatcher.EventDispatcherBase {
      * @return {boolean} true if the query was valid and properly set, false if it was
      *      invalid or empty.
      */
-    public setQueryInfo(queryInfo) {
+    public setQueryInfo(queryInfo: FindUtils.QueryInfo): boolean {
         const parsedQuery = FindUtils.parseQueryInfo(queryInfo);
+
         if (parsedQuery.valid) {
             this.queryInfo = queryInfo;
-            this.queryExpr = parsedQuery.queryExpr;
+            this.queryExpr = parsedQuery.queryExpr!;
             return true;
         }
 
@@ -162,7 +176,7 @@ export class SearchModel extends EventDispatcher.EventDispatcherBase {
      *      timestamp - The timestamp of the document at the time we searched it.
      *      collapsed - Optional: whether the results should be collapsed in the UI (default false).
      */
-    public setResults(fullpath, resultInfo) {
+    public setResults(fullpath: string, resultInfo: ResultInfo): void {
         this.removeResults(fullpath);
 
         if (this.foundMaximum || !resultInfo.matches.length) {
@@ -191,7 +205,7 @@ export class SearchModel extends EventDispatcher.EventDispatcherBase {
      * Removes the given result's matches from the search results and updates the total match count.
      * @param {string} fullpath Full path to the file containing the matches.
      */
-    public removeResults(fullpath) {
+    public removeResults(fullpath: string): void {
         if (this.results[fullpath]) {
             this.numMatches -= this.results[fullpath].matches.length;
             delete this.results[fullpath];
@@ -201,7 +215,7 @@ export class SearchModel extends EventDispatcher.EventDispatcherBase {
     /**
      * @return {boolean} true if there are any results in this model.
      */
-    public hasResults() {
+    public hasResults(): boolean {
         return Object.keys(this.results).length > 0;
     }
 
@@ -209,7 +223,7 @@ export class SearchModel extends EventDispatcher.EventDispatcherBase {
      * Counts the total number of matches and files
      * @return {{files: number, matches: number}}
      */
-    public countFilesMatches() {
+    public countFilesMatches(): CountFilesMatches {
         return {files: (this.numFiles || Object.keys(this.results).length), matches: this.numMatches};
     }
 
@@ -220,7 +234,7 @@ export class SearchModel extends EventDispatcher.EventDispatcherBase {
      * @param {?string} firstFile If specified, the path to the file that should be sorted to the top.
      * @return {Array.<string>}
      */
-    public prioritizeOpenFile(firstFile): Array<string> {
+    public prioritizeOpenFile(firstFile?: string | null): Array<string> {
         const workingSetFiles = MainViewManager.getWorkingSet(MainViewManager.ALL_PANES);
         const workingSetFileFound: WorkingSetFileMap = {};
         const startingWorkingFileSet: Array<string> = [];
@@ -275,7 +289,7 @@ export class SearchModel extends EventDispatcher.EventDispatcherBase {
      * @param {boolean} quickChange Whether this type of change is one that might occur
      *      often, meaning that the view should buffer updates.
      */
-    public fireChanged(quickChange?) {
+    public fireChanged(quickChange?: boolean): void {
         this.trigger("change", quickChange);
     }
 }
