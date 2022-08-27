@@ -993,7 +993,7 @@ export class Editor extends EventDispatcher.EventDispatcherBase {
                 });
                 self._hideMarks = [];
                 self._hideMarks.push(self._hideLines(0, self._visibleRange!.startLine));
-                self._hideMarks.push(self._hideLines(self._visibleRange!.endLine + 1, self.lineCount()));
+                self._hideMarks.push(self._hideLines(self._visibleRange!.endLine! + 1, self.lineCount()));
             });
         }
     }

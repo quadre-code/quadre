@@ -178,7 +178,7 @@ export function translateLineEndings(text: string, lineEndings: LineEndings | nu
  * @param {!FileSystemError} name
  * @return {!string} User-friendly, localized error message
  */
-export function getFileErrorString(name: FileSystemError): string {
+export function getFileErrorString(name: FileSystemError | string): string {
     // There are a few error codes that we have specific error messages for. The rest are
     // displayed with a generic "(error N)" message.
     let result;

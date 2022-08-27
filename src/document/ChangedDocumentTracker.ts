@@ -26,6 +26,8 @@
  * Defines a ChangedDocumentTracker class to monitor changes to files in the current project.
  */
 
+import type { Document } from "document/Document";
+
 import * as DocumentManager from "document/DocumentManager";
 import * as ProjectManager from "project/ProjectManager";
 import { DispatcherEvents } from "utils/EventDispatcher";
@@ -39,8 +41,8 @@ import { DispatcherEvents } from "utils/EventDispatcher";
  * @constructor
  */
 class ChangedDocumentTracker {
-    private _changedPaths;
-    private _windowFocus;
+    private _changedPaths: Record<string, boolean>;
+    private _windowFocus: boolean;
 
     constructor() {
         const self = this;
@@ -72,14 +74,14 @@ class ChangedDocumentTracker {
      * @private
      * Assumes all files are changed when the window loses and regains focus.
      */
-    private _addListener(doc) {
+    private _addListener(doc: Document): void {
         doc.on("change", this._onChange);
     }
 
     /**
      * @private
      */
-    private _removeListener(doc) {
+    private _removeListener(doc: Document): void {
         doc.off("change", this._onChange);
     }
 
@@ -87,7 +89,7 @@ class ChangedDocumentTracker {
      * @private
      * Assumes all files are changed when the window loses and regains focus.
      */
-    private _onWindowFocus(event, doc) {
+    private _onWindowFocus(event, doc: Document): void {
         this._windowFocus = true;
     }
 
@@ -95,7 +97,7 @@ class ChangedDocumentTracker {
      * @private
      * Tracks changed documents.
      */
-    private _onChange(event, doc) {
+    private _onChange(event, doc: Document): void {
         // if it was already changed, and the client hasn't reset the tracker,
         // then leave it changed.
         this._changedPaths[doc.file.fullPath] = true;
@@ -104,7 +106,7 @@ class ChangedDocumentTracker {
     /**
      * Empty the set of dirty paths. Begin tracking new dirty documents.
      */
-    public reset() {
+    public reset(): void {
         this._changedPaths = {};
         this._windowFocus = false;
     }
@@ -114,7 +116,7 @@ class ChangedDocumentTracker {
      * @param {!string} file path
      * @return {!boolean} Returns true if the file was dirtied since the last reset.
      */
-    public isPathChanged(path) {
+    public isPathChanged(path: string): boolean {
         return this._windowFocus || this._changedPaths[path];
     }
 
@@ -122,7 +124,7 @@ class ChangedDocumentTracker {
      * Get the set of changed paths since the last reset.
      * @return {Array.<string>} Changed file paths
      */
-    public getChangedPaths() {
+    public getChangedPaths(): Array<string> {
         return $.makeArray(this._changedPaths);
     }
 }

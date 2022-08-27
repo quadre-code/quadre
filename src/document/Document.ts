@@ -22,6 +22,8 @@
 *
 */
 
+import type { Editor } from "editor/Editor";
+
 import * as EditorManager from "editor/EditorManager";
 import * as EventDispatcher from "utils/EventDispatcher";
 import * as FileUtils from "file/FileUtils";
@@ -30,12 +32,44 @@ import * as PerfUtils from "utils/PerfUtils";
 import * as LanguageManager from "language/LanguageManager";
 import * as CodeMirror from "codemirror";
 import * as _ from "lodash";
+import File = require("filesystem/File");
+
+interface EditPerform {
+    text: string;
+    start: CodeMirror.Position;
+    end?: CodeMirror.Position;
+}
+
+interface Selection {
+    start: CodeMirror.Position;
+    end: CodeMirror.Position;
+    primary: boolean;
+    reversed: boolean;
+    isBeforeEdit: boolean;
+}
+
+interface Edit {
+    edit: EditPerform | Array<EditPerform>;
+    selection?: Selection | Array<Selection>;
+}
+
+interface SelectionAdjusted {
+    start: CodeMirror.Position;
+    end: CodeMirror.Position;
+    primary: boolean;
+    reversed: boolean;
+}
+
+interface EditorChange extends Omit<CodeMirror.EditorChange, "from" | "to"> {
+    from?: CodeMirror.Position;
+    to?: CodeMirror.Position;
+}
 
 /**
  * Like _.each(), but if given a single item not in an array, acts as
  * if it were an array containing just that item.
  */
-function oneOrEach(itemOrArr, cb) {
+function oneOrEach(itemOrArr: Array<any> | any, cb: (itemOrArr: Array<any> | any, n: number) => void): void {
     if (Array.isArray(itemOrArr)) {
         _.each(itemOrArr, cb);
     } else {
@@ -75,11 +109,6 @@ function oneOrEach(itemOrArr, cb) {
  *
  * __languageChanged__ -- When the value of getLanguage() has changed. 2nd argument is the old value,
  * 3rd argument is the new value.
- *
- * @constructor
- * @param {!File} file  Need not lie within the project.
- * @param {!Date} initialTimestamp  File's timestamp when we read it off disk.
- * @param {!string} rawText  Text content of the file.
  */
 export class Document extends EventDispatcher.EventDispatcherBase {
     private _associatedFullEditors;
@@ -95,7 +124,7 @@ export class Document extends EventDispatcher.EventDispatcherBase {
      * If Document is untitled, this is an InMemoryFile object.
      * @type {!File}
      */
-    public file;
+    public file: File;
 
     public editable: boolean;
 
@@ -116,7 +145,7 @@ export class Document extends EventDispatcher.EventDispatcherBase {
      * The Language for this document. Will be resolved by file extension in the constructor
      * @type {!Language}
      */
-    private language;
+    private language: LanguageManager.Language;
 
     /**
      * What we expect the file's timestamp to be on disk. If the timestamp differs from this, then
@@ -145,7 +174,7 @@ export class Document extends EventDispatcher.EventDispatcherBase {
      * The text contents of the file, or null if our backing model is _masterEditor.
      * @type {?string}
      */
-    private _text = null;
+    private _text: string | null = null;
 
     /**
      * Editor object representing the full-size editor UI for this document. May be null if Document
@@ -162,11 +191,17 @@ export class Document extends EventDispatcher.EventDispatcherBase {
      */
     public _lineEndings: FileUtils.LineEndings | null = null;
 
-    constructor(file, initialTimestamp, rawText) {
+    /**
+     * @constructor
+     * @param {!File} file  Need not lie within the project.
+     * @param {!Date} initialTimestamp  File's timestamp when we read it off disk.
+     * @param {!string} rawText  Text content of the file.
+     */
+    constructor(file: File, initialTimestamp: Date, rawText: string) {
         super();
 
         this.file = file;
-        this.editable = !file.readOnly;
+        this.editable = !(file as any).readOnly;
         this._updateLanguage();
         this.refreshText(rawText, initialTimestamp, true);
         // List of full editors which are initialized as master editors for this doc.
@@ -174,7 +209,7 @@ export class Document extends EventDispatcher.EventDispatcherBase {
     }
 
     /** Add a ref to keep this Document alive */
-    public addRef() {
+    public addRef(): void {
         // console.log("+++REF+++ "+this);
 
         if (this._refCount === 0) {
@@ -187,7 +222,7 @@ export class Document extends EventDispatcher.EventDispatcherBase {
     }
 
     /** Remove a ref that was keeping this Document alive */
-    public releaseRef() {
+    public releaseRef(): void {
         // console.log("---REF--- "+this);
 
         this._refCount--;
@@ -209,7 +244,7 @@ export class Document extends EventDispatcher.EventDispatcherBase {
      * when EditorManager has told it to act as the master editor).
      * @param {!Editor} masterEditor
      */
-    public _makeEditable(masterEditor) {
+    public _makeEditable(masterEditor: Editor): void {
 
         this._text = null;
         this._masterEditor = masterEditor;
@@ -222,7 +257,7 @@ export class Document extends EventDispatcher.EventDispatcherBase {
      * stored back onto _text so other Document clients continue to have read-only access. ONLY
      * Editor.destroy() should call this.
      */
-    public _makeNonEditable() {
+    public _makeNonEditable(): void {
         if (!this._masterEditor) {
             console.error("Document is already non-editable");
         } else {
@@ -243,7 +278,7 @@ export class Document extends EventDispatcher.EventDispatcherBase {
      * Toggles the master editor which has gained focus from a pool of full editors
      * To be used internally by Editor only
      */
-    public _toggleMasterEditor(masterEditor) {
+    public _toggleMasterEditor(masterEditor: Editor): void {
         // Do a check before processing the request to ensure inline editors are not being set as master editor
         if (this.file === masterEditor.document.file && this._associatedFullEditors.indexOf(masterEditor) >= 0) {
             this._masterEditor = masterEditor;
@@ -255,7 +290,7 @@ export class Document extends EventDispatcher.EventDispatcherBase {
      * @param {String} paneId
      * @return {Editor} Attached editor bound to the provided pane id
      */
-    public _checkAssociatedEditorForPane(paneId) {
+    public _checkAssociatedEditorForPane(paneId: string): Editor {
         let editorForPane;
         for (const associatedFullEditor of this._associatedFullEditors) {
             if (associatedFullEditor._paneId === paneId) {
@@ -271,7 +306,7 @@ export class Document extends EventDispatcher.EventDispatcherBase {
      * Disassociates an editor from this document if present in the associated editor list
      * To be used internally by Editor only when destroyed and not the current master editor for the document
      */
-    public _disassociateEditor(editor) {
+    public _disassociateEditor(editor: Editor): void {
         // Do a check before processing the request to ensure inline editors are not being handled
         if (this._associatedFullEditors.indexOf(editor) >= 0) {
             this._associatedFullEditors.splice(this._associatedFullEditors.indexOf(editor), 1);
@@ -282,7 +317,7 @@ export class Document extends EventDispatcher.EventDispatcherBase {
      * Aassociates a full editor to this document
      * To be used internally by Editor only when pane marking happens
      */
-    public _associateEditor(editor) {
+    public _associateEditor(editor: Editor): void {
         // Do a check before processing the request to ensure inline editors are not being handled
         if (this._associatedFullEditors.indexOf(editor) === -1) {
             this._associatedFullEditors.push(editor);
@@ -294,7 +329,7 @@ export class Document extends EventDispatcher.EventDispatcherBase {
      * editor bound to this Document (which in turn causes Document._makeEditable() to be called).
      * Should ONLY be called by Editor and Document.
      */
-    public _ensureMasterEditor() {
+    public _ensureMasterEditor(): void {
         if (!this._masterEditor) {
             EditorManager._createUnattachedMasterEditor(this);
         }
@@ -309,7 +344,7 @@ export class Document extends EventDispatcher.EventDispatcherBase {
      *      If false, line endings are always \n (like all the other Document text getter methods).
      * @return {string}
      */
-    public getText(useOriginalLineEndings = false) {
+    public getText(useOriginalLineEndings = false): string | null {
         if (this._masterEditor) {
             // CodeMirror.getValue() always returns text with LF line endings; fix up to match line
             // endings preferred by the document, if necessary
@@ -327,11 +362,11 @@ export class Document extends EventDispatcher.EventDispatcherBase {
             return this._text;
         }
 
-        return Document.normalizeText(this._text);
+        return Document.normalizeText(this._text!);
     }
 
     /** Normalizes line endings the same way CodeMirror would */
-    public static normalizeText(text) {
+    public static normalizeText(text: string): string {
         return text.replace(/\r\n/g, "\n");
     }
 
@@ -340,7 +375,7 @@ export class Document extends EventDispatcher.EventDispatcherBase {
      * match the document's current line-ending style.
      * @param {!string} text The text to replace the contents of the document with.
      */
-    public setText(text) {
+    public setText(text: string): void {
         this._ensureMasterEditor();
         this._masterEditor._codeMirror.setValue(text);
         // _handleEditorChange() triggers "change" event
@@ -352,7 +387,7 @@ export class Document extends EventDispatcher.EventDispatcherBase {
      * and "documentChange" on the Document module.
      * @param {Object} changeList Changelist in CodeMirror format
      */
-    private _notifyDocumentChange(changeList) {
+    private _notifyDocumentChange(changeList: Array<EditorChange>): void {
         this.trigger("change", this, changeList);
         (exports as unknown as EventDispatcher.DispatcherEvents).trigger("documentChange", this, changeList);
     }
@@ -366,7 +401,7 @@ export class Document extends EventDispatcher.EventDispatcherBase {
      * @param {boolean} initial True if this is the initial load of the document. In that case,
      *      we don't send change events.
      */
-    public refreshText(text, newTimestamp, initial = false) {
+    public refreshText(text: string, newTimestamp: Date, initial = false): void {
         const perfTimerName = PerfUtils.markStart("refreshText:\t" + (!this.file || this.file.fullPath));
 
         // If clean, don't transiently mark dirty during refresh
@@ -433,7 +468,7 @@ export class Document extends EventDispatcher.EventDispatcherBase {
      *     (Note that this is a higher level of batching than batchOperation(), which already batches all
      *     edits within it for undo. Origin batching works across operations.)
      */
-    public replaceRange(text, start, end, origin) {
+    public replaceRange(text: string, start: CodeMirror.Position, end: CodeMirror.Position, origin?: string): void {
         this._ensureMasterEditor();
         this._masterEditor._codeMirror.replaceRange(text, start, end, origin);
         // _handleEditorChange() triggers "change" event
@@ -445,7 +480,7 @@ export class Document extends EventDispatcher.EventDispatcherBase {
      * @param {!{line:number, ch:number}} end  End of range, exclusive
      * @return {!string}
      */
-    public getRange(start, end) {
+    public getRange(start: CodeMirror.Position, end: CodeMirror.Position): string {
         this._ensureMasterEditor();
         return this._masterEditor._codeMirror.getRange(start, end);
     }
@@ -455,7 +490,7 @@ export class Document extends EventDispatcher.EventDispatcherBase {
      * @param {number} Zero-based line number
      * @return {!string}
      */
-    public getLine(lineNum) {
+    public getLine(lineNum: number): string {
         this._ensureMasterEditor();
         return this._masterEditor._codeMirror.getLine(lineNum);
     }
@@ -465,7 +500,7 @@ export class Document extends EventDispatcher.EventDispatcherBase {
      * batch for efficiency. Begins the batch, calls doOperation(), ends the batch, and then returns.
      * @param {function()} doOperation
      */
-    public batchOperation(doOperation) {
+    public batchOperation(doOperation: () => void): void {
         this._ensureMasterEditor();
 
         const self = this;
@@ -477,7 +512,7 @@ export class Document extends EventDispatcher.EventDispatcherBase {
      * to that Editor's UI, OR by our setText()/refreshText() methods.
      * @private
      */
-    private _handleEditorChange(event, editor, changeList) {
+    private _handleEditorChange(event, editor: Editor, changeList: Array<EditorChange>): void {
         // Handle editor change event only when it is originated from the master editor for this doc
         if (this._masterEditor !== editor) {
             return;
@@ -504,7 +539,7 @@ export class Document extends EventDispatcher.EventDispatcherBase {
     /**
      * @private
      */
-    private _markClean() {
+    private _markClean(): void {
         this.isDirty = false;
         if (this._masterEditor) {
             this._masterEditor._codeMirror.markClean();
@@ -515,7 +550,7 @@ export class Document extends EventDispatcher.EventDispatcherBase {
     /**
      * @private
      */
-    private _updateTimestamp(timestamp) {
+    private _updateTimestamp(timestamp): void {
         this.diskTimestamp = timestamp;
         // Clear the "keep changes" timestamp since it's no longer relevant.
         this.keepChangesTime = null;
@@ -525,7 +560,7 @@ export class Document extends EventDispatcher.EventDispatcherBase {
      * Called when the document is saved (which currently happens in DocumentCommandHandlers). Marks the
      * document not dirty and notifies listeners of the save.
      */
-    public notifySaved() {
+    public notifySaved(): void {
         if (!this._masterEditor) {
             console.log("### Warning: saving a Document that is not modifiable!");
         }
@@ -556,7 +591,7 @@ export class Document extends EventDispatcher.EventDispatcherBase {
      * @param {!{line: number, ch: number}} end The end of the edit.
      * @return {{line: number, ch: number}} The adjusted position.
      */
-    public adjustPosForChange(pos, textLines, start, end) {
+    public adjustPosForChange(pos: CodeMirror.Position, textLines: Array<string>, start: CodeMirror.Position, end: CodeMirror.Position): CodeMirror.Position {
         // Same as CodeMirror.adjustForChange(), but that's a private function
         // and Marijn would rather not expose it publicly.
         const change = { text: textLines, from: start, to: end };
@@ -630,7 +665,7 @@ export class Document extends EventDispatcher.EventDispatcherBase {
      * @return {Array<{start:{line:number, ch:number}, end:{line:number, ch:number}, primary:boolean, reversed: boolean}>}
      *     The list of passed selections adjusted for the performed edits, if any.
      */
-    public doMultipleEdits(edits, origin) {
+    public doMultipleEdits(edits: Array<Edit>, origin?: string): Array<SelectionAdjusted> {
         const self = this;
 
         // Sort the edits backwards, so we don't have to adjust the edit positions as we go along
@@ -722,7 +757,7 @@ export class Document extends EventDispatcher.EventDispatcherBase {
     }
 
     /* (pretty toString(), to aid debugging) */
-    public toString() {
+    public toString(): string {
         const dirtyInfo = (this.isDirty ? " (dirty!)" : " (clean)");
         const editorInfo = (this._masterEditor ? " (Editable)" : " (Non-editable)");
         const refInfo = " refs:" + this._refCount;
@@ -734,14 +769,14 @@ export class Document extends EventDispatcher.EventDispatcherBase {
      * The language returned is based on the file extension.
      * @return {Language} An object describing the language used in this document
      */
-    public getLanguage() {
+    public getLanguage(): LanguageManager.Language {
         return this.language;
     }
 
     /**
      * Updates the language to match the current mapping given by LanguageManager
      */
-    public _updateLanguage() {
+    public _updateLanguage(): void {
         const oldLanguage = this.language;
         this.language = LanguageManager.getLanguageForPath(this.file.fullPath);
         if (oldLanguage && oldLanguage !== this.language) {
@@ -750,7 +785,7 @@ export class Document extends EventDispatcher.EventDispatcherBase {
     }
 
     /** Called when Document.file has been modified (due to a rename) */
-    public _notifyFilePathChanged() {
+    public _notifyFilePathChanged(): void {
         // File extension may have changed
         this._updateLanguage();
     }
@@ -760,7 +795,7 @@ export class Document extends EventDispatcher.EventDispatcherBase {
      *
      * @return {boolean} - whether or not the document is untitled
      */
-    public isUntitled() {
+    public isUntitled(): boolean {
         return this.file instanceof InMemoryFile;
     }
 
@@ -768,12 +803,12 @@ export class Document extends EventDispatcher.EventDispatcherBase {
      *  Reloads the document from FileSystem
      *  @return {promise} - to check if reload was successful or not
      */
-    public reload() {
-        const $deferred = $.Deferred();
+    public reload(): JQueryPromise<void> {
+        const $deferred = $.Deferred<void>();
         const self = this;
         FileUtils.readAsText(this.file)
             .done(function (text, readTimestamp) {
-                self.refreshText(text, readTimestamp);
+                self.refreshText(text!, readTimestamp);
                 $deferred.resolve();
             })
             .fail(function (error) {

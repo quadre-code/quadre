@@ -96,7 +96,7 @@ class File extends FileSystemEntry {
      * @param {function (?string, string=, FileSystemStats=)} callback Callback that is passed the
      *              FileSystemError string or the file's contents and its stats.
      */
-    public read(options, callback) {
+    public read(options, callback?) {
         if (typeof (options) === "function") {
             callback = options;
             options = {};
