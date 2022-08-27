@@ -94,7 +94,7 @@ import * as PerfUtils from "utils/PerfUtils";
 import * as LanguageManager from "language/LanguageManager";
 import * as ProjectManager from "project/ProjectManager";
 import * as Strings from "strings";
-
+import File = require("filesystem/File");
 
 /**
  * @private
@@ -140,7 +140,7 @@ export function getOpenDocumentForPath(fullPath): DocumentModule.Document | null
  * Returns the Document that is currently open in the editor UI. May be null.
  * @return {?Document}
  */
-export function getCurrentDocument() {
+export function getCurrentDocument(): Document | null {
     const file = MainViewManager.getCurrentlyViewedFile(MainViewManager.ACTIVE_PANE);
 
     if (file) {
@@ -156,7 +156,7 @@ export function getCurrentDocument() {
  * @deprecated Use MainViewManager.getWorkingSet() instead
  * @return {Array.<File>}
  */
-export function getWorkingSet() {
+export function getWorkingSet(): Array<File> {
     DeprecationWarning.deprecationWarning("Use MainViewManager.getWorkingSet() instead of DocumentManager.getWorkingSet()", true);
     return MainViewManager.getWorkingSet(MainViewManager.ALL_PANES)
         .filter(function (file) {
@@ -171,7 +171,7 @@ export function getWorkingSet() {
  * @param {!string} fullPath
  * @return {number} index, -1 if not found
  */
-export function findInWorkingSet(fullPath) {
+export function findInWorkingSet(fullPath: string): number {
     DeprecationWarning.deprecationWarning("Use MainViewManager.findInWorkingSet() instead of DocumentManager.findInWorkingSet()", true);
     return MainViewManager.findInWorkingSet(MainViewManager.ACTIVE_PANE, fullPath);
 }
@@ -201,7 +201,7 @@ export function getAllOpenDocuments(): Array<DocumentModule.Document> {
  * @param {boolean=} forceRedraw  If true, a working set change notification is always sent
  *    (useful if suppressRedraw was used with removeFromWorkingSet() earlier)
  */
-export function addToWorkingSet(file, index, forceRedraw) {
+export function addToWorkingSet(file: File, index: number, forceRedraw: boolean): void {
     DeprecationWarning.deprecationWarning("Use MainViewManager.addToWorkingSet() instead of DocumentManager.addToWorkingSet()", true);
     MainViewManager.addToWorkingSet(MainViewManager.ACTIVE_PANE, file, index, forceRedraw);
 }
@@ -216,7 +216,7 @@ export function addToWorkingSet(file, index, forceRedraw) {
  * a list of files because there's only 1 redraw at the end
  * @param {!Array.<File>} fileList
  */
-export function addListToWorkingSet(fileList) {
+export function addListToWorkingSet(fileList: Array<File>): void {
     DeprecationWarning.deprecationWarning("Use MainViewManager.addListToWorkingSet() instead of DocumentManager.addListToWorkingSet()", true);
     MainViewManager.addListToWorkingSet(MainViewManager.ACTIVE_PANE, fileList);
 }
@@ -227,7 +227,7 @@ export function addListToWorkingSet(fileList) {
  * @deprecated Use CommandManager.execute(Commands.FILE_CLOSE_LIST) instead
  * @param {!Array.<File>} list - list of File objectgs to close
  */
-export function removeListFromWorkingSet(list) {
+export function removeListFromWorkingSet(list: Array<File>): void {
     DeprecationWarning.deprecationWarning("Use CommandManager.execute(Commands.FILE_CLOSE_LIST, {PaneId: MainViewManager.ALL_PANES, fileList: list}) instead of DocumentManager.removeListFromWorkingSet()", true);
     CommandManager.execute(Commands.FILE_CLOSE_LIST, {PaneId: MainViewManager.ALL_PANES, fileList: list});
 }
@@ -236,7 +236,7 @@ export function removeListFromWorkingSet(list) {
  * closes all open files
  * @deprecated CommandManager.execute(Commands.FILE_CLOSE_ALL) instead
  */
-export function closeAll() {
+export function closeAll(): void {
     DeprecationWarning.deprecationWarning("Use CommandManager.execute(Commands.FILE_CLOSE_ALL,{PaneId: MainViewManager.ALL_PANES}) instead of DocumentManager.closeAll()", true);
     CommandManager.execute(Commands.FILE_CLOSE_ALL, {PaneId: MainViewManager.ALL_PANES});
 }
@@ -246,7 +246,7 @@ export function closeAll() {
  * @deprecated use CommandManager.execute(Commands.FILE_CLOSE, {File: file}) instead
  * @param {!File} file - the file to close
  */
-export function closeFullEditor(file) {
+export function closeFullEditor(file: File): void {
     DeprecationWarning.deprecationWarning("Use CommandManager.execute(Commands.FILE_CLOSE, {File: file} instead of DocumentManager.closeFullEditor()", true);
     CommandManager.execute(Commands.FILE_CLOSE, {File: file});
 }
@@ -256,7 +256,7 @@ export function closeFullEditor(file) {
  * @deprecated use CommandManager.execute(Commands.CMD_OPEN, {fullPath: doc.file.fullPath}) instead
  * @param {!Document} document  The Document to make current.
  */
-export function setCurrentDocument(doc) {
+export function setCurrentDocument(doc: Document): void {
     DeprecationWarning.deprecationWarning("Use CommandManager.execute(Commands.CMD_OPEN) instead of DocumentManager.setCurrentDocument()", true);
     CommandManager.execute(Commands.CMD_OPEN, {fullPath: doc.file.fullPath});
 }
@@ -266,7 +266,7 @@ export function setCurrentDocument(doc) {
  * freezes the Working Set MRU list
  * @deprecated use MainViewManager.beginTraversal() instead
  */
-export function beginDocumentNavigation() {
+export function beginDocumentNavigation(): void {
     DeprecationWarning.deprecationWarning("Use MainViewManager.beginTraversal() instead of DocumentManager.beginDocumentNavigation()", true);
     MainViewManager.beginTraversal();
 }
@@ -275,7 +275,7 @@ export function beginDocumentNavigation() {
  * ends document navigation and moves the current file to the front of the MRU list in the Working Set
  * @deprecated use MainViewManager.endTraversal() instead
  */
-export function finalizeDocumentNavigation() {
+export function finalizeDocumentNavigation(): void {
     DeprecationWarning.deprecationWarning("Use MainViewManager.endTraversal() instead of DocumentManager.finalizeDocumentNavigation()", true);
     MainViewManager.endTraversal();
 }
@@ -285,7 +285,7 @@ export function finalizeDocumentNavigation() {
  * return currentDocument itself if working set is length 1.
  * @deprecated use MainViewManager.traverseToNextViewByMRU() instead
  */
-export function getNextPrevFile(inc) {
+export function getNextPrevFile(inc): File | null {
     DeprecationWarning.deprecationWarning("Use MainViewManager.traverseToNextViewByMRU() instead of DocumentManager.getNextPrevFile()", true);
     const result = MainViewManager.traverseToNextViewByMRU(inc);
     if (result) {
@@ -300,7 +300,7 @@ export function getNextPrevFile(inc) {
  * trigger _ensureMasterEditor() without making it dirty. E.g. a command invoked on the focused
  * inline editor makes no-op edits or does a read-only operation.
  */
-function _gcDocuments() {
+function _gcDocuments(): void {
     getAllOpenDocuments().forEach(function (doc) {
         // Is the only ref to this document its own master Editor?
         if (doc._refCount === 1 && doc._masterEditor) {
@@ -329,7 +329,7 @@ function _gcDocuments() {
  * @return {$.Promise} A promise object that will be resolved with the Document, or rejected
  *      with a FileSystemError if the file is not yet open and can't be read from disk.
  */
-export function getDocumentForPath(fullPath, fileObj?) {
+export function getDocumentForPath(fullPath: string, fileObj?): JQueryPromise<DocumentModule.Document | null> {
     let doc = getOpenDocumentForPath(fullPath);
 
     if (doc) {
@@ -372,7 +372,7 @@ export function getDocumentForPath(fullPath, fileObj?) {
             delete getDocumentForPath._pendingDocumentPromises[file.id];
         })
         .done(function (rawText, readTimestamp) {
-            doc = new DocumentModule.Document(file, readTimestamp, rawText);
+            doc = new DocumentModule.Document(file, readTimestamp, rawText!);
 
             // This is a good point to clean up any old dangling Documents
             _gcDocuments();
@@ -417,8 +417,8 @@ getDocumentForPath._pendingDocumentPromises = {};
  *              will be null if checkLineEndings was false.
  *     or rejected with a filesystem error.
  */
-export function getDocumentText(file, checkLineEndings?) {
-    const result = $.Deferred();
+export function getDocumentText(file: File, checkLineEndings?: boolean): JQueryPromise<string | null> {
+    const result = $.Deferred<string | null>();
     const doc = getOpenDocumentForPath(file.fullPath);
     if (doc) {
         result.resolve(doc.getText(), doc.diskTimestamp, checkLineEndings ? doc._lineEndings : null);
@@ -447,7 +447,7 @@ export function getDocumentText(file, checkLineEndings?) {
  * @param {string} fileExt - file extension of the new Document's File, including "."
  * @return {Document} - a new untitled Document
  */
-export function createUntitledDocument(counter, fileExt) {
+export function createUntitledDocument(counter: number, fileExt: string): Document {
     const filename = Strings.UNTITLED + "-" + counter + fileExt;
     const fullPath = _untitledDocumentPath + "/" + filename;
     const now = new Date();
@@ -474,7 +474,7 @@ export function createUntitledDocument(counter, fileExt) {
  *
  * @param {!File} file
  */
-export function notifyFileDeleted(file) {
+export function notifyFileDeleted(file: File): void {
     // Notify all editors to close as well
     (exports as unknown as EventDispatcher.DispatcherEvents).trigger("pathDeleted", file.fullPath);
 
@@ -496,7 +496,7 @@ export function notifyFileDeleted(file) {
  *
  * @param {string} fullPath The path of the file/folder that has been deleted
  */
-export function notifyPathDeleted(fullPath) {
+export function notifyPathDeleted(fullPath: string): void {
     // FileSyncManager.syncOpenDocuments() does all the work prompting
     //  the user to save any unsaved changes and then calls us back
     //  via notifyFileDeleted
@@ -530,7 +530,7 @@ export function notifyPathDeleted(fullPath) {
  * @param {string} oldName The old name of the file/folder
  * @param {string} newName The new name of the file/folder
  */
-export function notifyPathNameChanged(oldName, newName) {
+export function notifyPathNameChanged(oldName: string, newName: string): void {
     // Notify all open documents
     _.forEach(_openDocuments, function (doc) {
         // TODO: Only notify affected documents? For now _notifyFilePathChange
@@ -548,7 +548,7 @@ export function notifyPathNameChanged(oldName, newName) {
  * @private
  * Update document
  */
-function _handleLanguageAdded() {
+function _handleLanguageAdded(): void {
     _.forEach(_openDocuments, function (doc) {
         // No need to look at the new language if this document has one already
         if (doc.getLanguage().isFallbackLanguage()) {
@@ -561,7 +561,7 @@ function _handleLanguageAdded() {
  * @private
  * Update document
  */
-function _handleLanguageModified(event, language) {
+function _handleLanguageModified(event, language: LanguageManager.Language): void {
     _.forEach(_openDocuments, function (doc) {
         const docLanguage = doc.getLanguage();
         // A modified language can affect a document
@@ -650,7 +650,7 @@ EventDispatcher.markDeprecated(exports, "workingSetSort",       "MainViewManager
 AppInit.extensionsLoaded(function () {
     // Listens for the given event on MainViewManager, and triggers a copy of the event
     // on DocumentManager whenever it occurs
-    function _proxyDeprecatedEvent(eventName) {
+    function _proxyDeprecatedEvent(eventName: string): void {
         DeprecationWarning.deprecateEvent(
             exports,
             MainViewManager,

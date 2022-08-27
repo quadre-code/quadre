@@ -410,7 +410,7 @@ class QuickNavigateDialog {
      * Remembers the current document that was displayed when showDialog() was called.
      * @type {?string} full path
      */
-    public _origDocPath = null;
+    public _origDocPath: string | null = null;
 
     /**
      * @private

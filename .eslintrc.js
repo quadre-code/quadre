@@ -135,6 +135,7 @@ module.exports = {
         {
             "files": [
                 "src/command/**",
+                "src/document/**",
                 "src/file/**",
                 "src/help/**",
                 "src/nls/**",

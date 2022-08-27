@@ -212,7 +212,7 @@ function moveLine(editor: Editor, direction) {
     const lineSelections  = editor.convertToLineSelections(editor.getSelections());
     const isInlineWidget  = !!EditorManager.getFocusedInlineWidget();
     const firstLine       = editor.getFirstVisibleLine();
-    const lastLine        = editor.getLastVisibleLine();
+    const lastLine        = editor.getLastVisibleLine()!;
     const totalLines      = editor.lineCount();
     let lineLength        = 0;
     const edits: Array<EditText> = [];
@@ -336,7 +336,7 @@ function openLine(editor: Editor, direction) {
 
     const selections     = editor.getSelections();
     const isInlineWidget = !!EditorManager.getFocusedInlineWidget();
-    const lastLine       = editor.getLastVisibleLine();
+    const lastLine       = editor.getLastVisibleLine()!;
     const doc            = editor.document;
     const edits: Array<EditLine> = [];
     let newSelections;

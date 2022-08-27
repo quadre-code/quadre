@@ -65,7 +65,7 @@ function createIDList() {
     }
 
     const idList: Array<FileLocation> = [];
-    const docText = doc.getText();
+    const docText = doc.getText()!;
     const lines = docText.split("\n");
 
     const regex = new RegExp(/\s+id\s*?=\s*?["'](.*?)["']/gi);

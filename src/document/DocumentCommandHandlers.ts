@@ -22,6 +22,8 @@
  *
  */
 
+import type { Document } from "document/Document";
+
 // Load dependent modules
 import * as AppInit from "utils/AppInit";
 import * as CommandManager from "command/CommandManager";
@@ -55,6 +57,7 @@ import * as StatusBar from "widgets/StatusBar";
 import * as WorkspaceManager from "view/WorkspaceManager";
 import * as LanguageManager from "language/LanguageManager";
 import * as _ from "lodash";
+import Directory = require("filesystem/Directory");
 
 /**
  * Handlers for commands related to document handling (opening, saving, etc.)
@@ -87,7 +90,7 @@ let _$titleWrapper;
  * Label shown above editor for current document: filename and potentially some of its path
  * @type {string}
  */
-let _currentTitlePath = null;
+let _currentTitlePath: string | null = null;
 
 /**
  * Determine the dash character for each platform. Use emdash on Mac
@@ -149,7 +152,7 @@ export const APP_QUIT_CANCELLED = "appQuitCancelled";
  * Updates the title bar with new file title or dirty indicator
  * @private
  */
-function _updateTitle() {
+function _updateTitle(): void {
     const currentDoc          = DocumentManager.getCurrentDocument();
     let windowTitle         = brackets.config.app_title;
     const currentlyViewedFile = MainViewManager.getCurrentlyViewedFile(MainViewManager.ACTIVE_PANE);
@@ -232,7 +235,7 @@ function _updateTitle() {
  * @param {Document} doc - the document to compute the short title for
  * @return {string} - a short title for doc.
  */
-function _shortTitleForDocument(doc) {
+function _shortTitleForDocument(doc: Document): string {
     const fullPath = doc.file.fullPath;
 
     // If the document is untitled then return the filename, ("Untitled-n.ext");
@@ -248,7 +251,7 @@ function _shortTitleForDocument(doc) {
 /**
  * Handles currentFileChange and filenameChanged events and updates the titlebar
  */
-function handleCurrentFileChange() {
+function handleCurrentFileChange(): void {
     const newFile = MainViewManager.getCurrentlyViewedFile(MainViewManager.ACTIVE_PANE);
 
     if (newFile) {
@@ -270,7 +273,7 @@ function handleCurrentFileChange() {
 /**
  * Handles dirtyFlagChange event and updates the title bar if necessary
  */
-function handleDirtyChange(event, changedDoc) {
+function handleDirtyChange(event, changedDoc: Document): void {
     const currentDoc = DocumentManager.getCurrentDocument();
 
     if (currentDoc && changedDoc.file.fullPath === currentDoc.file.fullPath) {
@@ -283,7 +286,7 @@ function handleDirtyChange(event, changedDoc) {
  * @param {!FileSystemError} name
  * @return {!Dialog}
  */
-export function showFileOpenError(name: FileSystemError, path: string): Dialogs.Dialog {
+export function showFileOpenError(name: FileSystemError | string, path: string): Dialogs.Dialog {
     return Dialogs.showModalDialog(
         DefaultDialogs.DIALOG_ID_ERROR,
         Strings.ERROR_OPENING_FILE_TITLE,
@@ -307,7 +310,7 @@ export function showFileOpenError(name: FileSystemError, path: string): Dialogs.
  * - be rejected with FileSystemError if the file can not be read.
  * If paneId is undefined, the ACTIVE_PANE constant
  */
-function _doOpen(fullPath, silent, paneId, options) {
+function _doOpen(fullPath: string, silent: boolean, paneId: string, options): JQueryPromise<File> {
     const result = $.Deferred<File>();
 
     // workaround for https://github.com/adobe/brackets/issues/6001
@@ -320,7 +323,7 @@ function _doOpen(fullPath, silent, paneId, options) {
         return result.promise();
     }
 
-    function _cleanup(fileError, fullFilePath) {
+    function _cleanup(fileError: FileSystemError | string, fullFilePath: string): void {
         if (fullFilePath) {
             // For performance, we do lazy checking of file existence, so it may be in workingset
             MainViewManager._removeView(paneId, FileSystem.getFileForPath(fullFilePath));
@@ -328,7 +331,7 @@ function _doOpen(fullPath, silent, paneId, options) {
         }
         result.reject(fileError);
     }
-    function _showErrorAndCleanUp(fileError, fullFilePath) {
+    function _showErrorAndCleanUp(fileError: FileSystemError | string, fullFilePath: string): void {
         if (silent) {
             _cleanup(fileError, fullFilePath);
         } else {
@@ -393,7 +396,7 @@ let _defaultOpenDialogFullPath: string | null = null;
  * @return {$.Promise} a jQuery promise resolved with a Document object or
  *                      rejected with an err
  */
-function _doOpenWithOptionalPath(fullPath, silent, paneId, options) {
+function _doOpenWithOptionalPath(fullPath: string, silent: boolean, paneId: string, options): JQueryPromise<File> {
     let result;
     paneId = paneId || MainViewManager.ACTIVE_PANE;
     if (!fullPath) {
@@ -451,7 +454,7 @@ interface PathPart {
  * @param {?string} path - a string of the form "fullpath[:lineNumber[:columnNumber]]"
  * @return {{path: string, line: ?number, column: ?number}}
  */
-export function _parseDecoratedPath(path) {
+export function _parseDecoratedPath(path: string): PathPart {
     const result: PathPart = {path: path, line: null, column: null};
     if (path) {
         // If the path has a trailing :lineNumber and :columnNumber, strip
@@ -476,11 +479,34 @@ export function _parseDecoratedPath(path) {
  * lineNumber and columnNumber are 1-origin: lines and columns are 1-based
  */
 
+interface FileCommandData {
+    ullPath?: string;
+    silent: boolean;
+    paneId: string;
+}
+
 /**
  * @typedef {{fullPath:?string=, index:number=, silent:boolean=, forceRedraw:boolean=, paneId:string=}} PaneCommandData
  * fullPath: is in the form "path[:lineNumber[:columnNumber]]"
  * lineNumber and columnNumber are 1-origin: lines and columns are 1-based
  */
+
+interface PaneCommandData {
+    fullPath?: string;
+    index: number;
+    silent?: boolean;
+    forceRedraw: boolean;
+    paneId: string;
+}
+
+interface CommandData {
+    file: File;
+    fileList?: Array<File>;
+    promptOnly: boolean;
+    _forceClose?: boolean;
+    paneId?: string;
+    spawnedRequest?: boolean;
+}
 
 /**
  * Opens the given file and makes it the current file. Does NOT add it to the workingset.
@@ -498,7 +524,7 @@ function handleFileOpen(commandData): JQueryPromise<File> {
 
     _doOpenWithOptionalPath(fileInfo.path, silent, paneId, commandData && commandData.options)
         .done(function (file) {
-            HealthLogger.fileOpened(file._path, false, file._encoding);
+            HealthLogger.fileOpened(file!._path, false, file!._encoding);
             if (!commandData || !commandData.options || !commandData.options.noPaneActivate) {
                 MainViewManager.setActivePaneId(paneId);
             }
@@ -547,7 +573,7 @@ function handleFileOpen(commandData): JQueryPromise<File> {
  *   paneId: optional PaneId (defaults to active pane)
  * @return {$.Promise} a jQuery promise that will be resolved with @type {Document}
  */
-function handleDocumentOpen(commandData) {
+function handleDocumentOpen(commandData: FileCommandData): JQueryPromise<DocumentManager.Document | null> {
     const result = $.Deferred<DocumentManager.Document | null>();
     handleFileOpen(commandData)
         .done(function (file) {
@@ -576,7 +602,7 @@ function handleDocumentOpen(commandData) {
  *   paneId: optional PaneId (defaults to active pane)
  * @return {$.Promise} a jQuery promise that will be resolved with a @type {File}
  */
-function handleFileAddToWorkingSetAndOpen(commandData) {
+function handleFileAddToWorkingSetAndOpen(commandData: PaneCommandData): JQueryPromise<File> {
     return handleFileOpen(commandData).done(function (file) {
         const paneId = (commandData && commandData.paneId) || MainViewManager.ACTIVE_PANE;
         MainViewManager.addToWorkingSet(paneId, file, commandData.index, commandData.forceRedraw);
@@ -595,7 +621,7 @@ function handleFileAddToWorkingSetAndOpen(commandData) {
  *   paneId: optional PaneId (defaults to active pane)
  * @return {$.Promise} a jQuery promise that will be resolved with @type {File}
  */
-function handleFileAddToWorkingSet(commandData) {
+function handleFileAddToWorkingSet(commandData: PaneCommandData): JQueryPromise<DocumentManager.Document | null> {
     // This is a legacy deprecated command that
     //  will use the new command and resolve with a document
     //  as the legacy command would only support.
@@ -627,9 +653,9 @@ function handleFileAddToWorkingSet(commandData) {
  * @return {$.Promise} a jQuery promise that will be resolved with a unique name starting with
  *   the given base name
  */
-function _getUntitledFileSuggestion(dir, baseFileName, isFolder) {
+function _getUntitledFileSuggestion(dir: Directory, baseFileName: string, isFolder: boolean): JQueryPromise<string> {
     const suggestedName   = baseFileName + "-" + _nextUntitledIndexToUse++;
-    const deferred        = $.Deferred();
+    const deferred        = $.Deferred<string>();
 
     if (_nextUntitledIndexToUse > 9999) {
         // we've tried this enough
@@ -667,7 +693,7 @@ let fileNewInProgress = false;
  * @private
  * @param {boolean} isFolder - true if creating a new folder, false if creating a new file
  */
-function _handleNewItemInProject(isFolder) {
+function _handleNewItemInProject(isFolder: boolean): void | JQueryPromise<File> {
     if (fileNewInProgress) {
         ProjectManager.forceFinishRename();
         return;
@@ -692,7 +718,7 @@ function _handleNewItemInProject(isFolder) {
 
     // Create the new node. The createNewItem function does all the heavy work
     // of validating file name, creating the new file and selecting.
-    function createWithSuggestedName(suggestedName) {
+    function createWithSuggestedName(suggestedName): JQueryPromise<any> {
         return ProjectManager.createNewItem(baseDirEntry, suggestedName, false, isFolder)
             .always(function () { fileNewInProgress = false; });
     }
@@ -705,7 +731,7 @@ function _handleNewItemInProject(isFolder) {
  * Create a new untitled document in the workingset, and make it the current document.
  * Promise is resolved (synchronously) with the newly-created Document.
  */
-function handleFileNew() {
+function handleFileNew(): JQueryPromise<Document> {
     // var defaultExtension = PreferencesManager.get("defaultExtension");
     // if (defaultExtension) {
     //     defaultExtension = "." + defaultExtension;
@@ -724,20 +750,20 @@ function handleFileNew() {
         HealthLogger.commonStrings.FILE_NEW
     );
 
-    return $.Deferred().resolve(doc).promise();
+    return $.Deferred<Document>().resolve(doc).promise();
 }
 
 /**
  * Create a new file in the project tree.
  */
-function handleFileNewInProject() {
+function handleFileNewInProject(): void {
     _handleNewItemInProject(false);
 }
 
 /**
  * Create a new folder in the project tree.
  */
-function handleNewFolderInProject() {
+function handleNewFolderInProject(): void {
     _handleNewItemInProject(true);
 }
 
@@ -748,7 +774,7 @@ function handleNewFolderInProject() {
  * @param {string} path
  * @return {Dialog}
  */
-function _showSaveFileError(name, path) {
+function _showSaveFileError(name: string, path: string): Dialogs.Dialog {
     return Dialogs.showModalDialog(
         DefaultDialogs.DIALOG_ID_ERROR,
         Strings.ERROR_SAVING_FILE_TITLE,
@@ -771,14 +797,14 @@ function doSave(docToSave, force = false): JQueryPromise<File> {
     const result = $.Deferred<File>();
     const file = docToSave.file;
 
-    function handleError(error) {
+    function handleError(error): void {
         _showSaveFileError(error, file.fullPath)
             .done(function () {
                 result.reject(error);
             });
     }
 
-    function handleContentsModified() {
+    function handleContentsModified(): void {
         Dialogs.showModalDialog(
             DefaultDialogs.DIALOG_ID_ERROR,
             Strings.EXT_MODIFIED_TITLE,
@@ -817,7 +843,7 @@ function doSave(docToSave, force = false): JQueryPromise<File> {
             });
     }
 
-    function trySave() {
+    function trySave(): void {
         // We don't want normalized line endings, so it's important to pass true to getText()
         FileUtils.writeText(file, docToSave.getText(true), force)
             .done(function () {
@@ -872,12 +898,12 @@ function doSave(docToSave, force = false): JQueryPromise<File> {
  *      rejected with a FileSystemError if the file cannot be read (after showing an error
  *      dialog to the user).
  */
-function _doRevert(doc, suppressError = false) {
-    const result = $.Deferred();
+function _doRevert(doc: Document, suppressError = false): JQueryPromise<void> {
+    const result = $.Deferred<void>();
 
     FileUtils.readAsText(doc.file)
         .done(function (text, readTimestamp) {
-            doc.refreshText(text, readTimestamp);
+            doc.refreshText(text!, readTimestamp);
             result.resolve();
         })
         .fail(function (error) {
@@ -897,7 +923,7 @@ function _doRevert(doc, suppressError = false) {
 /**
  * Dispatches the app quit cancelled event
  */
-function dispatchAppQuitCancelledEvent() {
+function dispatchAppQuitCancelledEvent(): void {
     (exports as EventDispatcher.DispatcherEvents).trigger(APP_QUIT_CANCELLED);
 }
 
@@ -921,9 +947,9 @@ function _doSaveAs(doc, settings): JQueryPromise<File> {
     let defaultName;
     const result = $.Deferred<File>();
 
-    function _doSaveAfterSaveDialog(path) {
+    function _doSaveAfterSaveDialog(path): void {
         // Reconstruct old doc's editor's view state, & finally resolve overall promise
-        function _configureEditorAndResolve() {
+        function _configureEditorAndResolve(): void {
             const editor = EditorManager.getActiveEditor();
             if (editor) {
                 if (settings) {
@@ -935,7 +961,7 @@ function _doSaveAs(doc, settings): JQueryPromise<File> {
         }
 
         // Replace old document with new one in open editor & workingset
-        function openNewFile() {
+        function openNewFile(): void {
             let fileOpenPromise;
 
             if (FileViewController.getFileSelectionFocus() === FileViewController.PROJECT_MANAGER) {
@@ -950,7 +976,7 @@ function _doSaveAs(doc, settings): JQueryPromise<File> {
                 MainViewManager._removeView(info.paneId, doc.file, true);
 
                 // Add new file to workingset, and ensure we now redraw (even if index hasn't changed)
-                fileOpenPromise = handleFileAddToWorkingSetAndOpen({fullPath: path, paneId: info.paneId, index: info.index, forceRedraw: true});
+                fileOpenPromise = handleFileAddToWorkingSetAndOpen({fullPath: path, paneId: info.paneId, index: info.index!, forceRedraw: true});
             }
 
             // always configure editor after file is opened
@@ -1106,7 +1132,7 @@ function handleFileSave(commandData): JQueryPromise<File> {
  * @return {!$.Promise} Resolved with {!Array.<File>}, which may differ from 'fileList'
  *      if any of the files were Unsaved documents. Or rejected with {?FileSystemError}.
  */
-function _saveFileList(fileList) {
+function _saveFileList(fileList: Array<File>): JQueryPromise<Array<File>> {
     // Do in serial because doSave shows error UI for each file, and we don't want to stack
     // multiple dialogs on top of each other
     let userCanceled = false;
@@ -1149,7 +1175,7 @@ function _saveFileList(fileList) {
  * Saves all unsaved documents. See _saveFileList() for details on the semantics.
  * @return {$.Promise}
  */
-function saveAll() {
+function saveAll(): JQueryPromise<Array<File>> {
     return _saveFileList(MainViewManager.getWorkingSet(MainViewManager.ALL_PANES));
 }
 
@@ -1157,7 +1183,7 @@ function saveAll() {
  * Prompts user with save as dialog and saves document.
  * @return {$.Promise} a promise that is resolved once the save has been completed
  */
-const handleFileSaveAs = function (commandData) {
+const handleFileSaveAs = function (commandData): JQueryPromise<File> {
     // Default to current document if doc is null
     let doc = null;
     let settings;
@@ -1184,7 +1210,7 @@ const handleFileSaveAs = function (commandData) {
  * @return {$.Promise} a promise that is resolved once ALL the saves have been completed; or rejected
  *      after all operations completed if any ONE of them failed.
  */
-function handleFileSaveAll() {
+function handleFileSaveAll(): JQueryPromise<Array<File>> {
     return saveAll();
 }
 
@@ -1202,7 +1228,7 @@ function handleFileSaveAll() {
  * @return {$.Promise} a promise that is resolved when the file is closed, or if no file is open.
  *      FUTURE: should we reject the promise if no file is open?
  */
-function handleFileClose(commandData) {
+function handleFileClose(commandData: CommandData): JQueryPromise<void> {
     let file;
     let promptOnly;
     let _forceClose;
@@ -1218,14 +1244,14 @@ function handleFileClose(commandData) {
     }
 
     // utility function for handleFileClose: closes document & removes from workingset
-    function doClose(file) {
+    function doClose(file: File): void {
         if (!promptOnly) {
             MainViewManager._close(paneId, file);
             HealthLogger.fileClosed(file);
         }
     }
 
-    const result = $.Deferred();
+    const result = $.Deferred<void>();
     const promise = result.promise();
 
     // Default to current document if doc is null
@@ -1279,7 +1305,7 @@ function handleFileClose(commandData) {
                     // "Save" case: wait until we confirm save has succeeded before closing
                     handleFileSave({doc: doc})
                         .done(function (newFile) {
-                            doClose(newFile);
+                            doClose(newFile!);
                             result.resolve();
                         })
                         .fail(function () {
@@ -1325,8 +1351,8 @@ function handleFileClose(commandData) {
  * @param {boolean} _forceClose Whether to force all the documents to close even if they have unsaved changes. For unit testing only.
  * @return {jQuery.Promise} promise that is resolved or rejected when the function finishes.
  */
-function _closeList(list, promptOnly = false, _forceClose = false) {
-    const result      = $.Deferred();
+function _closeList(list: Array<File>, promptOnly = false, _forceClose = false): JQueryPromise<Array<File>> {
+    const result      = $.Deferred<Array<File>>();
     const unsavedDocs: Array<DocumentManager.Document> = [];
 
     list.forEach(function (file) {
@@ -1342,7 +1368,7 @@ function _closeList(list, promptOnly = false, _forceClose = false) {
 
     } else if (unsavedDocs.length === 1) {
         // Only one unsaved file: show the usual single-file-close confirmation UI
-        const fileCloseArgs = { file: unsavedDocs[0].file, promptOnly: promptOnly, spawnedRequest: true };
+        const fileCloseArgs: CommandData = { file: unsavedDocs[0].file, promptOnly: promptOnly, spawnedRequest: true };
 
         handleFileClose(fileCloseArgs).done(function () {
             // still need to close any other, non-unsaved documents
@@ -1420,7 +1446,7 @@ function _closeList(list, promptOnly = false, _forceClose = false) {
  *          Should only be used for unit test cleanup.
  * @return {$.Promise} a promise that is resolved when all files are closed
  */
-function handleFileCloseAll(commandData) {
+function handleFileCloseAll(commandData: CommandData): JQueryPromise<Array<File>> {
     return _closeList(
         MainViewManager.getAllOpenFiles(),
         (commandData && commandData.promptOnly),
@@ -1440,8 +1466,8 @@ function handleFileCloseAll(commandData) {
  *          Should only be used for unit test cleanup.
  * @return {$.Promise} a promise that is resolved when all files are closed
  */
-function handleFileCloseList(commandData) {
-    return _closeList(commandData.fileList);
+function handleFileCloseList(commandData: CommandData): JQueryPromise<Array<File>> {
+    return _closeList(commandData.fileList!);
 }
 
 /**
@@ -1452,10 +1478,10 @@ function handleFileCloseList(commandData) {
  * @param {!function()} postCloseHandler - called after close
  * @param {!function()} failHandler - called when the save fails to cancel closing the window
  */
-function _handleWindowGoingAway(commandData, postCloseHandler, failHandler?) {
+function _handleWindowGoingAway(commandData: CommandData, postCloseHandler: () => void, failHandler?: () => void): JQueryPromise<void> {
     if (appshell.windowGoingAway) {
         // if we get called back while we're closing, then just return
-        return ($.Deferred()).reject().promise();
+        return ($.Deferred<void>()).reject().promise();
     }
 
     return CommandManager.execute(Commands.FILE_CLOSE_ALL, { promptOnly: true })
@@ -1488,7 +1514,7 @@ function _handleWindowGoingAway(commandData, postCloseHandler, failHandler?) {
  * @private
  * Implementation for abortQuit callback to reset quit sequence settings
  */
-function handleAbortQuit() {
+function handleAbortQuit(): void {
     appshell.windowGoingAway = false;
 }
 
@@ -1496,7 +1522,7 @@ function handleAbortQuit() {
  * @private
  * Implementation for native APP_BEFORE_MENUPOPUP callback to trigger beforeMenuPopup event
  */
-function handleBeforeMenuPopup() {
+function handleBeforeMenuPopup(): void {
     (PopUpManager as unknown as EventDispatcher.DispatcherEvents).trigger("beforeMenuPopup");
 }
 
@@ -1507,7 +1533,7 @@ function handleBeforeMenuPopup() {
  */
 if (!(window as any).isSpecRunner) {
     // @ts-ignore
-    window.onbeforeunload = function () {
+    window.onbeforeunload = function (): boolean | undefined {
         // note: in electron, any non-void return value will cause abort
         if (!appshell.windowGoingAway) {
             return false;
@@ -1530,14 +1556,14 @@ if (!(window as any).isSpecRunner) {
  * Confirms any unsaved changes, then closes the window
  * @param {Object} command data
  */
-function handleFileCloseWindow(commandData) {
+function handleFileCloseWindow(commandData: CommandData): JQueryPromise<void> {
     return _handleWindowGoingAway(commandData, function () {
         browserWindow.close();
     });
 }
 
 /** Show a textfield to rename whatever is currently selected in the sidebar (or current doc if nothing else selected) */
-function handleFileRename() {
+function handleFileRename(): void {
     // Prefer selected sidebar item (which could be a folder)
     let entry = ProjectManager.getContext();
     if (!entry) {
@@ -1550,7 +1576,7 @@ function handleFileRename() {
 }
 
 /** Closes the window, then quits the app */
-function handleFileQuit(commandData) {
+function handleFileQuit(commandData: CommandData): JQueryPromise<void> {
     return _handleWindowGoingAway(commandData, function () {
         browserWindow.close();
     });
@@ -1567,7 +1593,7 @@ let _addedNavKeyHandler = false;
  * never get further down the list.
  * @param {jQueryEvent} event Key-up event
  */
-function detectDocumentNavEnd(event) {
+function detectDocumentNavEnd(event): void {
     if (event.keyCode === KeyEvent.DOM_VK_CONTROL) {  // Ctrl key
         MainViewManager.endTraversal();
         _addedNavKeyHandler = false;
@@ -1580,7 +1606,7 @@ function detectDocumentNavEnd(event) {
  * @param {!number} inc Delta indicating in which direction we're going
  * @param {?boolean} listOrder Whether to navigate using MRU or list order. Defaults to MRU order
  */
-function goNextPrevDoc(inc, listOrder?) {
+function goNextPrevDoc(inc: number, listOrder?: boolean): void {
     let result;
     if (listOrder) {
         result = MainViewManager.traverseToNextViewInListOrder(inc);
@@ -1609,42 +1635,42 @@ function goNextPrevDoc(inc, listOrder?) {
 /**
  * Next Doc command handler (MRU order)
  */
-function handleGoNextDoc() {
+function handleGoNextDoc(): void {
     goNextPrevDoc(+1);
 }
 
 /**
  * Previous Doc command handler (MRU order)
  */
-function handleGoPrevDoc() {
+function handleGoPrevDoc(): void {
     goNextPrevDoc(-1);
 }
 
 /**
  * Next Doc command handler (list order)
  */
-function handleGoNextDocListOrder() {
+function handleGoNextDocListOrder(): void {
     goNextPrevDoc(+1, true);
 }
 
 /**
  * Previous Doc command handler (list order)
  */
-function handleGoPrevDocListOrder() {
+function handleGoPrevDocListOrder(): void {
     goNextPrevDoc(-1, true);
 }
 
 /**
  * Show in File Tree command handler
  */
-function handleShowInTree() {
+function handleShowInTree(): void {
     ProjectManager.showInTree(MainViewManager.getCurrentlyViewedFile(MainViewManager.ACTIVE_PANE));
 }
 
 /**
  * Delete file command handler
  */
-function handleFileDelete() {
+function handleFileDelete(): void {
     const entry = ProjectManager.getSelectedItem();
     Dialogs.showModalDialog(
         DefaultDialogs.DIALOG_ID_EXT_DELETED,
@@ -1676,7 +1702,7 @@ function handleFileDelete() {
 /**
  * Show the selected sidebar (tree or workingset) item in Finder/Explorer
  */
-function handleShowInOS() {
+function handleShowInOS(): void {
     const entry = ProjectManager.getSelectedItem();
     if (entry) {
         brackets.app.showOSFolder(entry.fullPath, function (err) {
@@ -1691,8 +1717,8 @@ function handleShowInOS() {
  * Disables Brackets' cache via the remote debugging protocol.
  * @return {$.Promise} A jQuery promise that will be resolved when the cache is disabled and be rejected in any other case
  */
-function _disableCache() {
-    const result = $.Deferred();
+function _disableCache(): JQueryPromise<void> {
+    const result = $.Deferred<void>();
 
     if (brackets.inBrowser || brackets.inElectron) {
         result.resolve();
@@ -1709,11 +1735,11 @@ function _disableCache() {
                         }
                         const _socket = new WebSocket(page.webSocketDebuggerUrl);
                         // Disable the cache
-                        _socket.onopen = function _onConnect() {
+                        _socket.onopen = function _onConnect(): void {
                             _socket.send(JSON.stringify({ id: 1, method: "Network.setCacheDisabled", params: { "cacheDisabled": true } }));
                         };
                         // The first message will be the confirmation => disconnected to allow remote debugging of Brackets
-                        _socket.onmessage = function _onMessage(e) {
+                        _socket.onmessage = function _onMessage(e): void {
                             _socket.close();
                             result.resolve();
                         };
@@ -1733,7 +1759,7 @@ function _disableCache() {
  * Does a full reload of the browser window
  * @param {string} href The url to reload into the window
  */
-function browserReload(href) {
+function browserReload(href: string): void | JQueryPromise<void> {
     if (_isReloading) {
         return;
     }
@@ -1779,7 +1805,7 @@ function browserReload(href) {
  * @param {boolean=} loadWithoutExtensions - true to restart without extensions,
  *                                           otherwise extensions are loadeed as it is durning a typical boot
  */
-function handleReload(loadWithoutExtensions) {
+function handleReload(loadWithoutExtensions: boolean): void {
     let href    = window.location.href;
     const params  = new UrlParams();
 

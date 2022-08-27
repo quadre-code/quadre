@@ -37,11 +37,12 @@
 
 import File = require("filesystem/File");
 import FileSystemError = require("filesystem/FileSystemError");
+import FileSystem = require("filesystem/FileSystem");
 
 class InMemoryFile extends File {
     public parentClass = File.prototype;
 
-    constructor(fullPath, fileSystem) {
+    constructor(fullPath: string, fileSystem: typeof FileSystem) {
         super(fullPath, fileSystem);
     }
 
@@ -55,7 +56,7 @@ class InMemoryFile extends File {
      * @param {Object=} options Currently unused.
      * @param {function (number, string, object)} callback
      */
-    public read(options, callback) {
+    public read(options, callback: (err: FileSystemError, string?: string, object?: any) => void): void {
         if (typeof (options) === "function") {
             callback = options;
         }
@@ -70,7 +71,7 @@ class InMemoryFile extends File {
      * @param {!function (err, object)} callback Callback that is passed the
      *              error code and the file's new stats if the write is successful.
      */
-    public write(data, encoding, callback) {
+    public write(data: string, encoding: string, callback: (err: FileSystemError, object?: any) => void): void {
         if (typeof (encoding) === "function") {
             callback = encoding;
         }
@@ -80,23 +81,23 @@ class InMemoryFile extends File {
 
     // Stub out invalid calls inherited from FileSystemEntry
 
-    public exists(callback) {
+    public exists(callback: (err: FileSystemError | null, boolean) => void): void {
         callback(null, false);
     }
 
-    public static(callback) {
+    public static(callback: (err: FileSystemError) => void): void {
         callback(FileSystemError.NOT_FOUND);
     }
 
-    public unlink(callback) {
+    public unlink(callback: (err: FileSystemError) => void): void {
         callback(FileSystemError.NOT_FOUND);
     }
 
-    public rename(newName, callback) {
+    public rename(newName: string, callback: (err: FileSystemError) => void): void {
         callback(FileSystemError.NOT_FOUND);
     }
 
-    public moveToTrash(callback) {
+    public moveToTrash(callback: (err: FileSystemError) => void): void {
         callback(FileSystemError.NOT_FOUND);
     }
 }

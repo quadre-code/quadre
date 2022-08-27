@@ -86,7 +86,7 @@ export class SearchResultsView extends EventDispatcher.EventDispatcherBase {
     private _panel;
 
     /** @type {?string} The full path of the file that was open in the main editor on the initial search */
-    private _initialFilePath = null;
+    private _initialFilePath: string | null = null;
 
     /** @type {number} The index of the first result that is displayed */
     private _currentStart = 0;

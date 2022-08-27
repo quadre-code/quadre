@@ -22,8 +22,15 @@
  *
  */
 
+import CodeMirror = require("codemirror");
+import type { Document } from "document/Document";
+
 import * as EventDispatcher from "utils/EventDispatcher";
 
+interface Changed {
+    hasChanged: boolean;
+    hasContentChanged: boolean;
+}
 
 /**
  * Stores a range of lines that is automatically maintained as the Document changes. The range
@@ -56,21 +63,21 @@ export class TextRange extends EventDispatcher.EventDispatcherBase {
      * Containing document
      * @type {!Document}
      */
-    public document;
+    public document: Document;
 
     /**
      * Starting Line
      * @type {?number} Null after "lostSync" is dispatched
      */
-    public startLine;
+    public startLine: number | null;
 
     /**
      * Ending Line
      * @type {?number} Null after "lostSync" is dispatched
      */
-    public endLine;
+    public endLine: number | null;
 
-    constructor(document, startLine, endLine) {
+    constructor(document: Document, startLine: number, endLine: number) {
         super();
 
         this.startLine = startLine;
@@ -86,7 +93,7 @@ export class TextRange extends EventDispatcher.EventDispatcherBase {
     }
 
     /** Detaches from the Document. The TextRange will no longer update or send change events */
-    public dispose() {
+    public dispose(): void {
         // Disconnect from Document
         this.document.releaseRef();
         this.document.off("change", this._handleDocumentChange);
@@ -100,7 +107,7 @@ export class TextRange extends EventDispatcher.EventDispatcherBase {
      * @return {{hasChanged: boolean, hasContentChanged: boolean}} Whether the range boundary
      *     and/or content has changed.
      */
-    private _applySingleChangeToRange(change) {
+    private _applySingleChangeToRange(change: CodeMirror.EditorChange): Changed {
         // console.log(this + " applying change to (" +
         //         (change.from && (change.from.line+","+change.from.ch)) + " - " +
         //         (change.to && (change.to.line+","+change.to.ch)) + ")");
@@ -126,8 +133,8 @@ export class TextRange extends EventDispatcher.EventDispatcherBase {
         //    out of the picture, edits on the first line of the range unambiguously belong inside it.
         }
 
-        if ((change.from.line < this.startLine && change.to.line >= this.startLine) ||
-                (change.from.line <= this.endLine && change.to.line > this.endLine)) {
+        if ((change.from.line < this.startLine! && change.to.line >= this.startLine!) ||
+                (change.from.line <= this.endLine! && change.to.line > this.endLine!)) {
             this.startLine = null;
             this.endLine = null;
             return {hasChanged: true, hasContentChanged: true};
@@ -143,16 +150,16 @@ export class TextRange extends EventDispatcher.EventDispatcherBase {
         // This logic is so simple because we've already excluded all cases where the change
         // crosses the range boundaries
         if (numAdded !== 0) {
-            if (change.to.line < this.startLine) {
-                this.startLine += numAdded;
+            if (change.to.line < this.startLine!) {
+                this.startLine! += numAdded;
                 result.hasChanged = true;
             }
-            if (change.to.line <= this.endLine) {
-                this.endLine += numAdded;
+            if (change.to.line <= this.endLine!) {
+                this.endLine! += numAdded;
                 result.hasChanged = true;
             }
         }
-        if (change.from.line >= this.startLine && change.from.line <= this.endLine) {
+        if (change.from.line >= this.startLine! && change.from.line <= this.endLine!) {
             // Since we know the change doesn't cross the range boundary, as long as the
             // start of the change is within the range, we know the content changed.
             result.hasContentChanged = true;
@@ -168,7 +175,7 @@ export class TextRange extends EventDispatcher.EventDispatcherBase {
      * "change" event if the range was adjusted at all. Dispatches a "lostSync" event instead if the
      * range can no longer be accurately maintained.
      */
-    private _applyChangesToRange(changeList) {
+    private _applyChangesToRange(changeList: Array<CodeMirror.EditorChange>): void {
         let hasChanged = false;
         let hasContentChanged = false;
         for (const change of changeList) {
@@ -192,16 +199,16 @@ export class TextRange extends EventDispatcher.EventDispatcherBase {
         }
     }
 
-    private _handleDocumentChange(event, doc, changeList) {
+    private _handleDocumentChange(event, doc: Document, changeList: Array<CodeMirror.EditorChange>): void {
         this._applyChangesToRange(changeList);
     }
 
-    private _handleDocumentDeleted(event) {
+    private _handleDocumentDeleted(event): void {
         this.trigger("lostSync");
     }
 
     /* (pretty toString(), to aid debugging) */
-    public toString() {
+    public toString(): string {
         return "[TextRange " + this.startLine + "-" + this.endLine + " in " + this.document + "]";
     }
 }
