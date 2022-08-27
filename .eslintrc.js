@@ -5,7 +5,7 @@ module.exports = {
     },
     "rules": {
         "guard-for-in": "off",
-        "max-len": ["warn", 120],
+        "max-len": "off",
         "new-cap": ["error", {
             capIsNewExceptions: [
                 "CodeMirror",
@@ -16,6 +16,7 @@ module.exports = {
                 "$.Event"
             ]
         }],
+        "no-console": "off",
         "no-invalid-this": "off",
         "no-shadow": "warn",
     },
