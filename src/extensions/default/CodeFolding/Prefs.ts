@@ -37,13 +37,29 @@ prefs.definePreference("makeSelectionsFoldable", "boolean", true,
 
 PreferencesManager.stateManager.definePreference(FOLDS_PREF_KEY, "object", {});
 
+interface SimpleRange {
+    from: CodeMirror.Position;
+    to: CodeMirror.Position;
+}
+type Folds = Record<number, SimpleRange>;
+
+interface Location {
+    scope: "user";
+    layer: "project";
+    layerID: string | null;
+}
+
+interface ViewStateContext {
+    location: Location;
+}
+
 /**
  * Simplifies the fold ranges into an array of pairs of numbers.
  * @param {!Object} folds the raw fold ranges indexed by line numbers
  * @return {Object} an object whose keys are line numbers and the values are array
  * of two 2-element arrays. First array contains [from.line, from.ch] and the second contains [to.line, to.ch]
  */
-function simplify(folds) {
+function simplify(folds: Folds | undefined): void | Record<number, [[number, number], [number, number]]> {
     if (!folds) {
         return;
     }
@@ -61,7 +77,7 @@ function simplify(folds) {
  * @param {Object}  folds the simplified fold ranges
  * @return {Object} the converted fold ranges
  */
-function inflate(folds) {
+function inflate(folds: Folds): void | Record<number, SimpleRange> {
     if (!folds) {
         return;
     }
@@ -79,7 +95,7 @@ function inflate(folds) {
  * Returns a 'context' object for getting/setting project-specific view state preferences.
  * Similar to code in MultiRangeInlineEditor._getPrefsContext()...
  */
-function getViewStateContext() {
+function getViewStateContext(): ViewStateContext {
     const projectRoot = ProjectManager.getProjectRoot();  // note: null during unit tests!
     return { location : { scope: "user",
         layer: "project",
@@ -91,7 +107,7 @@ function getViewStateContext() {
  * @param {string} path the document path
  * @return {Object} the line folds for the document at the specified path
  */
-export function getFolds(path) {
+export function getFolds(path: string): void | Record<number, SimpleRange> {
     const context = getViewStateContext();
     const folds = PreferencesManager.getViewState(FOLDS_PREF_KEY, context);
     return inflate(folds[path]);
@@ -102,7 +118,7 @@ export function getFolds(path) {
  * @param {!string} path the path to the document
  * @param {Object} folds the fold ranges to save for the current document
  */
-export function setFolds(path, folds) {
+export function setFolds(path: string, folds: Folds | undefined): void {
     const context = getViewStateContext();
     const allFolds = PreferencesManager.getViewState(FOLDS_PREF_KEY, context);
     allFolds[path] = simplify(folds);
@@ -114,14 +130,14 @@ export function setFolds(path, folds) {
  * @param {!string} key The key for the setting to retrieve
  * @return {string} the setting with the specified key
  */
-export function getSetting(key) {
+export function getSetting<T>(key: string): T {
     return prefs.get(key);
 }
 
 /**
  * Clears all the saved line folds for all documents.
  */
-export function clearAllFolds() {
+export function clearAllFolds(): void {
     PreferencesManager.setViewState(FOLDS_PREF_KEY, {});
 }
 

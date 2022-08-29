@@ -326,7 +326,7 @@ export function setMenuItemShortcut(
 ) {
     assert(typeof winId === "number", "winId must be a number");
     assert(commandId && typeof commandId === "string", "commandId must be a string");
-    assert(shortcut && typeof shortcut === "string", "shortcut must be a string");
+    assert(shortcut === "" || (shortcut && typeof shortcut === "string"), "shortcut must be a string");
     process.nextTick(function () {
         shortcut = _fixBracketsKeyboardShortcut(shortcut);
         const menuTemplate = menuTemplates[winId];
