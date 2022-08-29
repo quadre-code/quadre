@@ -26,6 +26,8 @@
  * UI for the Find/Replace and Find in Files modal bar.
  */
 
+import type { Editor } from "editor/Editor";
+
 import * as _ from "lodash";
 import * as Mustache from "thirdparty/mustache/mustache";
 import * as EventDispatcher from "utils/EventDispatcher";
@@ -58,6 +60,11 @@ interface FindBarOption {
     Strings: any;
     replaceBatchLabel: string;
     replaceAllLabel: string;
+}
+
+interface Query {
+    query: string;
+    replaceText: string;
 }
 
 let lastTypedTime = 0;
@@ -160,7 +167,7 @@ export class FindBar extends EventDispatcher.EventDispatcherBase {
      * Note that this is a global function, not an instance function.
      * @param {!FindBar} findBar The find bar to register.
      */
-    private static _addFindBar(findBar: FindBar) {
+    private static _addFindBar(findBar: FindBar): void {
         FindBar._bars = FindBar._bars || [];
         FindBar._bars.push(findBar);
     }
@@ -171,7 +178,7 @@ export class FindBar extends EventDispatcher.EventDispatcherBase {
      * Note that this is a global function, not an instance function.
      * @param {FindBar} findBar The bar to remove.
      */
-    private static _removeFindBar(findBar) {
+    private static _removeFindBar(findBar: FindBar): void {
         if (FindBar._bars) {
             _.pull(FindBar._bars, findBar);
         }
@@ -183,7 +190,7 @@ export class FindBar extends EventDispatcher.EventDispatcherBase {
      * timing issues due to animation we maintain a list.
      * Note that this is a global function, not an instance function.
      */
-    private static _closeFindBars() {
+    private static _closeFindBars(): void {
         let bars = FindBar._bars;
         if (bars) {
             bars.forEach(function (bar) {
@@ -200,7 +207,7 @@ export class FindBar extends EventDispatcher.EventDispatcherBase {
      * @return {jQueryObject} The jQuery object for the element, or an empty object if the Find bar isn't yet
      *      in the DOM or the element doesn't exist.
      */
-    public $(selector) {
+    public $(selector: string): JQuery {
         if (this._modalBar) {
             return $(selector, this._modalBar.getRoot());
         }
@@ -214,7 +221,7 @@ export class FindBar extends EventDispatcher.EventDispatcherBase {
      * @private
      * Set the state of the toggles in the Find bar to the saved prefs state.
      */
-    private _updateSearchBarFromPrefs() {
+    private _updateSearchBarFromPrefs(): void {
         // Have to make sure we explicitly cast the second parameter to a boolean, because
         // toggleClass expects literal true/false.
         this.$("#find-case-sensitive").toggleClass("active", !!PreferencesManager.getViewState("caseSensitive"));
@@ -226,7 +233,7 @@ export class FindBar extends EventDispatcher.EventDispatcherBase {
      * @private
      * Save the prefs state based on the state of the toggles.
      */
-    private _updatePrefsFromSearchBar() {
+    private _updatePrefsFromSearchBar(): void {
         const isRegexp = this.$("#find-regexp").is(".active");
         PreferencesManager.setViewState("caseSensitive", this.$("#find-case-sensitive").is(".active"));
         PreferencesManager.setViewState("regexp", isRegexp);
@@ -240,7 +247,7 @@ export class FindBar extends EventDispatcher.EventDispatcherBase {
      * @param {jQueryObject} $elem The element to add the shortcut to.
      * @param {string} commandId The ID for the command whose keyboard shortcut to show.
      */
-    private _addShortcutToTooltip($elem, commandId) {
+    private _addShortcutToTooltip($elem: JQuery, commandId: string): void {
         const replaceShortcut = KeyBindingManager.getKeyBindings(commandId)[0];
         if (replaceShortcut) {
             let oldTitle = $elem.attr("title");
@@ -254,7 +261,7 @@ export class FindBar extends EventDispatcher.EventDispatcherBase {
      * Adds element to the search history queue.
      * @param {string} search string that needs to be added to history.
      */
-    private _addElementToSearchHistory(searchVal) {
+    private _addElementToSearchHistory(searchVal: string): void {
         if (searchVal) {
             const searchHistory = PreferencesManager.getViewState("searchHistory");
             const maxCount = PreferencesManager.get("maxSearchHistory");
@@ -274,7 +281,7 @@ export class FindBar extends EventDispatcher.EventDispatcherBase {
     /**
      * Opens the Find bar, closing any other existing Find bars.
      */
-    public open() {
+    public open(): void {
         const self = this;
 
         // Normally, creating a new Find bar will simply cause the old one to close
@@ -302,7 +309,7 @@ export class FindBar extends EventDispatcher.EventDispatcherBase {
         // Done this way because ModalBar.js seems to react unreliably when
         // modifying it to handle the escape key - the findbar wasn't getting
         // closed as it should, instead persisting in the background
-        function _handleKeydown(e) {
+        function _handleKeydown(e): void {
             if (e.keyCode === KeyEvent.DOM_VK_ESCAPE) {
                 e.stopPropagation();
                 e.preventDefault();
@@ -364,7 +371,7 @@ export class FindBar extends EventDispatcher.EventDispatcherBase {
             .on("keydown", "#find-what, #replace-with", function (e) {
                 lastTypedTime = new Date().getTime();
                 lastKeyCode = e.keyCode;
-                const executeSearchIfNeeded = function () {
+                const executeSearchIfNeeded = function (): void {
                     // We only do instant search via node.
                     if (FindUtils.isNodeSearchDisabled() || FindUtils.isInstantSearchDisabled()) {
                         // we still keep the interval timer up as instant search could get enabled/disabled based on node busy state
@@ -483,22 +490,22 @@ export class FindBar extends EventDispatcher.EventDispatcherBase {
      * @private
      * Shows the search History in dropdown.
      */
-    public showSearchHints() {
+    public showSearchHints(): void {
         const self = this;
         const searchFieldInput = self.$("#find-what");
         this.searchField = new QuickSearchField(searchFieldInput, {
             verticalAdjust: searchFieldInput.offset().top > 0 ? 0 : this._modalBar!.getRoot().outerHeight(),
             maxResults: 20,
             firstHighlightIndex: null,
-            resultProvider: function (query) {
-                const asyncResult = $.Deferred();
+            resultProvider: function (query): JQueryPromise<any> {
+                const asyncResult = $.Deferred<any>();
                 asyncResult.resolve(PreferencesManager.getViewState("searchHistory"));
                 return asyncResult.promise();
             },
-            formatter: function (item, query) {
+            formatter: function (item: string, query): string {
                 return "<li>" + item + "</li>";
             },
-            onCommit: function (selectedItem, query) {
+            onCommit: function (selectedItem: string, query): void {
                 if (selectedItem) {
                     self.$("#find-what").val(selectedItem);
                     self.trigger("queryChange");
@@ -508,7 +515,7 @@ export class FindBar extends EventDispatcher.EventDispatcherBase {
                 self.$("#find-what").focus();
                 $(".quick-search-container").hide();
             },
-            onHighlight: function (selectedItem, query, explicit) { /* Do nothing */ },
+            onHighlight: function (selectedItem, query, explicit): void { /* Do nothing */ },
             highlightZeroResults: false
         });
         this.searchField.setText(searchFieldInput.val());
@@ -518,7 +525,7 @@ export class FindBar extends EventDispatcher.EventDispatcherBase {
      * Closes this Find bar. If already closed, does nothing.
      * @param {boolean} suppressAnimation If true, don't do the standard closing animation. Default false.
      */
-    public close(suppressAnimation?) {
+    public close(suppressAnimation?: boolean): void {
         if (this._modalBar) {
             // 1st arg = restore scroll pos; 2nd arg = no animation, since getting replaced immediately
             this._modalBar.close(true, !suppressAnimation);
@@ -528,14 +535,14 @@ export class FindBar extends EventDispatcher.EventDispatcherBase {
     /**
      * @return {boolean} true if this FindBar has been closed.
      */
-    public isClosed() {
+    public isClosed(): boolean {
         return this._closed;
     }
 
     /**
      * @return {Object} The options passed into the FindBar.
      */
-    public getOptions() {
+    public getOptions(): FindBarOption {
         return this._options;
     }
 
@@ -543,7 +550,7 @@ export class FindBar extends EventDispatcher.EventDispatcherBase {
      * Returns the current query and parameters.
      * @return {{query: string, isCaseSensitive: boolean, isRegexp: boolean, isWholeWord: boolean}}
      */
-    public getQueryInfo() {
+    public getQueryInfo(): FindUtils.QueryInfo {
         return {
             query:           this.$("#find-what").val() || "",
             isCaseSensitive: this.$("#find-case-sensitive").is(".active"),
@@ -557,7 +564,7 @@ export class FindBar extends EventDispatcher.EventDispatcherBase {
      * @param {?string} error The error message to show, or null to hide the error display.
      * @param {boolean=} isHTML Whether the error message is HTML that should remain unescaped.
      */
-    public showError(error, isHTML?) {
+    public showError(error: string | null | undefined, isHTML?: boolean): void {
         const $error = this.$(".error");
         if (error) {
             if (isHTML) {
@@ -575,7 +582,7 @@ export class FindBar extends EventDispatcher.EventDispatcherBase {
      * Set the find count.
      * @param {string} count The find count message to show. Can be the empty string to hide it.
      */
-    public showFindCount(count) {
+    public showFindCount(count: string): void {
         this.$("#find-counter").text(count);
     }
 
@@ -585,7 +592,7 @@ export class FindBar extends EventDispatcher.EventDispatcherBase {
      * @param {boolean} showIndicator
      * @param {boolean} showMessage
      */
-    public showNoResults(showIndicator, showMessage?) {
+    public showNoResults(showIndicator: boolean, showMessage?: boolean): void {
         ViewUtils.toggleClass(this.$("#find-what"), "no-results", showIndicator);
 
         const $msg = this.$(".no-results-message");
@@ -600,7 +607,7 @@ export class FindBar extends EventDispatcher.EventDispatcherBase {
      * Returns the current replace text.
      * @return {string}
      */
-    public getReplaceText() {
+    public getReplaceText(): string {
         return this.$("#replace-with").val() || "";
     }
 
@@ -610,26 +617,26 @@ export class FindBar extends EventDispatcher.EventDispatcherBase {
      * will need to refresh their enable state after calling this.
      * @param {boolean} enable Whether to enable or disable the controls.
      */
-    public enable(enable) {
+    public enable(enable: boolean): void {
         this.$("#find-what, #replace-with, #find-prev, #find-next, .find-toggle").prop("disabled", !enable);
         this._enabled = enable;
     }
 
-    public focus() {
+    public focus(): void {
         this.$("#find-what").focus();
     }
 
     /**
      * @return {boolean} true if the FindBar is enabled.
      */
-    public isEnabled() {
+    public isEnabled(): boolean {
         return this._enabled;
     }
 
     /**
      * @return {boolean} true if the Replace button is enabled.
      */
-    public isReplaceEnabled() {
+    public isReplaceEnabled(): boolean {
         return this.$("#replace-yes").is(":enabled");
     }
 
@@ -638,7 +645,7 @@ export class FindBar extends EventDispatcher.EventDispatcherBase {
      * (i.e. isEnabled() returns false), this will have no effect.
      * @param {boolean} enable Whether to enable the controls.
      */
-    public enableNavigation(enable) {
+    public enableNavigation(enable: boolean): void {
         if (this.isEnabled()) {
             this.$("#find-prev, #find-next").prop("disabled", !enable);
         }
@@ -649,7 +656,7 @@ export class FindBar extends EventDispatcher.EventDispatcherBase {
      * (i.e. isEnabled() returns false), this will have no effect.
      * @param {boolean} enable Whether to enable the controls.
      */
-    public enableReplace(enable) {
+    public enableReplace(enable: boolean): void {
         if (this.isEnabled()) {
             this.$("#replace-yes, #replace-batch, #replace-all").prop("disabled", !enable);
         }
@@ -660,7 +667,7 @@ export class FindBar extends EventDispatcher.EventDispatcherBase {
      * Focus and select the contents of the given field.
      * @param {string} selector The selector for the field.
      */
-    private _focus(selector) {
+    private _focus(selector: string): void {
         const input = this.$(selector)
             .focus()
             .get(0) as HTMLInputElement;
@@ -670,32 +677,32 @@ export class FindBar extends EventDispatcher.EventDispatcherBase {
     /**
      * Sets focus to the query field and selects its text.
      */
-    public focusQuery() {
+    public focusQuery(): void {
         this._focus("#find-what");
     }
 
     /**
      * Sets focus to the replace field and selects its text.
      */
-    public focusReplace() {
+    public focusReplace(): void {
         this._focus("#replace-with");
     }
 
     /**
      * The indexing spinner is usually shown when node is indexing files
      */
-    public showIndexingSpinner() {
+    public showIndexingSpinner(): void {
         this.$("#indexing-spinner").removeClass("forced-hidden");
     }
 
-    public hideIndexingSpinner() {
+    public hideIndexingSpinner(): void {
         this.$("#indexing-spinner").addClass("forced-hidden");
     }
 
     /**
      * Force a search again
      */
-    public redoInstantSearch() {
+    public redoInstantSearch(): void {
         this.trigger("doFind");
     }
 
@@ -704,7 +711,7 @@ export class FindBar extends EventDispatcher.EventDispatcherBase {
     * @param {!Editor} editor
     * @return {string} first line of primary selection to populate the find bar
     */
-    private static _getInitialQueryFromSelection(editor) {
+    private static _getInitialQueryFromSelection(editor: Editor): string {
         const selectionText = editor.getSelectedText();
         if (selectionText) {
             return selectionText
@@ -721,7 +728,7 @@ export class FindBar extends EventDispatcher.EventDispatcherBase {
      * @param {?Editor} The active editor, if any
      * @return {query: string, replaceText: string} Query and Replace text to prepopulate the Find Bar with
      */
-    public static getInitialQuery(currentFindBar, editor) {
+    public static getInitialQuery(currentFindBar: FindBar, editor?: Editor | null): Query {
         let query;
         const selection = editor ? FindBar._getInitialQueryFromSelection(editor) : "";
         let replaceText = "";

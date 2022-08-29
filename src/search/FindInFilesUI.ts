@@ -29,6 +29,8 @@
  *  - Handle matches that span multiple lines
  */
 
+import type { SearchModel, ResultInfo } from "search/SearchModel";
+
 import * as AppInit from "utils/AppInit";
 import * as CommandManager from "command/CommandManager";
 import * as Commands from "command/Commands";
@@ -50,6 +52,8 @@ import * as StringUtils from "utils/StringUtils";
 import * as HealthLogger from "utils/HealthLogger";
 import * as _ from "lodash";
 import { DispatcherEvents } from "utils/EventDispatcher";
+import File = require("filesystem/File");
+import FileSystemEntry = require("filesystem/FileSystemEntry");
 
 
 /** @const Maximum number of files to do replacements in-memory instead of on disk. */
@@ -71,8 +75,8 @@ let _findBar: FindBar | null;
  *      getCandidateFiles(scope) would return.
  * @return {$.Promise} A promise that's resolved with the search results or rejected when the find competes.
  */
-export function searchAndShowResults(queryInfo, scope, filter, replaceText, candidateFilesPromise?) {
-    return FindInFiles.doSearchInScope(queryInfo, scope, filter, replaceText, candidateFilesPromise)
+export function searchAndShowResults(queryInfo: FindUtils.QueryInfo, scope: FileSystemEntry, filter: string | null, replaceText: string, candidateFilesPromise?: JQueryPromise<Array<File>>): JQueryPromise<ResultInfo | typeof FindInFiles.ZERO_FILES_TO_SEARCH> {
+    return FindInFiles.doSearchInScope(queryInfo, scope, filter, replaceText, candidateFilesPromise)!
         .done(function (zeroFilesToken) {
             // Done searching all files: show results
             if (FindInFiles.searchModel.hasResults()) {
@@ -91,7 +95,7 @@ export function searchAndShowResults(queryInfo, scope, filter, replaceText, cand
                     _findBar.enable(true);
                     if (zeroFilesToken === FindInFiles.ZERO_FILES_TO_SEARCH) {
                         _findBar.showError(StringUtils.format(Strings.FIND_IN_FILES_ZERO_FILES,
-                            FindUtils.labelForScope(FindInFiles.searchModel.scope)), true);
+                            FindUtils.labelForScope(FindInFiles.searchModel.scope!)), true);
                     } else {
                         showMessage = true;
                     }
@@ -117,8 +121,8 @@ export function searchAndShowResults(queryInfo, scope, filter, replaceText, cand
  *      getCandidateFiles(scope) would return.
  * @return {$.Promise} A promise that's resolved with the search results or rejected when the find competes.
  */
-export function searchAndReplaceResults(queryInfo, scope, filter, replaceText, candidateFilesPromise?) {
-    return FindInFiles.doSearchInScope(queryInfo, scope, filter, replaceText, candidateFilesPromise)
+export function searchAndReplaceResults(queryInfo: FindUtils.QueryInfo, scope, filter: string | null, replaceText: string, candidateFilesPromise?: JQueryPromise<Array<File>>): JQueryPromise<ResultInfo | typeof FindInFiles.ZERO_FILES_TO_SEARCH> {
+    return FindInFiles.doSearchInScope(queryInfo, scope, filter, replaceText, candidateFilesPromise)!
         .done(function (zeroFilesToken) {
             // Done searching all files: replace all
             if (FindInFiles.searchModel.hasResults()) {
@@ -147,7 +151,7 @@ export function searchAndReplaceResults(queryInfo, scope, filter, replaceText, c
  *
  * For unit test.
  */
-export function _showFindBar(scope, showReplace?) {
+export function _showFindBar(scope: FileSystemEntry | null, showReplace?: boolean): void {
     FindUtils.notifySearchScopeChanged();
     // If the scope is a file with a custom viewer, then we
     // don't show find in files dialog.
@@ -164,7 +168,7 @@ export function _showFindBar(scope, showReplace?) {
 
     // Get initial query/replace text
     const currentEditor = EditorManager.getActiveEditor();
-    const initialQuery = FindBar.getInitialQuery(_findBar, currentEditor);
+    const initialQuery = FindBar.getInitialQuery(_findBar!, currentEditor);
 
     // Close our previous find bar, if any. (The open() of the new _findBar will
     // take care of closing any other find bar instances.)
@@ -185,7 +189,7 @@ export function _showFindBar(scope, showReplace?) {
     // TODO Should push this state into ModalBar (via a FindBar API) instead of installing a callback like this.
     // Custom closing behavior: if in the middle of executing search, blur shouldn't close ModalBar yet. And
     // don't close bar when opening Edit Filter dialog either.
-    _findBar._modalBar!.isLockedOpen = function () {
+    _findBar._modalBar!.isLockedOpen = function (): boolean {
         // TODO: should have state for whether the search is executing instead of looking at find bar state
         // TODO: should have API on filterPicker to figure out if dialog is open
         return !_findBar!.isEnabled() || $(".modal.instance .exclusions-editor").length > 0;
@@ -194,14 +198,14 @@ export function _showFindBar(scope, showReplace?) {
     const candidateFilesPromise = FindInFiles.getCandidateFiles(scope);  // used for eventual search, and in exclusions editor UI
     let filterPicker;
 
-    function handleQueryChange() {
+    function handleQueryChange(): void {
         // Check the query expression on every input event. This way the user is alerted
         // to any RegEx syntax errors immediately.
         const queryInfo = _findBar!.getQueryInfo();
         const queryResult = FindUtils.parseQueryInfo(queryInfo);
 
         // Enable the replace button appropriately.
-        _findBar!.enableReplace(queryResult.valid);
+        _findBar!.enableReplace(queryResult.valid!);
 
         if (queryResult.valid || queryResult.empty) {
             _findBar!.showNoResults(false);
@@ -212,7 +216,7 @@ export function _showFindBar(scope, showReplace?) {
         }
     }
 
-    function startSearch(replaceText?) {
+    function startSearch(replaceText?: string): null {
         const queryInfo = _findBar!.getQueryInfo();
         const disableFindBar = FindUtils.isNodeSearchDisabled() || (replaceText ? true : false);
         if (queryInfo && queryInfo.query) {
@@ -234,15 +238,15 @@ export function _showFindBar(scope, showReplace?) {
             }
 
             if (queryInfo.isRegexp) {
-                replaceText = FindUtils.parseString(replaceText);
+                replaceText = FindUtils.parseString(replaceText!);
             }
 
-            searchAndShowResults(queryInfo, scope, filter, replaceText, candidateFilesPromise);
+            searchAndShowResults(queryInfo, scope!, filter, replaceText!, candidateFilesPromise);
         }
         return null;
     }
 
-    function startReplace() {
+    function startReplace(): void {
         startSearch(_findBar!.getReplaceText());
     }
 
@@ -300,7 +304,7 @@ export function _showFindBar(scope, showReplace?) {
  * Finish a replace across files operation when the user clicks "Replace" on the results panel.
  * @param {SearchModel} model The model for the search associated with ths replace.
  */
-function _finishReplaceBatch(model) {
+function _finishReplaceBatch(model: SearchModel): void {
     const replaceText = model.replaceText;
     if (replaceText === null) {
         return;
@@ -311,11 +315,11 @@ function _finishReplaceBatch(model) {
     const replacedFiles = Object.keys(resultsClone).filter(function (path) {
         return FindUtils.hasCheckedMatches(resultsClone[path]);
     });
-    const isRegexp = model.queryInfo.isRegexp;
+    const isRegexp = model.queryInfo!.isRegexp;
 
-    function processReplace(forceFilesOpen) {
+    function processReplace(forceFilesOpen: boolean): void {
         StatusBar.showBusyIndicator(true);
-        FindInFiles.doReplace(resultsClone, replaceText, { forceFilesOpen: forceFilesOpen, isRegexp: isRegexp })
+        FindInFiles.doReplace(resultsClone, replaceText!, { forceFilesOpen: forceFilesOpen, isRegexp: isRegexp })
             .fail(function (errors) {
                 const message = Strings.REPLACE_IN_FILES_ERRORS + FileUtils.makeDialogFileList(
                     errors.map(function (errorInfo) {
@@ -378,7 +382,7 @@ function _finishReplaceBatch(model) {
  * @private
  * Bring up the Find in Files UI with the replace options.
  */
-function _showReplaceBar() {
+function _showReplaceBar(): void {
     FindUtils.notifySearchScopeChanged();
     _showFindBar(null, true);
 }
@@ -387,7 +391,7 @@ function _showReplaceBar() {
  * @private
  * Search within the file/subtree defined by the sidebar selection
  */
-function _showFindBarForSubtree() {
+function _showFindBarForSubtree(): void {
     FindUtils.notifySearchScopeChanged();
     const selectedEntry = ProjectManager.getSelectedItem();
     _showFindBar(selectedEntry);
@@ -397,7 +401,7 @@ function _showFindBarForSubtree() {
  * @private
  * Search within the file/subtree defined by the sidebar selection
  */
-function _showReplaceBarForSubtree() {
+function _showReplaceBarForSubtree(): void {
     FindUtils.notifySearchScopeChanged();
     const selectedEntry = ProjectManager.getSelectedItem();
     _showFindBar(selectedEntry, true);
@@ -407,7 +411,7 @@ function _showReplaceBarForSubtree() {
  * @private
  * Close the open search bar, if any. For unit tests.
  */
-export function _closeFindBar() {
+export function _closeFindBar(): void {
     if (_findBar) {
         _findBar.close();
     }
@@ -416,7 +420,7 @@ export function _closeFindBar() {
 /**
  * When the search indexing is started, we need to show the indexing status on the find bar if present.
  */
-function _searchIndexingStarted() {
+function _searchIndexingStarted(): void {
     if (_findBar && _findBar!._options.multifile && FindUtils.isIndexingInProgress()) {
         _findBar.showIndexingSpinner();
     }
@@ -425,7 +429,7 @@ function _searchIndexingStarted() {
 /**
  * Once the indexing has finished, clear the indexing spinner
  */
-function _searchIndexingFinished() {
+function _searchIndexingFinished(): void {
     if (_findBar) {
         _findBar.hideIndexingSpinner();
     }
@@ -434,7 +438,7 @@ function _searchIndexingFinished() {
 /**
  * Issues a search if find bar is visible and is multi file search and not instant search
  */
-function _defferedSearch() {
+function _defferedSearch(): void {
     if (_findBar && _findBar._options.multifile && !_findBar._options.replace) {
         _findBar.redoInstantSearch();
     }
@@ -444,7 +448,7 @@ function _defferedSearch() {
  * Schedules a search on search scope/filter changes. Have to schedule as when we listen to this event, the file filters
  * might not have been updated yet.
  */
-function _searchIfRequired() {
+function _searchIfRequired(): void {
     if (!FindUtils.isInstantSearchDisabled() && _findBar && _findBar._options.multifile && !_findBar._options.replace) {
         setTimeout(_defferedSearch, 100);
     }
@@ -454,7 +458,7 @@ function _searchIfRequired() {
  * @public
  * Closes the search results panel
  */
-export function closeResultsPanel() {
+export function closeResultsPanel(): void {
     _resultsView.close();
     _closeFindBar();
 }

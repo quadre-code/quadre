@@ -22,13 +22,15 @@
  *
  */
 
+import type { SearchResult } from "utils/StringMatch";
+
 import * as EditorManager from "editor/EditorManager";
 
 /**
  * @param {string} query what the user is searching for
  * @param {boolean} returns true if this plug-in wants to provide results for this query
  */
-export function match(query) {
+export function match(query: string): boolean {
     return (query[0] === "@");
 }
 
@@ -39,11 +41,11 @@ export function match(query) {
  * @param {string} query
  * @param {boolean} explicit False if this is only highlighted due to being at top of list after search()
  */
-export function itemFocus(selectedItem, query, explicit) {
+export function itemFocus(selectedItem: SearchResult, query: string, explicit: boolean): void {
     if (!selectedItem || (query.length < 2 && !explicit)) {
         return;
     }
-    const fileLocation = selectedItem.fileLocation;
+    const fileLocation = selectedItem.fileLocation!;
 
     const from = {line: fileLocation.line, ch: fileLocation.chFrom};
     const to = {line: fileLocation.line, ch: fileLocation.chTo};
@@ -56,6 +58,6 @@ export function itemFocus(selectedItem, query, explicit) {
  * @param {?SearchResult} selectedItem
  * @param {string} query
  */
-export function itemSelect(selectedItem, query) {
+export function itemSelect(selectedItem: SearchResult, query: string): void {
     itemFocus(selectedItem, query, true);
 }

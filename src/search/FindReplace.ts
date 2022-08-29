@@ -45,15 +45,75 @@ import * as _ from "lodash";
 import * as CodeMirror from "codemirror";
 import { DispatcherEvents } from "utils/EventDispatcher";
 
-interface Pos {
-    line: number;
-    ch: number;
+interface MatchRange {
+    from: CodeMirror.Position;
+    to: CodeMirror.Position;
 }
 
-interface Range {
-    start: Pos;
-    end: Pos;
-    primary?: boolean;
+interface TextRange {
+    start: CodeMirror.Position;
+    end: CodeMirror.Position;
+    text: string;
+}
+
+interface EditorQuery extends Editor.Editor {
+    // TODO: try to not rely on the `editor` instance?
+    lastParsedQuery?: string;
+}
+
+
+// TODO: I wasn't able to use the upstream types.
+interface DocOrEditor extends CodeMirror.DocOrEditor {
+    /**
+     * This method can be used to implement search/replace functionality.
+     *  `query`: This can be a regular * expression or a string (only strings will match across lines -
+     *          if they contain newlines).
+     *  `start`: This provides the starting position of the search. It can be a `{line, ch} object,
+     *          or can be left off to default to the start of the document
+     *  `caseFold`: This is only relevant when matching a string. IT will cause the search to be case-insenstive
+     */
+    getSearchCursor(query: string | RegExp, start?: CodeMirror.Position, caseFold?: boolean): SearchCursor;
+}
+
+interface SearchCursor {
+    /**
+     * Searches forward or backward from the current position. The return value indicates whether a match was
+     * found. If matching a regular expression, the return value will be the array returned by the match method, in case
+     * you want to extract matched groups
+     */
+    find(reverse: boolean): boolean | RegExpMatchArray;
+
+    /**
+     * Searches forward from the current position. The return value indicates whether a match was
+     * found. If matching a regular expression, the return value will be the array returned by the match method, in case
+     * you want to extract matched groups
+     */
+    findNext(): boolean | RegExpMatchArray;
+
+    /**
+     * Searches backward from the current position. The return value indicates whether a match was
+     * found. If matching a regular expression, the return value will be the array returned by the match method, in case
+     * you want to extract matched groups
+     */
+    findPrevious(): boolean | RegExpMatchArray;
+
+    /**
+     * Only valid when the last call to find, findNext, or findPrevious did not return false. Returns {line, ch}
+     * objects pointing the start of the match.
+     */
+    from(): CodeMirror.Position;
+
+    /**
+     * Only valid when the last call to find, findNext, or findPrevious did not return false. Returns {line, ch}
+     * objects pointing the end of the match.
+     */
+    to(): CodeMirror.Position;
+
+    /** Replaces the currently found match with the given text and adjusts the cursor position to reflect the deplacement. */
+    replace(text: string, origin?: string): void;
+
+    // TODO: not present upstream.
+    pos: { from: CodeMirror.Position, to: CodeMirror.Position };
 }
 
 /**
@@ -104,12 +164,12 @@ function getSearchState(cm): SearchState {
     return cm._searchState;
 }
 
-function getSearchCursor(cm, state, pos?) {
+function getSearchCursor(cm: DocOrEditor, state: SearchState, pos?: CodeMirror.Position | { line: number }): SearchCursor {
     // Heuristic: if the query string is all lowercase, do a case insensitive search.
-    return cm.getSearchCursor(state.parsedQuery, pos, !state.queryInfo.isCaseSensitive);
+    return cm.getSearchCursor(state.parsedQuery, pos as CodeMirror.Position, !state.queryInfo.isCaseSensitive);
 }
 
-function parseQuery(queryInfo) {
+function parseQuery(queryInfo: FindUtils.QueryInfo): string | RegExp {
     if (findBar) {
         findBar.showError(null);
     }
@@ -126,7 +186,7 @@ function parseQuery(queryInfo) {
         return "";
     }
 
-    return parsed.queryExpr;
+    return parsed.queryExpr!;
 }
 
 /**
@@ -136,7 +196,7 @@ function parseQuery(queryInfo) {
  * @param {{query: string, isCaseSensitive: boolean, isRegexp: boolean, isWholeWord: boolean}} queryInfo
  *      The query info object as returned by FindBar.getQueryInfo()
  */
-function setQueryInfo(state, queryInfo) {
+function setQueryInfo(state: SearchState, queryInfo: FindUtils.QueryInfo | null): void {
     state.queryInfo = queryInfo;
     if (!queryInfo) {
         state.parsedQuery = null;
@@ -157,7 +217,7 @@ function setQueryInfo(state, queryInfo) {
  * @param {!{from: {line: number, ch: number}, to: {line: number, ch: number}}} matchRange - the range of current match
  * @param {!boolean} searchBackwards true if searching backwards
  */
-function _updateFindBarWithMatchInfo(state, matchRange, searchBackwards) {
+function _updateFindBarWithMatchInfo(state: SearchState, matchRange: MatchRange, searchBackwards: boolean | undefined): void {
     // Bail if there is no result set.
     if (!state.foundAny) {
         return;
@@ -200,7 +260,7 @@ function _updateFindBarWithMatchInfo(state, matchRange, searchBackwards) {
  * @return {?{start: {line: number, ch: number}, end: {line: number, ch: number}}} The range for the next match, or
  *      null if there is no match.
  */
-function _getNextMatch(editor, searchBackwards, pos?, wrap?): Range | null {
+function _getNextMatch(editor, searchBackwards, pos?, wrap?): Editor.Selection | null {
     const cm = editor._codeMirror;
     const state = getSearchState(cm);
     let cursor = getSearchCursor(cm, state, pos || editor.getCursorPos(false, searchBackwards ? "start" : "end"));
@@ -232,7 +292,7 @@ function _getNextMatch(editor, searchBackwards, pos?, wrap?): Range | null {
  *      into view if it's offscreen, but will not be centered.
  * @param {boolean=} preferNoScroll If center is true, whether to avoid scrolling if the hit is in the top half of the screen. Default false.
  */
-function _selectAndScrollTo(editor, selections: Array<Range>, center, preferNoScroll?) {
+function _selectAndScrollTo(editor: Editor.Editor, selections: Array<Editor.Selection>, center: boolean, preferNoScroll?: boolean): void {
     const primarySelection = _.find(selections, function (sel) { return sel.primary; }) || _.last(selections);
     const resultVisible = editor.isLineVisible(primarySelection.start.line);
     let centerOptions = Editor.BOUNDARY_CHECK_NORMAL;
@@ -262,7 +322,7 @@ function _selectAndScrollTo(editor, selections: Array<Range>, center, preferNoSc
  * @return {{start:{line: number, ch: number}, end:{line:number, ch:number}, text:string}} The range and content of the found word. If
  *     there is no word, start will equal end and the text will be the empty string.
  */
-export function _getWordAt(editor, pos) {
+export function _getWordAt(editor: Editor.Editor, pos: CodeMirror.Position): TextRange {
     const cm = editor._codeMirror;
     let start = pos.ch;
     let end = start;
@@ -283,7 +343,7 @@ export function _getWordAt(editor, pos) {
  * @param {!{start: {line: number, ch: number}, end: {line: number, ch: number}}} sel2 The second selection to compare
  * @return {boolean} true if the selections are equal
  */
-function _selEq(sel1, sel2) {
+function _selEq(sel1: Editor.Selection, sel2: Editor.Selection): boolean {
     return (CodeMirror.cmpPos(sel1.start, sel2.start) === 0 && CodeMirror.cmpPos(sel1.end, sel2.end) === 0);
 }
 
@@ -296,7 +356,7 @@ function _selEq(sel1, sel2) {
  * next one. If true, we add the next match even if the current primary selection is a cursor (we expand it
  * first to determine what to match).
  */
-export function _expandWordAndAddNextToSelection(editor, removePrimary) {
+export function _expandWordAndAddNextToSelection(editor: Editor.Editor, removePrimary: boolean): void {
     editor = editor || EditorManager.getActiveEditor();
     if (!editor) {
         return;
@@ -375,7 +435,7 @@ export function _expandWordAndAddNextToSelection(editor, removePrimary) {
     }
 }
 
-function _skipCurrentMatch(editor) {
+function _skipCurrentMatch(editor: Editor.Editor): void {
     return _expandWordAndAddNextToSelection(editor, true);
 }
 
@@ -384,21 +444,21 @@ function _skipCurrentMatch(editor) {
  * include all instances of that range. Removes all other selections. Does nothing if the selection
  * is not a range after expansion.
  */
-export function _findAllAndSelect(editor) {
+export function _findAllAndSelect(editor: Editor.Editor): void {
     editor = editor || EditorManager.getActiveEditor();
     if (!editor) {
         return;
     }
 
     let sel = editor.getSelection();
-    const newSelections: Array<Range> = [];
+    const newSelections: Array<Editor.Selection> = [];
     if (CodeMirror.cmpPos(sel.start, sel.end) === 0) {
         sel = _getWordAt(editor, sel.start);
     }
     if (CodeMirror.cmpPos(sel.start, sel.end) !== 0) {
         let searchStart = {line: 0, ch: 0};
         const state = getSearchState(editor._codeMirror);
-        let nextMatch: Range | null;
+        let nextMatch: Editor.Selection | null;
         setQueryInfo(state, { query: editor.document.getRange(sel.start, sel.end), isCaseSensitive: false, isRegexp: false, isWholeWord: false });
 
         // tslint:disable-next-line:no-conditional-assignment
@@ -419,7 +479,7 @@ export function _findAllAndSelect(editor) {
 }
 
 /** Removes the current-match highlight, leaving all matches marked in the generic highlight style */
-function clearCurrentMatchHighlight(cm, state) {
+function clearCurrentMatchHighlight(cm: CodeMirror.DocOrEditor, state: SearchState): void {
     if (state.markedCurrent) {
         state.markedCurrent.clear();
         ScrollTrackMarkers.markCurrent(-1);
@@ -437,7 +497,7 @@ function clearCurrentMatchHighlight(cm, state) {
  * @param {?boolean} preferNoScroll
  * @param {?Pos} pos
  */
-function findNext(editor, searchBackwards?, preferNoScroll?, pos?) {
+function findNext(editor: Editor.Editor, searchBackwards?: boolean, preferNoScroll?: boolean, pos?: CodeMirror.Position): void {
     const cm = editor._codeMirror;
     cm.operation(function () {
         const state = getSearchState(cm);
@@ -472,7 +532,7 @@ function findNext(editor, searchBackwards?, preferNoScroll?, pos?) {
 }
 
 /** Clears all match highlights, including the current match */
-function clearHighlights(cm, state) {
+function clearHighlights(cm: CodeMirror.Editor, state: SearchState): void {
     cm.operation(function () {
         state.marked.forEach(function (markedRange) {
             markedRange.clear();
@@ -488,7 +548,7 @@ function clearHighlights(cm, state) {
     state.matchIndex = -1;
 }
 
-function clearSearch(cm) {
+function clearSearch(cm: CodeMirror.Editor): void {
     cm.operation(function () {
         const state = getSearchState(cm);
         if (!state.parsedQuery) {
@@ -500,7 +560,7 @@ function clearSearch(cm) {
     });
 }
 
-function toggleHighlighting(editor, enabled) {
+function toggleHighlighting(editor: Editor.Editor, enabled: boolean): void {
     // Temporarily change selection color to improve highlighting - see LESS code for details
     if (enabled) {
         $(editor.getRootElement()).addClass("find-highlighting");
@@ -515,16 +575,16 @@ function toggleHighlighting(editor, enabled) {
  * Called each time the search query changes or document is modified (via Replace). Updates
  * the match count, match highlights and scrollbar tickmarks. Does not change the cursor pos.
  */
-function updateResultSet(editor) {
+function updateResultSet(editor: Editor.Editor): void {
     const cm = editor._codeMirror;
     const state = getSearchState(cm);
 
-    function indicateHasMatches(numResults?) {
+    function indicateHasMatches(numResults?: number): void {
         // Make the field red if it's not blank and it has no matches (which also covers invalid regexes)
         findBar.showNoResults(!state.foundAny && findBar.getQueryInfo().query);
 
         // Navigation buttons enabled if we have a query and more than one match
-        findBar.enableNavigation(state.foundAny && numResults > 1);
+        findBar.enableNavigation(state.foundAny && numResults! > 1);
         findBar.enableReplace(state.foundAny);
     }
 
@@ -544,7 +604,7 @@ function updateResultSet(editor) {
 
         // Find *all* matches, searching from start of document
         // (Except on huge documents, where this is too expensive)
-        const cursor = getSearchCursor(cm, state);
+        const cursor = getSearchCursor(cm as unknown as DocOrEditor, state);
         if (cm.getValue().length <= FIND_MAX_FILE_SIZE) {
             // FUTURE: if last query was prefix of this one, could optimize by filtering last result set
             state.resultSet = [];
@@ -581,7 +641,7 @@ function updateResultSet(editor) {
         } else {
             // On huge documents, just look for first match & then stop
             findBar.showFindCount("");
-            state.foundAny = cursor.findNext();
+            state.foundAny = !!cursor.findNext();
             indicateHasMatches();
         }
     });
@@ -596,7 +656,7 @@ function updateResultSet(editor) {
  * @param {boolean} initial Whether this is the initial population of the query when the search bar opens.
  *     In that case, we don't want to change the selection unnecessarily.
  */
-function handleQueryChange(editor, state, initial?) {
+function handleQueryChange(editor: EditorQuery, state: SearchState, initial?: boolean): void {
     setQueryInfo(state, findBar.getQueryInfo());
     updateResultSet(editor);
 
@@ -618,7 +678,7 @@ function handleQueryChange(editor, state, initial?) {
  * @param {!Editor} editor
  * @param {boolean} replace Whether to show the Replace UI; default false
  */
-function openSearchBar(editor, replace) {
+function openSearchBar(editor: EditorQuery, replace: boolean): void {
     const cm = editor._codeMirror;
     const state = getSearchState(cm);
 
@@ -631,7 +691,7 @@ function openSearchBar(editor, replace) {
     // Prepopulate the search field
     const initialQuery = FindBar.getInitialQuery(findBar, editor);
     if (initialQuery.query === "" && editor.lastParsedQuery !== "") {
-        initialQuery.query = editor.lastParsedQuery;
+        initialQuery.query = editor.lastParsedQuery!;
     }
 
     // Close our previous find bar, if any. (The open() of the new findBar will
@@ -676,7 +736,7 @@ function openSearchBar(editor, replace) {
  * If no search pending, opens the Find dialog. If search bar already open, moves to
  * next/prev result (depending on 'searchBackwards')
  */
-function doSearch(editor, searchBackwards?) {
+function doSearch(editor: Editor.Editor, searchBackwards?: boolean): void {
     const state = getSearchState(editor._codeMirror);
 
     if (state.parsedQuery) {
@@ -692,19 +752,19 @@ function doSearch(editor, searchBackwards?) {
  * When the user switches documents (or closes the last document), ensure that the find bar
  * closes, and also close the Replace All panel.
  */
-function _handleFileChanged() {
+function _handleFileChanged(): void {
     if (findBar) {
         findBar.close();
     }
 }
 
-function doReplace(editor, all) {
+function doReplace(editor: Editor.Editor, all: boolean | null): void {
     const cm = editor._codeMirror;
     const state = getSearchState(cm);
     const replaceText = findBar.getReplaceText();
 
     // Do not replace if editor is set to read only
-    if (cm.options.readOnly) {
+    if (cm.getOption("readOnly")) {
         return;
     }
 
@@ -728,7 +788,7 @@ function doReplace(editor, all) {
     }
 }
 
-function replace(editor) {
+function replace(editor: Editor.Editor): void {
     // If Replace bar already open, treat the shortcut as a hotkey for the Replace button
     if (findBar && findBar.getOptions().replace && findBar.isReplaceEnabled()) {
         doReplace(editor, false);
@@ -749,7 +809,7 @@ function replace(editor) {
         });
 }
 
-function _launchFind() {
+function _launchFind(): void {
     const editor = EditorManager.getActiveEditor();
 
     if (editor) {
@@ -759,21 +819,21 @@ function _launchFind() {
     }
 }
 
-function _findNext() {
+function _findNext(): void {
     const editor = EditorManager.getActiveEditor();
     if (editor) {
         doSearch(editor);
     }
 }
 
-function _findPrevious() {
+function _findPrevious(): void {
     const editor = EditorManager.getActiveEditor();
     if (editor) {
         doSearch(editor, true);
     }
 }
 
-function _replace() {
+function _replace(): void {
     const editor = EditorManager.getActiveEditor();
     if (editor) {
         replace(editor);

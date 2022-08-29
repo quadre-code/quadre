@@ -25,6 +25,7 @@
 /// <amd-dependency path="module" name="module"/>
 
 import type { CodeHintProvider } from "editor/CodeHintManager";
+import type { SearchResult } from "utils/StringMatch";
 
 const AppInit             = brackets.getModule("utils/AppInit");
 const ExtensionUtils      = brackets.getModule("utils/ExtensionUtils");
@@ -42,6 +43,10 @@ const properties          = JSON.parse(CSSProperties);
 
 // For unit testing
 export let cssPropHintProvider: CssPropHints;
+
+interface CssSearchResult extends SearchResult {
+    color?: string;
+}
 
 
 PreferencesManager.definePreference("codehint.CssPropHints", "boolean", true, {
@@ -284,7 +289,7 @@ class CssPropHints implements CodeHintProvider {
             }
 
             result = $.map(valueArray, function (pvalue) {
-                const result = StringMatch.stringMatch(pvalue.text || pvalue, valueNeedle, stringMatcherOptions);
+                const result: CssSearchResult = StringMatch.stringMatch(pvalue.text || pvalue, valueNeedle, stringMatcherOptions);
                 if (result) {
                     if (pvalue.color) {
                         result.color = pvalue.color;
@@ -292,6 +297,8 @@ class CssPropHints implements CodeHintProvider {
 
                     return result;
                 }
+
+                return undefined;
             });
 
             return {
@@ -322,6 +329,8 @@ class CssPropHints implements CodeHintProvider {
                 if (result) {
                     return result;
                 }
+
+                return undefined;
             });
 
             return {

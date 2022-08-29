@@ -78,7 +78,7 @@ function filterWithQueryAndMatcher(hints, query) {
     return matchResults;
 }
 
-class BaseProvider {
+abstract class BaseProvider {
     protected client;
 
     constructor(client) {

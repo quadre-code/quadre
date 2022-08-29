@@ -49,8 +49,9 @@ function _doJumpToDef() {
         const enabledProviders = _providerRegistrationHandler.getProvidersForLanguageId(language.getId());
 
         enabledProviders.some(function (item, index) {
-            if (item.provider.canJumpToDef(editor)) {
-                jumpToDefProvider = item.provider;
+            const provider: any = item.provider;
+            if (provider.canJumpToDef && provider.canJumpToDef(editor)) {
+                jumpToDefProvider = provider;
                 return true;
             }
 

@@ -37,6 +37,7 @@ import * as PreferencesManager from "preferences/PreferencesManager";
 import * as FindUtils from "search/FindUtils";
 import * as EditFilterTemplate from "text!htmlContent/edit-filter-dialog.html";
 import * as FilterNameTemplate from "text!htmlContent/filter-name.html";
+import File = require("filesystem/File");
 
 interface ContextInfo {
     label: string;
@@ -80,7 +81,7 @@ let _picker: DropdownButton;
  * @return {string} Condensed form of filter set if `filter` is a valid array.
  *                  Otherwise, return an empty string.
  */
-function _getCondensedForm(filter) {
+function _getCondensedForm(filter: Array<string>): string {
     if (!_.isArray(filter)) {
         return "";
     }
@@ -97,7 +98,7 @@ function _getCondensedForm(filter) {
  * Populate the list of dropdown menu with two filter commands and
  * the list of saved filter sets.
  */
-function _doPopulate() {
+function _doPopulate(): void {
     let dropdownItems = [Strings.NEW_FILE_FILTER, Strings.CLEAR_FILE_FILTER];
     let filterSets = PreferencesManager.get("fileFilters") || [];
 
@@ -121,7 +122,7 @@ function _doPopulate() {
  * @param {Array.<{name: string, patterns: Array.<string>}>} filterSets
  * @return {{name: string, patterns: Array.<string>}} filter
  */
-function _getFilterIndex(filterSets, filter) {
+function _getFilterIndex(filterSets: Array<SearchFilter>, filter: SearchFilter): number {
     const index = -1;
 
     if (!filter || !filterSets.length) {
@@ -164,7 +165,7 @@ export function getActiveFilter(): SearchFilter | null {
  * Update the picker button label with the name/patterns of the selected filter or
  * No Files Excluded if no filter is selected.
  */
-function _updatePicker() {
+function _updatePicker(): void {
     const filter = getActiveFilter();
     if (filter && filter.patterns.length) {
         const label = filter.name || _getCondensedForm(filter.patterns);
@@ -181,7 +182,7 @@ function _updatePicker() {
  * @param {{name: string, patterns: Array.<string>}=} filter
  * @param {number=} index The index of the filter set in the list of saved filter sets or -1 if it is a new one
  */
-export function setActiveFilter(filter, index?) {
+export function setActiveFilter(filter: SearchFilter | null, index?: number): void {
     const filterSets = PreferencesManager.get("fileFilters") || [];
 
     if (filter) {
@@ -189,10 +190,10 @@ export function setActiveFilter(filter, index?) {
             // Add a new filter set
             index = filterSets.length;
             filterSets.push(filter);
-        } else if (index > -1 && index < filterSets.length) {
+        } else if (index! > -1 && index! < filterSets.length) {
             // Update an existing filter set only if the filter set has some changes
-            if (!_.isEqual(filterSets[index], filter)) {
-                filterSets[index] = filter;
+            if (!_.isEqual(filterSets[index!], filter)) {
+                filterSets[index!] = filter;
             }
         } else {
             // Should not have been called with an invalid index to the available filter sets.
@@ -216,7 +217,7 @@ export function setActiveFilter(filter, index?) {
  * @param {!Array.<string>} userFilter
  * @return {!string} 'compiled' filter that can be passed to filterPath()/filterFileList().
  */
-export function compile(userFilter) {
+export function compile(userFilter: Array<string>): string {
     // Automatically apply ** prefix/suffix to make writing simple substring-match filters more intuitive
     const wrappedGlobs = userFilter.map(function (glob) {
         // Automatic "**" prefix if not explicitly present
@@ -275,7 +276,7 @@ export function compile(userFilter) {
  * @param {!string} fullPath
  * @return {boolean}
  */
-export function filterPath(compiledFilter, fullPath) {
+export function filterPath(compiledFilter: string | null, fullPath: string): boolean {
     if (!compiledFilter) {
         return true;
     }
@@ -291,7 +292,7 @@ export function filterPath(compiledFilter, fullPath) {
  * @param {!Array.<File>} files
  * @return {!Array.<File>}
  */
-export function filterFileList(compiledFilter, files) {
+export function filterFileList(compiledFilter: string | null, files: Array<File>): Array<File> {
     if (!compiledFilter) {
         return files;
     }
@@ -329,7 +330,7 @@ export function getPathsMatchingFilter(compiledFilter: string, filePaths: Array<
  *          to be created.
  * @return {!$.Promise} Dialog box promise
  */
-export function editFilter(filter, index) {
+export function editFilter(filter: SearchFilter, index: number): JQueryPromise<any> {
     const lastFocus = window.document.activeElement;
 
     const templateVars = {
@@ -344,8 +345,8 @@ export function editFilter(filter, index) {
     $nameField.val(filter.name);
     $editField.val(filter.patterns.join("\n")).focus();
 
-    function getValue() {
-        const newFilter = $editField.val().split("\n");
+    function getValue(): Array<string> {
+        const newFilter: Array<string> = $editField.val().split("\n");
 
         // Remove blank lines
         return newFilter.filter(function (glob) {
@@ -387,7 +388,7 @@ export function editFilter(filter, index) {
     // Code to update the file count readout at bottom of dialog (if context provided)
     const $fileCount = dialog.getElement().find(".exclusions-filecount");
 
-    function updateFileCount() {
+    function updateFileCount(): void {
         _context!.promise.done(function (files) {
             const filter = getValue();
             if (filter.length) {
@@ -402,7 +403,7 @@ export function editFilter(filter, index) {
     // Code to enable/disable the OK button at the bottom of dialog (whether filter is empty or not)
     const $primaryBtn = dialog.getElement().find(".primary");
 
-    function updatePrimaryButton() {
+    function updatePrimaryButton(): void {
         const trimmedValue = $editField.val().trim();
         const exclusionNameLength = $nameField.val().length;
 
@@ -429,7 +430,7 @@ export function editFilter(filter, index) {
  * @param {!jQueryObject} picker UI returned from createFilterPicker()
  * @return {!string} 'compiled' filter that can be passed to filterPath()/filterFileList().
  */
-export function commitPicker(picker) {
+export function commitPicker(picker): string {
     const filter = getActiveFilter();
     return (filter && filter.patterns.length) ? compile(filter.patterns) : "";
 }
@@ -439,7 +440,7 @@ export function commitPicker(picker) {
  * and dropdown list UI.
  * @param {!Event} e Mouse events
  */
-function _handleDeleteFilter(e) {
+function _handleDeleteFilter(e): void {
     // Remove the filter set from the preferences and
     // clear the active filter set index from view state.
     const filterSets        = PreferencesManager.get("fileFilters") || [];
@@ -471,7 +472,7 @@ function _handleDeleteFilter(e) {
  * Close filter dropdwon list and launch edit filter dialog.
  * @param {!Event} e Mouse events
  */
-function _handleEditFilter(e) {
+function _handleEditFilter(e): void {
     const filterSets  = PreferencesManager.get("fileFilters") || [];
     const filterIndex = $(e.target).parent().data("index") - FIRST_FILTER_INDEX;
 
@@ -492,7 +493,7 @@ function _handleEditFilter(e) {
  * @param {!Event>} event listRendered event triggered when the dropdown is open
  * @param {!jQueryObject} $dropdown the jQuery DOM node of the dropdown list
  */
-function _handleListRendered(event, $dropdown) {
+function _handleListRendered(event, $dropdown: JQuery): void {
     const activeFilterIndex = PreferencesManager.getViewState("activeFileFilter");
     const checkedItemIndex = (activeFilterIndex > -1) ? (activeFilterIndex + FIRST_FILTER_INDEX) : -1;
     _picker.setChecked(checkedItemIndex, true);
@@ -515,13 +516,13 @@ function _handleListRendered(event, $dropdown) {
  *      existing filter in Edit Filter dialog.
  * @return {!jQueryObject} Picker UI. To retrieve the selected value, use commitPicker().
  */
-export function createFilterPicker(context) {
+export function createFilterPicker(context: ContextInfo): JQuery {
 
-    function itemRenderer(item, index) {
+    function itemRenderer(item: SearchFilter, index: number): string {
         if (index < FIRST_FILTER_INDEX) {
             // Prefix the two filter commands with 'recent-filter-name' so that
             // they also get the same margin-left as the actual filters.
-            return "<span class='recent-filter-name'></span>" + _.escape(item);
+            return "<span class='recent-filter-name'></span>" + _.escape(item as any);
         }
 
         const condensedPatterns = _getCondensedForm(item.patterns);
@@ -575,7 +576,7 @@ export function createFilterPicker(context) {
  * Allows unit tests to open the file filter dropdown list.
  * Exported for tests only.
  */
-export function showDropdown() {
+export function showDropdown(): void {
     if (_picker) {
         _picker.showDropdown();
     }
@@ -585,7 +586,7 @@ export function showDropdown() {
  * Allows unit tests to close the file filter dropdown list.
  * Exported for tests only.
  */
-export function closeDropdown() {
+export function closeDropdown(): void {
     if (_picker) {
         _picker.closeDropdown();
     }

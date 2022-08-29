@@ -25,6 +25,7 @@
 /// <amd-dependency path="module" name="module"/>
 
 import type { CodeHintProvider } from "editor/CodeHintManager";
+import type { SearchResult } from "utils/StringMatch";
 
 // Load dependencies.
 const AppInit             = brackets.getModule("utils/AppInit");
@@ -47,6 +48,10 @@ export let hintProvider: SVGCodeHints;
 const stringMatcherOptions = {
     preferPrefixMatches: true
 };
+
+interface SVGSearchResult extends SearchResult {
+    color?: string;
+}
 
 // Define our own pref for hinting.
 PreferencesManager.definePreference("codehint.SVGHints", "boolean", true, {
@@ -176,7 +181,7 @@ class SVGCodeHints implements CodeHintProvider {
      * @return {!{hints: Array.<jQueryObject>, match: string, selectInitial: boolean, handleWideResults: boolean}}
      */
     public getHints(implicitChar) {
-        let hints: Array<any> = [];
+        let hints;
         let query;
         let attributes: Array<any> = [];
         let options: Array<any> = [];
@@ -192,10 +197,12 @@ class SVGCodeHints implements CodeHintProvider {
 
             if (tagInfo.tokenType === XMLUtils.TOKEN_TAG) {
                 hints = $.map(Object.keys(tagData.tags), function (tag) {
-                    const match = StringMatch.stringMatch(tag, query, stringMatcherOptions);
+                    const match = StringMatch.stringMatch(tag!, query, stringMatcherOptions);
                     if (match) {
                         return match;
                     }
+
+                    return undefined;
                 });
             } else if (tagInfo.tokenType === XMLUtils.TOKEN_ATTR) {
                 if (!tagData.tags[tagInfo.tagName]) {
@@ -210,6 +217,8 @@ class SVGCodeHints implements CodeHintProvider {
                             return match;
                         }
                     }
+
+                    return undefined;
                 });
             } else if (tagInfo.tokenType === XMLUtils.TOKEN_VALUE) {
                 index = tagInfo.tagName + "/" + tagInfo.attrName;
@@ -244,7 +253,7 @@ class SVGCodeHints implements CodeHintProvider {
                 query = XMLUtils.getValueQuery(tagInfo);
                 hints = $.map(options, function (option) {
                     if (tagInfo.exclusionList.indexOf(option) === -1) {
-                        const match = StringMatch.stringMatch(option.text || option, query, stringMatcherOptions);
+                        const match: SVGSearchResult = StringMatch.stringMatch(option.text || option, query, stringMatcherOptions);
                         if (match) {
                             if (option.color) {
                                 match.color = option.color;
@@ -253,6 +262,8 @@ class SVGCodeHints implements CodeHintProvider {
                             return match;
                         }
                     }
+
+                    return undefined;
                 });
             }
             return {

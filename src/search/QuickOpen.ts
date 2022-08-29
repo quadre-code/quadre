@@ -39,14 +39,41 @@ import * as StringUtils from "utils/StringUtils";
 import * as Commands from "command/Commands";
 import * as ProjectManager from "project/ProjectManager";
 import * as LanguageManager from "language/LanguageManager";
-import { ModalBar } from "widgets/ModalBar";
+import { ModalBar, CloseReason } from "widgets/ModalBar";
 import { QuickSearchField } from "search/QuickSearchField";
 import * as StringMatch from "utils/StringMatch";
-import { RegistrationHandler as ProviderRegistrationHandler } from "features/PriorityBasedRegistration";
+import { RegistrationHandler as ProviderRegistrationHandler, Provider } from "features/PriorityBasedRegistration";
 import { DispatcherEvents } from "utils/EventDispatcher";
+import File = require("filesystem/File");
+
+interface PluginDef {
+    name: string;
+    languageIds: Array<string>;
+    done?: () => void;
+    search: (query: string, matcher: StringMatch.StringMatcher) => Array<StringMatch.SearchResult> | JQueryPromise<StringMatch.SearchResult> | JQueryPromise<Array<StringMatch.SearchResult>>;
+    match: (query: string) => boolean;
+    itemFocus: (item: StringMatch.SearchResult | string, query: string, explicit: boolean) => void;
+    itemSelect: (item: StringMatch.SearchResult | string | null, query: string) => void;
+    resultsFormatter?: (item: StringMatch.SearchResult | string, string) => string;
+    matcherOptions?: StringMatch.StringMatcherOptions;
+    label?: string;
+    priority?: number;
+}
 
 interface StringMatcherMap {
     [key: string]: StringMatch.StringMatcher;
+}
+
+interface CursorPos {
+    query: string;
+    local: boolean;
+    line: number;
+    ch: number;
+}
+
+interface QuickOpenSearchResult extends StringMatch.SearchResult {
+    fullPath?: string;
+    filenameWithoutExtension?: string;
 }
 
 const _providerRegistrationHandler = new ProviderRegistrationHandler();
@@ -110,7 +137,7 @@ let _curDialog;
  * @private
  * @returns {Array} Returns the plugings based on the languageId of the current document.
  */
-function _getPluginsForCurrentContext() {
+function _getPluginsForCurrentContext(): Array<Provider> {
     const curDoc = DocumentManager.getCurrentDocument();
 
     if (curDoc) {
@@ -124,17 +151,18 @@ function _getPluginsForCurrentContext() {
 /**
  * Defines API for new QuickOpen plug-ins
  */
-class QuickOpenPlugin {
+export class QuickOpenPlugin implements PluginDef {
     public name: string;
     public languageIds: Array<string>;
     public done?: () => void;
-    public search: (string: string, matcher: StringMatch.StringMatcher) => Array<any | string> | JQueryPromise<any>;
-    public match: (string: string) => boolean;
-    public itemFocus?: (...args) => void;
-    public itemSelect: (...args) => void;
-    public resultsFormatter?: (...args) => string;
-    public matcherOptions: any;
-    public label: string;
+    public search: (query: string, matcher: StringMatch.StringMatcher) => Array<StringMatch.SearchResult> | JQueryPromise<StringMatch.SearchResult> | JQueryPromise<Array<StringMatch.SearchResult>>;
+    public match: (query: string) => boolean;
+    public itemFocus: (item: StringMatch.SearchResult | string, query: string, explicit: boolean) => void;
+    public itemSelect: (item: StringMatch.SearchResult | string | null, query: string) => void;
+    public resultsFormatter?: (item: StringMatch.SearchResult | string, string) => string;
+    public matcherOptions?: StringMatch.StringMatcherOptions;
+    public label?: string;
+    public priority?: number;
 
     constructor(name, languageIds, done, search, match, itemFocus, itemSelect, resultsFormatter, matcherOptions, label) {
         this.name = name;
@@ -188,7 +216,7 @@ class QuickOpenPlugin {
  * If itemFocus() makes changes to the current document or cursor/scroll position and then the user
  * cancels Quick Open (via Esc), those changes are automatically reverted.
  */
-export function addQuickOpenPlugin(pluginDef) {
+export function addQuickOpenPlugin(pluginDef: PluginDef): void {
     const quickOpenProvider = new QuickOpenPlugin(
         pluginDef.name,
         pluginDef.languageIds,
@@ -207,7 +235,7 @@ export function addQuickOpenPlugin(pluginDef) {
     _registerQuickOpenProvider(quickOpenProvider, providerLanguageIds, providerPriority);
 }
 
-function _filenameFromPath(path, includeExtension) {
+function _filenameFromPath(path: string, includeExtension: boolean): string {
     let end;
     if (includeExtension) {
         end = path.length;
@@ -230,26 +258,29 @@ function _filenameFromPath(path, includeExtension) {
  *      string and local indicating if the cursor position should be applied to the current file.
  *      Or null if the query is invalid
  */
-function extractCursorPos(query) {
+function extractCursorPos(query: string): CursorPos | null {
     const regInfo = query.match(CURSOR_POS_EXP);
 
     if (query.length <= 1 || !regInfo ||
-            (regInfo[1] && isNaN(regInfo[1])) ||
-            (regInfo[3] && isNaN(regInfo[3]))) {
+            (regInfo[1] && isNaN(regInfo[1] as any)) ||
+            (regInfo[3] && isNaN(regInfo[3] as any))) {
 
         return null;
     }
 
+    const foo = regInfo[1];
+    console.log(foo);
+
     return {
         query:  regInfo[0],
         local:  query[0] === ":",
-        line:   regInfo[1] - 1 || 0,
-        ch:     regInfo[3] - 1 || 0
+        line:   (regInfo[1] as any) - 1 || 0,
+        ch:     (regInfo[3] as any) - 1 || 0
     };
 }
 
 
-function _doSearchFileList(query, matcher) {
+function _doSearchFileList(query: string, matcher: StringMatch.StringMatcher): StringMatch.SearchResult {
     // Strip off line/col number suffix so it doesn't interfere with filename search
     const cursorPos = extractCursorPos(query);
     if (cursorPos && !cursorPos.local && cursorPos.query !== "") {
@@ -261,7 +292,7 @@ function _doSearchFileList(query, matcher) {
     const filteredList = $.map(fileList, function (fileInfo) {
         // Is it a match at all?
         // match query against the full path (with gaps between query characters allowed)
-        const searchResult = matcher.match(ProjectManager.makeProjectRelativeIfPossible(fileInfo.fullPath), query);
+        const searchResult: QuickOpenSearchResult | undefined = matcher.match(ProjectManager.makeProjectRelativeIfPossible(fileInfo.fullPath), query);
 
         if (searchResult) {
             searchResult.label = fileInfo.name;
@@ -279,10 +310,10 @@ function _doSearchFileList(query, matcher) {
     return filteredList;
 }
 
-function searchFileList(query, matcher) {
+function searchFileList(query: string, matcher: StringMatch.StringMatcher): JQueryPromise<StringMatch.SearchResult> | StringMatch.SearchResult {
     // The file index may still be loading asynchronously - if so, can't return a result yet
     if (!fileList) {
-        const asyncResult = $.Deferred();
+        const asyncResult = $.Deferred<StringMatch.SearchResult>();
         fileListPromise.done(function () {
             // Synchronously re-run the search call and resolve with its results
             asyncResult.resolve(_doSearchFileList(query, matcher));
@@ -302,11 +333,12 @@ function searchFileList(query, matcher) {
  * @param {?function(boolean, string):string} rangeFilter
  * @return {!string} bolded, HTML-escaped result
  */
-export function highlightMatch(item, matchClass?, rangeFilter?) {
-    const label = item.label || item;
+export function highlightMatch(item: StringMatch.SearchResult | string, matchClass?: string | null, rangeFilter?: (includesLastSegment: boolean, text: string) => string): string {
+    const searchResult = item as StringMatch.SearchResult;
+    const label = (searchResult.label || item) as string;
     matchClass = matchClass || "quicksearch-namematch";
 
-    let stringRanges = item.stringRanges;
+    let stringRanges = searchResult.stringRanges;
     if (!stringRanges) {
         // If result didn't come from stringMatch(), highlight nothing
         stringRanges = [{
@@ -317,12 +349,12 @@ export function highlightMatch(item, matchClass?, rangeFilter?) {
     }
 
     let displayName = "";
-    if (item.scoreDebug) {
-        const sd = item.scoreDebug;
+    if (searchResult.scoreDebug) {
+        const sd = searchResult.scoreDebug;
         displayName += '<span title="sp:' + sd.special + ", m:" + sd.match +
             ", ls:" + sd.lastSegment + ", b:" + sd.beginning +
             ", ld:" + sd.lengthDeduction + ", c:" + sd.consecutive + ", nsos: " +
-            sd.notStartingOnSpecial + ", upper: " + sd.upper + '">(' + item.matchGoodness + ") </span>";
+            sd.notStartingOnSpecial + ", upper: " + sd.upper + '">(' + searchResult.matchGoodness + ") </span>";
     }
 
     // Put the path pieces together, highlighting the matched parts
@@ -331,7 +363,7 @@ export function highlightMatch(item, matchClass?, rangeFilter?) {
             displayName += "<span class='" + matchClass + "'>";
         }
 
-        const rangeText = rangeFilter ? rangeFilter(range.includesLastSegment, range.text) : range.text;
+        const rangeText = rangeFilter ? rangeFilter(range.includesLastSegment!, range.text) : range.text;
         displayName += StringUtils.breakableUrl(rangeText);
 
         if (range.matched) {
@@ -341,16 +373,16 @@ export function highlightMatch(item, matchClass?, rangeFilter?) {
     return displayName;
 }
 
-function defaultResultsFormatter(item, query) {
+function defaultResultsFormatter(item: string, query: string): string {
     query = query.slice(query.indexOf("@") + 1, query.length);
 
     const displayName = highlightMatch(item);
     return "<li>" + displayName + "</li>";
 }
 
-function _filenameResultsFormatter(item, query) {
+function _filenameResultsFormatter(item: string, query: string): string {
     // For main label, we just want filename: drop most of the string
-    function fileNameFilter(includesLastSegment, rangeText) {
+    function fileNameFilter(includesLastSegment: boolean, rangeText: string): string {
         if (includesLastSegment) {
             const rightmostSlash = rangeText.lastIndexOf("/");
             return rangeText.substring(rightmostSlash + 1);  // safe even if rightmostSlash is -1
@@ -462,7 +494,7 @@ class QuickNavigateDialog {
      * that may have not matched anything in the list, but may have information
      * for carrying out an action (e.g. go to line).
      */
-    private _handleItemSelect(selectedItem, query) {
+    private _handleItemSelect(selectedItem: QuickOpenSearchResult | null, query: string): void {
         let doClose = true;
         const self = this;
 
@@ -509,7 +541,7 @@ class QuickNavigateDialog {
      * Opens the file specified by selected item if there is no current plug-in, otherwise defers handling
      * to the currentPlugin
      */
-    private _handleItemHighlight(selectedItem, query, explicit) {
+    private _handleItemHighlight(selectedItem: string, query: string, explicit: boolean): void {
         if (currentPlugin && currentPlugin.itemFocus) {
             currentPlugin.itemFocus(selectedItem, query, explicit);
         }
@@ -520,7 +552,7 @@ class QuickNavigateDialog {
      * existing close activity.
      * @return {$.Promise} Resolved when the search bar is entirely closed.
      */
-    public close() {
+    public close(): JQueryPromise<any> {
         if (!this.isOpen) {
             return this.closePromise;
         }
@@ -530,7 +562,7 @@ class QuickNavigateDialog {
         return this.closePromise;
     }
 
-    private _handleCloseBar(event, reason, modalBarClosePromise) {
+    private _handleCloseBar(event, reason: CloseReason, modalBarClosePromise: JQueryPromise<any>): void {
         console.assert(!this.closePromise);
         this.closePromise = modalBarClosePromise;
         this.isOpen = false;
@@ -567,7 +599,7 @@ class QuickNavigateDialog {
      * @return {$.Promise|Array.<*>|{error:?string}} The filtered list of results, an error object, or a Promise that
      *                                               yields one of those
      */
-    private _filterCallback(query) {
+    private _filterCallback(query: string): StringMatch.SearchResult | JQueryPromise<StringMatch.SearchResult> | Array<StringMatch.SearchResult> | JQueryPromise<Array<StringMatch.SearchResult>> | { error: string | null } {
         // Re-evaluate which plugin is active each time query string changes
         currentPlugin = null;
 
@@ -602,7 +634,7 @@ class QuickNavigateDialog {
                 // Look up the StringMatcher for this plugin.
                 let matcher = this._matchers[currentPlugin!.name];
                 if (!matcher) {
-                    matcher = new StringMatch.StringMatcher(plugin.matcherOptions);
+                    matcher = new StringMatch.StringMatcher(plugin.matcherOptions!);
                     this._matchers[currentPlugin!.name] = matcher;
                 }
                 this._updateDialogLabel(plugin, query);
@@ -622,7 +654,7 @@ class QuickNavigateDialog {
      * @param {Object} item The item to be displayed.
      * @return {string} The HTML to be displayed.
      */
-    private _resultsFormatterCallback(item, query) {
+    private _resultsFormatterCallback(item: string, query: string): string {
         let formatter;
 
         if (currentPlugin) {
@@ -642,7 +674,7 @@ class QuickNavigateDialog {
      *      "@" for go to definition, or ":" for go to line.
      * @param {string} initialString The query string to search for (without the prefix).
      */
-    public setSearchFieldValue(prefix, initialString) {
+    public setSearchFieldValue(prefix: string, initialString: string): void {
         prefix = prefix || "";
         initialString = initialString || "";
         initialString = prefix + initialString;
@@ -658,7 +690,7 @@ class QuickNavigateDialog {
      * @param {Object} plugin The current Quick Open plugin, or none if there is none.
      * @param {string} query The user's current query.
      */
-    private _updateDialogLabel(plugin, query) {
+    private _updateDialogLabel(plugin: PluginDef | null, query: string): void {
         let dialogLabel = "";
         if (plugin && plugin.label) {
             dialogLabel = plugin.label;
@@ -687,7 +719,7 @@ class QuickNavigateDialog {
     /**
      * Shows the search dialog and initializes the auto suggestion list with filenames from the current project
      */
-    public showDialog(prefix, initialString) {
+    public showDialog(prefix: string, initialString: string): void {
         if (this.isOpen) {
             return;
         }
@@ -724,16 +756,16 @@ class QuickNavigateDialog {
         });
 
         // Return files that are non-binary, or binary files that have a custom viewer
-        function _filter(file) {
+        function _filter(file: File): boolean {
             return !LanguageManager.getLanguageForPath(file.fullPath).isBinary() ||
-                MainViewFactory.findSuitableFactoryForPath(file.fullPath);
+                !!MainViewFactory.findSuitableFactoryForPath(file.fullPath);
         }
 
         // Start prefetching the file list, which will be needed the first time the user enters an un-prefixed query. If file index
         // caches are out of date, this list might take some time to asynchronously build, forcing searchFileList() to wait. In the
         // meantime we show our old, stale fileList (unless the user has switched projects and we cleared it).
         fileListPromise = ProjectManager.getAllFiles(_filter, true)
-            .done(function (this: QuickNavigateDialog, files) {
+            .done(function (this: QuickNavigateDialog, files: Array<File>): void {
                 fileList = files;
                 fileListPromise = null;
                 this._filenameMatcher.reset();
@@ -746,7 +778,7 @@ class QuickNavigateDialog {
 }
 
 
-function getCurrentEditorSelectedText() {
+function getCurrentEditorSelectedText(): string {
     const currentEditor = EditorManager.getActiveEditor();
     return (currentEditor && currentEditor.getSelectedText()) || "";
 }
@@ -757,8 +789,8 @@ function getCurrentEditorSelectedText() {
  * @param {?string} prefix
  * @param {?string} initialString
  */
-export function beginSearch(prefix, initialString) {
-    function createDialog() {
+export function beginSearch(prefix: string, initialString: string): void {
+    function createDialog(): void {
         _curDialog = new QuickNavigateDialog();
         _curDialog.showDialog(prefix, initialString);
     }
@@ -779,11 +811,11 @@ export function beginSearch(prefix, initialString) {
     }
 }
 
-function doFileSearch() {
+function doFileSearch(): void {
     beginSearch("", getCurrentEditorSelectedText());
 }
 
-function doGotoLine() {
+function doGotoLine(): void {
     // TODO: Brackets doesn't support disabled menu items right now, when it does goto line and
     // goto definition should be disabled when there is not a current document
     if (DocumentManager.getCurrentDocument()) {
@@ -791,19 +823,19 @@ function doGotoLine() {
     }
 }
 
-function doDefinitionSearch() {
+function doDefinitionSearch(): void {
     if (DocumentManager.getCurrentDocument()) {
         beginSearch("@", getCurrentEditorSelectedText());
     }
 }
 
-function doDefinitionSearchInProject() {
+function doDefinitionSearchInProject(): void {
     if (DocumentManager.getCurrentDocument()) {
         beginSearch("#", getCurrentEditorSelectedText());
     }
 }
 
-function _canHandleTrigger(trigger, plugins) {
+function _canHandleTrigger(trigger: string, plugins: Array<Provider>): boolean {
     let retval = false;
 
     plugins.some(function (plugin, index) {
@@ -819,7 +851,7 @@ function _canHandleTrigger(trigger, plugins) {
     return retval;
 }
 
-function _setMenuItemStateForLanguage(languageId) {
+function _setMenuItemStateForLanguage(languageId: string): void {
     const plugins = _providerRegistrationHandler.getProvidersForLanguageId(languageId);
     if (_canHandleTrigger("@", plugins)) {
         CommandManager.get(Commands.NAVIGATE_GOTO_DEFINITION).setEnabled(true);

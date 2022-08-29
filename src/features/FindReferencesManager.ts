@@ -59,7 +59,7 @@ function _getReferences(provider, hostEditor, pos) {
             searchModel.numFiles = rcvdObj.numFiles;
             searchModel.numMatches = rcvdObj.numMatches;
             searchModel.allResultsAvailable = true;
-            searchModel.setQueryInfo({query: rcvdObj.queryInfo, caseSensitive: true, isRegExp: false});
+            searchModel.setQueryInfo({query: rcvdObj.queryInfo, isCaseSensitive: true, isRegexp: false, isWholeWord: false});
             result.resolve();
         }).fail(function () {
             result.reject();
@@ -79,8 +79,9 @@ function _openReferencesPanel() {
     const enabledProviders = _providerRegistrationHandler.getProvidersForLanguageId(language.getId());
 
     enabledProviders.some(function (item, index) {
-        if (item.provider.hasReferences(editor)) {
-            referencesProvider = item.provider;
+        const provider: any = item.provider;
+        if (provider.hasReferences && provider.hasReferences(editor)) {
+            referencesProvider = provider;
             return true;
         }
 
@@ -143,8 +144,9 @@ export function setMenuItemStateForLanguage(languageId) {
     let referencesProvider;
 
     enabledProviders.some(function (item, index) {
-        if (item.provider.hasReferences()) {
-            referencesProvider = item.provider;
+        const provider: any = item.provider;
+        if (provider.hasReferences && provider.hasReferences()) {
+            referencesProvider = provider;
             return true;
         }
 

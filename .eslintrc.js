@@ -140,6 +140,7 @@ module.exports = {
                 "src/file/**",
                 "src/help/**",
                 "src/nls/**",
+                "src/search/**/*.ts",
             ],
             "rules": {
                 "@typescript-eslint/explicit-function-return-type": "error"

@@ -26,6 +26,8 @@
  * Panel showing search results for a Find/Replace in Files operation.
  */
 
+import type { ResultInfo, SearchModel } from "search/SearchModel";
+
 import * as CommandManager from "command/CommandManager";
 import * as EventDispatcher from "utils/EventDispatcher";
 import * as Commands from "command/Commands";
@@ -46,12 +48,26 @@ import * as searchPanelTemplate from "text!htmlContent/search-panel.html";
 import * as searchResultsTemplate from "text!htmlContent/search-results.html";
 import * as searchSummaryTemplate from "text!htmlContent/search-summary.html";
 
+interface Item {
+    fileIndex: number;
+    itemIndex: number;
+    matchIndex: number;
+    line: number;
+    pre: string;
+    highlight: string;
+    post: string;
+    start: number;
+    end: number;
+    isChecked: boolean;
+    isCollapsed: boolean;
+}
+
 interface SearchItem {
     fileIndex: number;
     filename: string;
     fullPath: string;
     isChecked: boolean;
-    items: Array<any>;
+    items: Array<Item>;
     // TODO: verify types, collapsed is correct here?
     collapsed?: boolean;
     isCollapsed: boolean;
@@ -74,7 +90,7 @@ const UPDATE_TIMEOUT   = 400;
 export class SearchResultsView extends EventDispatcher.EventDispatcherBase {
 
     /** @type {SearchModel} The search results model we're viewing. */
-    private _model;
+    private _model: SearchModel;
 
     /**
      * Array with content used in the Results Panel
@@ -137,7 +153,7 @@ export class SearchResultsView extends EventDispatcher.EventDispatcherBase {
      * @private
      * Handles when model changes. Updates the view, buffering changes if necessary so as not to churn too much.
      */
-    private _handleModelChange(quickChange) {
+    private _handleModelChange(quickChange: boolean): void {
         // If this is a replace, to avoid complications with updating, just close ourselves if we hear about
         // a results model change after we've already shown the results initially.
         // TODO: notify user, re-do search in file
@@ -164,7 +180,7 @@ export class SearchResultsView extends EventDispatcher.EventDispatcherBase {
      * @private
      * Adds the listeners for close, prev, next, first, last and check all
      */
-    private _addPanelListeners() {
+    private _addPanelListeners(): void {
         const self = this;
         this._panel.$panel
             .off(".searchResults")  // Remove the old events
@@ -214,7 +230,7 @@ export class SearchResultsView extends EventDispatcher.EventDispatcherBase {
                     $row.addClass("selected");
                     self._$selectedRow = $row;
 
-                    let searchItem = self._searchList[$row.data("file-index")];
+                    let searchItem: SearchItem | ResultInfo = self._searchList[$row.data("file-index")];
                     let fullPath   = searchItem.fullPath;
 
                     // This is a file title row, expand/collapse on click
@@ -262,7 +278,7 @@ export class SearchResultsView extends EventDispatcher.EventDispatcherBase {
                 }
             });
 
-        function updateHeaderCheckbox($checkAll) {
+        function updateHeaderCheckbox($checkAll: JQuery): void {
             const $allFileRows     = self._panel.$panel.find(".file-section");
             const $checkedFileRows = $allFileRows.filter(function (this: any, index) {
                 return $(this).find(".check-one-file").is(":checked");
@@ -272,7 +288,7 @@ export class SearchResultsView extends EventDispatcher.EventDispatcherBase {
             }
         }
 
-        function updateFileAndHeaderCheckboxes($clickedRow, isChecked) {
+        function updateFileAndHeaderCheckboxes($clickedRow: JQuery, isChecked: boolean): void {
             const $firstMatch = ($clickedRow.data("item-index") === 0)
                 ? $clickedRow
                 : $clickedRow.prevUntil(".file-section").last();
@@ -359,7 +375,7 @@ export class SearchResultsView extends EventDispatcher.EventDispatcherBase {
      * @private
      * Shows the Results Summary
      */
-    private _showSummary() {
+    private _showSummary(): void {
         const count     = this._model.countFilesMatches();
         const lastIndex = this._getLastIndex(count.matches);
         let typeStr = (count.matches > 1) ? Strings.FIND_IN_FILES_MATCHES : Strings.FIND_IN_FILES_MATCH;
@@ -403,8 +419,8 @@ export class SearchResultsView extends EventDispatcher.EventDispatcherBase {
      * @private
      * Shows the current set of results.
      */
-    private _render() {
-        let searchItems;
+    private _render(): void {
+        let searchItems: Array<Item>;
         let match;
         let i;
         let item;
@@ -524,7 +540,7 @@ export class SearchResultsView extends EventDispatcher.EventDispatcherBase {
     /**
      * Updates the results view after a model change, preserving scroll position and selection.
      */
-    private _updateResults() {
+    private _updateResults(): void {
         // In general this shouldn't get called if the panel is closed, but in case some
         // asynchronous process kicks this (e.g. a debounced model change), we double-check.
         if (this._panel.isVisible()) {
@@ -552,14 +568,14 @@ export class SearchResultsView extends EventDispatcher.EventDispatcherBase {
      * @param {number} numMatches
      * @return {number}
      */
-    private _getLastIndex(numMatches) {
+    private _getLastIndex(numMatches: number): number {
         return Math.min(this._currentStart + RESULTS_PER_PAGE, numMatches);
     }
 
     /**
      * Shows the next page of the resultrs view if possible
      */
-    public showNextPage() {
+    public showNextPage(): void {
         this._currentStart += RESULTS_PER_PAGE;
         this._render();
     }
@@ -567,7 +583,7 @@ export class SearchResultsView extends EventDispatcher.EventDispatcherBase {
     /**
      * Shows the last page of the results view.
      */
-    public showLastPage() {
+    public showLastPage(): void {
         this._currentStart = this._getLastCurrentStart();
         this._render();
     }
@@ -578,15 +594,15 @@ export class SearchResultsView extends EventDispatcher.EventDispatcherBase {
      * @param {number=} numMatches
      * @return {number}
      */
-    private _getLastCurrentStart(numMatches?) {
+    private _getLastCurrentStart(numMatches?: number): number {
         numMatches = numMatches || this._model.countFilesMatches().matches;
-        return Math.floor((numMatches - 1) / RESULTS_PER_PAGE) * RESULTS_PER_PAGE;
+        return Math.floor((numMatches! - 1) / RESULTS_PER_PAGE) * RESULTS_PER_PAGE;
     }
 
     /**
      * Opens the results panel and displays the current set of results from the model.
      */
-    public open() {
+    public open(): void {
         // Clear out any paging/selection state.
         this._currentStart  = 0;
         this._$selectedRow  = null;
@@ -606,7 +622,7 @@ export class SearchResultsView extends EventDispatcher.EventDispatcherBase {
     /**
      * Hides the Search Results Panel and unregisters listeners.
      */
-    public close() {
+    public close(): void {
         if (this._panel && this._panel.isVisible()) {
             this._$table.empty();
             this._panel.hide();

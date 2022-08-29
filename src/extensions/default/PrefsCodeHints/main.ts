@@ -25,6 +25,7 @@
 /// <amd-dependency path="module" name="module"/>
 
 import type { CodeHintProvider } from "editor/CodeHintManager";
+import type { SearchResult } from "utils/StringMatch";
 
 // Load dependencies.
 const AppInit             = brackets.getModule("utils/AppInit");
@@ -51,6 +52,11 @@ interface Option {
     description: null;
     values: null;
     valueType?: string;
+}
+
+interface PrefsSearchResult extends SearchResult {
+    type?: string | null;
+    description?: string | null;
 }
 
 // Stores data of preferences used by Brackets and its core/thirdparty extensions.
@@ -258,13 +264,15 @@ class PrefsCodeHints implements CodeHintProvider {
 
                 hints = $.map(Object.keys(keys), function (key: string) {
                     if (ctxInfo.exclusionList.indexOf(key) === -1) {
-                        const match = StringMatch.stringMatch(key, query, stringMatcherOptions);
+                        const match: PrefsSearchResult = StringMatch.stringMatch(key, query, stringMatcherOptions);
                         if (match) {
                             match.type = keys[key].type || option.type;
                             match.description = keys[key].description || null;
                             return match;
                         }
                     }
+
+                    return undefined;
                 });
             } else if (ctxInfo.tokenType === JSONUtils.TOKEN_VALUE) {
                 // Provide hints for values.
@@ -305,12 +313,14 @@ class PrefsCodeHints implements CodeHintProvider {
 
                 // filter through the values.
                 hints = $.map(values, function (value) {
-                    const match = StringMatch.stringMatch(value, query, stringMatcherOptions);
+                    const match: PrefsSearchResult = StringMatch.stringMatch(value, query, stringMatcherOptions);
                     if (match) {
                         match.type = option.valueType || option.type;
                         match.description = option.description || null;
                         return match;
                     }
+
+                    return undefined;
                 });
             }
 

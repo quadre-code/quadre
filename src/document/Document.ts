@@ -60,7 +60,7 @@ interface SelectionAdjusted {
     reversed: boolean;
 }
 
-interface EditorChange extends Omit<CodeMirror.EditorChange, "from" | "to"> {
+export interface EditorChange extends Omit<CodeMirror.EditorChange, "from" | "to"> {
     from?: CodeMirror.Position;
     to?: CodeMirror.Position;
 }
@@ -152,7 +152,7 @@ export class Document extends EventDispatcher.EventDispatcherBase {
      * it means the file was modified by an app other than Brackets.
      * @type {!Date}
      */
-    public diskTimestamp = null;
+    public diskTimestamp: Date | null = null;
 
     /**
      * The timestamp of the document at the point where the user last said to keep changes that conflict
