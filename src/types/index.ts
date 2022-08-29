@@ -6,6 +6,7 @@ import * as KeyBindingManager from "command/KeyBindingManager";
 import * as Menus from "command/Menus";
 import * as DocumentManager from "document/DocumentManager";
 import * as CodeHintManager from "editor/CodeHintManager";
+import * as Editor from "editor/Editor";
 import * as EditorManager from "editor/EditorManager";
 import * as InlineWidget from "editor/InlineWidget";
 import * as MultiRangeInlineEditor from "editor/MultiRangeInlineEditor";
@@ -48,6 +49,7 @@ import * as StringMatch from "utils/StringMatch";
 import * as StringUtils from "utils/StringUtils";
 import * as TokenUtils from "utils/TokenUtils";
 import * as ViewUtils from "utils/ViewUtils";
+import * as ViewStateManager from "view/ViewStateManager";
 import * as DefaultDialogs from "widgets/DefaultDialogs";
 import * as Dialogs from "widgets/Dialogs";
 import * as InlineMenu from "widgets/InlineMenu";
@@ -56,7 +58,7 @@ import * as Strings from "strings";
 import * as Acorn from "thirdparty/acorn/acorn";
 import * as AcornLoose from "thirdparty/acorn/acorn_loose";
 import * as ASTWalker from "thirdparty/acorn/walk";
-import * as CodeMirror from "thirdparty/CodeMirror/lib/codemirror";
+import * as CodeMirror from "codemirror";
 import * as _ from "lodash";
 import * as Mustache from "thirdparty/mustache/mustache";
 import * as PathUtils from "thirdparty/path-utils/path-utils";
@@ -85,8 +87,9 @@ declare global {
             : T extends "command/Commands" ? typeof Commands
             : T extends "command/KeyBindingManager" ? typeof KeyBindingManager
             : T extends "command/Menus" ? typeof Menus
-            : T extends "document/DocumentManager" ? typeof DocumentManager
+            : T extends "document/DocumentManager" ? typeof DocumentManager & EventDispatcher.DispatcherEvents
             : T extends "editor/CodeHintManager" ? typeof CodeHintManager
+            : T extends "editor/Editor" ? typeof Editor
             : T extends "editor/EditorManager" ? typeof EditorManager & EventDispatcher.DispatcherEvents
             : T extends "editor/InlineWidget" ? typeof InlineWidget
             : T extends "editor/MultiRangeInlineEditor" ? typeof MultiRangeInlineEditor
@@ -131,6 +134,7 @@ declare global {
             : T extends "utils/StringUtils" ? typeof StringUtils
             : T extends "utils/TokenUtils" ? typeof TokenUtils
             : T extends "utils/ViewUtils" ? typeof ViewUtils
+            : T extends "view/ViewStateManager" ? typeof ViewStateManager
             : T extends "widgets/DefaultDialogs" ? typeof DefaultDialogs
             : T extends "widgets/Dialogs" ? typeof Dialogs
             : T extends "widgets/InlineMenu" ? typeof InlineMenu
