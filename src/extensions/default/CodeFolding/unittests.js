@@ -111,6 +111,14 @@ define(function (require, exports, module) {
          * Closes the test window
          */
         function tearDown() {
+            testWindow = null;
+            EditorManager = null;
+            DocumentManager = null;
+            PreferencesManager = null;
+            CommandManager = null;
+
+            prefs = null;
+
             SpecRunnerUtils.closeTestWindow();
         }
 
@@ -254,21 +262,29 @@ define(function (require, exports, module) {
             }, "Fold markers now visible in gutter", 500);
         }
 
-        beforeEach(function () {
-            setup();
-        });
-
-        afterEach(function () {
-            testWindow.closeAllFiles();
-            tearDown();
-        });
-
         Object.keys(testFilesSpec).forEach(function (file) {
             var testFilePath = testFilesSpec[file].filePath;
             var foldableLines = testFilesSpec[file].foldableLines;
             var testFileSpec = testFilesSpec[file];
             describe(file + " - Editor/Gutter", function () {
+                beforeFirst(function () {
+                    setup();
+                });
+
+                afterLast(function () {
+                    tearDown();
+                });
+
                 beforeEach(function () {
+                    // default preference values
+                    prefs.set("enabled", true);
+                    prefs.set("minFoldSize", 2);
+                    prefs.set("saveFoldStates", true);
+                    prefs.set("alwaysUseIndentFold", false);
+                    prefs.set("hideUntilMouseover", false);
+                    prefs.set("maxFoldLevel", 2);
+                    prefs.set("makeSelectionsFoldable", true);
+
                     runs(function () {
                         openTestFile(testFilePath);
                     });
