@@ -29,6 +29,7 @@
 /// <amd-dependency path="module" name="module"/>
 
 import type { MenuItem } from "command/Menus";
+import type { Editor as TEditor } from "editor/Editor";
 
 const CodeMirror              = brackets.getModule("thirdparty/CodeMirror/lib/codemirror");
 const Strings                 = brackets.getModule("strings");
@@ -72,9 +73,22 @@ interface SimpleRange {
 // Some methods are defined in foldhelpers folder.
 // TODO: we should try to use upstream code where possible.
 declare module "codemirror" {
-
     interface Editor {
         _lineFolds: Record<number, SimpleRange>;
+
+        foldCode: (line: number, options?: any) => void;
+        unfoldCode: (line: number, options: any) => void;
+        isFolded: (line: number) => boolean;
+
+        getValidFolds: (fold: Record<number, any>) => Record<number, any>;
+    }
+
+    interface EditorConfiguration {
+        foldGutter?: any;
+    }
+
+    interface LineHandle {
+        lineNo: () => number;
     }
 
     interface Fold {
@@ -121,14 +135,14 @@ let _isInitialized = false;
  * on selection folds is to check that they satisfy the minimum fold range.
  * @param {Editor} editor  the editor whose saved line folds should be restored
  */
-function restoreLineFolds(editor) {
+function restoreLineFolds(editor: TEditor): void {
     /**
      * Checks if the range from and to Pos is the same as the selection start and end Pos
      * @param   {Object}  range     {from, to} where from and to are CodeMirror.Pos objects
      * @param   {Object}  selection {start, end} where start and end are CodeMirror.Pos objects
      * @returns {Boolean} true if the range and selection span the same region and false otherwise
      */
-    function rangeEqualsSelection(range, selection) {
+    function rangeEqualsSelection(range: SimpleRange, selection: any): boolean {
         return range.from.line === selection.start.line && range.from.ch === selection.start.ch &&
             range.to.line === selection.end.line && range.to.ch === selection.end.ch;
     }
@@ -139,7 +153,7 @@ function restoreLineFolds(editor) {
      * @param   {Object}  viewState The current editor's ViewState object
      * @returns {Boolean} true if the range is found in the list of selections or false if not.
      */
-    function isInViewStateSelection(range, viewState) {
+    function isInViewStateSelection(range: SimpleRange, viewState: any): boolean {
         if (!viewState || !viewState.selections) {
             return false;
         }
@@ -191,7 +205,7 @@ function restoreLineFolds(editor) {
  * Saves the line folds in the editor using the preference storage
  * @param {Editor} editor the editor whose line folds should be saved
  */
-function saveLineFolds(editor) {
+function saveLineFolds(editor: TEditor): void {
     const saveFolds = prefs.getSetting("saveFoldStates");
     if (!editor || !saveFolds) {
         return;
@@ -214,7 +228,7 @@ function saveLineFolds(editor) {
  * @param {string} gutter the name of the gutter element clicked
  * @param {!KeyboardEvent} event the underlying dom event triggered for the gutter click
  */
-function onGutterClick(cm, line, gutter, event) {
+function onGutterClick(cm: CodeMirror.Editor, line: number, gutter: string, event: KeyboardEvent): void {
     const opts = cm.state.foldGutter.options;
     const pos = CodeMirror.Pos(line);
     if (gutter !== opts.gutter) { return; }
@@ -244,7 +258,7 @@ function onGutterClick(cm, line, gutter, event) {
  * Nearest is found by searching from the current line and moving up the document until an
  * opening code-folding region is found.
  */
-function collapseCurrent() {
+function collapseCurrent(): void {
     const editor = EditorManager.getFocusedEditor();
     if (!editor) {
         return;
@@ -263,7 +277,7 @@ function collapseCurrent() {
 /**
  * Expands the code region at the current cursor position.
  */
-function expandCurrent() {
+function expandCurrent(): void {
     const editor = EditorManager.getFocusedEditor();
     if (editor) {
         const cursor = editor.getCursorPos();
@@ -285,7 +299,7 @@ function expandCurrent() {
  *         }
  *     }
  */
-function collapseAll() {
+function collapseAll(): void {
     const editor = EditorManager.getFocusedEditor();
     if (editor) {
         const cm = editor._codeMirror;
@@ -296,7 +310,7 @@ function collapseAll() {
 /**
  * Expands all folded regions in the current document
  */
-function expandAll() {
+function expandAll(): void {
     const editor = EditorManager.getFocusedEditor();
     if (editor) {
         const cm = editor._codeMirror;
@@ -304,7 +318,7 @@ function expandAll() {
     }
 }
 
-function clearGutter(editor) {
+function clearGutter(editor: TEditor): void {
     const cm = editor._codeMirror;
     const BLANK_GUTTER_CLASS = "CodeMirror-foldgutter-blank";
     editor.clearGutter(GUTTER_NAME);
@@ -322,7 +336,7 @@ function clearGutter(editor) {
  * Renders and sets up event listeners the code-folding gutter.
  * @param {Editor} editor the editor on which to initialise the fold gutter
  */
-function setupGutterEventListeners(editor) {
+function setupGutterEventListeners(editor: TEditor): void {
     const cm = editor._codeMirror;
     $(editor.getRootElement()).addClass("folding-enabled");
     cm.setOption("foldGutter", {onGutterClick: onGutterClick});
@@ -348,7 +362,7 @@ function setupGutterEventListeners(editor) {
 /**
  * Remove gutter & revert collapsed sections in all currently open editors
  */
-function removeGutters() {
+function removeGutters(): void {
     Editor.forEveryEditor(function (editor) {
         CodeMirror.commands.unfoldAll(editor._codeMirror);
     });
@@ -366,7 +380,7 @@ function removeGutters() {
  * Add gutter and restore saved expand/collapse state.
  * @param {Editor} editor the editor instance where gutter should be added.
  */
-function enableFoldingInEditor(editor) {
+function enableFoldingInEditor(editor: TEditor): void {
     restoreLineFolds(editor);
     setupGutterEventListeners(editor);
     editor._codeMirror.refresh();
@@ -379,7 +393,7 @@ function enableFoldingInEditor(editor) {
  * @param {Editor} current the current editor
  * @param {Editor} previous the previous editor
  */
-function onActiveEditorChanged(event, current, previous) {
+function onActiveEditorChanged(event, current: TEditor, previous: TEditor): void {
     if (current && !current._codeMirror._lineFolds) {
         enableFoldingInEditor(current);
     }
@@ -391,15 +405,15 @@ function onActiveEditorChanged(event, current, previous) {
 /**
  * Saves the line folds in the current full editor before it is closed.
  */
-function saveBeforeClose() {
+function saveBeforeClose(): void {
     // We've already saved all other open editors when they go active->inactive
-    saveLineFolds(EditorManager.getActiveEditor());
+    saveLineFolds(EditorManager.getActiveEditor()!);
 }
 
 /**
  * Remove code-folding functionality
  */
-function deinit() {
+function deinit(): void {
     _isInitialized = false;
 
     KeyBindingManager.removeBinding(collapseKey);
@@ -426,7 +440,7 @@ function deinit() {
 /**
  * Enable code-folding functionality
  */
-function init() {
+function init(): void {
     _isInitialized = true;
 
     foldCode.init();
@@ -477,7 +491,7 @@ function init() {
 /**
  * Register change listener for the preferences file.
  */
-function watchPrefsForChanges() {
+function watchPrefsForChanges(): void {
     prefs.prefsObject.on("change", function (e, data) {
         if (data.ids.indexOf("enabled") > -1) {
             // Check if enabled state mismatches whether code-folding is actually initialized (can't assume

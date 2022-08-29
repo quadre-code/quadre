@@ -137,6 +137,7 @@ module.exports = {
             "files": [
                 "src/command/**",
                 "src/document/**",
+                "src/extensions/default/CodeFolding/**/*.ts",
                 "src/file/**",
                 "src/help/**",
                 "src/nls/**",
