@@ -24,6 +24,8 @@
 
 /// <amd-dependency path="module" name="module"/>
 
+import type { LanguageToolsPrefs } from "languageTools/LanguageTools";
+
 import NodeDomain = require("utils/NodeDomain");
 import * as FileUtils from "file/FileUtils";
 import * as EventDispatcher from "utils/EventDispatcher";
@@ -33,6 +35,11 @@ const ToolingInfo = JSON.parse(toolingInfoJson);
 
 interface PendingClient {
     load(): void;
+}
+
+interface LanguageClient {
+    name: string;
+    interface: BracketsToNodeInterface;
 }
 
 EventDispatcher.makeEventDispatcher(exports);
@@ -50,17 +57,17 @@ let clientInfoLoadedPromise: JQueryPromise<any> | null = null;
 // node side.
 let pendingClientsToBeLoaded: Array<PendingClient> | null = [];
 
-export function syncPrefsWithDomain(languageToolsPrefs) {
+export function syncPrefsWithDomain(languageToolsPrefs: LanguageToolsPrefs): void {
     if (clientInfoDomain) {
         clientInfoDomain.exec("syncPreferences", languageToolsPrefs);
     }
 }
 
-function _createNodeDomain(domainName, domainPath) {
+function _createNodeDomain(domainName: string, domainPath: string): NodeDomain {
     return new NodeDomain(domainName, domainPath);
 }
 
-function loadLanguageClientDomain(clientName, domainPath): JQueryDeferred<NodeDomain> {
+function loadLanguageClientDomain(clientName: string, domainPath: string): JQueryDeferred<NodeDomain> {
     // generate a random hash name for the domain, this is the client id
     const domainName = clientName;
     const result = $.Deferred<NodeDomain>();
@@ -84,16 +91,16 @@ function loadLanguageClientDomain(clientName, domainPath): JQueryDeferred<NodeDo
     return result;
 }
 
-function createNodeInterfaceForDomain(languageClientDomain) {
+function createNodeInterfaceForDomain(languageClientDomain: NodeDomain): BracketsToNodeInterface {
     const nodeInterface = new BracketsToNodeInterface(languageClientDomain);
 
     return nodeInterface;
 }
 
-function _clientLoader(clientName, clientFilePath, clientPromise) {
+function _clientLoader(clientName: string, clientFilePath: string, clientPromise: JQueryDeferred<LanguageClient>): void {
     loadLanguageClientDomain(clientName, clientFilePath)
         .then(function (languageClientDomain) {
-            const languageClientInterface = createNodeInterfaceForDomain(languageClientDomain);
+            const languageClientInterface = createNodeInterfaceForDomain(languageClientDomain!);
 
             clientPromise.resolve({
                 name: clientName,
@@ -102,8 +109,8 @@ function _clientLoader(clientName, clientFilePath, clientPromise) {
         }, clientPromise.reject);
 }
 
-export function initiateLanguageClient(clientName, clientFilePath) {
-    const result = $.Deferred<{name: string, interface: BracketsToNodeInterface}>();
+export function initiateLanguageClient(clientName: string, clientFilePath: string): JQueryDeferred<LanguageClient> {
+    const result = $.Deferred<LanguageClient>();
 
     // Only load clients after the LanguageClient Info has been initialized
     if (!clientInfoLoadedPromise || clientInfoLoadedPromise.state() === "pending") {
@@ -124,11 +131,11 @@ export function initiateLanguageClient(clientName, clientFilePath) {
  * in the node process server for succesfully loading and functioning of all language clients
  * since it is a direct dependency.
  */
-function sendLanguageClientInfo() {
+function sendLanguageClientInfo(): void {
     // Init node with Information required by Language Client
     clientInfoLoadedPromise = clientInfoDomain!.exec("initialize", _bracketsPath, ToolingInfo);
 
-    function logInitializationError() {
+    function logInitializationError(): void {
         console.error("Failed to Initialize LanguageClient Module Information.");
     }
 
@@ -158,7 +165,7 @@ function sendLanguageClientInfo() {
  * can only be successfully initiated once this domain has been successfully loaded and
  * the LanguageClient info initialized. Refer to sendLanguageClientInfo for more.
  */
-function initDomainAndHandleNodeCrash() {
+function initDomainAndHandleNodeCrash(): void {
     clientInfoDomain = new NodeDomain("LanguageClientInfo", _domainPath);
     // Initialize LanguageClientInfo once the domain has successfully loaded.
     clientInfoDomain.promise().done(function () {
