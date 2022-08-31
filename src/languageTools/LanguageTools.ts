@@ -32,8 +32,12 @@ import * as Strings from "strings";
 import { LanguageClientWrapper } from "languageTools/LanguageClientWrapper";
 import { DispatcherEvents } from "utils/EventDispatcher";
 
-const languageClients = new Map();
-let languageToolsPrefs = {
+export interface LanguageToolsPrefs {
+    showServerLogsInConsole: boolean;
+}
+
+const languageClients = new Map<string, LanguageClientWrapper>();
+let languageToolsPrefs: LanguageToolsPrefs = {
     showServerLogsInConsole: false
 };
 const BRACKETS_EVENTS_NAMES = {
@@ -56,11 +60,11 @@ PreferencesManager.on("change", "languageTools", function () {
     ClientLoader.syncPrefsWithDomain(languageToolsPrefs);
 });
 
-function registerLanguageClient(clientName, languageClient) {
+function registerLanguageClient(clientName: string, languageClient: LanguageClientWrapper): void {
     languageClients.set(clientName, languageClient);
 }
 
-function _withNamespace(event) {
+function _withNamespace(event: string): string {
     return event.split(" ")
         .filter(function (value) {
             return !!value;
@@ -71,15 +75,14 @@ function _withNamespace(event) {
         .join(" ");
 }
 
-function _eventHandler() {
-    const eventArgs = arguments;
+function _eventHandler(...eventArgs: Array<any>): void {
     // Broadcast event to all clients
     languageClients.forEach(function (client) {
         client.triggerEvent.apply(client, eventArgs);
     });
 }
 
-function _attachEventHandlers() {
+function _attachEventHandlers(): void {
     // Attach standard listeners
     (EditorManager as unknown as DispatcherEvents).on(_withNamespace(BRACKETS_EVENTS_NAMES.EDITOR_CHANGE_EVENT), _eventHandler); // (event, current, previous)
     (ProjectManager as unknown as DispatcherEvents).on(_withNamespace(BRACKETS_EVENTS_NAMES.PROJECT_OPEN_EVENT), _eventHandler); // (event, directory)
@@ -92,12 +95,12 @@ function _attachEventHandlers() {
 
 _attachEventHandlers();
 
-export function listenToCustomEvent(eventModule, eventName) {
+export function listenToCustomEvent(eventModule: any, eventName: string): void {
     eventModule.on(_withNamespace(eventName), _eventHandler);
 }
 
-export function initiateToolingService(clientName, clientFilePath, languages) {
-    const result = $.Deferred();
+export function initiateToolingService(clientName: string, clientFilePath: string, languages: Array<string>): JQueryDeferred<LanguageClientWrapper> {
+    const result = $.Deferred<LanguageClientWrapper>();
 
     ClientLoader.initiateLanguageClient(clientName, clientFilePath)
         .done(function (languageClientInfo) {

@@ -183,10 +183,10 @@ export class EventPropagationProvider {
 }
 
 function handleProjectFoldersRequest(event) {
-    const projectRoot = ProjectManager.getProjectRoot();
-    let workspaceFolders = [projectRoot];
+    const projectRoot = ProjectManager.getProjectRoot()!.fullPath;
+    const paths = [projectRoot];
 
-    workspaceFolders = PathConverters.convertToWorkspaceFolders(workspaceFolders);
+    const workspaceFolders = PathConverters.convertToWorkspaceFolders(paths);
 
     return $.Deferred().resolve(workspaceFolders);
 }

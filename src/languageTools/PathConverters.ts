@@ -25,7 +25,12 @@
 import * as PathUtils from "thirdparty/path-utils/path-utils";
 import * as FileUtils from "file/FileUtils";
 
-export function uriToPath(uri): string {
+export interface WorkspaceFolder {
+    uri: string;
+    name: string;
+}
+
+export function uriToPath(uri: string): string {
     const url = PathUtils.parseUrl(uri);
     if (url.protocol !== "file:" || url.pathname === undefined) {
         return uri;
@@ -41,7 +46,7 @@ export function uriToPath(uri): string {
     return filePath;
 }
 
-export function pathToUri(filePath): string {
+export function pathToUri(filePath: string): string {
     let newPath = convertWinToPosixPath(filePath);
     if (newPath[0] !== "/") {
         newPath = "/" + newPath;
@@ -49,7 +54,7 @@ export function pathToUri(filePath): string {
     return encodeURI("file://" + newPath).replace(/[?#]/g, encodeURIComponent);
 }
 
-export function convertToWorkspaceFolders(paths) {
+export function convertToWorkspaceFolders(paths: Array<string>): Array<WorkspaceFolder> {
     const workspaceFolders = paths.map(function (folderPath) {
         const uri = pathToUri(folderPath);
         const name = FileUtils.getBaseName(folderPath);
@@ -63,10 +68,10 @@ export function convertToWorkspaceFolders(paths) {
     return workspaceFolders;
 }
 
-export function convertPosixToWinPath(path): string {
+export function convertPosixToWinPath(path: string): string {
     return path.replace(/\//g, "\\");
 }
 
-export function convertWinToPosixPath(path) {
+export function convertWinToPosixPath(path: string): string {
     return path.replace(/\\/g, "/");
 }
