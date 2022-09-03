@@ -138,6 +138,7 @@ module.exports = {
                 "src/command/**",
                 "src/document/**",
                 "src/extensions/default/CodeFolding/**/*.ts",
+                "src/extensions/default/TypeScriptTooling/**/*.ts",
                 "src/file/**",
                 "src/help/**",
                 "src/languageTools/ClientLoader.ts",

@@ -32,7 +32,7 @@ define(function (require, exports, module) {
         StringMatch     = brackets.getModule("utils/StringMatch");
 
     var extensionRequire,
-        phpToolingExtension,
+        tsToolingExtension,
         testWindow,
         $,
         PreferencesManager,
@@ -47,7 +47,8 @@ define(function (require, exports, module) {
         testFile2 =  "test2.php",
         testFile4 =  "test4.php";
 
-    describe("PhpTooling", function () {
+    // TODO: update tests to actually test TypeScript and not PHP.
+    xdescribe("TypeScriptTooling", function () {
 
         beforeFirst(function () {
 
@@ -56,13 +57,13 @@ define(function (require, exports, module) {
                 testWindow = w;
                 $ = testWindow.$;
                 var brackets = testWindow.brackets;
-                extensionRequire = brackets.test.ExtensionLoader.getRequireContextForExtension("PhpTooling");
-                phpToolingExtension = extensionRequire("main");
+                extensionRequire = brackets.test.ExtensionLoader.getRequireContextForExtension("TypeScriptTooling");
+                tsToolingExtension = extensionRequire("main");
             });
         });
 
         afterLast(function () {
-            waitsForDone(phpToolingExtension.getClient().stop(), "stoping php server");
+            waitsForDone(tsToolingExtension.getClient().stop(), "stoping php server");
             testEditor       = null;
             testWindow       = null;
             // eslint-disable-next-line no-global-assign
@@ -214,7 +215,7 @@ define(function (require, exports, module) {
          *      present in the hint response
          */
         function expecthintsPresent(expectedHints) {
-            var hintObj = (new CodeHintsProvider.CodeHintsProvider(phpToolingExtension.getClient())).getHints(null);
+            var hintObj = (new CodeHintsProvider.CodeHintsProvider(tsToolingExtension.getClient())).getHints(null);
             _waitForHints(hintObj, function (hintList) {
                 expect(hintList).toBeTruthy();
                 expectedHints.forEach(function (expectedHint) {
@@ -288,7 +289,7 @@ define(function (require, exports, module) {
             var request,
                 complete = false;
             runs(function () {
-                request = (new DefaultProviders.ParameterHintsProvider(phpToolingExtension.getClient()))
+                request = (new DefaultProviders.ParameterHintsProvider(tsToolingExtension.getClient()))
                     .getParameterHints();
                 request.done(function (status) {
                     complete = true;
@@ -340,7 +341,7 @@ define(function (require, exports, module) {
 
             runs(function () {
                 matcher = new StringMatch.StringMatcher();
-                request = new Provider(phpToolingExtension.getClient()).search(query, matcher);
+                request = new Provider(tsToolingExtension.getClient()).search(query, matcher);
                 request.done(function (status) {
                     requestStatus = status;
                 });
@@ -388,7 +389,7 @@ define(function (require, exports, module) {
          *  editor is expected to stay in the same file, then file may be omitted.
          */
         function editorJumped(expectedLocation) {
-            var jumpPromise = (new DefaultProviders.JumpToDefProvider(phpToolingExtension.getClient())).doJumpToDef();
+            var jumpPromise = (new DefaultProviders.JumpToDefProvider(tsToolingExtension.getClient())).doJumpToDef();
 
             _waitForJump(jumpPromise, function (newCursor) {
                 expect(newCursor.line).toBe(expectedLocation.line);
@@ -406,7 +407,7 @@ define(function (require, exports, module) {
                 results = null,
                 complete = false;
             runs(function () {
-                refPromise = (new DefaultProviders.ReferencesProvider(phpToolingExtension.getClient())).getReferences();
+                refPromise = (new DefaultProviders.ReferencesProvider(tsToolingExtension.getClient())).getReferences();
                 refPromise.done(function (resp) {
                     complete = true;
                     results = resp;
@@ -460,10 +461,10 @@ define(function (require, exports, module) {
             return errorPopUpPresent;
         }
 
-        it("phpTooling Exiension should be loaded Successfully", function () {
+        it("TypeScriptTooling Extension should be loaded Successfully", function () {
             waitForMilliSeconds(5000);
             runs(function () {
-                expect(phpToolingExtension).not.toBeNull();
+                expect(tsToolingExtension).not.toBeNull();
             });
         });
 
@@ -478,8 +479,8 @@ define(function (require, exports, module) {
             runs(function () {
                 checkErrorPopUp();
                 checkPopUpString(
-                    Strings.PHP_SERVER_ERROR_TITLE,
-                    StringUtils.format(Strings.PHP_UNSUPPORTED_VERSION, "5.6.30"));
+                    Strings.TYPESCRIPT_SERVER_ERROR_TITLE,
+                    StringUtils.format(Strings.TYPESCRIPT_UNSUPPORTED_VERSION, "5.6.30"));
                 checkPopUpButton("CANCEL");
             });
         });
@@ -489,7 +490,7 @@ define(function (require, exports, module) {
             waitForMilliSeconds(5000);
             runs(function () {
                 checkErrorPopUp();
-                checkPopUpString(Strings.PHP_SERVER_ERROR_TITLE, Strings.PHP_EXECUTABLE_NOT_FOUND);
+                checkPopUpString(Strings.TYPESCRIPT_SERVER_ERROR_TITLE, Strings.TYPESCRIPT_EXECUTABLE_NOT_FOUND);
                 checkPopUpButton("CANCEL");
             });
         });
@@ -499,7 +500,7 @@ define(function (require, exports, module) {
             waitForMilliSeconds(5000);
             runs(function () {
                 checkErrorPopUp();
-                checkPopUpString(Strings.PHP_SERVER_ERROR_TITLE, Strings.PHP_SERVER_MEMORY_LIMIT_INVALID);
+                checkPopUpString(Strings.TYPESCRIPT_SERVER_ERROR_TITLE, Strings.TYPESCRIPT_SERVER_MEMORY_LIMIT_INVALID);
                 checkPopUpButton("CANCEL");
             });
 

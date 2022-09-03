@@ -46,7 +46,7 @@ interface HintArray<T> extends Array<T> {
 }
 
 export interface HintObject<T> {
-    match: string | null;
+    match?: string | null;
     selectInitial: boolean;
     hints: HintArray<T>;
     handleWideResults?: boolean;
