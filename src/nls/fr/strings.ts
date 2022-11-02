@@ -847,14 +847,14 @@ export = {
     // Strings for Related Files
     "CMD_FIND_RELATED_FILES": "Trouver les fichiers associés",
 
-    // String for Php Tooling Extensions
-    "PHP_VERSION_INVALID": "Erreur lors de l’analyse de la version de PHP. Veuillez vérifier la sortie de la commande « php –version ».",
-    "PHP_UNSUPPORTED_VERSION": "Installez le moteur d’exécution de PHP 7 pour activer les outils correspondants comme Conseils de code, Conseils de paramètres, Accéder à la définition, etc. Version trouvée : {0}",
-    "PHP_EXECUTABLE_NOT_FOUND": "Moteur d’exécution PHP introuvable. Installez le moteur d’exécution de PHP 7 et mettez à jour « executablePath » dans les préférences PHP. Cela permettra l’activation des outils liés à PHP comme Conseils de code, Conseils de paramètres ou encore Accéder à la définition.",
-    "PHP_PROCESS_SPAWN_ERROR": "Code d’erreur {0} rencontré lors du démarrage du processus PHP.",
-    "PHP_SERVER_ERROR_TITLE": "Erreur",
-    "PHP_SERVER_MEMORY_LIMIT_INVALID": "La limite de mémoire que vous avez fournie n’est pas valide. Veuillez corriger la valeur indiquée dans les préférences PHP.",
-    "DESCRIPTION_PHP_TOOLING_CONFIGURATION": "Paramètres de configuration par défaut des outils PHP",
+    // String for TypeScript Tooling Extensions
+    "TYPESCRIPT_VERSION_INVALID": "Erreur lors de l’analyse de la version de PHP. Veuillez vérifier la sortie de la commande « php –version ».",
+    "TYPESCRIPT_UNSUPPORTED_VERSION": "Installez le moteur d’exécution de PHP 7 pour activer les outils correspondants comme Conseils de code, Conseils de paramètres, Accéder à la définition, etc. Version trouvée : {0}",
+    "TYPESCRIPT_EXECUTABLE_NOT_FOUND": "Moteur d’exécution PHP introuvable. Installez le moteur d’exécution de PHP 7 et mettez à jour « executablePath » dans les préférences PHP. Cela permettra l’activation des outils liés à PHP comme Conseils de code, Conseils de paramètres ou encore Accéder à la définition.",
+    "TYPESCRIPT_PROCESS_SPAWN_ERROR": "Code d’erreur {0} rencontré lors du démarrage du processus PHP.",
+    "TYPESCRIPT_SERVER_ERROR_TITLE": "Erreur",
+    "TYPESCRIPT_SERVER_MEMORY_LIMIT_INVALID": "La limite de mémoire que vous avez fournie n’est pas valide. Veuillez corriger la valeur indiquée dans les préférences PHP.",
+    "DESCRIPTION_TYPESCRIPT_TOOLING_CONFIGURATION": "Paramètres de configuration par défaut des outils PHP",
     "OPEN_PREFERENNCES": "Ouvrir les préférences",
 
     // Strings for LanguageTools Preferences

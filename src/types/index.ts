@@ -11,6 +11,7 @@ import * as EditorManager from "editor/EditorManager";
 import * as InlineWidget from "editor/InlineWidget";
 import * as MultiRangeInlineEditor from "editor/MultiRangeInlineEditor";
 import * as ExtensionManager from "extensibility/ExtensionManager";
+import * as FindReferencesManager from "features/FindReferencesManager";
 import * as ParameterHintsManager from "features/ParameterHintsManager";
 import * as JumpToDefManager from "features/JumpToDefManager";
 import FileSystemError = require("filesystem/FileSystemError");
@@ -25,6 +26,11 @@ import * as JSONUtils from "language/JSONUtils";
 import * as JSUtils from "language/JSUtils";
 import * as LanguageManager from "language/LanguageManager";
 import * as XMLUtils from "language/XMLUtils";
+import * as ClientLoader from "languageTools/ClientLoader";
+import * as DefaultProviders from "languageTools/DefaultProviders";
+import * as DefaultEventHandlers from "languageTools/DefaultEventHandlers";
+import * as LanguageTools from "languageTools/LanguageTools";
+import * as PathConverters from "languageTools/PathConverters";
 import * as FileUtils from "file/FileUtils";
 import * as FileSystem from "filesystem/FileSystem";
 import * as PreferencesManager from "preferences/PreferencesManager";
@@ -94,6 +100,7 @@ declare global {
             : T extends "editor/InlineWidget" ? typeof InlineWidget
             : T extends "editor/MultiRangeInlineEditor" ? typeof MultiRangeInlineEditor
             : T extends "extensibility/ExtensionManager" ? typeof ExtensionManager & EventDispatcher.DispatcherEvents
+            : T extends "features/FindReferencesManager" ? typeof FindReferencesManager
             : T extends "features/ParameterHintsManager" ? typeof ParameterHintsManager
             : T extends "features/JumpToDefManager" ? typeof JumpToDefManager
             : T extends "filesystem/FileSystemError" ? typeof FileSystemError
@@ -108,8 +115,13 @@ declare global {
             : T extends "language/HTMLUtils" ? typeof HTMLUtils
             : T extends "language/JSONUtils" ? typeof JSONUtils
             : T extends "language/JSUtils" ? typeof JSUtils
-            : T extends "language/LanguageManager" ? typeof LanguageManager
+            : T extends "language/LanguageManager" ? typeof LanguageManager & EventDispatcher.DispatcherEvents
             : T extends "language/XMLUtils" ? typeof XMLUtils
+            : T extends "languageTools/ClientLoader" ? typeof ClientLoader & EventDispatcher.DispatcherEvents
+            : T extends "languageTools/DefaultProviders" ? typeof DefaultProviders
+            : T extends "languageTools/DefaultEventHandlers" ? typeof DefaultEventHandlers
+            : T extends "languageTools/LanguageTools" ? typeof LanguageTools
+            : T extends "languageTools/PathConverters" ? typeof PathConverters
             : T extends "file/FileUtils" ? typeof FileUtils
             : T extends "filesystem/FileSystem" ? typeof FileSystem
             : T extends "preferences/PreferencesManager" ? typeof PreferencesManager

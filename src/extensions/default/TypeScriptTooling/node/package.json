@@ -1,0 +1,15 @@
+{
+  "name": "typescript-tooling",
+  "version": "1.0.0",
+  "description": "Advanced Tooling support for TypeScript",
+  "author": "niteskum",
+  "main": "main.js",
+  "dependencies": {
+    "execa": "^5.1.1",
+    "semver": "5.6.0",
+    "typescript-language-server": "^2.1.0"
+  },
+  "devDependencies": {
+    "@types/node": "^16.18.3"
+  }
+}

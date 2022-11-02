@@ -22,80 +22,85 @@
  *
  */
 
-/* eslint-disable indent */
-/* eslint max-len: ["error", { "code": 200 }]*/
-define(function (require, exports, module) {
-    "use strict";
+import type { HintObject } from "editor/CodeHintList";
+import type { CodeHintProvider } from "editor/CodeHintManager";
+import type { Editor } from "editor/Editor";
+import type { CodeHintsProvider as TCodeHintsProvider } from "languageTools/DefaultProviders";
+import type { SearchResult } from "utils/StringMatch";
 
-    var _ = brackets.getModule("thirdparty/lodash");
+const _ = brackets.getModule("thirdparty/lodash");
 
-    var DefaultProviders = brackets.getModule("languageTools/DefaultProviders"),
-        EditorManager = brackets.getModule("editor/EditorManager"),
-        TokenUtils = brackets.getModule("utils/TokenUtils"),
-        StringMatch = brackets.getModule("utils/StringMatch"),
-        matcher = new StringMatch.StringMatcher({
-            preferPrefixMatches: true
-        });
+const DefaultProviders = brackets.getModule("languageTools/DefaultProviders");
+const EditorManager = brackets.getModule("editor/EditorManager");
+const TokenUtils = brackets.getModule("utils/TokenUtils");
+const StringMatch = brackets.getModule("utils/StringMatch");
+const matcher = new StringMatch.StringMatcher({
+    preferPrefixMatches: true
+});
 
-    var phpSuperGlobalVariables = JSON.parse(require("text!phpGlobals.json")),
-        hintType = {
-             "2": "Method",
-             "3": "Function",
-             "4": "Constructor",
-             "6": "Variable",
-             "7": "Class",
-             "8": "Interface",
-             "9": "Module",
-             "10": "Property",
-             "14": "Keyword",
-             "21": "Constant"
-        };
+const hintType = {
+    "2": "Method",
+    "3": "Function",
+    "4": "Constructor",
+    "6": "Variable",
+    "7": "Class",
+    "8": "Interface",
+    "9": "Module",
+    "10": "Property",
+    "14": "Keyword",
+    "21": "Constant"
+};
 
-    function CodeHintsProvider(client) {
-        this.defaultCodeHintProviders = new DefaultProviders.CodeHintsProvider(client);
-    }
+function setStyleAndCacheToken($hintObj: JQuery, token: SearchResult): void {
+    $hintObj.addClass("brackets-hints-with-type-details");
+    $hintObj.data("completionItem", token);
+}
 
-    CodeHintsProvider.prototype.setClient = function (client) {
-        this.defaultCodeHintProviders.setClient(client);
-    };
-
-    function setStyleAndCacheToken($hintObj, token) {
-        $hintObj.addClass("brackets-hints-with-type-details");
-        $hintObj.data("completionItem", token);
-    }
-
-    function filterWithQueryAndMatcher(hints, query) {
-        var matchResults = $.map(hints, function (hint) {
-            var searchResult = matcher.match(hint.label, query);
-            if (searchResult) {
-                for (var key in hint) {
+function filterWithQueryAndMatcher(hints: Array<any>, query: string): Array<SearchResult> {
+    const matchResults = $.map(hints, function (hint) {
+        const searchResult = matcher.match(hint.label, query);
+        if (searchResult) {
+            for (const key in hint) {
+                if (_.has(hint, key)) {
                     searchResult[key] = hint[key];
                 }
             }
+        }
 
-            return searchResult;
-        });
+        return searchResult!;
+    });
 
-        return matchResults;
+    return matchResults;
+}
+
+export class CodeHintsProvider implements CodeHintProvider {
+    private defaultCodeHintProviders: TCodeHintsProvider;
+
+    constructor(client) {
+        this.defaultCodeHintProviders = new DefaultProviders.CodeHintsProvider(client);
     }
 
-    CodeHintsProvider.prototype.hasHints = function (editor, implicitChar) {
-        return this.defaultCodeHintProviders.hasHints(editor, implicitChar);
-    };
+    public setClient(client): void {
+        this.defaultCodeHintProviders.setClient(client);
+    }
 
-    CodeHintsProvider.prototype.getHints = function (implicitChar) {
+    public hasHints(editor: Editor, implicitChar: string | null): boolean {
+        return this.defaultCodeHintProviders.hasHints(editor, implicitChar);
+    }
+
+    public getHints(implicitChar: string | null): JQueryDeferred<HintObject<string | JQuery>> | null {
         if (!this.defaultCodeHintProviders.client) {
             return null;
         }
 
-        var editor = EditorManager.getActiveEditor(),
-            pos = editor.getCursorPos(),
-            docPath = editor.document.file._path,
-            $deferredHints = $.Deferred(),
-            self = this.defaultCodeHintProviders,
-            client = this.defaultCodeHintProviders.client;
+        const editor = EditorManager.getActiveEditor()!;
+        const pos = editor.getCursorPos();
+        const docPath = editor.document.file._path;
+        const $deferredHints = $.Deferred<HintObject<string | JQuery>>();
+        const self = this.defaultCodeHintProviders;
+        const client = this.defaultCodeHintProviders.client;
 
-        //Make sure the document is in sync with the server
+        // Make sure the document is in sync with the server
         client.notifyTextDocumentChanged({
             filePath: docPath,
             fileContent: editor.document.getText()
@@ -104,30 +109,17 @@ define(function (require, exports, module) {
             filePath: docPath,
             cursorPos: pos
         }).done(function (msgObj) {
-            var context = TokenUtils.getInitialContext(editor._codeMirror, pos),
-                hints = [];
+            const context = TokenUtils.getInitialContext(editor._codeMirror, pos);
+            const hints: Array<JQuery> = [];
 
             self.query = context.token.string.slice(0, context.pos.ch - context.token.start);
             if (msgObj) {
-                var res = msgObj.items || [],
-                    trimmedQuery = self.query.trim(),
-                    hasIgnoreCharacters = self.ignoreQuery.includes(implicitChar) || self.ignoreQuery.includes(trimmedQuery),
-                    isExplicitInvokation = implicitChar === null;
+                const res = msgObj.items || [];
+                const trimmedQuery = self.query.trim();
+                const hasIgnoreCharacters = self.ignoreQuery.includes(implicitChar) || self.ignoreQuery.includes(trimmedQuery);
+                const isExplicitInvokation = implicitChar === null;
 
-                // There is a bug in Php Language Server, Php Language Server does not provide superGlobals
-                // Variables as completion. so these variables are being explicity put in response objects
-                // below code should be removed if php server fix this bug.
-                if ((isExplicitInvokation || trimmedQuery) && !hasIgnoreCharacters) {
-                    for (var key in phpSuperGlobalVariables) {
-                        res.push({
-                            label: key,
-                            documentation: phpSuperGlobalVariables[key].description,
-                            detail: phpSuperGlobalVariables[key].type
-                        });
-                    }
-                }
-
-                var filteredHints = [];
+                let filteredHints: Array<SearchResult> = [];
                 if (hasIgnoreCharacters || (isExplicitInvokation && !trimmedQuery)) {
                     filteredHints = filterWithQueryAndMatcher(res, "");
                 } else {
@@ -136,7 +128,7 @@ define(function (require, exports, module) {
 
                 StringMatch.basicMatchSort(filteredHints);
                 filteredHints.forEach(function (element) {
-                    var $fHint = $("<span>")
+                    const $fHint = $("<span>")
                         .addClass("brackets-hints");
 
                     if (element.stringRanges) {
@@ -150,7 +142,7 @@ define(function (require, exports, module) {
                             }
                         });
                     } else {
-                        $fHint.text(element.label);
+                        $fHint.text(element.label!);
                     }
 
                     $fHint.data("token", element);
@@ -159,7 +151,7 @@ define(function (require, exports, module) {
                 });
             }
 
-            var token = self.query;
+            const token = self.query;
             $deferredHints.resolve({
                 "hints": hints,
                 "enableDescription": true,
@@ -170,16 +162,16 @@ define(function (require, exports, module) {
         });
 
         return $deferredHints;
-    };
+    }
 
-    CodeHintsProvider.prototype.insertHint = function ($hint) {
+    public insertHint($hint: JQuery): boolean {
         return this.defaultCodeHintProviders.insertHint($hint);
-    };
+    }
 
-    CodeHintsProvider.prototype.updateHintDescription = function ($hint, $hintDescContainer) {
-        var $hintObj = $hint.find(".brackets-hints-with-type-details"),
-            token = $hintObj.data("completionItem"),
-            $desc = $("<div>");
+    public updateHintDescription($hint: JQuery, $hintDescContainer: JQuery): void {
+        const $hintObj = $hint.find(".brackets-hints-with-type-details");
+        const token = $hintObj.data("completionItem");
+        const $desc = $("<div>");
 
         if (!token) {
             $hintDescContainer.empty();
@@ -199,10 +191,8 @@ define(function (require, exports, module) {
             $("<div></div>").html(token.documentation.trim()).appendTo($desc).addClass("codehint-desc-documentation");
         }
 
-        //To ensure CSS reflow doesn't cause a flicker.
+        // To ensure CSS reflow doesn't cause a flicker.
         $hintDescContainer.empty();
         $hintDescContainer.append($desc);
-    };
-
-    exports.CodeHintsProvider = CodeHintsProvider;
-});
+    }
+}

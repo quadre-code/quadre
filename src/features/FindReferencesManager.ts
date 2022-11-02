@@ -132,7 +132,7 @@ export function closeReferencesPanel() {
     }
 }
 
-export function setMenuItemStateForLanguage(languageId) {
+export function setMenuItemStateForLanguage(languageId?) {
     CommandManager.get(Commands.CMD_FIND_ALL_REFERENCES).setEnabled(false);
     if (!languageId) {
         const editor = EditorManager.getActiveEditor();

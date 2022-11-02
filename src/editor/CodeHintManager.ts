@@ -243,7 +243,7 @@ import { Editor } from "editor/Editor";
 export interface CodeHintProvider {
     hasHints(editor: Editor, implicitChar: string[1] | null): boolean;
     getHints(implicitChar: string[1] | null): JQueryDeferred<HintObject<string | JQuery>> | HintObject<string | JQuery> | boolean | null;
-    insertHint(hint: string): boolean;
+    insertHint(hint: JQuery | string): boolean;
     insertHintOnTab?: boolean;
     onHighlight?($hint: any, $hintDescContainer?: any): void;
     updateHintDescription?($hint: any, $hintDescContainer: any): void;

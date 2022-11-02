@@ -78,8 +78,8 @@ function filterWithQueryAndMatcher(hints, query) {
     return matchResults;
 }
 
-abstract class BaseProvider {
-    protected client;
+export abstract class BaseProvider {
+    public client;
 
     constructor(client) {
         this.client = client;
@@ -93,8 +93,8 @@ abstract class BaseProvider {
 }
 
 export class CodeHintsProvider extends BaseProvider {
-    private query;
-    private ignoreQuery;
+    public query;
+    public ignoreQuery;
 
     constructor(client) {
         super(client);
@@ -360,7 +360,7 @@ export class JumpToDefProvider extends BaseProvider {
 export class LintingProvider extends BaseProvider {
     private _results: Map<string, any>;
     private _promiseMap: Map<string, JQueryDeferred<unknown>>;
-    private _validateOnType: boolean;
+    public _validateOnType: boolean;
 
     constructor(client) {
         super(client);
@@ -370,12 +370,12 @@ export class LintingProvider extends BaseProvider {
         this._validateOnType = false;
     }
 
-    public clearExistingResults(filePath) {
+    public clearExistingResults(filePath?: string): void {
         const filePathProvided = !!filePath;
 
         if (filePathProvided) {
-            this._results.delete(filePath);
-            this._promiseMap.delete(filePath);
+            this._results.delete(filePath!);
+            this._promiseMap.delete(filePath!);
         } else {
             // clear all results
             this._results.clear();

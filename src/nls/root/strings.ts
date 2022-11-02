@@ -887,14 +887,14 @@ export = {
     // Strings for Related Files
     "CMD_FIND_RELATED_FILES"                         : "Find Related Files",
 
-    // String for Php Tooling Extensions
-    "PHP_VERSION_INVALID"                            : "Error parsing PHP version. Please check the output of the “php –version” command.",
-    "PHP_UNSUPPORTED_VERSION"                        : "Install PHP7 runtime for enabling PHP-related tooling such as Code Hints, Parameter Hints, Jump To Definition and more. Version found: {0}",
-    "PHP_EXECUTABLE_NOT_FOUND"                       : "PHP runtime not found. Install the PHP7 runtime and update “executablePath” in PHP Preferences appropriately. This enables PHP-related tooling such as Code Hints, Parameter Hints, Jump To Definition and more.",
-    "PHP_PROCESS_SPAWN_ERROR"                        : "Error code {0} encountered while starting the PHP process.",
-    "PHP_SERVER_ERROR_TITLE"                         : "Error",
-    "PHP_SERVER_MEMORY_LIMIT_INVALID"                : "The memory limit you provided is invalid. Review the PHP preferences to set the correct value.",
-    "DESCRIPTION_PHP_TOOLING_CONFIGURATION"          : "PHP Tooling default configuration settings",
+    // String for TypeScript Tooling Extensions
+    "TYPESCRIPT_VERSION_INVALID"                     : "Error parsing PHP version. Please check the output of the “php –version” command.",
+    "TYPESCRIPT_UNSUPPORTED_VERSION"                 : "Install PHP7 runtime for enabling PHP-related tooling such as Code Hints, Parameter Hints, Jump To Definition and more. Version found: {0}",
+    "TYPESCRIPT_EXECUTABLE_NOT_FOUND"                : "PHP runtime not found. Install the PHP7 runtime and update “executablePath” in PHP Preferences appropriately. This enables PHP-related tooling such as Code Hints, Parameter Hints, Jump To Definition and more.",
+    "TYPESCRIPT_PROCESS_SPAWN_ERROR"                 : "Error code {0} encountered while starting the PHP process.",
+    "TYPESCRIPT_SERVER_ERROR_TITLE"                  : "Error",
+    "TYPESCRIPT_SERVER_MEMORY_LIMIT_INVALID"         : "The memory limit you provided is invalid. Review the PHP preferences to set the correct value.",
+    "DESCRIPTION_TYPESCRIPT_TOOLING_CONFIGURATION"   : "PHP Tooling default configuration settings",
     "OPEN_PREFERENNCES"                              : "Open Preferences",
 
     // Strings for LanguageTools Preferences
