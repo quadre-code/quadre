@@ -7,7 +7,7 @@
       "name": "brackets-src",
       "dependencies": {
         "acorn": "5.1.1",
-        "codemirror": "^5.65.7",
+        "codemirror": "^5.65.9",
         "codemirror-addon-toggle-comment": "~0.11.1",
         "create-react-class": "^15.7.0",
         "immutable": "3.8.2",
@@ -20,9 +20,9 @@
         "@types/codemirror": "^5.60.5",
         "@types/jquery": "^2.0.41",
         "@types/less": "^3.0.3",
-        "@types/lodash": "^3.10.4",
-        "@types/react": "^16.14.29",
-        "@types/react-dom": "^16.9.16",
+        "@types/lodash": "^3.10.5",
+        "@types/react": "^16.14.34",
+        "@types/react-dom": "^16.9.17",
         "@types/requirejs": "^2.1.34"
       }
     },
@@ -63,9 +63,9 @@
       "dev": true
     },
     "node_modules/@types/lodash": {
-      "version": "3.10.4",
-      "resolved": "https://registry.npmjs.org/@types/lodash/-/lodash-3.10.4.tgz",
-      "integrity": "sha512-RgFRQAdA6xwnxp2t9ntDbutaqVBmk8drUl6nizg6RUU/IN/8W8a+EzcxCOTZdYKeC6RKDXghF8saAD2e5S+DlQ==",
+      "version": "3.10.5",
+      "resolved": "https://registry.npmjs.org/@types/lodash/-/lodash-3.10.5.tgz",
+      "integrity": "sha512-5q+juLIas01ex96TU0va8aoRTt6fhu1YMaGMcViXPgAYqG1VbzAsJ8PdnlUFZE65+ZZmj+1+lg0snoiHhjN1Jw==",
       "dev": true
     },
     "node_modules/@types/prop-types": {
@@ -75,9 +75,9 @@
       "dev": true
     },
     "node_modules/@types/react": {
-      "version": "16.14.29",
-      "resolved": "https://registry.npmjs.org/@types/react/-/react-16.14.29.tgz",
-      "integrity": "sha512-I5IwEaefGZbpmmK1J7zHwZe3JkGxcRkc5WJUDWmNySVVovueViRTEUWV7spTvpe96l3nbKD/K6+GxoN69CYb/w==",
+      "version": "16.14.34",
+      "resolved": "https://registry.npmjs.org/@types/react/-/react-16.14.34.tgz",
+      "integrity": "sha512-b99nWeGGReLh6aKBppghVqp93dFJtgtDOzc8NXM6hewD8PQ2zZG5kBLgbx+VJr7Q7WBMjHxaIl3dwpwwPIUgyA==",
       "dev": true,
       "dependencies": {
         "@types/prop-types": "*",
@@ -86,9 +86,9 @@
       }
     },
     "node_modules/@types/react-dom": {
-      "version": "16.9.16",
-      "resolved": "https://registry.npmjs.org/@types/react-dom/-/react-dom-16.9.16.tgz",
-      "integrity": "sha512-Oqc0RY4fggGA3ltEgyPLc3IV9T73IGoWjkONbsyJ3ZBn+UPPCYpU2ec0i3cEbJuEdZtkqcCF2l1zf2pBdgUGSg==",
+      "version": "16.9.17",
+      "resolved": "https://registry.npmjs.org/@types/react-dom/-/react-dom-16.9.17.tgz",
+      "integrity": "sha512-qSRyxEsrm5btPXnowDOs5jSkgT8ldAA0j6Qp+otHUh+xHzy3sXmgNfyhucZjAjkgpdAUw9rJe0QRtX/l+yaS4g==",
       "dev": true,
       "dependencies": {
         "@types/react": "^16"
@@ -127,9 +127,9 @@
       }
     },
     "node_modules/codemirror": {
-      "version": "5.65.7",
-      "resolved": "https://registry.npmjs.org/codemirror/-/codemirror-5.65.7.tgz",
-      "integrity": "sha512-zb67cXzgugIQmb6tfD4G11ILjYoMfTjwcjn+cWsa4GewlI2adhR/h3kolkoCQTm1msD/1BuqVTKuO09ELsS++A=="
+      "version": "5.65.9",
+      "resolved": "https://registry.npmjs.org/codemirror/-/codemirror-5.65.9.tgz",
+      "integrity": "sha512-19Jox5sAKpusTDgqgKB5dawPpQcY+ipQK7xoEI+MVucEF9qqFaXpeqY1KaoyGBso/wHQoDa4HMMxMjdsS3Zzzw=="
     },
     "node_modules/codemirror-addon-toggle-comment": {
       "version": "0.11.1",
@@ -493,9 +493,9 @@
       "dev": true
     },
     "@types/lodash": {
-      "version": "3.10.4",
-      "resolved": "https://registry.npmjs.org/@types/lodash/-/lodash-3.10.4.tgz",
-      "integrity": "sha512-RgFRQAdA6xwnxp2t9ntDbutaqVBmk8drUl6nizg6RUU/IN/8W8a+EzcxCOTZdYKeC6RKDXghF8saAD2e5S+DlQ==",
+      "version": "3.10.5",
+      "resolved": "https://registry.npmjs.org/@types/lodash/-/lodash-3.10.5.tgz",
+      "integrity": "sha512-5q+juLIas01ex96TU0va8aoRTt6fhu1YMaGMcViXPgAYqG1VbzAsJ8PdnlUFZE65+ZZmj+1+lg0snoiHhjN1Jw==",
       "dev": true
     },
     "@types/prop-types": {
@@ -505,9 +505,9 @@
       "dev": true
     },
     "@types/react": {
-      "version": "16.14.29",
-      "resolved": "https://registry.npmjs.org/@types/react/-/react-16.14.29.tgz",
-      "integrity": "sha512-I5IwEaefGZbpmmK1J7zHwZe3JkGxcRkc5WJUDWmNySVVovueViRTEUWV7spTvpe96l3nbKD/K6+GxoN69CYb/w==",
+      "version": "16.14.34",
+      "resolved": "https://registry.npmjs.org/@types/react/-/react-16.14.34.tgz",
+      "integrity": "sha512-b99nWeGGReLh6aKBppghVqp93dFJtgtDOzc8NXM6hewD8PQ2zZG5kBLgbx+VJr7Q7WBMjHxaIl3dwpwwPIUgyA==",
       "dev": true,
       "requires": {
         "@types/prop-types": "*",
@@ -516,9 +516,9 @@
       }
     },
     "@types/react-dom": {
-      "version": "16.9.16",
-      "resolved": "https://registry.npmjs.org/@types/react-dom/-/react-dom-16.9.16.tgz",
-      "integrity": "sha512-Oqc0RY4fggGA3ltEgyPLc3IV9T73IGoWjkONbsyJ3ZBn+UPPCYpU2ec0i3cEbJuEdZtkqcCF2l1zf2pBdgUGSg==",
+      "version": "16.9.17",
+      "resolved": "https://registry.npmjs.org/@types/react-dom/-/react-dom-16.9.17.tgz",
+      "integrity": "sha512-qSRyxEsrm5btPXnowDOs5jSkgT8ldAA0j6Qp+otHUh+xHzy3sXmgNfyhucZjAjkgpdAUw9rJe0QRtX/l+yaS4g==",
       "dev": true,
       "requires": {
         "@types/react": "^16"
@@ -551,9 +551,9 @@
       "integrity": "sha512-vOk6uEMctu0vQrvuSqFdJyqj1Q0S5VTDL79qtjo+DhRr+1mmaD+tluFSCZqhvi/JUhXSzoZN2BhtstaPEeE8cw=="
     },
     "codemirror": {
-      "version": "5.65.7",
-      "resolved": "https://registry.npmjs.org/codemirror/-/codemirror-5.65.7.tgz",
-      "integrity": "sha512-zb67cXzgugIQmb6tfD4G11ILjYoMfTjwcjn+cWsa4GewlI2adhR/h3kolkoCQTm1msD/1BuqVTKuO09ELsS++A=="
+      "version": "5.65.9",
+      "resolved": "https://registry.npmjs.org/codemirror/-/codemirror-5.65.9.tgz",
+      "integrity": "sha512-19Jox5sAKpusTDgqgKB5dawPpQcY+ipQK7xoEI+MVucEF9qqFaXpeqY1KaoyGBso/wHQoDa4HMMxMjdsS3Zzzw=="
     },
     "codemirror-addon-toggle-comment": {
       "version": "0.11.1",
