@@ -1,10 +1,29 @@
+## v2.0.0-alpha.6 (2022-11-13)
+
+Merge all Brackets commits. Some shell api not implemented yet like file encoding\decoding
+
+Update CodeMirror to 5.65.9
+
+Update electron to 17.4.11
+
+More conversion of the code base to TypeScript
+
+Replace PhpTooling default extension with TypeScriptTooling extension
+
+Switch to Github Actions on CI
+
+Update some dependencies across the tree
+
+Use the extension url of Brackets-Cont project
+
+
 ## v2.0.0-alpha.5 (2019-05-04)
 
 Update CodeMirror to 5.46.0
 
 Remove https://github.com/yaddran/brackets-occurrences-marker and instead rely on CodeMirror addon
 
-More convertion of the code base to TypeScript
+More conversion of the code base to TypeScript
 
 Convert all scripts to grunt
 
