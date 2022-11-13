@@ -36,8 +36,8 @@ jobs:
     - name: Prepare
       run: npm run test:prepare:ci
 
-    - name: Unit Test
-      run: npm run test:unit
+    # - name: Unit Test
+    #   run: npm run test:unit
 
     # - name: Integration Test
     #   uses: GabrielBB/xvfb-action@v1
@@ -92,8 +92,8 @@ jobs:
     - name: Prepare
       run: npm run test:prepare:ci
 
-    - name: Unit Test
-      run: DISPLAY=:99.0 npm run test:unit
+    # - name: Unit Test
+    #   run: DISPLAY=:99.0 npm run test:unit
 
     # - name: Integration Test
     #   uses: GabrielBB/xvfb-action@v1
@@ -142,17 +142,17 @@ jobs:
     - name: Prepare
       run: npm run test:prepare:ci
 
-    - name: Unit Test
-      run: npm run test:unit
+    # - name: Unit Test
+    #   run: npm run test:unit
 
-    - name: Integration Test
-      run: npm run test:integration
+    # - name: Integration Test
+    #   run: npm run test:integration
 
-    - name: MainView Test
-      run: npm run test:mainview
+    # - name: MainView Test
+    #   run: npm run test:mainview
 
-    - name: Extension Test
-      run: npm run test:extension
+    # - name: Extension Test
+    #   run: npm run test:extension
 
     - name: Publish Windows
       if: ${{ fromJSON(env.PUSH_PACKAGES) }}
@@ -162,8 +162,8 @@ jobs:
       if: ${{ !fromJSON(env.PUSH_PACKAGES) }}
       run: npm run pack
 
-    - name: Publish Test Report
-      uses: mikepenz/action-junit-report@v3
-      if: always()
-      with:
-        report_paths: ${{ env.TEST_JUNIT_XML_ROOT }}\**\*.xml
+    # - name: Publish Test Report
+    #   uses: mikepenz/action-junit-report@v3
+    #   if: always()
+    #   with:
+    #     report_paths: ${{ env.TEST_JUNIT_XML_ROOT }}\**\*.xml
