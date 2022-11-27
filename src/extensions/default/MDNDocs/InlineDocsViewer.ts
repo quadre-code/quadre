@@ -25,36 +25,43 @@
 /**
  * Inline widget to display MDNDocs JSON data nicely formatted
  */
-define(function (require, exports, module) {
-    "use strict";
 
-    // Load Brackets modules
-    var Dialogs         = brackets.getModule("widgets/Dialogs"),
-        ExtensionUtils  = brackets.getModule("utils/ExtensionUtils"),
-        InlineWidget    = brackets.getModule("editor/InlineWidget").InlineWidget,
-        KeyEvent        = brackets.getModule("utils/KeyEvent"),
-        Strings         = brackets.getModule("strings"),
-        Mustache        = brackets.getModule("thirdparty/mustache/mustache"),
-        HealthLogger    = brackets.getModule("utils/HealthLogger");
+/// <amd-dependency path="module" name="module"/>
 
-    // Load template
-    var inlineEditorTemplate = require("text!InlineDocsViewer.html");
+// Load Brackets modules
+const Dialogs         = brackets.getModule("widgets/Dialogs");
+const ExtensionUtils  = brackets.getModule("utils/ExtensionUtils");
+const InlineWidget    = brackets.getModule("editor/InlineWidget").InlineWidget;
+const KeyEvent        = brackets.getModule("utils/KeyEvent");
+const Strings         = brackets.getModule("strings");
+const Mustache        = brackets.getModule("thirdparty/mustache/mustache");
+const HealthLogger    = brackets.getModule("utils/HealthLogger");
 
-    // Lines height for scrolling
-    var SCROLL_LINE_HEIGHT = 40;
+// Load template
+import * as inlineEditorTemplate from "text!InlineDocsViewer.html";
 
-    // Load CSS
-    ExtensionUtils.loadStyleSheet(module, "MDNDocs.less");
+// Lines height for scrolling
+const SCROLL_LINE_HEIGHT = 40;
 
+// Load CSS
+ExtensionUtils.loadStyleSheet(module, "MDNDocs.less");
+
+
+class InlineDocsViewer extends InlineWidget {
+    public parentClass = InlineWidget.prototype;
+
+    public $wrapperDiv: JQuery | null = null;
+    public $scroller: JQuery | null = null;
+    private $moreinfo: JQuery;
 
     /**
      * @param {!string} cssPropName
      * @param {!{SUMMARY:string, URL:string, VALUES:?Array.<{value:string, description:string}>}} cssPropDetails
      */
-    function InlineDocsViewer(PropName, PropDetails) {
-        Object.assign(this, new InlineWidget());
+    constructor(PropName, PropDetails) {
+        super();
 
-        var templateVars = {
+        const templateVars = {
             propName            : PropName,
             summary             : PropDetails.SUMMARY,
             fullscreenSummary   : !(PropDetails.VALUES && PropDetails.VALUES.length),
@@ -63,7 +70,7 @@ define(function (require, exports, module) {
             Strings             : Strings
         };
 
-        var html = Mustache.render(inlineEditorTemplate, templateVars);
+        const html = Mustache.render(inlineEditorTemplate, templateVars);
 
         this.$wrapperDiv = $(html);
         this.$htmlContent.append(this.$wrapperDiv);
@@ -80,13 +87,6 @@ define(function (require, exports, module) {
         this._onKeydown = this._onKeydown.bind(this);
     }
 
-    InlineDocsViewer.prototype = Object.create(InlineWidget.prototype);
-    InlineDocsViewer.prototype.constructor = InlineDocsViewer;
-    InlineDocsViewer.prototype.parentClass = InlineWidget.prototype;
-
-    InlineDocsViewer.prototype.$wrapperDiv = null;
-    InlineDocsViewer.prototype.$scroller = null;
-
     /**
      * Handle scrolling.
      *
@@ -95,7 +95,7 @@ define(function (require, exports, module) {
      * @param {DOMElement} scroller Element to scroll
      * @return {boolean} indication whether key was handled
      */
-    InlineDocsViewer.prototype._handleScrolling = function (event, scrollingUp, scroller) {
+    private _handleScrolling(event, scrollingUp, scroller) {
         // We need to block the event from both the host CodeMirror code (by stopping bubbling) and the
         // browser's native behavior (by preventing default). We preventDefault() *only* when the docs
         // scroller is at its limit (when an ancestor would get scrolled instead); otherwise we'd block
@@ -112,12 +112,12 @@ define(function (require, exports, module) {
         }
 
         return false;
-    };
+    }
 
     /** Don't allow scrollwheel/trackpad to bubble up to host editor - makes scrolling docs painful */
-    InlineDocsViewer.prototype._handleWheelScroll = function (event) {
-        var scrollingUp = (event.originalEvent.wheelDeltaY > 0),
-            scroller = event.currentTarget;
+    private _handleWheelScroll(event) {
+        const scrollingUp = (event.originalEvent.wheelDeltaY > 0);
+        const scroller = event.currentTarget;
 
         // If content has no scrollbar, let host editor scroll normally
         if (scroller.clientHeight >= scroller.scrollHeight) {
@@ -125,8 +125,7 @@ define(function (require, exports, module) {
         }
 
         this._handleScrolling(event, scrollingUp, scroller);
-    };
-
+    }
 
     /**
      * Convert keydown events into navigation actions.
@@ -134,10 +133,9 @@ define(function (require, exports, module) {
      * @param {KeyboardEvent} event
      * @return {boolean} indication whether key was handled
      */
-    InlineDocsViewer.prototype._onKeydown = function (event) {
-        var keyCode  = event.keyCode,
-            scroller = this.$scroller[0],
-            scrollPos;
+    private _onKeydown(event) {
+        const keyCode  = event.keyCode;
+        const scroller = this.$scroller![0];
 
         // Ignore key events with modifier keys
         if (event.altKey || event.ctrlKey || event.metaKey || event.shiftKey) {
@@ -145,7 +143,7 @@ define(function (require, exports, module) {
         }
 
         // Handle keys that we're interested in
-        scrollPos = scroller.scrollTop;
+        let scrollPos = scroller.scrollTop;
 
         switch (keyCode) {
             case KeyEvent.DOM_VK_UP:
@@ -173,37 +171,37 @@ define(function (require, exports, module) {
         event.stopPropagation();
         event.preventDefault();
         return true;
-    };
+    }
 
-    InlineDocsViewer.prototype.onAdded = function () {
-        InlineDocsViewer.prototype.parentClass.onAdded.apply(this, arguments);
+    public onAdded() {
+        super.onAdded();
 
         // Set height initially, and again whenever width might have changed (word wrap)
         this._sizeEditorToContent();
         $(window).on("resize", this._sizeEditorToContent);
 
         // Set focus
-        this.$scroller[0].focus();
-        this.$wrapperDiv[0].addEventListener("keydown", this._onKeydown, true);
-    };
+        this.$scroller![0].focus();
+        this.$wrapperDiv![0].addEventListener("keydown", this._onKeydown, true);
+    }
 
-    InlineDocsViewer.prototype.onClosed = function () {
-        InlineDocsViewer.prototype.parentClass.onClosed.apply(this, arguments);
+    public onClosed() {
+        super.onClosed();
 
         $(window).off("resize", this._sizeEditorToContent);
-        this.$wrapperDiv[0].removeEventListener("keydown", this._onKeydown, true);
-    };
+        this.$wrapperDiv![0].removeEventListener("keydown", this._onKeydown, true);
+    }
 
-    InlineDocsViewer.prototype._sizeEditorToContent = function () {
-        this.hostEditor.setInlineWidgetHeight(this, this.$wrapperDiv.height() + 20, true);
-    };
+    private _sizeEditorToContent() {
+        this.hostEditor!.setInlineWidgetHeight(this, this.$wrapperDiv!.height() + 20, true);
+    }
 
     /**
      * Send analytics data for Quick Doc "readMore" action
      *
      * @return {boolean} false
      */
-    InlineDocsViewer.prototype._logAnalyticsData = function () {
+    private _logAnalyticsData() {
         HealthLogger.sendAnalyticsData(
             "QuickDocReadMore",
             "usage",
@@ -211,8 +209,7 @@ define(function (require, exports, module) {
             "readMore"
         );
         return false;
-    };
+    }
+}
 
-
-    module.exports = InlineDocsViewer;
-});
+export = InlineDocsViewer;
