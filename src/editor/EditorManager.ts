@@ -402,7 +402,7 @@ export function registerInlineEditProvider(provider, priority?) {
  * The provider returns a promise that will be resolved with an InlineWidget, or returns a string
  * indicating why the provider cannot respond to this case (or returns null to indicate no reason).
  */
-export function registerInlineDocsProvider(provider, priority) {
+export function registerInlineDocsProvider(provider, priority?: number) {
     if (priority === undefined) {
         priority = 0;
     }
