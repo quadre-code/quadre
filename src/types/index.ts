@@ -4,6 +4,7 @@ import * as CommandManager from "command/CommandManager";
 import * as Commands from "command/Commands";
 import * as KeyBindingManager from "command/KeyBindingManager";
 import * as Menus from "command/Menus";
+import * as Document from "document/Document";
 import * as DocumentManager from "document/DocumentManager";
 import * as CodeHintManager from "editor/CodeHintManager";
 import * as Editor from "editor/Editor";
@@ -44,6 +45,7 @@ import * as ThemeManager from "view/ThemeManager";
 import * as WorkspaceManager from "view/WorkspaceManager";
 import * as AnimationUtils from "utils/AnimationUtils";
 import * as AppInit from "utils/AppInit";
+import * as Async from "utils/Async";
 import * as ColorUtils from "utils/ColorUtils";
 import * as EventDispatcher from "utils/EventDispatcher";
 import * as ExtensionUtils from "utils/ExtensionUtils";
@@ -93,6 +95,7 @@ declare global {
             : T extends "command/Commands" ? typeof Commands
             : T extends "command/KeyBindingManager" ? typeof KeyBindingManager
             : T extends "command/Menus" ? typeof Menus
+            : T extends "document/Document" ? typeof Document
             : T extends "document/DocumentManager" ? typeof DocumentManager & EventDispatcher.DispatcherEvents
             : T extends "editor/CodeHintManager" ? typeof CodeHintManager
             : T extends "editor/Editor" ? typeof Editor
@@ -135,6 +138,7 @@ declare global {
             : T extends "search/QuickOpenHelper" ? typeof QuickOpenHelper
             : T extends "utils/AnimationUtils" ? typeof AnimationUtils
             : T extends "utils/AppInit" ? typeof AppInit
+            : T extends "utils/Async" ? typeof Async
             : T extends "utils/ColorUtils" ? typeof ColorUtils
             : T extends "utils/EventDispatcher" ? typeof EventDispatcher
             : T extends "utils/ExtensionUtils" ? typeof ExtensionUtils
