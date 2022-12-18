@@ -521,7 +521,7 @@ function _showEditor(document, pane, editorOptions) {
     if (!editor) {
         // Performance (see #4757) Chrome wastes time messing with selection
         // that will just be changed at end, so clear it for now
-        if (window.getSelection && window.getSelection()!.empty) {  // Chrome
+        if (window.getSelection && !!window.getSelection()!.empty) {  // Chrome
             window.getSelection()!.empty();
         }
 

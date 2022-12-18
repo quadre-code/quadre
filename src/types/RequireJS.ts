@@ -8,6 +8,7 @@ declare module "i18n!*" {
     export = text;
 }
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 interface RequireConfig {
     locale?: string;
 }

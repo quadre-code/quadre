@@ -117,6 +117,8 @@ define(function (require, exports, module) {
                 if (this.content) {
                     return Node.TEXT_NODE;
                 }
+
+                return undefined;
             }
         },
         childNodes: {

@@ -13,7 +13,7 @@ let httpPort: number = 0;
 let wsServer: WebSocket.Server | null = null;
 
 function initPort() {
-    return new Promise(function (resolve, reject) {
+    return new Promise<void>(function (resolve, reject) {
         portscanner.findAPortNotInUse(
             DEFAULT_PORT,
             DEFAULT_PORT + 1000,

@@ -37,6 +37,18 @@ module.exports = {
         "XMLHttpRequest": false
     },
     "overrides": [
+        // TypeScript
+        {
+            "files": [
+                "**/*.ts",
+                "**/*.tsx"
+            ],
+            "excludedFiles": "**/*.js",
+            "rules": {
+                "@typescript-eslint/naming-convention": "off",
+                "@typescript-eslint/no-shadow": "warn"
+            }
+        },
         // app/
         {
             "files": [ "app/**" ],
@@ -46,7 +58,7 @@ module.exports = {
         },
         // src/
         {
-            "files": [ 
+            "files": [
                 "src/**",
                 "!src/**/node/**",
                 "!src/languageTools/LanguageClient/**"
@@ -132,23 +144,32 @@ module.exports = {
                 "node": true
             }
         },
-        // Add incrementally
+        // Enable incrementally
         {
             "files": [
-                "src/command/**",
-                "src/document/**",
-                "src/extensions/default/CodeFolding/**/*.ts",
-                "src/extensions/default/TypeScriptTooling/**/*.ts",
-                "src/file/**",
-                "src/help/**",
-                "src/languageTools/ClientLoader.ts",
-                "src/languageTools/LanguageTools.ts",
-                "src/languageTools/PathConverters.ts",
-                "src/nls/**",
-                "src/search/**/*.ts",
+                "app/**",
+                "src/editor",
+                "src/extensibility",
+                "src/extensions/default",
+                "!src/extensions/default/CodeFolding/**/*.ts",
+                "!src/extensions/default/TypeScriptTooling/**/*.ts",
+                "src/features",
+                "src/filesystem",
+                "src/JSUtils",
+                "src/language",
+                "src/languageTools",
+                "!src/languageTools/ClientLoader.ts",
+                "!src/languageTools/LanguageTools.ts",
+                "!src/languageTools/PathConverters.ts",
+                "src/preferences",
+                "src/utils",
+                "src/view",
+                "src/widgets",
+                "src/brackets.ts",
+                "src/xorigin.ts",
             ],
             "rules": {
-                "@typescript-eslint/explicit-function-return-type": "error"
+                "@typescript-eslint/explicit-function-return-type": "off"
             }
         }
     ]
