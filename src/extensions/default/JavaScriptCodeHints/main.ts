@@ -22,273 +22,425 @@
  *
  */
 
-define(function (require, exports, module) {
-    "use strict";
+/// <amd-dependency path="module" name="module"/>
 
-    var _ = brackets.getModule("thirdparty/lodash");
+import type TSession = require ("JSUtils/Session");
+import type { StringMatcher } from "utils/StringMatch";
+import type { Token } from "codemirror";
 
-    var CodeHintManager           = brackets.getModule("editor/CodeHintManager"),
-        EditorManager             = brackets.getModule("editor/EditorManager"),
-        Commands                  = brackets.getModule("command/Commands"),
-        CommandManager            = brackets.getModule("command/CommandManager"),
-        LanguageManager           = brackets.getModule("language/LanguageManager"),
-        AppInit                   = brackets.getModule("utils/AppInit"),
-        ExtensionUtils            = brackets.getModule("utils/ExtensionUtils"),
-        StringMatch               = brackets.getModule("utils/StringMatch"),
-        ProjectManager            = brackets.getModule("project/ProjectManager"),
-        PreferencesManager        = brackets.getModule("preferences/PreferencesManager"),
-        Strings                   = brackets.getModule("strings"),
-        JSParameterHintsProvider  = require("./ParameterHintsProvider").JSParameterHintsProvider,
-        ParameterHintsManager     = brackets.getModule("features/ParameterHintsManager"),
-        HintUtils                 = brackets.getModule("JSUtils/HintUtils"),
-        ScopeManager              = brackets.getModule("JSUtils/ScopeManager"),
-        Session                   = brackets.getModule("JSUtils/Session"),
-        JumpToDefManager          = brackets.getModule("features/JumpToDefManager"),
-        Acorn                     = brackets.getModule("thirdparty/acorn/acorn");
+const _ = brackets.getModule("thirdparty/lodash");
 
-    var session            = null,  // object that encapsulates the current session state
-        cachedCursor       = null,  // last cursor of the current hinting session
-        cachedHints        = null,  // sorted hints for the current hinting session
-        cachedType         = null,  // describes the lookup type and the object context
-        cachedToken        = null,  // the token used in the current hinting session
-        matcher            = null,  // string matcher for hints
-        jsHintsEnabled     = true,  // preference setting to enable/disable the hint session
-        hintDetailsEnabled = true,  // preference setting to enable/disable hint type details
-        noHintsOnDot       = false, // preference setting to prevent hints on dot
-        ignoreChange;           // can ignore next "change" event if true;
+const CodeHintManager           = brackets.getModule("editor/CodeHintManager");
+const EditorManager             = brackets.getModule("editor/EditorManager");
+const Commands                  = brackets.getModule("command/Commands");
+const CommandManager            = brackets.getModule("command/CommandManager");
+const LanguageManager           = brackets.getModule("language/LanguageManager");
+const AppInit                   = brackets.getModule("utils/AppInit");
+const ExtensionUtils            = brackets.getModule("utils/ExtensionUtils");
+const StringMatch               = brackets.getModule("utils/StringMatch");
+const ProjectManager            = brackets.getModule("project/ProjectManager");
+const PreferencesManager        = brackets.getModule("preferences/PreferencesManager");
+const Strings                   = brackets.getModule("strings");
+import { JSParameterHintsProvider } from "ParameterHintsProvider";
+const ParameterHintsManager     = brackets.getModule("features/ParameterHintsManager");
+const HintUtils                 = brackets.getModule("JSUtils/HintUtils");
+const ScopeManager              = brackets.getModule("JSUtils/ScopeManager");
+const Session                   = brackets.getModule("JSUtils/Session");
+const JumpToDefManager          = brackets.getModule("features/JumpToDefManager");
+const Acorn                     = brackets.getModule("thirdparty/acorn/acorn");
 
-    // Languages that support inline JavaScript
-    var _inlineScriptLanguages = ["html", "php"],
-        phProvider = new JSParameterHintsProvider();
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+interface Config {
+    debug?: boolean;
+}
 
-    // Define the detectedExclusions which are files that have been detected to cause Tern to run out of control.
-    PreferencesManager.definePreference("jscodehints.detectedExclusions", "array", [], {
-        description: Strings.DESCRIPTION_DETECTED_EXCLUSIONS
+interface Cursor {
+    line: number;
+}
+
+interface Type {
+    property: boolean;
+    showFunctionType: boolean;
+    context: string;
+    functionCallPos: {
+        line: number;
+        ch: number;
+    };
+}
+
+let session = null as unknown as TSession;  // object that encapsulates the current session state
+let cachedCursor: Cursor | null = null;  // last cursor of the current hinting session
+let cachedHints        = null;  // sorted hints for the current hinting session
+let cachedType: Type | null = null;  // describes the lookup type and the object context
+let cachedToken: Token | null = null;  // the token used in the current hinting session
+let matcher: StringMatcher | null = null;  // string matcher for hints
+let jsHintsEnabled     = true;  // preference setting to enable/disable the hint session
+let hintDetailsEnabled = true;  // preference setting to enable/disable hint type details
+let noHintsOnDot       = false; // preference setting to prevent hints on dot
+let ignoreChange;           // can ignore next "change" event if true;
+
+// Languages that support inline JavaScript
+const _inlineScriptLanguages = ["html", "php"];
+const phProvider = new JSParameterHintsProvider();
+
+// Define the detectedExclusions which are files that have been detected to cause Tern to run out of control.
+PreferencesManager.definePreference("jscodehints.detectedExclusions", "array", [], {
+    description: Strings.DESCRIPTION_DETECTED_EXCLUSIONS
+});
+
+// This preference controls when Tern will time out when trying to understand files
+PreferencesManager.definePreference("jscodehints.inferenceTimeout", "number", 30000, {
+    description: Strings.DESCRIPTION_INFERENCE_TIMEOUT
+});
+
+// This preference controls whether to prevent hints from being displayed when dot is typed
+PreferencesManager.definePreference("jscodehints.noHintsOnDot", "boolean", false, {
+    description: Strings.DESCRIPTION_NO_HINTS_ON_DOT
+});
+
+// This preference controls whether to create a session and process all JS files or not.
+PreferencesManager.definePreference("codehint.JSHints", "boolean", true, {
+    description: Strings.DESCRIPTION_JS_HINTS
+});
+
+// This preference controls whether detailed type metadata will be displayed within hint list. Defaults to true.
+PreferencesManager.definePreference("jscodehints.typedetails", "boolean", true, {
+    description: Strings.DESCRIPTION_JS_HINTS_TYPE_DETAILS
+});
+
+/**
+ * Check whether any of code hints preferences for JS Code Hints is disabled
+ * @return {boolean} enabled/disabled
+ */
+function _areHintsEnabled() {
+    return (PreferencesManager.get("codehint.JSHints") !== false) &&
+        (PreferencesManager.get("showCodeHints") !== false);
+}
+
+PreferencesManager.on("change", "codehint.JSHints", function () {
+    jsHintsEnabled = _areHintsEnabled();
+});
+
+PreferencesManager.on("change", "showCodeHints", function () {
+    jsHintsEnabled = _areHintsEnabled();
+});
+
+PreferencesManager.on("change", "jscodehints.noHintsOnDot", function () {
+    noHintsOnDot = !!PreferencesManager.get("jscodehints.noHintsOnDot");
+});
+
+PreferencesManager.on("change", "jscodehints.typedetails", function () {
+    hintDetailsEnabled = PreferencesManager.get("jscodehints.typedetails");
+});
+
+/**
+ * Sets the configuration, generally for testing/debugging use.
+ * Configuration keys are merged into the current configuration.
+ * The Tern worker is automatically updated to the new config as well.
+ *
+ * * debug: Set to true if you want verbose logging
+ * * noReset: Set to true if you don't want the worker to restart periodically
+ *
+ * @param {Object} configUpdate keys/values to merge into the config
+ */
+function setConfig(configUpdate) {
+    const config = setConfig.config;
+    Object.keys(configUpdate).forEach(function (key) {
+        config[key] = configUpdate[key];
     });
 
-    // This preference controls when Tern will time out when trying to understand files
-    PreferencesManager.definePreference("jscodehints.inferenceTimeout", "number", 30000, {
-        description: Strings.DESCRIPTION_INFERENCE_TIMEOUT
-    });
+    ScopeManager._setConfig(configUpdate);
+}
 
-    // This preference controls whether to prevent hints from being displayed when dot is typed
-    PreferencesManager.definePreference("jscodehints.noHintsOnDot", "boolean", false, {
-        description: Strings.DESCRIPTION_NO_HINTS_ON_DOT
-    });
+/** @type Config */
+setConfig.config = {};
 
-    // This preference controls whether to create a session and process all JS files or not.
-    PreferencesManager.definePreference("codehint.JSHints", "boolean", true, {
-        description: Strings.DESCRIPTION_JS_HINTS
-    });
+/**
+ *  Get the value of current session.
+ *  Used for unit testing.
+ * @return {Session} - the current session.
+ */
+// Export for unit testing
+export function getSession() {
+    return session;
+}
 
-    // This preference controls whether detailed type metadata will be displayed within hint list. Defaults to true.
-    PreferencesManager.definePreference("jscodehints.typedetails", "boolean", true, {
-        description: Strings.DESCRIPTION_JS_HINTS_TYPE_DETAILS
-    });
+// Export for unit testing
+export let initializeSession;
+export let jsHintProvider;
+export let handleJumpToDefinition;
 
-    /**
-     * Check whether any of code hints preferences for JS Code Hints is disabled
-     * @return {boolean} enabled/disabled
-     */
-    function _areHintsEnabled() {
-        return (PreferencesManager.get("codehint.JSHints") !== false) &&
-            (PreferencesManager.get("showCodeHints") !== false);
+/**
+ * Creates a hint response object. Filters the hint list using the query
+ * string, formats the hints for display, and returns a hint response
+ * object according to the CodeHintManager's API for code hint providers.
+ *
+ * @param {Array.<Object>} hints - hints to be included in the response
+ * @param {string} query - querystring with which to filter the hint list
+ * @param {Object} type - the type of query, property vs. identifier
+ * @return {Object} - hint response as defined by the CodeHintManager API
+ */
+function getHintResponse(hints, query, type) {
+    let formattedHints;
+
+    if (setConfig.config.debug) {
+        console.debug("Hints", _.pluck(hints, "label"));
     }
 
-    PreferencesManager.on("change", "codehint.JSHints", function () {
-        jsHintsEnabled = _areHintsEnabled();
-    });
+    function formatTypeDataForToken($hintObj, token) {
 
-    PreferencesManager.on("change", "showCodeHints", function () {
-        jsHintsEnabled = _areHintsEnabled();
-    });
+        if (!hintDetailsEnabled) {
+            return;
+        }
 
-    PreferencesManager.on("change", "jscodehints.noHintsOnDot", function () {
-        noHintsOnDot = !!PreferencesManager.get("jscodehints.noHintsOnDot");
-    });
+        $hintObj.addClass("brackets-js-hints-with-type-details");
 
-    PreferencesManager.on("change", "jscodehints.typedetails", function () {
-        hintDetailsEnabled = PreferencesManager.get("jscodehints.typedetails");
-    });
+        (function _appendLink() {
+            if (token.url) {
+                $("<a></a>").appendTo($hintObj).addClass("jshint-link").attr("href", token.url).on("click", function (event) {
+                    event.stopImmediatePropagation();
+                    event.stopPropagation();
+                });
+            }
+        }());
+
+        if (token.type) {
+            if (token.type.trim() !== "?") {
+                if (token.type.length < 30) {
+                    $("<span>" + token.type.split("->").join(":").toString().trim() + "</span>").appendTo($hintObj).addClass("brackets-js-hints-type-details");
+                }
+                $("<span>" + token.type.split("->").join(":").toString().trim() + "</span>").appendTo($hintObj).addClass("jshint-description");
+            }
+        } else {
+            if (token.keyword) {
+                $("<span>keyword</span>").appendTo($hintObj).addClass("brackets-js-hints-keyword");
+            }
+        }
+
+        if (token.doc) {
+            $hintObj.attr("title", token.doc);
+            $("<span></span>").text(token.doc.trim()).appendTo($hintObj).addClass("jshint-jsdoc");
+        }
+    }
+
 
     /**
-     * Sets the configuration, generally for testing/debugging use.
-     * Configuration keys are merged into the current configuration.
-     * The Tern worker is automatically updated to the new config as well.
+     * Returns a formatted list of hints with the query substring
+     * highlighted.
      *
-     * * debug: Set to true if you want verbose logging
-     * * noReset: Set to true if you don't want the worker to restart periodically
-     *
-     * @param {Object} configUpdate keys/values to merge into the config
+     * @param {Array.<Object>} hints - the list of hints to format
+     * @param {string} query - querystring used for highlighting matched
+     *      poritions of each hint
+     * @return {jQuery.Deferred|{
+     *              hints: Array.<string|jQueryObject>,
+     *              match: string,
+     *              selectInitial: boolean,
+     *              handleWideResults: boolean}}
      */
-    function setConfig(configUpdate) {
-        var config = setConfig.config;
-        Object.keys(configUpdate).forEach(function (key) {
-            config[key] = configUpdate[key];
+    function formatHints(hints, query) {
+        return hints.map(function (token) {
+            const $hintObj    = $("<span>").addClass("brackets-js-hints");
+
+            // level indicates either variable scope or property confidence
+            if (!type.property && !token.builtin && token.depth !== undefined) {
+                switch (token.depth) {
+                    case 0:
+                        $hintObj.addClass("priority-high");
+                        break;
+                    case 1:
+                        $hintObj.addClass("priority-medium");
+                        break;
+                    case 2:
+                        $hintObj.addClass("priority-low");
+                        break;
+                    default:
+                        $hintObj.addClass("priority-lowest");
+                        break;
+                }
+            }
+
+            if (token.guess) {
+                $hintObj.addClass("guess-hint");
+            }
+
+            // is the token a keyword?
+            if (token.keyword) {
+                $hintObj.addClass("keyword-hint");
+            }
+
+            if (token.literal) {
+                $hintObj.addClass("literal-hint");
+            }
+
+            // highlight the matched portion of each hint
+            if (token.stringRanges) {
+                token.stringRanges.forEach(function (item) {
+                    if (item.matched) {
+                        $hintObj.append($("<span>")
+                            .append(_.escape(item.text))
+                            .addClass("matched-hint"));
+                    } else {
+                        $hintObj.append(_.escape(item.text));
+                    }
+                });
+            } else {
+                $hintObj.text(token.value);
+            }
+
+            $hintObj.data("token", token);
+
+            formatTypeDataForToken($hintObj, token);
+
+            return $hintObj;
+        });
+    }
+
+    // trim leading and trailing string literal delimiters from the query
+    const trimmedQuery = _.trim(query, HintUtils.SINGLE_QUOTE + HintUtils.DOUBLE_QUOTE);
+
+    if (hints) {
+        formattedHints = formatHints(hints, trimmedQuery);
+    } else {
+        formattedHints = [];
+    }
+
+    return {
+        hints: formattedHints,
+        match: null, // the CodeHintManager should not format the results
+        selectInitial: true,
+        handleWideResults: hints.handleWideResults
+    };
+}
+
+/**
+ *  Cache the hints and the hint's context.
+ *
+ *  @param {Array.<string>} hints - array of hints
+ *  @param {{line:number, ch:number}} cursor - the location where the hints
+ *  were created.
+ * @param {{property: boolean,
+ *          showFunctionType:boolean,
+ *          context: string,
+ *          functionCallPos: {line:number, ch:number}}} type -
+ *  type information about the hints
+ *  @param {Object} token - CodeMirror token
+ */
+function setCachedHintContext(hints, cursor, type, token) {
+    cachedHints = hints;
+    cachedCursor = cursor;
+    cachedType = type;
+    cachedToken = token;
+}
+
+/**
+ *  Reset cached hint context.
+ */
+function resetCachedHintContext() {
+    cachedHints = null;
+    cachedCursor = null;
+    cachedType = null;
+    cachedToken =  null;
+}
+
+/**
+ * @return {boolean} - true if the document supports inline JavaScript
+ */
+function isInlineScriptSupported(document) {
+    const language = LanguageManager.getLanguageForPath(document.file.fullPath).getId();
+    return _inlineScriptLanguages.indexOf(language) !== -1;
+}
+
+function isInlineScript(editor) {
+    return editor.getModeForSelection() === "javascript";
+}
+
+/**
+ *  Create a new StringMatcher instance, if needed.
+ *
+ * @return {StringMatcher} - a StringMatcher instance.
+ */
+function getStringMatcher() {
+    if (!matcher) {
+        matcher = new StringMatch.StringMatcher({
+            preferPrefixMatches: true
+        });
+    }
+
+    return matcher;
+}
+
+/**
+ *  Check if a hint response is pending.
+ *
+ * @param {jQuery.Deferred} deferredHints - deferred hint response
+ * @return {boolean} - true if deferred hints are pending, false otherwise.
+ */
+function hintsArePending(deferredHints) {
+    return (deferredHints && !deferredHints.hasOwnProperty("hints") &&
+        deferredHints.state() === "pending");
+}
+
+/**
+ *  Common code to get the session hints. Will get guesses if there were
+ *  no completions for the query.
+ *
+ * @param {string} query - user text to search hints with
+ *  @param {{line:number, ch:number}} cursor - the location where the hints
+ *  were created.
+ * @param {{property: boolean,
+ *          showFunctionType:boolean,
+ *          context: string,
+ *          functionCallPos: {line:number, ch:number}}} type -
+ *  type information about the hints
+ *  @param {Object} token - CodeMirror token
+ * @param {jQuery.Deferred=} $deferredHints - existing Deferred we need to
+ * resolve (optional). If not supplied a new Deferred will be created if
+ * needed.
+ * @return {Object + jQuery.Deferred} - hint response (immediate or
+ *     deferred) as defined by the CodeHintManager API
+ */
+function getSessionHints(query, cursor, type, token, $deferredHints?) {
+    let hintResults = session.getHints(query, getStringMatcher());
+    if (hintResults.needGuesses) {
+        const guessesResponse = ScopeManager.requestGuesses(session,
+            session.editor.document);
+
+        if (!$deferredHints) {
+            $deferredHints = $.Deferred();
+        }
+
+        guessesResponse.done(function () {
+            if (hintsArePending($deferredHints)) {
+                hintResults = session.getHints(query, getStringMatcher());
+                setCachedHintContext(hintResults.hints, cursor, type, token);
+                const hintResponse = getHintResponse(cachedHints, query, type);
+                $deferredHints.resolveWith(null, [hintResponse]);
+            }
+        }).fail(function () {
+            if (hintsArePending($deferredHints)) {
+                $deferredHints.reject();
+            }
         });
 
-        ScopeManager._setConfig(configUpdate);
+        return $deferredHints;
     }
 
-    setConfig.config = {};
-
-    /**
-     *  Get the value of current session.
-     *  Used for unit testing.
-     * @return {Session} - the current session.
-     */
-    function getSession() {
-        return session;
+    if (hintsArePending($deferredHints)) {
+        setCachedHintContext(hintResults.hints, cursor, type, token);
+        const hintResponse    = getHintResponse(cachedHints, query, type);
+        $deferredHints.resolveWith(null, [hintResponse]);
+        return null;
     }
 
-    /**
-     * Creates a hint response object. Filters the hint list using the query
-     * string, formats the hints for display, and returns a hint response
-     * object according to the CodeHintManager's API for code hint providers.
-     *
-     * @param {Array.<Object>} hints - hints to be included in the response
-     * @param {string} query - querystring with which to filter the hint list
-     * @param {Object} type - the type of query, property vs. identifier
-     * @return {Object} - hint response as defined by the CodeHintManager API
-     */
-    function getHintResponse(hints, query, type) {
+    setCachedHintContext(hintResults.hints, cursor, type, token);
+    return getHintResponse(cachedHints, query, type);
+}
 
-        var trimmedQuery,
-            formattedHints;
-
-        if (setConfig.config.debug) {
-            console.debug("Hints", _.pluck(hints, "label"));
-        }
-
-        function formatTypeDataForToken($hintObj, token) {
-
-            if (!hintDetailsEnabled) {
-                return;
-            }
-
-            $hintObj.addClass("brackets-js-hints-with-type-details");
-
-            (function _appendLink() {
-                if (token.url) {
-                    $("<a></a>").appendTo($hintObj).addClass("jshint-link").attr("href", token.url).on("click", function (event) {
-                        event.stopImmediatePropagation();
-                        event.stopPropagation();
-                    });
-                }
-            }());
-
-            if (token.type) {
-                if (token.type.trim() !== "?") {
-                    if (token.type.length < 30) {
-                        $("<span>" + token.type.split("->").join(":").toString().trim() + "</span>").appendTo($hintObj).addClass("brackets-js-hints-type-details");
-                    }
-                    $("<span>" + token.type.split("->").join(":").toString().trim() + "</span>").appendTo($hintObj).addClass("jshint-description");
-                }
-            } else {
-                if (token.keyword) {
-                    $("<span>keyword</span>").appendTo($hintObj).addClass("brackets-js-hints-keyword");
-                }
-            }
-
-            if (token.doc) {
-                $hintObj.attr("title", token.doc);
-                $("<span></span>").text(token.doc.trim()).appendTo($hintObj).addClass("jshint-jsdoc");
-            }
-        }
-
-
-        /*
-         * Returns a formatted list of hints with the query substring
-         * highlighted.
-         *
-         * @param {Array.<Object>} hints - the list of hints to format
-         * @param {string} query - querystring used for highlighting matched
-         *      poritions of each hint
-         * @return {jQuery.Deferred|{
-         *              hints: Array.<string|jQueryObject>,
-         *              match: string,
-         *              selectInitial: boolean,
-         *              handleWideResults: boolean}}
-         */
-        function formatHints(hints, query) {
-            return hints.map(function (token) {
-                var $hintObj    = $("<span>").addClass("brackets-js-hints");
-
-                // level indicates either variable scope or property confidence
-                if (!type.property && !token.builtin && token.depth !== undefined) {
-                    switch (token.depth) {
-                        case 0:
-                            $hintObj.addClass("priority-high");
-                            break;
-                        case 1:
-                            $hintObj.addClass("priority-medium");
-                            break;
-                        case 2:
-                            $hintObj.addClass("priority-low");
-                            break;
-                        default:
-                            $hintObj.addClass("priority-lowest");
-                            break;
-                    }
-                }
-
-                if (token.guess) {
-                    $hintObj.addClass("guess-hint");
-                }
-
-                // is the token a keyword?
-                if (token.keyword) {
-                    $hintObj.addClass("keyword-hint");
-                }
-
-                if (token.literal) {
-                    $hintObj.addClass("literal-hint");
-                }
-
-                // highlight the matched portion of each hint
-                if (token.stringRanges) {
-                    token.stringRanges.forEach(function (item) {
-                        if (item.matched) {
-                            $hintObj.append($("<span>")
-                                .append(_.escape(item.text))
-                                .addClass("matched-hint"));
-                        } else {
-                            $hintObj.append(_.escape(item.text));
-                        }
-                    });
-                } else {
-                    $hintObj.text(token.value);
-                }
-
-                $hintObj.data("token", token);
-
-                formatTypeDataForToken($hintObj, token);
-
-                return $hintObj;
-            });
-        }
-
-        // trim leading and trailing string literal delimiters from the query
-        trimmedQuery = _.trim(query, HintUtils.SINGLE_QUOTE + HintUtils.DOUBLE_QUOTE);
-
-        if (hints) {
-            formattedHints = formatHints(hints, trimmedQuery);
-        } else {
-            formattedHints = [];
-        }
-
-        return {
-            hints: formattedHints,
-            match: null, // the CodeHintManager should not format the results
-            selectInitial: true,
-            handleWideResults: hints.handleWideResults
-        };
-    }
-
+class JSHints {
     /**
      * @constructor
      */
-    function JSHints() {
+    constructor() {
         // Do nothing.
     }
 
@@ -298,9 +450,9 @@ define(function (require, exports, module) {
      * @param {Session} session - the active hinting session
      * @return {boolean} - true if the hints should be recalculated
      */
-    JSHints.prototype.needNewHints = function (session) {
-        var cursor  = session.getCursor(),
-            type    = session.getType();
+    public needNewHints(session) {
+        const cursor  = session.getCursor();
+        const type    = session.getType();
 
         return !cachedHints || !cachedCursor || !cachedType ||
             cachedCursor.line !== cursor.line ||
@@ -309,36 +461,6 @@ define(function (require, exports, module) {
             type.showFunctionType !== cachedType.showFunctionType ||
             (type.functionCallPos && cachedType.functionCallPos &&
             type.functionCallPos.ch !== cachedType.functionCallPos.ch);
-    };
-
-    /**
-     *  Cache the hints and the hint's context.
-     *
-     *  @param {Array.<string>} hints - array of hints
-     *  @param {{line:number, ch:number}} cursor - the location where the hints
-     *  were created.
-     * @param {{property: boolean,
-                showFunctionType:boolean,
-                context: string,
-                functionCallPos: {line:number, ch:number}}} type -
-     *  type information about the hints
-     *  @param {Object} token - CodeMirror token
-     */
-    function setCachedHintContext(hints, cursor, type, token) {
-        cachedHints = hints;
-        cachedCursor = cursor;
-        cachedType = type;
-        cachedToken = token;
-    }
-
-    /**
-     *  Reset cached hint context.
-     */
-    function resetCachedHintContext() {
-        cachedHints = null;
-        cachedCursor = null;
-        cachedType = null;
-        cachedToken =  null;
     }
 
     /**
@@ -347,12 +469,12 @@ define(function (require, exports, module) {
      * @param {Session} session - the active hinting session
      * @return {boolean} - true if the hints popup should be closed.
      */
-    JSHints.prototype.shouldCloseHints = function (session) {
+    public shouldCloseHints(session: TSession) {
 
         // close if the token className has changed then close the hints.
-        var cursor = session.getCursor(),
-            token = session.getToken(cursor),
-            lastToken = cachedToken;
+        const cursor = session.getCursor();
+        let token = session.getToken(cursor);
+        let lastToken = cachedToken;
 
         // if the line has changed, then close the hints
         if (!cachedCursor || cursor.line !== cachedCursor.line) {
@@ -382,101 +504,6 @@ define(function (require, exports, module) {
         }
 
         return lastToken.string.indexOf(token.string) !== 0;
-    };
-
-    /**
-     * @return {boolean} - true if the document supports inline JavaScript
-     */
-    function isInlineScriptSupported(document) {
-        var language = LanguageManager.getLanguageForPath(document.file.fullPath).getId();
-        return _inlineScriptLanguages.indexOf(language) !== -1;
-    }
-
-    function isInlineScript(editor) {
-        return editor.getModeForSelection() === "javascript";
-    }
-
-    /**
-     *  Create a new StringMatcher instance, if needed.
-     *
-     * @return {StringMatcher} - a StringMatcher instance.
-     */
-    function getStringMatcher() {
-        if (!matcher) {
-            matcher = new StringMatch.StringMatcher({
-                preferPrefixMatches: true
-            });
-        }
-
-        return matcher;
-    }
-
-    /**
-     *  Check if a hint response is pending.
-     *
-     * @param {jQuery.Deferred} deferredHints - deferred hint response
-     * @return {boolean} - true if deferred hints are pending, false otherwise.
-     */
-    function hintsArePending(deferredHints) {
-        return (deferredHints && !deferredHints.hasOwnProperty("hints") &&
-            deferredHints.state() === "pending");
-    }
-
-    /**
-     *  Common code to get the session hints. Will get guesses if there were
-     *  no completions for the query.
-     *
-     * @param {string} query - user text to search hints with
-     *  @param {{line:number, ch:number}} cursor - the location where the hints
-     *  were created.
-     * @param {{property: boolean,
-                 showFunctionType:boolean,
-                 context: string,
-                 functionCallPos: {line:number, ch:number}}} type -
-     *  type information about the hints
-     *  @param {Object} token - CodeMirror token
-     * @param {jQuery.Deferred=} $deferredHints - existing Deferred we need to
-     * resolve (optional). If not supplied a new Deferred will be created if
-     * needed.
-     * @return {Object + jQuery.Deferred} - hint response (immediate or
-     *     deferred) as defined by the CodeHintManager API
-     */
-    function getSessionHints(query, cursor, type, token, $deferredHints) {
-
-        var hintResults = session.getHints(query, getStringMatcher());
-        if (hintResults.needGuesses) {
-            var guessesResponse = ScopeManager.requestGuesses(session,
-                session.editor.document);
-
-            if (!$deferredHints) {
-                $deferredHints = $.Deferred();
-            }
-
-            guessesResponse.done(function () {
-                if (hintsArePending($deferredHints)) {
-                    hintResults = session.getHints(query, getStringMatcher());
-                    setCachedHintContext(hintResults.hints, cursor, type, token);
-                    var hintResponse = getHintResponse(cachedHints, query, type);
-                    $deferredHints.resolveWith(null, [hintResponse]);
-                }
-            }).fail(function () {
-                if (hintsArePending($deferredHints)) {
-                    $deferredHints.reject();
-                }
-            });
-
-            return $deferredHints;
-        }
-
-        if (hintsArePending($deferredHints)) {
-            setCachedHintContext(hintResults.hints, cursor, type, token);
-            var hintResponse    = getHintResponse(cachedHints, query, type);
-            $deferredHints.resolveWith(null, [hintResponse]);
-            return null;
-        }
-
-        setCachedHintContext(hintResults.hints, cursor, type, token);
-        return getHintResponse(cachedHints, query, type);
     }
 
     /**
@@ -486,16 +513,16 @@ define(function (require, exports, module) {
      * @param {string} key - charCode of the last pressed key
      * @return {boolean} - can the provider provide hints for this session?
      */
-    JSHints.prototype.hasHints = function (editor, key) {
+    public hasHints(editor, key) {
         if (session && HintUtils.hintableKey(key, !noHintsOnDot)) {
-
             if (isInlineScriptSupported(session.editor.document)) {
                 if (!isInlineScript(session.editor)) {
                     return false;
                 }
             }
-            var cursor  = session.getCursor(),
-                token   = session.getToken(cursor);
+
+            const cursor  = session.getCursor();
+            const token   = session.getToken(cursor);
 
             // don't autocomplete within strings or comments, etc.
             if (token && HintUtils.hintable(token)) {
@@ -511,23 +538,23 @@ define(function (require, exports, module) {
             }
         }
         return false;
-    };
+    }
 
     /**
-      * Return a list of hints, possibly deferred, for the current editor
-      * context
-      *
-      * @param {string} key - charCode of the last pressed key
-      * @return {Object + jQuery.Deferred} - hint response (immediate or
-      *     deferred) as defined by the CodeHintManager API
-      */
-    JSHints.prototype.getHints = function (key) {
-        var cursor = session.getCursor(),
-            token = session.getToken(cursor);
+     * Return a list of hints, possibly deferred, for the current editor
+     * context
+     *
+     * @param {string} key - charCode of the last pressed key
+     * @return {Object + jQuery.Deferred} - hint response (immediate or
+     *     deferred) as defined by the CodeHintManager API
+     */
+    public getHints(key) {
+        const cursor = session.getCursor();
+        const token = session.getToken(cursor);
 
         if (token && HintUtils.hintableKey(key, !noHintsOnDot) && HintUtils.hintable(token)) {
-            var type    = session.getType(),
-                query   = session.getQuery();
+            const type    = session.getType();
+            const query   = session.getQuery();
 
             // If the hint context is changed and the hints are open, then
             // close the hints by returning null;
@@ -543,9 +570,9 @@ define(function (require, exports, module) {
                     ignoreChange = true;
                 }
 
-                var scopeResponse   = ScopeManager.requestHints(session, session.editor.document),
-                    $deferredHints  = $.Deferred(),
-                    scopeSession    = session;
+                const scopeResponse   = ScopeManager.requestHints(session, session.editor.document);
+                const $deferredHints  = $.Deferred();
+                let scopeSession: TSession | null = session;
 
                 scopeResponse.done(function () {
                     if (hintsArePending($deferredHints)) {
@@ -573,7 +600,7 @@ define(function (require, exports, module) {
         }
 
         return null;
-    };
+    }
 
     /**
      * Inserts the hint selected by the user into the current editor.
@@ -582,14 +609,14 @@ define(function (require, exports, module) {
      * @return {boolean} - should a new hinting session be requested
      *      immediately after insertion?
      */
-    JSHints.prototype.insertHint = function ($hintObj) {
-        var hint        = $hintObj.data("token"),
-            completion  = hint.value,
-            cursor      = session.getCursor(),
-            query       = session.getQuery(),
-            start       = {line: cursor.line, ch: cursor.ch - query.length},
-            end         = {line: cursor.line, ch: cursor.ch},
-            invalidPropertyName = false;
+    public insertHint($hintObj) {
+        const hint        = $hintObj.data("token");
+        let completion  = hint.value;
+        const cursor      = session.getCursor();
+        const query       = session.getQuery();
+        const start       = {line: cursor.line, ch: cursor.ch - query.length};
+        const end         = {line: cursor.line, ch: cursor.ch};
+        let invalidPropertyName = false;
 
         if (session.getType().property) {
             // if we're inserting a property name, we need to make sure the
@@ -597,8 +624,8 @@ define(function (require, exports, module) {
             // to check this, run the hint through Acorns tokenizer
             // it should result in one token, and that token should either be
             // a 'name' or a 'keyword', as javascript allows keywords as property names
-            var tokenizer = Acorn.tokenizer(completion);
-            var currentToken = tokenizer.getToken();
+            const tokenizer = Acorn.tokenizer(completion);
+            let currentToken = tokenizer.getToken();
 
             // the name is invalid if the hint is not a 'name' or 'keyword' token
             if (currentToken.type !== Acorn.tokTypes.name && !currentToken.type.keyword) {
@@ -615,7 +642,7 @@ define(function (require, exports, module) {
             if (invalidPropertyName) {
                 // need to walk back to the '.' and replace
                 // with '["<hint>"]
-                var dotCursor = session.findPreviousDot();
+                const dotCursor = session.findPreviousDot();
                 if (dotCursor) {
                     completion = "[\"" + completion + "\"]";
                     start.line = dotCursor.line;
@@ -633,131 +660,129 @@ define(function (require, exports, module) {
 
         // Return false to indicate that another hinting session is not needed
         return false;
+    }
+}
+
+// load the extension
+AppInit.appReady(function () {
+
+    /*
+     * When the editor is changed, reset the hinting session and cached
+     * information, and reject any pending deferred requests.
+     *
+     * @param {!Editor} editor - editor context to be initialized.
+     * @param {?Editor} previousEditor - the previous editor.
+     */
+    initializeSession = function (editor, previousEditor?) {
+        session = new Session(editor);
+        ScopeManager.handleEditorChange(session, editor.document,
+            previousEditor ? previousEditor.document : null);
+        phProvider.setSession(session);
+        cachedHints = null;
     };
 
-    // load the extension
-    AppInit.appReady(function () {
+    /*
+     * Connects to the given editor, creating a new Session & adding listeners
+     *
+     * @param {?Editor} editor - editor context on which to listen for
+     *      changes. If null, 'session' is cleared.
+     * @param {?Editor} previousEditor - the previous editor
+     */
+    function installEditorListeners(editor, previousEditor?) {
+        // always clean up cached scope and hint info
+        resetCachedHintContext();
 
-        /*
-         * When the editor is changed, reset the hinting session and cached
-         * information, and reject any pending deferred requests.
-         *
-         * @param {!Editor} editor - editor context to be initialized.
-         * @param {?Editor} previousEditor - the previous editor.
-         */
-        function initializeSession(editor, previousEditor) {
-            session = new Session(editor);
-            ScopeManager.handleEditorChange(session, editor.document,
-                previousEditor ? previousEditor.document : null);
-            phProvider.setSession(session);
-            cachedHints = null;
+        if (!jsHintsEnabled) {
+            return;
         }
 
-        /*
-         * Connects to the given editor, creating a new Session & adding listeners
-         *
-         * @param {?Editor} editor - editor context on which to listen for
-         *      changes. If null, 'session' is cleared.
-         * @param {?Editor} previousEditor - the previous editor
-         */
-        function installEditorListeners(editor, previousEditor) {
-            // always clean up cached scope and hint info
-            resetCachedHintContext();
+        if (editor && HintUtils.isSupportedLanguage(LanguageManager.getLanguageForPath(editor.document.file.fullPath).getId())) {
+            initializeSession(editor, previousEditor);
+            editor
+                .on(HintUtils.eventName("change"), function (event, editor, changeList) {
+                    if (!ignoreChange) {
+                        ScopeManager.handleFileChange(changeList);
+                    }
+                    ignoreChange = false;
+                });
+        } else {
+            (session as any) = null;
+        }
+    }
 
-            if (!jsHintsEnabled) {
-                return;
-            }
+    /*
+     * Uninstall editor change listeners
+     *
+     * @param {Editor} editor - editor context on which to stop listening
+     *      for changes
+     */
+    function uninstallEditorListeners(editor) {
+        if (editor) {
+            editor.off(HintUtils.eventName("change"));
+        }
+    }
 
-            if (editor && HintUtils.isSupportedLanguage(LanguageManager.getLanguageForPath(editor.document.file.fullPath).getId())) {
-                initializeSession(editor, previousEditor);
-                editor
-                    .on(HintUtils.eventName("change"), function (event, editor, changeList) {
-                        if (!ignoreChange) {
-                            ScopeManager.handleFileChange(changeList);
-                        }
-                        ignoreChange = false;
-                    });
-            } else {
-                session = null;
-            }
+    /*
+     * Handle the activeEditorChange event fired by EditorManager.
+     * Uninstalls the change listener on the previous editor
+     * and installs a change listener on the new editor.
+     *
+     * @param {Event} event - editor change event (ignored)
+     * @param {Editor} current - the new current editor context
+     * @param {Editor} previous - the previous editor context
+     */
+    function handleActiveEditorChange(event, current, previous) {
+        // Uninstall "languageChanged" event listeners on previous editor's document & put them on current editor's doc
+        if (previous) {
+            previous.document
+                .off(HintUtils.eventName("languageChanged"));
+        }
+        if (current) {
+            current.document
+                .on(HintUtils.eventName("languageChanged"), function () {
+                    // If current doc's language changed, reset our state by treating it as if the user switched to a
+                    // different document altogether
+                    uninstallEditorListeners(current);
+                    installEditorListeners(current);
+                });
         }
 
-        /*
-         * Uninstall editor change listeners
-         *
-         * @param {Editor} editor - editor context on which to stop listening
-         *      for changes
-         */
-        function uninstallEditorListeners(editor) {
-            if (editor) {
-                editor.off(HintUtils.eventName("change"));
-            }
-        }
+        uninstallEditorListeners(previous);
+        installEditorListeners(current, previous);
+    }
 
-        /*
-         * Handle the activeEditorChange event fired by EditorManager.
-         * Uninstalls the change listener on the previous editor
-         * and installs a change listener on the new editor.
-         *
-         * @param {Event} event - editor change event (ignored)
-         * @param {Editor} current - the new current editor context
-         * @param {Editor} previous - the previous editor context
-         */
-        function handleActiveEditorChange(event, current, previous) {
-            // Uninstall "languageChanged" event listeners on previous editor's document & put them on current editor's doc
-            if (previous) {
-                previous.document
-                    .off(HintUtils.eventName("languageChanged"));
-            }
-            if (current) {
-                current.document
-                    .on(HintUtils.eventName("languageChanged"), function () {
-                        // If current doc's language changed, reset our state by treating it as if the user switched to a
-                        // different document altogether
-                        uninstallEditorListeners(current);
-                        installEditorListeners(current);
-                    });
-            }
+    // @ts-ignore
+    function setJumpPosition(curPos) { // eslint-disable-line @typescript-eslint/no-unused-vars
+        EditorManager.getCurrentFullEditor().setCursorPos(curPos.line, curPos.ch, true);
+    }
 
-            uninstallEditorListeners(previous);
-            installEditorListeners(current, previous);
-        }
-
-        // eslint-disable-next-line no-unused-vars
-        function setJumpPosition(curPos) {
-            EditorManager.getCurrentFullEditor().setCursorPos(curPos.line, curPos.ch, true);
-        }
-
-        function JSJumpToDefProvider() {
+    class JSJumpToDefProvider {
+        constructor() {
             // Do nothing
         }
 
-        JSJumpToDefProvider.prototype.canJumpToDef = function (editor, implicitChar) {
+        public canJumpToDef(editor, implicitChar) {
             return true;
-        };
+        }
 
         /**
          * Method to handle jump to definition feature.
          */
-        JSJumpToDefProvider.prototype.doJumpToDef = function () {
-            var offset,
-                handleJumpResponse;
-
-
+        public doJumpToDef() {
             // Only provide jump-to-definition results when cursor is in JavaScript content
             if (!session || session.editor.getModeForSelection() !== "javascript") {
                 return null;
             }
 
-            var result = new $.Deferred();
+            const result = $.Deferred();
 
             /**
              * Make a jump-to-def request based on the session and offset passed in.
              * @param {Session} session - the session
              * @param {number} offset - the offset of where to jump from
              */
-            function requestJumpToDef(session, offset) {
-                var response = ScopeManager.requestJumptoDef(session, session.editor.document, offset);
+            function requestJumpToDef(session: TSession, offset) {
+                const response = ScopeManager.requestJumptoDef(session, session.editor.document, offset);
 
                 if (response.hasOwnProperty("promise")) {
                     response.promise.done(handleJumpResponse).fail(function () {
@@ -765,7 +790,6 @@ define(function (require, exports, module) {
                     });
                 }
             }
-
 
             /**
              * Sets the selection to move the cursor to the result position.
@@ -797,7 +821,7 @@ define(function (require, exports, module) {
                     if (token.string === ".") {
                         return true;
                     }
-                    var type = token.type;
+                    const type = token.type;
                     if (type === "variable-2" || type === "variable" || type === "property") {
                         return true;
                     }
@@ -805,15 +829,15 @@ define(function (require, exports, module) {
                     return false;
                 }
 
-                var madeNewRequest = false;
+                let madeNewRequest = false;
 
                 if (isFunction) {
                     // When jumping to function defs, follow the chain back
                     // to get to the original function def
-                    var cursor = {line: end.line, ch: end.ch},
-                        prev = session._getPreviousToken(cursor),
-                        next,
-                        offset;
+                    let cursor = {line: end.line, ch: end.ch};
+                    const prev = session._getPreviousToken(cursor);
+                    let next;
+                    let offset;
 
                     // see if the selection is preceded by a '.', indicating we're in a member expr
                     if (prev.string === ".") {
@@ -849,11 +873,10 @@ define(function (require, exports, module) {
              * will open the appropriate file, and set the selection based
              * on the response.
              */
-            handleJumpResponse = function (jumpResp) {
-
+            function handleJumpResponse(jumpResp) {
                 if (jumpResp.resultFile) {
                     if (jumpResp.resultFile !== jumpResp.file) {
-                        var resolvedPath = ScopeManager.getResolvedPath(jumpResp.resultFile);
+                        const resolvedPath = ScopeManager.getResolvedPath(jumpResp.resultFile);
                         if (resolvedPath) {
                             CommandManager.execute(Commands.FILE_OPEN, {fullPath: resolvedPath})
                                 .done(function () {
@@ -866,60 +889,58 @@ define(function (require, exports, module) {
                 } else {
                     result.reject();
                 }
-            };
+            }
 
-            offset = session.getOffset();
+            const offset = session.getOffset();
             // request a jump-to-def
             requestJumpToDef(session, offset);
 
             return result.promise();
-        };
-
-        /*
-         * Helper for QuickEdit jump-to-definition request.
-         */
-        function quickEditHelper() {
-            var offset     = session.getCursor(),
-                response   = ScopeManager.requestJumptoDef(session, session.editor.document, offset);
-
-            return response;
         }
+    }
 
-        // Register quickEditHelper.
-        brackets._jsCodeHintsHelper = quickEditHelper;
+    /*
+     * Helper for QuickEdit jump-to-definition request.
+     */
+    function quickEditHelper() {
+        const offset     = session.getCursor();
+        const response   = ScopeManager.requestJumptoDef(session, session.editor.document, offset);
 
-        // Configuration function used for debugging
-        brackets._configureJSCodeHints = setConfig;
+        return response;
+    }
 
-        ExtensionUtils.loadStyleSheet(module, "styles/brackets-js-hints.css");
+    // Register quickEditHelper.
+    brackets._jsCodeHintsHelper = quickEditHelper;
 
-        // uninstall/install change listener as the active editor changes
-        EditorManager.on(HintUtils.eventName("activeEditorChange"),
-            handleActiveEditorChange);
+    // Configuration function used for debugging
+    brackets._configureJSCodeHints = setConfig;
 
-        ProjectManager.on("beforeProjectClose", function () {
-            ScopeManager.handleProjectClose();
-        });
+    ExtensionUtils.loadStyleSheet(module, "styles/brackets-js-hints.css");
 
-        ProjectManager.on("projectOpen", function () {
-            ScopeManager.handleProjectOpen();
-        });
+    // uninstall/install change listener as the active editor changes
+    EditorManager.on(HintUtils.eventName("activeEditorChange"),
+        handleActiveEditorChange);
 
-        // immediately install the current editor
-        installEditorListeners(EditorManager.getActiveEditor());
-
-        ParameterHintsManager.registerHintProvider(phProvider, ["javascript"], 0);
-        // init
-        var jdProvider = new JSJumpToDefProvider();
-        JumpToDefManager.registerJumpToDefProvider(jdProvider, ["javascript"], 0);
-
-        var jsHints = new JSHints();
-        CodeHintManager.registerHintProvider(jsHints, HintUtils.SUPPORTED_LANGUAGES, 0);
-
-        // for unit testing
-        exports.getSession = getSession;
-        exports.jsHintProvider = jsHints;
-        exports.initializeSession = initializeSession;
-        exports.handleJumpToDefinition = jdProvider.doJumpToDef.bind(jdProvider);
+    ProjectManager.on("beforeProjectClose", function () {
+        ScopeManager.handleProjectClose();
     });
+
+    ProjectManager.on("projectOpen", function () {
+        ScopeManager.handleProjectOpen();
+    });
+
+    // immediately install the current editor
+    installEditorListeners(EditorManager.getActiveEditor());
+
+    ParameterHintsManager.registerHintProvider(phProvider, ["javascript"], 0);
+    // init
+    const jdProvider = new JSJumpToDefProvider();
+    JumpToDefManager.registerJumpToDefProvider(jdProvider, ["javascript"], 0);
+
+    const jsHints = new JSHints();
+    CodeHintManager.registerHintProvider(jsHints, HintUtils.SUPPORTED_LANGUAGES, 0);
+
+    // for unit testing
+    jsHintProvider = jsHints;
+    handleJumpToDefinition = jdProvider.doJumpToDef.bind(jdProvider);
 });

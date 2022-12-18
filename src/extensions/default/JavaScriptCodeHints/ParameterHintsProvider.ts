@@ -22,13 +22,16 @@
  *
  */
 
-define(function (require, exports, module) {
-    "use strict";
+const ScopeManager = brackets.getModule("JSUtils/ScopeManager");
+const OVERWRITE_EXISTING_HINT = false;
 
-    var ScopeManager = brackets.getModule("JSUtils/ScopeManager"),
-        OVERWRITE_EXISTING_HINT = false;
+export class JSParameterHintsProvider {
+    private hintState;
+    private hintStack;
+    private preserveHintStack;
+    private session;
 
-    function JSParameterHintsProvider() {
+    constructor() {
         this.hintState = {};
         this.hintStack = [];
         this.preserveHintStack = null; // close a function hint without clearing stack
@@ -40,9 +43,9 @@ define(function (require, exports, module) {
      *
      * @param {Session} value - current session.
      */
-    JSParameterHintsProvider.prototype.setSession = function (value) {
+    public setSession(value) {
         this.session = value;
-    };
+    }
 
     /**
      * Test if a function hint is being displayed.
@@ -50,25 +53,25 @@ define(function (require, exports, module) {
      * @return {boolean} - true if a function hint is being displayed, false
      * otherwise.
      */
-    JSParameterHintsProvider.prototype.isHintDisplayed = function () {
+    public isHintDisplayed() {
         return this.hintState.visible === true;
-    };
+    }
 
     /**
      * Save the state of the current hint. Called when popping up a parameter hint
      * for a parameter, when the parameter already part of an existing parameter
      * hint.
      */
-    JSParameterHintsProvider.prototype.pushHintOnStack = function () {
+    public pushHintOnStack() {
         this.hintStack.push(this.hintState);
-    };
+    }
 
     /**
      * Restore the state of the previous function hint.
      *
      * @return {boolean} - true the a parameter hint has been popped, false otherwise.
      */
-    JSParameterHintsProvider.prototype.popHintFromStack = function () {
+    public popHintFromStack() {
         if (this.hintStack.length > 0) {
             this.hintState = this.hintStack.pop();
             this.hintState.visible = false;
@@ -76,14 +79,14 @@ define(function (require, exports, module) {
         }
 
         return false;
-    };
+    }
 
     /**
      * Reset the function hint stack.
      */
-    JSParameterHintsProvider.prototype.clearFunctionHintStack = function () {
+    public clearFunctionHintStack() {
         this.hintStack = [];
-    };
+    }
 
     /**
      * Test if the function call at the cursor is different from the currently displayed
@@ -92,24 +95,24 @@ define(function (require, exports, module) {
      * @param {{line:number, ch:number}} functionCallPos - the offset of the function call.
      * @return {boolean}
      */
-    JSParameterHintsProvider.prototype.hasFunctionCallPosChanged = function (functionCallPos) {
-        var oldFunctionCallPos = this.hintState.functionCallPos;
+    public hasFunctionCallPosChanged(functionCallPos) {
+        const oldFunctionCallPos = this.hintState.functionCallPos;
         return (oldFunctionCallPos === undefined ||
             oldFunctionCallPos.line !== functionCallPos.line ||
             oldFunctionCallPos.ch !== functionCallPos.ch);
-    };
+    }
 
     /**
      * Dismiss the function hint.
      *
      */
-    JSParameterHintsProvider.prototype.cleanHintState = function () {
+    public cleanHintState() {
         if (this.hintState.visible) {
             if (!this.preserveHintStack) {
                 this.clearFunctionHintStack();
             }
         }
-    };
+    }
 
     /**
      * Pop up a function hint on the line above the caret position.
@@ -126,8 +129,8 @@ define(function (require, exports, module) {
      *      displayed or there is no function hint at the cursor.
      *
      */
-    JSParameterHintsProvider.prototype._getParameterHint = function (pushExistingHint, hint, functionInfo) {
-        var result = $.Deferred();
+    private _getParameterHint(pushExistingHint?, hint?, functionInfo?) {
+        const result = $.Deferred();
         functionInfo = functionInfo || this.session.getFunctionInfo();
         if (!functionInfo.inFunctionCall) {
             this.cleanHintState();
@@ -135,8 +138,7 @@ define(function (require, exports, module) {
         }
 
         if (this.hasFunctionCallPosChanged(functionInfo.functionCallPos)) {
-
-            var pushHint = pushExistingHint && this.isHintDisplayed();
+            const pushHint = pushExistingHint && this.isHintDisplayed();
             if (pushHint) {
                 this.pushHintOnStack();
                 this.preserveHintStack = true;
@@ -150,7 +152,7 @@ define(function (require, exports, module) {
 
         this.hintState.functionCallPos = functionInfo.functionCallPos;
 
-        var request = null;
+        let request;
         if (!hint) {
             request = ScopeManager.requestParameterHint(this.session, functionInfo.functionCallPos);
         } else {
@@ -159,9 +161,9 @@ define(function (require, exports, module) {
             request.resolveWith(null, [hint]);
         }
 
-        var self = this;
+        const self = this;
         request.done(function (fnType) {
-            var hints = self.session.getParameterHint(functionInfo.functionCallPos);
+            const hints = self.session.getParameterHint(functionInfo.functionCallPos);
             hints.functionCallPos = functionInfo.functionCallPos;
             result.resolve(hints);
         }).fail(function () {
@@ -170,21 +172,20 @@ define(function (require, exports, module) {
         });
 
         return result;
-    };
+    }
 
-    JSParameterHintsProvider.prototype.hasParameterHints = function () {
-        var functionInfo = this.session.getFunctionInfo();
+    public hasParameterHints() {
+        const functionInfo = this.session.getFunctionInfo();
 
         return functionInfo.inFunctionCall;
-    };
+    }
 
-    JSParameterHintsProvider.prototype.getParameterHints = function (explicit, onCursorActivity) {
-        var functionInfo = this.session.getFunctionInfo(),
-            result = null;
+    public getParameterHints(explicit, onCursorActivity) {
+        const functionInfo = this.session.getFunctionInfo();
 
         if (!onCursorActivity) {
             if (functionInfo.inFunctionCall) {
-                var token = this.session.getToken();
+                const token = this.session.getToken();
 
                 if ((token && token.string === "(") || explicit) {
                     return this._getParameterHint();
@@ -205,13 +206,13 @@ define(function (require, exports, module) {
         // display the new one if there is one on the stack
         if (this.hasFunctionCallPosChanged(functionInfo.functionCallPos)) {
             if (this.popHintFromStack()) {
-                var poppedFunctionCallPos = this.hintState.functionCallPos,
-                    currentFunctionCallPos = this.functionInfo.functionCallPos;
+                const poppedFunctionCallPos = this.hintState.functionCallPos;
+                const currentFunctionCallPos = functionInfo.functionCallPos;
 
                 if (poppedFunctionCallPos.line === currentFunctionCallPos.line &&
                         poppedFunctionCallPos.ch === currentFunctionCallPos.ch) {
                     this.preserveHintStack = true;
-                    result = this._getParameterHint(OVERWRITE_EXISTING_HINT,
+                    const result = this._getParameterHint(OVERWRITE_EXISTING_HINT,
                         this.hintState.fnType, functionInfo);
                     this.preserveHintStack = false;
                     return result;
@@ -221,10 +222,8 @@ define(function (require, exports, module) {
             }
         }
 
-        var hints = this.session.getParameterHint(functionInfo.functionCallPos);
+        const hints = this.session.getParameterHint(functionInfo.functionCallPos);
         hints.functionCallPos = functionInfo.functionCallPos;
         return $.Deferred().resolve(hints);
-    };
-
-    exports.JSParameterHintsProvider = JSParameterHintsProvider;
-});
+    }
+}
