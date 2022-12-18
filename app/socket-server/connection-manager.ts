@@ -72,7 +72,7 @@ export class Connection {
      *                 "event", "commandResponse", "commandError", "error"
      * @param {object} message Message body, must be JSON.stringify-able
      */
-    private _send(type: string, message: ConnectionMessage | ConnectionErrorMessage | CommandResponse | CommandError) {
+    private _send(type: string, message: ConnectionMessage | ConnectionErrorMessage | CommandResponse | CommandError): void {
         if (this._ws && this._connected) {
             try {
                 this._ws.send(JSON.stringify({ type, message }));
@@ -88,7 +88,7 @@ export class Connection {
      * message of type "commandResponse".
      * @param {Buffer} message
      */
-    private _sendBinary(message: Buffer) {
+    private _sendBinary(message: Buffer): void {
         if (this._ws && this._connected) {
             this._ws.send(message, {binary: true, mask: false});
         }
@@ -100,7 +100,7 @@ export class Connection {
      * message and handing it off to the appropriate handler.
      * @param {string} message Message received by WebSocket
      */
-    private _receive(message: string) {
+    private _receive(message: string): void {
         let m: ConnectionMessage;
         try {
             m = JSON.parse(message);
@@ -140,7 +140,7 @@ export class Connection {
     /**
      * Closes the connection and does necessary cleanup
      */
-    public close() {
+    public close(): void {
         if (this._ws) {
             try {
                 this._ws.close();
@@ -156,7 +156,7 @@ export class Connection {
      * Sends an Error message
      * @param {object} message Error message. Must be JSON.stringify-able.
      */
-    public sendError(message: string) {
+    public sendError(message: string): void {
         this._send("error", { message });
     }
 
@@ -168,7 +168,7 @@ export class Connection {
      *    either be JSON.stringify-able or a raw Buffer. In the latter case,
      *    the result will be sent as a binary response.
      */
-    public sendCommandResponse(id: number, response: Object | Buffer) {
+    public sendCommandResponse(id: number, response: Object | Buffer): void {
         if (Buffer.isBuffer(response)) {
             // Assume the id is an unsigned 32-bit integer, which is encoded
             // as a four-byte header
@@ -194,7 +194,7 @@ export class Connection {
      * @param {?object} stack Call stack from the exception, if possible. Must
      *    be JSON.stringify-able.
      */
-    public sendCommandError(id: number, message: string, stack?: string) {
+    public sendCommandError(id: number, message: string, stack?: string): void {
         this._send("commandError", { id, message, stack });
     }
 
@@ -205,7 +205,7 @@ export class Connection {
      * @param {string} event Name of the event
      * @param {object} parameters Event parameters. Must be JSON.stringify-able.
      */
-    public sendEventMessage(id: number, domain: string, event: string, parameters?: Array<any>) {
+    public sendEventMessage(id: number, domain: string, event: string, parameters?: Array<any>): void {
         this._send("event", { id, domain, event, parameters });
     }
 
@@ -215,14 +215,14 @@ export class Connection {
  * Factory function for creating a new Connection
  * @param {WebSocket} ws The WebSocket connected to the client.
  */
-export function createConnection(ws: WebSocket) {
+export function createConnection(ws: WebSocket): void {
     _connections.push(new Connection(ws));
 }
 
 /**
  * Closes all connections gracefully. Should be called during shutdown.
  */
-export function closeAllConnections() {
+export function closeAllConnections(): void {
     while (_connections.length > 0) {
         const conn = _connections.shift();
         if (conn) {
@@ -242,7 +242,7 @@ export function closeAllConnections() {
  * @param {string} event Name of the event
  * @param {object} parameters Event parameters. Must be JSON.stringify-able.
  */
-export function sendEventToAllConnections(id: number, domain: string, event: string, parameters?: Array<any>) {
+export function sendEventToAllConnections(id: number, domain: string, event: string, parameters?: Array<any>): void {
     _connections.forEach(function (c) {
         c.sendEventMessage(id, domain, event, parameters);
     });

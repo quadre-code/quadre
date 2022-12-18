@@ -14,7 +14,7 @@ let _domainManager: typeof DomainManager | null = null;
  * we will probably have to implement re-launching of the Node process
  * with the --debug command line switch.
  */
-function cmdEnableDebugger() {
+function cmdEnableDebugger(): void {
     // Unfortunately, there's no indication of whether this succeeded
     // This is the case for _all_ of the methods for enabling the debugger.
     (process as any)._debugProcess(process.pid);
@@ -24,7 +24,7 @@ function cmdEnableDebugger() {
  * @private
  * Implementation of base.restartNode command.
  */
-function cmdRestartNode() {
+function cmdRestartNode(): void {
     // TODO:
 }
 
@@ -51,7 +51,7 @@ function cmdLoadDomainModulesFromPaths(paths: Array<string>): boolean {
  * Registers commands with the DomainManager
  * @param {DomainManager} domainManager The DomainManager to use
  */
-function init(domainManager: typeof DomainManager) {
+function init(domainManager: typeof DomainManager): void {
     _domainManager = domainManager;
 
     _domainManager.registerDomain("base", {major: 0, minor: 1});

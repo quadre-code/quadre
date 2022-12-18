@@ -12,7 +12,7 @@ let httpServer: http.Server | null = null;
 let httpPort: number = 0;
 let wsServer: WebSocket.Server | null = null;
 
-function initPort() {
+function initPort(): Promise<void> {
     return new Promise<void>(function (resolve, reject) {
         portscanner.findAPortNotInUse(
             DEFAULT_PORT,
@@ -53,7 +53,7 @@ function initHttp(): Promise<http.Server> {
     });
 }
 
-function initWebsockets(_httpServer: http.Server) {
+function initWebsockets(_httpServer: http.Server): void {
     wsServer = new Server({
         server: _httpServer
     });
@@ -63,7 +63,7 @@ function initWebsockets(_httpServer: http.Server) {
     wsServer.on("connection", ConnectionManager.createConnection);
 }
 
-export function start(callback: (err: Error | null, res?: any) => void) {
+export function start(callback: (err: Error | null, res?: any) => void): void {
     initPort()
         .then(() => initHttp())
         .then((_httpServer) => initWebsockets(_httpServer))
@@ -72,7 +72,7 @@ export function start(callback: (err: Error | null, res?: any) => void) {
         .catch((err) => callback(err));
 }
 
-export function stop(callback: (err: Error, res?: any) => void) {
+export function stop(callback: (err: Error, res?: any) => void): void {
     if (wsServer) {
         wsServer.close();
         wsServer = null;

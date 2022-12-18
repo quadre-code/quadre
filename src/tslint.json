@@ -3,7 +3,6 @@
   "rules": {
     "align": false,
     "class-name": false,
-    "max-line-length": false,
     "no-consecutive-blank-lines": [true, 2],
     "no-submodule-imports": false,
     "no-implicit-dependencies": false,

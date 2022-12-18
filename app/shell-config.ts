@@ -13,11 +13,11 @@ if (!process.env.TMPDIR && !process.env.TMP && !process.env.TEMP) {
     process.env.TMPDIR = process.env.TMP = process.env.TEMP = os.tmpdir();
 }
 
-function readDefaultConfig() {
+function readDefaultConfig(): void {
     config = fs.readJsonSync(path.resolve(__dirname, "default-shell-config.json"));
 }
 
-function writeDefaultConfig() {
+function writeDefaultConfig(): void {
     readDefaultConfig();
     fs.ensureDirSync(path.dirname(CONFIG_PATH));
     fs.writeJsonSync(CONFIG_PATH, config);
@@ -37,11 +37,11 @@ try {
     }
 }
 
-export function save() {
+export function save(): void {
     fs.writeJson(CONFIG_PATH, config);
 }
 
-export function saveSync() {
+export function saveSync(): void {
     fs.writeJsonSync(CONFIG_PATH, config);
 }
 

@@ -76,7 +76,7 @@ export const DomainManager = {
      *   in the API spec, but serves no other purpose on the server. The client
      *   can make use of this.
      */
-    registerDomain: function registerDomain(domainName: string, version: { major: number, minor: number } | null) {
+    registerDomain: function registerDomain(domainName: string, version: { major: number, minor: number } | null): void {
         if (!this.hasDomain(domainName)) {
             _domains[domainName] = {
                 domain: domainName,
@@ -115,7 +115,7 @@ export const DomainManager = {
         description: string,
         parameters: Array<DomainCommandArgument>,
         returns: Array<DomainCommandArgument>
-    ) {
+    ): void {
         if (!this.hasDomain(domainName)) {
             this.registerDomain(domainName, null);
         }
@@ -152,12 +152,12 @@ export const DomainManager = {
         domainName: string,
         commandName: string,
         parameters: Array<any> = []
-    ) {
+    ): void {
         if (_domains[domainName] &&
                 _domains[domainName].commands[commandName]) {
             const command = _domains[domainName].commands[commandName];
             if (command.isAsync) {
-                const callback = function (err: Error, result: any) {
+                const callback = function (err: Error, result: any): void {
                     if (err) {
                         connection.sendCommandError(id, errToMessage(err), errToString(err));
                     } else {
@@ -192,7 +192,7 @@ export const DomainManager = {
         domainName: string,
         eventName: string,
         parameters: Array<DomainCommandArgument>
-    ) {
+    ): void {
         if (!this.hasDomain(domainName)) {
             this.registerDomain(domainName, null);
         }
@@ -219,7 +219,7 @@ export const DomainManager = {
      * @param {string} eventName The event name.
      * @param {?Array} parameters The parameters. Must be JSON.stringify-able
      */
-    emitEvent: function emitEvent(domainName: string, eventName: string, parameters?: Array<any>) {
+    emitEvent: function emitEvent(domainName: string, eventName: string, parameters?: Array<any>): void {
         if (_domains[domainName] && _domains[domainName].events[eventName]) {
             ConnectionManager.sendEventToAllConnections(
                 _eventCount++,
@@ -264,7 +264,7 @@ export const DomainManager = {
      *
      * @return {Array} Array describing all domains.
      */
-    getDomainDescriptions: function getDomainDescriptions() {
+    getDomainDescriptions: function getDomainDescriptions(): void {
         return JSON.parse(JSON.stringify(_domains));
     }
 
