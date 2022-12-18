@@ -59,14 +59,14 @@ interface ClassProviderData {
     fullPath: string;
     isFile: boolean;
 }
-type ClassProvider = (ClassProviderData) => string;
+type ClassProvider = (providerData: ClassProviderData) => string;
 
 interface IconProviderData {
     name: string;
     fullPath: string;
     isFile: boolean;
 }
-type IconProvider = (IconProviderData) => string | JQuery | HTMLElement;
+type IconProvider = (providerData: IconProviderData) => string | JQuery | HTMLElement;
 
 interface FileNameMap {
     [fileNameDisplayHtml: string]: Array<File>;
@@ -747,6 +747,7 @@ function _makeDraggable($el) {
 
         // Close down the drag operation
         function preDropCleanup() {
+            // @ts-ignore
             window.onmousewheel = (window.document as any).onmousewheel = null;
             $(window).off(".wsvdragging");
             if (dragged) {
@@ -859,6 +860,7 @@ function _makeDraggable($el) {
         });
 
         // turn off scroll wheel
+        // @ts-ignore
         window.onmousewheel = (window.document as any).onmousewheel = function (e) {
             e.preventDefault();
         };

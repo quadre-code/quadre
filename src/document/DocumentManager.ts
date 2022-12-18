@@ -706,6 +706,7 @@ AppInit.extensionsLoaded(function () {
 });
 
 export const Document = DocumentModule.Document;
+// eslint-disable-next-line no-redeclare
 export type Document = DocumentModule.Document;
 
 // Performance measurements

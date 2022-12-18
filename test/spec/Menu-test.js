@@ -631,6 +631,7 @@ define(function (require, exports, module) {
                 expect($($listItems[0]).find("a#menuitem-unittest1-Menu-test\\.command16").length).toBe(1);
 
                 // Add new menu to BEGINNING of menuSectionCmd2
+                // eslint-disable-next-line no-unused-vars
                 menuItem = menu.addMenuItem("Menu-test.command17", null, Menus.FIRST_IN_SECTION, menuSectionCmd2);
                 $listItems = testWindow.$(listSelector).children();
                 expect($listItems.length).toBe(9);

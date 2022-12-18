@@ -533,7 +533,7 @@ function _showDialog() {
 
             const isValidDrop = _.every(items, function (item) {
                 if (item.kind === "file") {
-                    const entry = item.webkitGetAsEntry();
+                    const entry = item.webkitGetAsEntry()!;
                     const extension = FileUtils.getFileExtension(entry.fullPath);
 
                     return entry.isFile && extension === "zip";

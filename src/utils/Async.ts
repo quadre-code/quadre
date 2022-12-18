@@ -284,7 +284,7 @@ export function firstSequentially(items, beginProcessItem) {
  * @param {!function(*, number):Promise} beginProcessItem
  * @return {$.Promise}
  */
-export function doInParallel_aggregateErrors(items, beginProcessItem): JQueryPromise<any> { // eslint-disable-line @typescript-eslint/camelcase
+export function doInParallel_aggregateErrors(items, beginProcessItem): JQueryPromise<any> {
     const errors: Array<Error> = [];
 
     const masterDeferred = $.Deferred();

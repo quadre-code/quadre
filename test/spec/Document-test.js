@@ -602,6 +602,7 @@ define(function (require, exports, module) {
                     expect(testWindow.$(".CodeMirror").length).toBe(2);   // HTML editor (working set) & JS editor (current)
                 });
 
+                // eslint-disable-next-line no-unused-vars
                 cssDoc = cssMasterEditor = null;
             });
         });
