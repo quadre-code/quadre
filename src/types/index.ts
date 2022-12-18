@@ -20,6 +20,7 @@ import FileSystemStats = require("filesystem/FileSystemStats");
 import * as HintUtils from "JSUtils/HintUtils";
 import * as MessageIds from "JSUtils/MessageIds";
 import * as ScopeManager from "JSUtils/ScopeManager";
+import Session = require("JSUtils/Session");
 import * as CodeInspection from "language/CodeInspection";
 import * as CSSUtils from "language/CSSUtils";
 import * as HTMLUtils from "language/HTMLUtils";
@@ -112,7 +113,7 @@ declare global {
             : T extends "JSUtils/HintUtils" ? typeof HintUtils
             : T extends "JSUtils/MessageIds" ? typeof MessageIds
             : T extends "JSUtils/ScopeManager" ? typeof ScopeManager
-            : T extends "JSUtils/Session" ? any
+            : T extends "JSUtils/Session" ? typeof Session
             : T extends "language/CodeInspection" ? typeof CodeInspection
             : T extends "language/CSSUtils" ? typeof CSSUtils
             : T extends "language/HTMLUtils" ? typeof HTMLUtils
