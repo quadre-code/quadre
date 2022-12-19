@@ -6,7 +6,7 @@ import * as path from "path";
 const DEFAULT_PREFERENCES_FILENAME = "defaultPreferences.json";
 const CURRENT_PREFERENCES_FILENAME = "brackets.json";
 
-function tryReadJson(fullPath: string) {
+function tryReadJson(fullPath: string): any {
     try {
         return JSON.parse(fs.readFileSync(fullPath, "utf8"));
     } catch (err) {
@@ -14,7 +14,7 @@ function tryReadJson(fullPath: string) {
     }
 }
 
-export function readBracketsPreferences() {
+export function readBracketsPreferences(): any {
     const dirPath = app.getPath("userData");
     const defaultPreferences = tryReadJson(path.resolve(dirPath, DEFAULT_PREFERENCES_FILENAME));
     const currentPreferences = tryReadJson(path.resolve(dirPath, CURRENT_PREFERENCES_FILENAME));

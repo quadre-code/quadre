@@ -32,7 +32,7 @@ ipcMain.on("log", function (event: Event, ...args: Array<any>) {
 // electron.crashReporter.start();
 
 // fetch window position values from the window and save them to config file
-function _saveWindowPosition(sync: boolean, win: BrowserWindow) {
+function _saveWindowPosition(sync: boolean, win: BrowserWindow): void {
     const size = win.getSize();
     const pos = win.getPosition();
     shellConfig.set("window.posX", pos[0]);
@@ -138,7 +138,7 @@ app.on("child-process-gone", function (event: Electron.Event, details: Electron.
     }
 });
 
-export function restart(query: {} | string = {}) {
+export function restart(query: {} | string = {}): void {
     while (wins.length > 0) {
         const win = wins.shift(); // tslint:disable-line
         if (win) {
@@ -160,7 +160,7 @@ interface FormatOptions {
 }
 
 // See also https://github.com/electron/electron/issues/11560
-function formatUrl(filePath: string, options: FormatOptions = {}) {
+function formatUrl(filePath: string, options: FormatOptions = {}): string {
     let url = "";
     if (options.isEncoded) {
         url = "file:///" + convertWindowsPathToUnixPath(pathLib.resolve(__dirname, filePath));

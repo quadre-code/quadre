@@ -10,7 +10,7 @@ const trash = require("trash");
     to support functionality required by brackets
 */
 
-export function isBinaryFile(filename: string, callback: (err?: Error, res?: boolean) => void) {
+export function isBinaryFile(filename: string, callback: (err?: Error, res?: boolean) => void): void {
     isbinaryfile(filename, callback);
 }
 
@@ -22,14 +22,14 @@ export function isEncodingSupported(encoding: string): boolean {
     return ["ascii", "utf-8", "utf8"].indexOf(encoding.toLowerCase()) !== -1;
 }
 
-export function isNetworkDrive(path: string, callback: (err: Error | null, res: boolean) => void) {
+export function isNetworkDrive(path: string, callback: (err: Error | null, res: boolean) => void): void {
     // TODO: implement
     process.nextTick(function () {
         callback(null, false);
     });
 }
 
-export function moveToTrash(path: string, callback: (err: Error | null, result?: any) => void) {
+export function moveToTrash(path: string, callback: (err: Error | null, result?: any) => void): void {
     fs.stat(path, function (err) {
         if (err) {
             return callback(err);
@@ -41,7 +41,7 @@ export function moveToTrash(path: string, callback: (err: Error | null, result?:
     });
 }
 
-export function readTextFile(filename: string, encoding: string, callback: (err: Error | null, res?: string) => void) {
+export function readTextFile(filename: string, encoding: string, callback: (err: Error | null, res?: string) => void): void {
     if (typeof encoding === "function") {
         callback = encoding;
         encoding = "utf-8";
@@ -81,7 +81,7 @@ export function readTextFile(filename: string, encoding: string, callback: (err:
     });
 }
 
-export function remove(path: string, callback: (err?: Error) => void) {
+export function remove(path: string, callback: (err?: Error) => void): void {
     fs.stat(path, function (err, stats) {
         if (err) {
             return callback(err);
@@ -90,7 +90,7 @@ export function remove(path: string, callback: (err?: Error) => void) {
     });
 }
 
-export function rename(oldPath: string, newPath: string, callback: (err?: Error) => void) {
+export function rename(oldPath: string, newPath: string, callback: (err?: Error) => void): void {
     fs.stat(newPath, function (err, stats) {
         if (err && err.code === "ENOENT") {
             return fs.rename(oldPath, newPath, callback);
@@ -114,8 +114,8 @@ export function showOpenDialog(
      * To show all files, use the '*' wildcard (no other wildcard is supported).
      */
     filters: Array<{ name: string, extensions: Array<string> }>,
-    callback: (err: Error | null, fileNames: Array<string>) => void
-) {
+    callback: (err: Error | null, fileNames?: Array<string>) => void
+): void {
     const properties: Array<(
         "openFile" | "openDirectory" | "multiSelections" | "createDirectory" | "showHiddenFiles"
     )> = [];
@@ -129,13 +129,15 @@ export function showOpenDialog(
     }
     // TODO: I don't think defaultPath and filters work right now - we should test that
     // Also, it doesn't return an error code on failure any more (and doesn't pass one to the callback as well)
-    return dialog.showOpenDialog({
+    dialog.showOpenDialog({
         title,
         defaultPath,
         filters,
         properties
     }).then((result) => {
         callback(null, result.filePaths ? result.filePaths.map(utils.convertWindowsPathToUnixPath) : []);
+    }).catch((err) => {
+        callback(err);
     });
 }
 
@@ -144,14 +146,16 @@ export function showSaveDialog(
     defaultPath: string,
     proposedNewFilename: string,
     callback: (err: Error | null, fileName?: string) => void
-) {
+): void {
     // TODO: Implement proposedNewFilename
     // TODO: I don't think defaultPath works right now - we should test that
     // Also, it doesn't return an error code on failure any more (and doesn't pass one to the callback as well)
-    return dialog.showSaveDialog({
+    dialog.showSaveDialog({
         title,
         defaultPath
     }).then((result) => {
         callback(null, result.filePath ? utils.convertWindowsPathToUnixPath(result.filePath) : undefined);
+    }).catch((err) => {
+        callback(err);
     });
 }

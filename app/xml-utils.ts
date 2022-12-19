@@ -1,12 +1,12 @@
-const xml2js = require("xml2js");
+import xml2js = require("xml2js");
 
 const xmlParser = new xml2js.Parser({
     trim: true,
-    emptyTag: null,
+    emptyTag: undefined,
     explicitArray: false
 });
 
-export function parseXml(xmlString: string) {
+export function parseXml(xmlString: string): Promise<any> {
     if (typeof xmlString !== "string") {
         throw new Error(`parseXml -> string expected but ${typeof xmlString} received`);
     }

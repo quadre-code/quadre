@@ -8,6 +8,6 @@ export function getMainWindow(): BrowserWindow {
     return wins[0];
 }
 
-export function getProcessArgv() {
+export function getProcessArgv(): Array<string> {
     return process.argv;
 }

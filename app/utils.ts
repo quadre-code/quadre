@@ -1,25 +1,32 @@
 import { app, BrowserWindow } from "electron";
 
-export function isDev() {
+interface Logger {
+    log: (...msgs: Array<string>) => void;
+    info: (...msgs: Array<string>) => void;
+    warn: (...msgs: Array<string>) => void;
+    error: (...msgs: Array<string>) => void;
+}
+
+export function isDev(): boolean {
     return /(\/|\\)electron(.exe)?$/i.test(app.getPath("exe"));
 }
 
 let mainWindow: BrowserWindow | null;
 
-export function setLoggerWindow(win: BrowserWindow) {
+export function setLoggerWindow(win: BrowserWindow): void {
     win.webContents.once("did-frame-finish-load", (event: any) => {
         mainWindow = win;
     });
 }
 
-export function unsetLoggerWindow(win: BrowserWindow) {
+export function unsetLoggerWindow(win: BrowserWindow): void {
     if (mainWindow === win) {
         mainWindow = null;
     }
 }
 
 const _console: any = {};
-function callMainWindowConsole(method: string, ...args: Array<string>) {
+function callMainWindowConsole(method: string, ...args: Array<string>): void {
     if (mainWindow) {
         try {
             mainWindow.webContents.send("console-msg", method, ...args);
@@ -37,11 +44,11 @@ if (app) {
     Object.keys(c).forEach((key: string) => {
         if (typeof c[key] !== "function") { return; }
         _console[key] = c[key];
-        c[key] = (...args: Array<any>) => callMainWindowConsole(key, ...args);
+        c[key] = (...args: Array<any>): void => callMainWindowConsole(key, ...args);
     });
 }
 
-export function getLogger(name: string) {
+export function getLogger(name: string): Logger {
     return {
         log: (...msgs: Array<string>) => console.log(`[${name}]`, ...msgs), // tslint:disable-line
         info: (...msgs: Array<string>) => console.info(`[${name}]`, ...msgs), // tslint:disable-line

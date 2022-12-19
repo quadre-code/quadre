@@ -8,7 +8,7 @@ export const ERR_NOT_FOUND = "NOTFOUND";
 // tslint:disable-next-line:no-empty-interface
 interface MenuItemOptions extends MenuItemConstructorOptions {}
 
-function _getOrCreateMenuTemplate(winId: number) {
+function _getOrCreateMenuTemplate(winId: number): Array<MenuItemOptions> {
     if (!menuTemplates[winId]) {
         menuTemplates[winId] = [];
     }
@@ -24,7 +24,7 @@ app.on("browser-window-blur", function (event, win) {
 
 let currentShortcuts: { [accelerator: string]: string } = {};
 
-function registerShortcuts(win: BrowserWindow, menuItem: MenuItemOptions) {
+function registerShortcuts(win: BrowserWindow, menuItem: MenuItemOptions): void {
     if (menuItem.accelerator && menuItem.id) {
         currentShortcuts[menuItem.accelerator as string] = menuItem.id;
     }
@@ -48,7 +48,7 @@ const __refreshMenu = _.debounce(function (win: BrowserWindow) {
     }
 }, 100);
 
-function _refreshMenu(win: BrowserWindow, callback?: () => void) {
+function _refreshMenu(win: BrowserWindow, callback?: () => void): void {
     __refreshMenu(win);
     if (callback) {
         process.nextTick(callback);
@@ -167,7 +167,7 @@ export function addMenu(
     position: string,
     relativeId: string,
     callback: () => void
-) {
+): void {
     assert(typeof winId === "number", "winId must be a number");
     assert(title && typeof title === "string", "title must be a string");
     assert(id && typeof id === "string", "id must be a string");
@@ -193,7 +193,7 @@ export function addMenuItem(
     position: string | null,
     relativeId: string | null,
     callback: (err?: string | null) => void
-) {
+): void {
     assert(typeof winId === "number", "winId must be a number");
     assert(parentId && typeof parentId === "string", "parentId must be a string");
     assert(title && typeof title === "string", "title must be a string");
@@ -243,7 +243,7 @@ export function getMenuItemState(
     winId: number,
     commandId: string,
     callback: (err?: string | null, enabled?: boolean, checked?: boolean) => void
-) {
+): void {
     assert(typeof winId === "number", "winId must be a number");
     assert(commandId && typeof commandId === "string", "commandId must be a string");
     process.nextTick(function () {
@@ -260,7 +260,7 @@ export function getMenuPosition(
     winId: number,
     commandId: string,
     callback: (err?: string | null, parentId?: string, position?: number) => void
-) {
+): void {
     assert(typeof winId === "number", "winId must be a number");
     assert(commandId && typeof commandId === "string", "commandId must be a string");
     process.nextTick(function () {
@@ -274,7 +274,7 @@ export function getMenuTitle(
     winId: number,
     commandId: string,
     callback: (err?: string | null, title?: string) => void
-) {
+): void {
     assert(typeof winId === "number", "winId must be a number");
     assert(commandId && typeof commandId === "string", "commandId must be a string");
     process.nextTick(function () {
@@ -291,7 +291,7 @@ export function removeMenu(
     winId: number,
     commandId: string,
     callback: (err?: string | null, deleted?: boolean) => void
-) {
+): void {
     assert(typeof winId === "number", "winId must be a number");
     assert(commandId && typeof commandId === "string", "commandId must be a string");
     process.nextTick(function () {
@@ -306,7 +306,7 @@ export function removeMenuItem(
     winId: number,
     commandId: string,
     callback: (err?: string | null, deleted?: boolean) => void
-) {
+): void {
     assert(typeof winId === "number", "winId must be a number");
     assert(commandId && typeof commandId === "string", "commandId must be a string");
     process.nextTick(function () {
@@ -323,7 +323,7 @@ export function setMenuItemShortcut(
     shortcut: string,
     displayStr: string,
     callback: (err?: string | null) => void
-) {
+): void {
     assert(typeof winId === "number", "winId must be a number");
     assert(commandId && typeof commandId === "string", "commandId must be a string");
     assert(shortcut === "" || (shortcut && typeof shortcut === "string"), "shortcut must be a string");
@@ -350,7 +350,7 @@ export function setMenuItemState(
     enabled: boolean,
     checked: boolean,
     callback: (err?: string | null) => void
-) {
+): void {
     assert(typeof winId === "number", "winId must be a number");
     assert(typeof enabled === "boolean", "enabled must be a boolean");
     assert(typeof checked === "boolean", "checked must be a boolean");
@@ -378,7 +378,7 @@ export function setMenuTitle(
     commandId: string,
     title: string,
     callback: (err?: string | null) => void
-) {
+): void {
     assert(typeof winId === "number", "winId must be a number");
     assert(commandId && typeof commandId === "string", "commandId must be a string");
     assert(title && typeof title === "string", "title must be a string");

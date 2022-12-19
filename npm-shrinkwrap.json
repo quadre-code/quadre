@@ -42,6 +42,7 @@
         "@types/fs-extra": "^9.0.13",
         "@types/lodash": "^4.14.188",
         "@types/ws": "0.0.40",
+        "@types/xml2js": "^0.4.11",
         "@types/yargs": "^17.0.13",
         "@typescript-eslint/eslint-plugin": "^5.46.1",
         "@typescript-eslint/parser": "^5.46.1",
@@ -1032,6 +1033,15 @@
       "version": "0.0.40",
       "resolved": "https://registry.npmjs.org/@types/ws/-/ws-0.0.40.tgz",
       "integrity": "sha1-wQxwWrMLUVMbdvmaRYFUTt8JdW0=",
+      "dev": true,
+      "dependencies": {
+        "@types/node": "*"
+      }
+    },
+    "node_modules/@types/xml2js": {
+      "version": "0.4.11",
+      "resolved": "https://registry.npmjs.org/@types/xml2js/-/xml2js-0.4.11.tgz",
+      "integrity": "sha512-JdigeAKmCyoJUiQljjr7tQG3if9NkqGUgwEUqBvV0N7LM4HyQk7UXCnusRa1lnvXAEYJ8mw8GtZWioagNztOwA==",
       "dev": true,
       "dependencies": {
         "@types/node": "*"
@@ -23114,6 +23124,15 @@
       "version": "0.0.40",
       "resolved": "https://registry.npmjs.org/@types/ws/-/ws-0.0.40.tgz",
       "integrity": "sha1-wQxwWrMLUVMbdvmaRYFUTt8JdW0=",
+      "dev": true,
+      "requires": {
+        "@types/node": "*"
+      }
+    },
+    "@types/xml2js": {
+      "version": "0.4.11",
+      "resolved": "https://registry.npmjs.org/@types/xml2js/-/xml2js-0.4.11.tgz",
+      "integrity": "sha512-JdigeAKmCyoJUiQljjr7tQG3if9NkqGUgwEUqBvV0N7LM4HyQk7UXCnusRa1lnvXAEYJ8mw8GtZWioagNztOwA==",
       "dev": true,
       "requires": {
         "@types/node": "*"

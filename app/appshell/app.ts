@@ -25,7 +25,7 @@ export const language = "en";
 
 const shellState = electronRemote.require("./shell-state");
 
-export function getNodeState(callback: (errCode: string, port: number) => void) {
+export function getNodeState(callback: (errCode: string, port: number) => void): void {
     process.nextTick(function () {
         const errorCode = exports[shellState.get("socketServer.state")];
         const port = shellState.get("socketServer.port");
@@ -33,37 +33,37 @@ export function getNodeState(callback: (errCode: string, port: number) => void) 
     });
 }
 
-export function closeLiveBrowser(callback: (err?: Error) => void) {
+export function closeLiveBrowser(callback: (err?: Error) => void): void {
     process.nextTick(function () {
         // TODO: implement
         callback(new Error("app.closeLiveBrowser not implemented"));
     });
 }
 
-export function dragWindow() {
+export function dragWindow(): void {
     // TODO: implement
     throw new Error("app.dragWindow not implemented");
 }
 
-export function getApplicationSupportDirectory() {
+export function getApplicationSupportDirectory(): string {
     return utils.convertWindowsPathToUnixPath(app.getPath("userData"));
 }
 
-export function getExtensionsFolder() {
+export function getExtensionsFolder(): string {
     return utils.convertWindowsPathToUnixPath(
         pathLib.resolve(getApplicationSupportDirectory(), "extensions")
     );
 }
 
 // TODO: it seems that both arguments aren't needed anymore
-export function showExtensionsFolder(appURL: any, callback: (err?: Error) => void) {
+export function showExtensionsFolder(appURL: any, callback: (err?: Error) => void): void {
     process.nextTick(function () {
         shell.showItemInFolder(utils.convertBracketsPathToWindowsPath(getExtensionsFolder()));
         if (callback) { callback(); }
     });
 }
 
-export function getDroppedFiles(callback: (err?: Error) => void) {
+export function getDroppedFiles(callback: (err?: Error) => void): void {
     process.nextTick(function () {
         // TODO: implement
         callback(new Error("app.getDroppedFiles not implemented"));
@@ -71,13 +71,13 @@ export function getDroppedFiles(callback: (err?: Error) => void) {
 }
 
 // return the number of milliseconds that have elapsed since the application was launched
-export function getElapsedMilliseconds() {
+export function getElapsedMilliseconds(): number {
     const diff = process.hrtime(startupTime);
     // diff = [ seconds, nanoseconds ]
     return diff[0] * 1000 + diff[1] / 1000000;
 }
 
-export function getPendingFilesToOpen(callback: (err?: Error, filePaths?: Array<string>) => void) {
+export function getPendingFilesToOpen(callback: (err?: Error, filePaths?: Array<string>) => void): void {
     process.nextTick(function () {
         // TODO: implement
         callback(new Error("app.getPendingFilesToOpen not implemented"), []);
@@ -107,7 +107,7 @@ export function openLiveBrowser(
     url: string,
     enableRemoteDebugging: boolean,
     callback: (err?: Error) => void
-) {
+): void {
     process.nextTick(function () {
         // TODO: implement
         callback(new Error("app.openLiveBrowser not implemented" + url));
@@ -117,7 +117,7 @@ export function openLiveBrowser(
 export function openURLInDefaultBrowser(
     url: string,
     callback: (err?: Error) => void
-) {
+): void {
     assert(url && typeof url === "string", "url must be a string");
     process.nextTick(function () {
         shell.openExternal(url);
@@ -127,12 +127,12 @@ export function openURLInDefaultBrowser(
     });
 }
 
-export function quit() {
+export function quit(): void {
     // close current window, shell will quit when all windows are closed
     electronRemote.getCurrentWindow().close();
 }
 
-export function showDeveloperTools() {
+export function showDeveloperTools(): void {
     const win = electronRemote.getCurrentWindow();
     win.webContents.openDevTools({ mode: "detach" });
 }
