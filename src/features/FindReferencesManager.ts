@@ -45,8 +45,8 @@ export const removeFindReferencesProvider = _providerRegistrationHandler.removeP
 const searchModel = new SearchModel();
 let _resultsView;
 
-function _getReferences(provider, hostEditor, pos) {
-    const result = $.Deferred();
+function _getReferences(provider, hostEditor, pos): JQueryPromise<void> {
+    const result = $.Deferred<void>();
 
     if (!provider) {
         return result.reject();
@@ -68,10 +68,10 @@ function _getReferences(provider, hostEditor, pos) {
 
 }
 
-function _openReferencesPanel() {
+function _openReferencesPanel(): JQueryPromise<void> {
     const editor = EditorManager.getActiveEditor()!;
     const pos = editor ? editor.getCursorPos() : null;
-    const result = $.Deferred();
+    const result = $.Deferred<void>();
     const errorMsg = Strings.REFERENCES_NO_RESULTS;
     let referencesProvider;
 
@@ -118,7 +118,7 @@ function _openReferencesPanel() {
  * @private
  * Clears any previous search information, removing update listeners and clearing the model.
  */
-function _clearSearch() {
+function _clearSearch(): void {
     searchModel.clear();
 }
 
@@ -126,13 +126,13 @@ function _clearSearch() {
  * @public
  * Closes the references panel
  */
-export function closeReferencesPanel() {
+export function closeReferencesPanel(): void {
     if (_resultsView) {
         _resultsView.close();
     }
 }
 
-export function setMenuItemStateForLanguage(languageId?) {
+export function setMenuItemStateForLanguage(languageId?: string): void {
     CommandManager.get(Commands.CMD_FIND_ALL_REFERENCES).setEnabled(false);
     if (!languageId) {
         const editor = EditorManager.getActiveEditor();

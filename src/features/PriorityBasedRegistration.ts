@@ -35,7 +35,7 @@ export interface Provider {
 /**
  * Comparator to sort providers from high to low priority
  */
-function _providerSort(a, b) {
+function _providerSort(a: Provider, b: Provider): number {
     return b.priority - a.priority;
 }
 

@@ -38,8 +38,8 @@ export const removeJumpToDefProvider = _providerRegistrationHandler.removeProvid
  * @return {!Promise} Resolved when the provider signals that it's done; rejected if no
  * provider responded or the provider that responded failed.
  */
-function _doJumpToDef() {
-    const result = $.Deferred();
+function _doJumpToDef(): JQueryPromise<void> {
+    const result = $.Deferred<void>();
     let jumpToDefProvider: any = null;
     const editor = EditorManager.getActiveEditor();
 
