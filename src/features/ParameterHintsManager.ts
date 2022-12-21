@@ -22,6 +22,8 @@
  *
  */
 
+import type { Editor } from "editor/Editor";
+
 import * as _ from "lodash";
 
 import * as Commands from "command/Commands";
@@ -54,8 +56,8 @@ let $hintContainer; // function hint container
 let $hintContent; // function hint content holder
 let hintState: any = {};
 let lastChar: string | null = null;
-let sessionEditor: any = null;
-let keyDownEditor = null;
+let sessionEditor: Editor | null = null;
+let keyDownEditor: Editor | null = null;
 
 // Constants
 const POINTER_TOP_OFFSET = 4; // Size of margin + border of hint.
@@ -72,7 +74,7 @@ export const removeHintProvider = _providerRegistrationHandler.removeProvider.bi
  * @param {number} ypos
  * @param {number} ybot
  */
-function positionHint(xpos, ypos, ybot) {
+function positionHint(xpos: number, ypos: number, ybot: number): void {
     const hintWidth = $hintContainer.width();
     const hintHeight = $hintContainer.height();
     let top = ypos - hintHeight - POINTER_TOP_OFFSET;
@@ -123,7 +125,7 @@ function positionHint(xpos, ypos, ybot) {
  * default behavior is to include both parameter names and types.
  * @return {string} - formatted parameter hint
  */
-function _formatParameterHint(params, appendSeparators, appendParameter, typesOnly?: boolean) {
+function _formatParameterHint(params, appendSeparators, appendParameter, typesOnly?: boolean): string {
     let result = "";
     let pendingOptional = false;
 
@@ -189,15 +191,15 @@ function _formatParameterHint(params, appendSeparators, appendParameter, typesOn
  *  tells if the caret is in a function call and the position
  *  of the function call.
  */
-function formatHint(hints) {
+function formatHint(hints): void {
     $hintContent.empty();
     $hintContent.addClass("brackets-hints");
 
-    function appendSeparators(separators) {
+    function appendSeparators(separators): void {
         $hintContent.append(separators);
     }
 
-    function appendParameter(param, documentation, index) {
+    function appendParameter(param, documentation, index): void {
         if (hints.currentIndex === index) {
             $hintContent.append($("<span>")
                 .append(_.escape(param))
@@ -220,7 +222,7 @@ function formatHint(hints) {
  * Dismiss the function hint.
  *
  */
-function dismissHint(editor?) {
+function dismissHint(editor?: Editor): void {
     if (hintState.visible) {
         $hintContainer.hide();
         $hintContent.empty();
@@ -246,9 +248,9 @@ function dismissHint(editor?) {
  *      displayed or there is no function hint at the cursor.
  *
  */
-function popUpHint(editor, explicit?, onCursorActivity?) {
+function popUpHint(editor: Editor, explicit?: boolean, onCursorActivity?): JQueryDeferred<null> {
     let request: any = null;
-    const $deferredPopUp = $.Deferred();
+    const $deferredPopUp = $.Deferred<null>();
     let sessionProvider: any = null;
 
     dismissHint(editor);
@@ -297,7 +299,7 @@ function popUpHint(editor, explicit?, onCursorActivity?) {
  *  Show the parameter the cursor is on in bold when the cursor moves.
  *  Dismiss the pop up when the cursor moves off the function.
  */
-function handleCursorActivity(event, editor) {
+function handleCursorActivity(event, editor: Editor): void {
     if (editor) {
         popUpHint(editor, false, true);
     } else {
@@ -311,7 +313,7 @@ function handleCursorActivity(event, editor) {
  * @param {Editor} editor - editor context on which to listen for
  *      changes
  */
-function installListeners(editor) {
+function installListeners(editor: Editor): void {
     editor.on("keydown.ParameterHinting", function (event, editor, domEvent) {
         if (domEvent.keyCode === KeyEvent.DOM_VK_ESCAPE) {
             dismissHint(editor);
@@ -328,11 +330,11 @@ function installListeners(editor) {
  * Clean up after installListeners()
  * @param {!Editor} editor
  */
-function uninstallListeners(editor) {
+function uninstallListeners(editor: Editor): void {
     editor.off(".ParameterHinting");
 }
 
-function _handleKeypressEvent(jqEvent, editor, event) {
+function _handleKeypressEvent(jqEvent, editor: Editor, event): void {
     keyDownEditor = editor;
     // Last inserted character, used later by handleChange
     lastChar = String.fromCharCode(event.charCode);
@@ -347,14 +349,14 @@ function _handleKeypressEvent(jqEvent, editor, event) {
  * @param {Editor} editor
  * @param {{from: Pos, to: Pos, text: Array, origin: string}} changeList
  */
-function _handleChange(event, editor, changeList) {
+function _handleChange(event, editor: Editor, changeList): void {
     if (lastChar && (lastChar === "(" || lastChar === ",") && editor === keyDownEditor) {
         keyDownEditor = null;
         popUpHint(editor);
     }
 }
 
-function activeEditorChangeHandler(event, current, previous) {
+function activeEditorChangeHandler(event, current: Editor, previous: Editor | null): void {
 
     if (previous) {
         // Removing all old Handlers
@@ -379,8 +381,8 @@ function activeEditorChangeHandler(event, current, previous) {
  * Show a parameter hint in its own pop-up.
  *
  */
-function handleShowParameterHint() {
-    const editor = EditorManager.getActiveEditor();
+function handleShowParameterHint(): void {
+    const editor = EditorManager.getActiveEditor()!;
     // Pop up function hint
     popUpHint(editor, true, false);
 }
@@ -396,7 +398,7 @@ AppInit.appReady(function () {
     // Create the function hint container
     $hintContainer = $(hintContainerHTML).appendTo($("body"));
     $hintContent = $hintContainer.find(".function-hint-content-new");
-    activeEditorChangeHandler(null, EditorManager.getActiveEditor(), null);
+    activeEditorChangeHandler(null, EditorManager.getActiveEditor()!, null);
 
     (EditorManager as unknown as DispatcherEvents).on("activeEditorChange", activeEditorChangeHandler);
 

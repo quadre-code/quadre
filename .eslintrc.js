@@ -150,7 +150,6 @@ module.exports = {
                 "src/editor/**/*.ts",
                 "src/extensibility/**/*.ts",
                 "src/extensions/default/**/*.ts",
-                "src/features/**/*.ts",
                 "src/filesystem/**/*.ts",
                 "src/JSUtils/**/*.ts",
                 "src/language/**/*.ts",
