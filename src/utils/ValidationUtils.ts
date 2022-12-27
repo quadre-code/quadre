@@ -28,7 +28,7 @@
  * @param {*} value Value for which to validate its type
  * @return {boolean} true if value is a finite integer
  */
-export function isInteger(value) {
+export function isInteger(value: any): boolean {
     // Validate value is a number
     if (typeof (value) !== "number" || isNaN(parseInt(value as any, 10))) {
         return false;
@@ -56,7 +56,7 @@ export function isInteger(value) {
  * @param {number=} upperLimit Optional upper limit (inclusive)
  * @return {boolean} true if value is an interger, and optionally in specified range.
  */
-export function isIntegerInRange(value, lowerLimit, upperLimit) {
+export function isIntegerInRange(value: any, lowerLimit: number, upperLimit: number): boolean {
     // Validate value is an integer
     if (!isInteger(value)) {
         return false;

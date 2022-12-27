@@ -101,7 +101,7 @@ function _handleAboutDialog(): void {
     function loadContributors(rawUrl, page: number | undefined, contributors?, deferred?): JQueryPromise<Array<Contributor>> {
         deferred = deferred || $.Deferred();
         contributors = contributors || [];
-        const url = StringUtils.format(rawUrl, CONTRIBUTORS_PER_PAGE, page);
+        const url = StringUtils.format(rawUrl, CONTRIBUTORS_PER_PAGE, page!);
 
         $.ajax({
             url: url,

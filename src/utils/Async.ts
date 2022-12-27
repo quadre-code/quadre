@@ -87,9 +87,9 @@ export interface Error {
  * @param {!boolean} failFast
  * @return {$.Promise}
  */
-export function doInParallel(items, beginProcessItem, failFast?) {
+export function doInParallel<T>(items: Array<T>, beginProcessItem: (item: T, index: number) => JQueryPromise<any>, failFast?: boolean): JQueryPromise<void> {
     const promises: Array<JQueryPromise<any>> = [];
-    const masterDeferred = $.Deferred();
+    const masterDeferred = $.Deferred<void>();
 
     if (items.length === 0) {
         masterDeferred.resolve();
@@ -163,12 +163,12 @@ export function doInParallel(items, beginProcessItem, failFast?) {
  * @param {!boolean} failAndStopFast
  * @return {$.Promise}
  */
-export function doSequentially(items, beginProcessItem, failAndStopFast?) {
+export function doSequentially(items, beginProcessItem, failAndStopFast?: boolean): JQueryPromise<void> {
 
-    const masterDeferred = $.Deferred();
+    const masterDeferred = $.Deferred<void>();
     let hasFailed = false;
 
-    function doItem(i) {
+    function doItem(i: number): void {
         if (i >= items.length) {
             if (hasFailed) {
                 masterDeferred.reject();
@@ -209,7 +209,7 @@ export function doSequentially(items, beginProcessItem, failAndStopFast?) {
  * @param {number=} idleTime
  * @return {$.Promise}
  */
-export function doSequentiallyInBackground(items, fnProcessItem, maxBlockingTime, idleTime) {
+export function doSequentiallyInBackground(items, fnProcessItem, maxBlockingTime: number, idleTime: number): JQueryPromise<void> {
 
     maxBlockingTime = maxBlockingTime || 15;
     idleTime = idleTime || 30;
@@ -247,11 +247,11 @@ export function doSequentiallyInBackground(items, fnProcessItem, maxBlockingTime
  * @param {!function(*, number):Promise} beginProcessItem
  * @return {$.Promise}
  */
-export function firstSequentially(items, beginProcessItem) {
+export function firstSequentially(items, beginProcessItem): JQueryPromise<any> {
 
     const masterDeferred = $.Deferred();
 
-    function doItem(i) {
+    function doItem(i: number): void {
         if (i >= items.length) {
             masterDeferred.reject();
             return;
@@ -329,8 +329,8 @@ export const ERROR_TIMEOUT = {};
  * @param {boolean=} resolveTimeout If true, then resolve deferred on timeout, otherwise reject. Default is false.
  * @return {$.Promise}
  */
-export function withTimeout(promise, timeout, resolveTimeout?) {
-    const wrapper = $.Deferred();
+export function withTimeout<T>(promise: JQueryPromise<T>, timeout: number, resolveTimeout?: boolean): JQueryPromise<T> {
+    const wrapper = $.Deferred<T>();
 
     const timer = window.setTimeout(function () {
         if (resolveTimeout) {
@@ -375,8 +375,8 @@ export function withTimeout(promise, timeout, resolveTimeout?) {
  *                     without a result.
  *
  */
-export function waitForAll(promises, failOnReject?, timeout?) {
-    const masterDeferred = $.Deferred();
+export function waitForAll(promises: Array<JQueryPromise<any>>, failOnReject?: boolean, timeout?: number): JQueryPromise<any> {
+    const masterDeferred = $.Deferred<any>();
     const results: Array<any> = [];
     let count = 0;
     let sawRejects = false;
@@ -428,10 +428,10 @@ export function waitForAll(promises, failOnReject?, timeout?) {
  * @return {jQuery.Promise} A promise that resolves with the result of the final call, or
  *      rejects with the first error.
  */
-export function chain(functions, args) {
+export function chain(functions, args): JQueryPromise<any> {
     const deferred = $.Deferred();
 
-    function chainHelper(index, args) {
+    function chainHelper(index: number, args): void {
         if (functions.length === index) {
             deferred.resolveWith(null, args);
         } else {
@@ -538,8 +538,8 @@ export class PromiseQueue {
     /**
      * @type {number} The number of queued promises.
      */
-    get length() { return this._queue.length; }
-    set length(length) { throw new Error("Cannot set length"); }
+    get length(): number { return this._queue.length; }
+    set length(length: number) { throw new Error("Cannot set length"); }
 
     /**
      * Adds an operation to the queue. If nothing is currently executing, it will execute immediately (and
@@ -550,7 +550,7 @@ export class PromiseQueue {
      * is resolved or rejected.
      * @param {function(): $.Promise} op The operation to add to the queue.
      */
-    public add(op) {
+    public add<T>(op: () => JQueryPromise<T>): void {
         this._queue.push(op);
 
         // If something is currently executing, then _doNext() will get called when it's done. If nothing
@@ -564,7 +564,7 @@ export class PromiseQueue {
     /**
      * Removes all pending promises from the queue.
      */
-    public removeAll() {
+    public removeAll(): void {
         this._queue = [];
     }
 
@@ -572,7 +572,7 @@ export class PromiseQueue {
      * @private
      * Pulls the next operation off the queue and executes it.
      */
-    private _doNext() {
+    private _doNext(): void {
         const self = this;
         if (this._queue.length) {
             const op = this._queue.shift()!;

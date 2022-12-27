@@ -30,9 +30,15 @@
 import * as  _ from "lodash";
 import * as  CodeMirror from "codemirror";
 
+interface Context {
+    editor: CodeMirror.Editor;
+    pos: CodeMirror.Position;
+    token: CodeMirror.Token;
+}
+
 let cache;
 
-function _clearCache(cm?) {
+function _clearCache(cm?: CodeMirror.Editor): void {
     cache = null;
     if (cm) { // event handler
         cm.off("changes", _clearCache);
@@ -45,7 +51,7 @@ function _clearCache(cm?) {
  * @param {!number} line
  * @return {Array.<Object>} (Cached) array of tokens
  */
-function _manageCache(cm, line) {
+function _manageCache(cm: CodeMirror.Editor, line: number): Array<CodeMirror.Token> {
     if (!cache || !cache.tokens || cache.line !== line || cache.cm !== cm) {
         // Cache is no longer matching -> Update
         const tokens = cm.getLineTokens(line, false);
@@ -70,12 +76,13 @@ function _manageCache(cm, line) {
  * @param {boolean} precise If given, results in more current results. Suppresses caching.
  * @return {Object} Token for position
  */
-export function getTokenAt(cm, pos, precise?) {
+export function getTokenAt(cm: CodeMirror.Editor, pos: CodeMirror.Position, precise?: boolean): CodeMirror.Token {
     if (precise) {
         _clearCache(); // reset cache
         return cm.getTokenAt(pos, precise);
     }
     const cachedTokens    = _manageCache(cm, pos.line);
+    // @ts-expect-error
     const tokenIndex      = _.sortedIndex(cachedTokens, {end: pos.ch}, "end"); // binary search is faster for long arrays
     const token           = cachedTokens[tokenIndex];
     return token || cm.getTokenAt(pos, precise); // fall back to CMs getTokenAt, for example in an empty line
@@ -88,7 +95,7 @@ export function getTokenAt(cm, pos, precise?) {
  * @param {!{ch:number, line:number}} pos
  * @return {!{editor:!CodeMirror, pos:!{ch:number, line:number}, token:Object}}
  */
-export function getInitialContext(cm, pos) {
+export function getInitialContext(cm: CodeMirror.Editor, pos: CodeMirror.Position): Context {
     return {
         "editor": cm,
         "pos": pos,
@@ -103,7 +110,7 @@ export function getInitialContext(cm, pos) {
  *      If parsing unchanging code, use false to use cache for performance.
  * @return {boolean} whether the context changed
  */
-export function movePrevToken(ctx, precise?) {
+export function movePrevToken(ctx: Context, precise?: boolean): boolean {
     if (precise === undefined) {
         precise = true;
     }
@@ -126,7 +133,7 @@ export function movePrevToken(ctx, precise?) {
  * @param {!{editor:!CodeMirror, pos:!{ch:number, line:number}, token:Object}} ctx
  * @return {boolean} true if movePrevToken() would return false without changing pos
  */
-export function isAtStart(ctx) {
+export function isAtStart(ctx: Context): boolean {
     return (ctx.pos.ch <= 0 || ctx.token.start <= 0) && (ctx.pos.line <= 0);
 }
 
@@ -137,7 +144,7 @@ export function isAtStart(ctx) {
  *      If parsing unchanging code, use false to use cache for performance.
  * @return {boolean} whether the context changed
  */
-export function moveNextToken(ctx, precise?) {
+export function moveNextToken(ctx: Context, precise?: boolean): boolean {
     const eol = ctx.editor.getLine(ctx.pos.line).length;
     if (precise === undefined) {
         precise = true;
@@ -161,7 +168,7 @@ export function moveNextToken(ctx, precise?) {
  * @param {!{editor:!CodeMirror, pos:!{ch:number, line:number}, token:Object}} ctx
  * @return {boolean} true if moveNextToken() would return false without changing pos
  */
-export function isAtEnd(ctx) {
+export function isAtEnd(ctx: Context): boolean {
     const eol = ctx.editor.getLine(ctx.pos.line).length;
     return (ctx.pos.ch >= eol || ctx.token.end >= eol) && (ctx.pos.line >= ctx.editor.lineCount() - 1);
 }
@@ -172,7 +179,7 @@ export function isAtEnd(ctx) {
  * @param {!{editor:!CodeMirror, pos:!{ch:number, line:number}, token:Object}} ctx
  * @return {boolean} whether the context changed
  */
-export function moveSkippingWhitespace(moveFxn, ctx) {
+export function moveSkippingWhitespace(moveFxn: (c: Context) => boolean, ctx: Context): boolean {
     if (!moveFxn(ctx)) {
         return false;
     }
@@ -189,7 +196,7 @@ export function moveSkippingWhitespace(moveFxn, ctx) {
  * @param {!{editor:!CodeMirror, pos:!{ch:number, line:number}, token:Object}} context
  * @return {number}
  */
-export function offsetInToken(ctx) {
+export function offsetInToken(ctx: Context): number {
     const offset = ctx.pos.ch - ctx.token.start;
     if (offset < 0) {
         console.log("CodeHintUtils: _offsetInToken - Invalid context: pos not in the current token!");
@@ -204,14 +211,14 @@ export function offsetInToken(ctx) {
  * @param {boolean} precise If given, results in more current results. Suppresses caching.
  * @return {mode:{Object}, name:string}
  */
-export function getModeAt(cm, pos, precise?) {
+export function getModeAt(cm: CodeMirror.Editor, pos: CodeMirror.Position, precise?: boolean): { mode: any, name: string } {
     precise = precise || true;
     let modeData = cm.getMode();
-    if (modeData.innerMode) {
+    if ((modeData as any).innerMode) {
         modeData = CodeMirror.innerMode(modeData, getTokenAt(cm, pos, precise).state).mode;
     }
 
-    const name = (modeData.name === "xml") ? modeData.configuration : modeData.name;
+    const name = (modeData.name === "xml") ? (modeData as any).configuration : modeData.name;
 
     return {mode: modeData, name: name};
 }

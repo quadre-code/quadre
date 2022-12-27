@@ -114,7 +114,7 @@ function _getTagAttributes(editor, constPos) {
         if (ctxPrev.token.type === "tag") {
             tagName = ctxPrev.token.string;
             if (TokenUtils.movePrevToken(ctxPrev)) {
-                if (ctxPrev.token.type === "tag bracket" && ctxPrev.token.string === "<") {
+                if (ctxPrev.token.type as string === "tag bracket" && ctxPrev.token.string === "<") {
                     break;
                 }
                 return null;
@@ -204,7 +204,7 @@ function _getTagAttributeValue(editor, pos) {
         if (ctx.token.type === "tag") {
             tagName = ctx.token.string;
             if (TokenUtils.movePrevToken(ctx)) {
-                if (ctx.token.type === "tag bracket" && ctx.token.string === "<") {
+                if (ctx.token.type as string === "tag bracket" && ctx.token.string === "<") {
                     break;
                 }
                 return null;
@@ -238,7 +238,7 @@ export function getTagInfo(editor, pos) {
     if (ctx.token && ctx.token.type === "tag") {
         // Return tagInfo when a tag is created.
         if (TokenUtils.movePrevToken(ctx)) {
-            if (ctx.token.type === "tag bracket" && ctx.token.string === "<") {
+            if (ctx.token.type as string === "tag bracket" && ctx.token.string === "<") {
                 TokenUtils.moveNextToken(ctx);
                 return _createTagInfo(ctx.token, TOKEN_TAG, offset);
             }

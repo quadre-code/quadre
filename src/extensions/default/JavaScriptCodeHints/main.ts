@@ -473,7 +473,7 @@ class JSHints {
 
         // close if the token className has changed then close the hints.
         const cursor = session.getCursor();
-        let token = session.getToken(cursor);
+        let token: CodeMirror.Token | null = session.getToken(cursor);
         let lastToken = cachedToken;
 
         // if the line has changed, then close the hints

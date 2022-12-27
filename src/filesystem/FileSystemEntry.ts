@@ -548,7 +548,10 @@ class FileSystemEntry {
      * @param {{maxDepth: number=, maxEntries: number=}=} options
      * @param {function(?string)=} callback Callback with single FileSystemError string parameter.
      */
-    public visit(visitor, options, callback) {
+    public visit(visitor, callback);
+    // tslint:disable-next-line: unified-signatures
+    public visit(visitor, options, callback);
+    public visit(visitor, options, callback?) {
         if (typeof options === "function") {
             callback = options;
             options = {};

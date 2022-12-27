@@ -22,8 +22,24 @@
  *
  */
 
+import type File = require("filesystem/File");
+
 import * as _ from "lodash";
 import * as LanguageManager from "language/LanguageManager";
+
+interface Rect {
+    top: number;
+    left: number;
+    height: number;
+    width: number;
+}
+
+interface ClipSize {
+    top: number;
+    right: number;
+    bottom: number;
+    left: number;
+}
 
 export const SCROLL_SHADOW_HEIGHT = 5;
 
@@ -40,7 +56,7 @@ const _resizeHandlers: Array<() => void> = [];
  * @param {!DOMElement} $shadowBottom div .scroller-shadow.bottom
  * @param {boolean} isPositionFixed When using absolute position, top remains at 0.
  */
-function _updateScrollerShadow($displayElement, $scrollElement, $shadowTop, $shadowBottom, isPositionFixed) {
+function _updateScrollerShadow($displayElement: JQuery, $scrollElement: JQuery, $shadowTop: JQuery | null, $shadowBottom: JQuery | null, isPositionFixed: boolean): void {
     let offsetTop           = 0;
     const scrollElement       = $scrollElement.get(0);
     const scrollTop           = scrollElement.scrollTop;
@@ -76,7 +92,7 @@ function _updateScrollerShadow($displayElement, $scrollElement, $shadowTop, $sha
     }
 }
 
-function getOrCreateShadow($displayElement, position, isPositionFixed) {
+function getOrCreateShadow($displayElement: JQuery, position: string, isPositionFixed: boolean): JQuery {
     let $findShadow = $displayElement.find(".scroller-shadow." + position);
 
     if ($findShadow.length === 0) {
@@ -101,23 +117,24 @@ function getOrCreateShadow($displayElement, position, isPositionFixed) {
  *  when the element is scrolled. If null, the displayElement is used.
  * @param {?boolean} showBottom optionally show the bottom shadow
  */
-export function addScrollerShadow(displayElement, scrollElement?, showBottom?) {
+export function addScrollerShadow(displayElement: Element | JQuery, scrollElement?: JQuery | null, showBottom?: boolean): void {
     // use fixed positioning when the display and scroll elements are the same
     let isPositionFixed = false;
+    let scrollEl: JQuery | Element = scrollElement!;
 
     if (!scrollElement) {
-        scrollElement = displayElement;
+        scrollEl = displayElement;
         isPositionFixed = true;
     }
 
     // update shadows when the scrolling element is scrolled
     const $displayElement = $(displayElement);
-    const $scrollElement = $(scrollElement);
+    const $scrollElement = $(scrollEl);
 
     const $shadowTop = getOrCreateShadow($displayElement, "top", isPositionFixed);
     const $shadowBottom = (showBottom) ? getOrCreateShadow($displayElement, "bottom", isPositionFixed) : null;
 
-    const doUpdate = function () {
+    const doUpdate = function (): void {
         _updateScrollerShadow($displayElement, $scrollElement, $shadowTop, $shadowBottom, isPositionFixed);
     };
 
@@ -138,13 +155,15 @@ export function addScrollerShadow(displayElement, scrollElement?, showBottom?) {
  * @param {!DOMElement} displayElement the DOMElement that displays the shadow
  * @param {?Object} scrollElement the object that is scrolled
  */
-export function removeScrollerShadow(displayElement, scrollElement) {
+export function removeScrollerShadow(displayElement: Element | JQuery, scrollElement: JQuery | null): void {
+    let scrollEl: JQuery | Element = scrollElement!;
+
     if (!scrollElement) {
-        scrollElement = displayElement;
+        scrollEl = displayElement;
     }
 
     const $displayElement = $(displayElement);
-    const $scrollElement = $(scrollElement);
+    const $scrollElement = $(scrollEl);
 
     // remove scrollerShadow elements from DOM
     $displayElement.find(".scroller-shadow.top").remove();
@@ -161,7 +180,7 @@ export function removeScrollerShadow(displayElement, scrollElement) {
  * @param {!string} className Class name or names (separated by spaces) to toggle
  * @param {!boolean} addClass A truthy value to add the class and a falsy value to remove the class
  */
-export function toggleClass($domElement, className, addClass) {
+export function toggleClass($domElement: JQuery, className: string, addClass: boolean): void {
     if (addClass) {
         $domElement.addClass(className);
     } else {
@@ -181,7 +200,7 @@ export function toggleClass($domElement, className, addClass) {
  * @param {!DOMElement} scrollElement A DOMElement containing a ul list element
  * @param {!string} selectedClassName A CSS class name on at most one list item in the contained list
  */
-export function sidebarList($scrollerElement, selectedClassName?, leafClassName?) {
+export function sidebarList($scrollerElement: JQuery, selectedClassName?: string, leafClassName?: string): void {
     const $listElement = $scrollerElement.find("ul");
     const $sidebar = $("#sidebar");
     let showExtension = true;
@@ -203,7 +222,7 @@ export function sidebarList($scrollerElement, selectedClassName?, leafClassName?
 
     selectedClassName = "." + (selectedClassName || "selected");
 
-    const updateSelectionExtension = function () {
+    const updateSelectionExtension = function (): void {
         const selectionMarkerHeight = $selectionMarker.height();
         const selectionMarkerOffset = $selectionMarker.offset();  // offset relative to *document*
         const scrollerOffset = $scrollerElement.offset();
@@ -227,14 +246,14 @@ export function sidebarList($scrollerElement, selectedClassName?, leafClassName?
         }
     };
 
-    const hideSelectionMarker = function (event) {
+    const hideSelectionMarker = function (event): void {
         $selectionExtension.addClass("forced-hidden");
         $selectionMarker.addClass("forced-hidden");
     };
 
-    const updateSelectionMarker = function (event?, reveal?) {
+    const updateSelectionMarker = function (event?, reveal?): void {
         // find the selected list item
-        const $listItem = $listElement.find(selectedClassName).closest("li");
+        const $listItem = $listElement.find(selectedClassName!).closest("li");
 
         if (leafClassName) {
             showExtension = $listItem.hasClass(leafClassName);
@@ -291,7 +310,7 @@ export function sidebarList($scrollerElement, selectedClassName?, leafClassName?
 /**
  * @private
  */
-function _handleResize() {
+function _handleResize(): void {
     _resizeHandlers.forEach(function (f) {
         f();
     });
@@ -306,7 +325,7 @@ function _handleResize() {
  * @return {{top: number, right: number, bottom: number, left: number}}
  *          amount element rect is clipped in each direction
  */
-export function getElementClipSize($view, elementRect) {
+export function getElementClipSize($view: JQuery, elementRect: Rect): ClipSize {
     let delta;
     const clip = { top: 0, right: 0, bottom: 0, left: 0 };
     const viewOffset = $view.offset() || { top: 0, left: 0};
@@ -355,7 +374,7 @@ export function getElementClipSize($view, elementRect) {
  * @param {!DOMElement} $element - A jQuery element
  * @param {?boolean} scrollHorizontal - whether to also scroll horizontally
  */
-export function scrollElementIntoView($view, $element, scrollHorizontal) {
+export function scrollElementIntoView($view: JQuery, $element: JQuery, scrollHorizontal: boolean): void {
     const elementOffset = $element.offset();
 
     // scroll minimum amount
@@ -389,7 +408,7 @@ export function scrollElementIntoView($view, $element, scrollHorizontal) {
  * @param {!File} entry File entry to display
  * @return {string} HTML formatted string
  */
-export function getFileEntryDisplay(entry) {
+export function getFileEntryDisplay(entry: File | { name: string }): string {
     let name = entry.name;
     const ext = LanguageManager.getCompoundFileExtension(name);
     const i = name.lastIndexOf("." + ext);
@@ -411,20 +430,20 @@ export function getFileEntryDisplay(entry) {
  * @param {Array.<File>} files - list of Files with the same filename
  * @return {Array.<string>} directory paths to match list of files
  */
-export function getDirNamesForDuplicateFiles(files) {
+export function getDirNamesForDuplicateFiles(files: Array<File>): Array<string> {
     // Must have at least two files in list for this to make sense
     if (files.length <= 1) {
         return [];
     }
 
     // First collect paths from the list of files and fill map with them
-    const map = {};
+    const map: Record<string, Array<number>> = {};
     const filePaths: Array<Array<string>> = [];
     const displayPaths: Array<string> = [];
     files.forEach(function (file, index) {
         const fp = file.fullPath.split("/");
         fp.pop(); // Remove the filename itself
-        displayPaths[index] = fp.pop();
+        displayPaths[index] = fp.pop()!;
         filePaths[index] = fp;
 
         if (!map[displayPaths[index]]) {
@@ -435,7 +454,7 @@ export function getDirNamesForDuplicateFiles(files) {
     });
 
     // This function is used to loop through map and resolve duplicate names
-    const processMap = function (map) {
+    const processMap = function (map: Record<string, Array<number>>): boolean {
         let didSomething = false;
         _.forEach(map, function (arr, key: string) {
             // length > 1 means we have duplicates that need to be resolved
@@ -492,14 +511,14 @@ export function traverseViewArray<T>(viewArray: Array<T>, startIndex: number, di
     return null;
 }
 
-export function hideMainToolBar() {
+export function hideMainToolBar(): void {
     $("#main-toolbar").addClass("forced-hidden");
     $(".main-view .content").each(function (index, element) {
         $(element).addClass("force-right-zero");
     });
 }
 
-export function showMainToolBar() {
+export function showMainToolBar(): void {
     $("#main-toolbar").removeClass("forced-hidden");
     $(".main-view .content").each(function (index, element) {
         $(element).removeClass("force-right-zero");

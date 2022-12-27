@@ -324,7 +324,7 @@ function _onReady() {
     Async.waitForAll([LanguageManager.ready, PreferencesManager.ready]).always(function () {
         // Load all extensions. This promise will complete even if one or more
         // extensions fail to load.
-        const extensionPathOverride = params.get("extensions");  // used by unit tests
+        const extensionPathOverride = params.get<string>("extensions");  // used by unit tests
         const extensionLoaderPromise = ExtensionLoader.init(extensionPathOverride ? extensionPathOverride.split(",") : null);
 
         // Load the initial project after extensions have loaded

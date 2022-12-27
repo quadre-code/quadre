@@ -47,19 +47,19 @@ import * as _ from "lodash";
  *
  * @return {string} Formatted string
  */
-export function format(str, ...args) {
+export function format(str: string, ...args: Array<string | number>): string {
     return str.replace(/\{(\d+)\}/g, function (match, num) {
-        return typeof args[num] !== "undefined" ? args[num] : match;
+        return typeof args[num] !== "undefined" ? "" + args[num] : match;
     });
 }
 
-export function regexEscape(str) {
+export function regexEscape(str: string): string {
     return str.replace(/([.?*+^$[\]\\(){}|-])/g, "\\$1");
 }
 
 // Periods (aka "dots") are allowed in HTML identifiers, but jQuery interprets
 // them as the start of a class selector, so they need to be escaped
-export function jQueryIdEscape(str) {
+export function jQueryIdEscape(str: string): string {
     return str.replace(/\./g, "\\.");
 }
 
@@ -68,7 +68,7 @@ export function jQueryIdEscape(str) {
  * @param {string} text
  * @return {Array.<string>} lines
  */
-export function getLines(text) {
+export function getLines(text: string): Array<string> {
     return text.split("\n");
 }
 
@@ -86,7 +86,7 @@ export function getLines(text) {
  * @param {number} offset
  * @return {number} line number
  */
-export function offsetToLineNum(textOrLines, offset) {
+export function offsetToLineNum(textOrLines: string | Array<string>, offset: number): number | undefined {
     if (Array.isArray(textOrLines)) {
         const lines = textOrLines;
         let total = 0;
@@ -120,7 +120,7 @@ export function offsetToLineNum(textOrLines, offset) {
  * @param   {String} prefix
  * @return {Boolean}
  */
-export function startsWith(str, prefix) {
+export function startsWith(str: string, prefix: string): boolean {
     return str.slice(0, prefix.length) === prefix;
 }
 
@@ -130,14 +130,14 @@ export function startsWith(str, prefix) {
  * @param {string} str
  * @param {string} suffix
  */
-export function endsWith(str, suffix) {
+export function endsWith(str: string, suffix: string): boolean {
     return str.indexOf(suffix, str.length - suffix.length) !== -1;
 }
 
-export function urlSort(a, b) {
+export function urlSort(a: string, b: string): number {
     let a2;
     let b2;
-    function isFile(s) {
+    function isFile(s: string): boolean {
         return ((s.lastIndexOf("/") + 1) < s.length);
     }
 
@@ -162,7 +162,7 @@ export function urlSort(a, b) {
  * @param {string} url the path or URL to format
  * @return {string} the formatted path or URL
  */
-export function breakableUrl(url) {
+export function breakableUrl(url: string): string {
     // This is for displaying in UI, so always want it escaped
     const escUrl = _.escape(url);
 
@@ -181,12 +181,12 @@ export function breakableUrl(url) {
  * @param {number} precision Number of digits after the decimal separator
  * @return {string}
  */
-export function prettyPrintBytes(bytes, precision) {
+export function prettyPrintBytes(bytes: number, precision: number): string {
     const kilobyte = 1024;
     const megabyte = kilobyte * 1024;
     const gigabyte = megabyte * 1024;
     const terabyte = gigabyte * 1024;
-    let returnVal = bytes;
+    let returnVal: string = "" + bytes;
 
     if ((bytes >= 0) && (bytes < kilobyte)) {
         returnVal = bytes + " B";
@@ -209,7 +209,7 @@ export function prettyPrintBytes(bytes, precision) {
  * @param {number} len Length to which text should be truncated
  * @return {?string} Returns truncated text only if it was changed
  */
-export function truncate(str, len) {
+export function truncate(str: string, len: number): string | undefined {
     // Truncate text to specified length
     if (str.length > len) {
         str = str.substr(0, len);
@@ -222,6 +222,8 @@ export function truncate(str, len) {
         }
         return str;
     }
+
+    return undefined;
 }
 
 /**
@@ -231,7 +233,7 @@ export function truncate(str, len) {
  * @param   {string}   str The string for which hash is to be computed
  * @return {number} The 32-bit hash
  */
-export function hashCode(str) {
+export function hashCode(str: string): number {
     let hash = 0;
     if (str.length === 0) {
         return hash;

@@ -744,7 +744,7 @@ function _showUpdateNotificationDialog(updates: UpdateFeedInfo): void {
 /**
  * Calculate state of notification everytime registries are downloaded - no matter who triggered the download
  */
-function _onRegistryDownloaded() {
+function _onRegistryDownloaded(): void {
     const availableUpdates = ExtensionManager.getAvailableUpdates();
     PreferencesManager.setViewState("extensionUpdateInfo", availableUpdates);
     PreferencesManager.setViewState("lastExtensionRegistryCheckTime", (new Date()).getTime());
@@ -757,7 +757,7 @@ function _onRegistryDownloaded() {
  *  If there isn't 24 hours elapsed from the last download, use cached information from last download
  *  to determine state of the update notification.
  */
-function checkForExtensionsUpdate() {
+function checkForExtensionsUpdate(): void {
     const lastExtensionRegistryCheckTime = PreferencesManager.getViewState("lastExtensionRegistryCheckTime");
     const timeOfNextCheck = lastExtensionRegistryCheckTime + ONE_DAY;
     const currentTime = (new Date()).getTime();
@@ -793,7 +793,7 @@ function checkForExtensionsUpdate() {
  * @param {Object} _testValues This should only be used for testing purposes. See comments for details.
  * @return {$.Promise} jQuery Promise object that is resolved or rejected after the update check is complete.
  */
-export function checkForUpdate(force: boolean = false, _testValues?: any) {
+export function checkForUpdate(force: boolean = false, _testValues?: any): JQueryPromise<void> {
     // This is the last version we notified the user about. If checkForUpdate()
     // is called with "false", only show the update notification dialog if there
     // is an update newer than this one. This value is saved in preferences.
@@ -805,7 +805,7 @@ export function checkForUpdate(force: boolean = false, _testValues?: any) {
     // the update notification icon and saving prefs).
     let oldValues: any;
     let usingOverrides = false; // true if any of the values are overridden.
-    const result = $.Deferred();
+    const result = $.Deferred<void>();
     let versionInfoUrl: string | undefined;
 
     if (_testValues) {
@@ -910,7 +910,7 @@ export function checkForUpdate(force: boolean = false, _testValues?: any) {
 /**
  * Launches both check for Brackets update and check for installed extensions update
  */
-export function launchAutomaticUpdate() {
+export function launchAutomaticUpdate(): void {
     // launch immediately and then every 24 hours + 2 minutes
     checkForUpdate();
     checkForExtensionsUpdate();

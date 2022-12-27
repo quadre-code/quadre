@@ -1468,7 +1468,7 @@ function _getSelectorInFinalCSSForm(selectorArray: Array<string>): string {
  *      Array of objects containing the start and end line numbers (0-based, inclusive range) for each
  *      matched selector.
  */
-export function _findAllMatchingSelectorsInText(text, selector, mode?) {
+export function _findAllMatchingSelectorsInText(text: string, selector: string, mode?) {
     const allSelectors = extractAllSelectors(text, mode);
     const result: Array<SelectorInfo> = [];
 
@@ -1529,18 +1529,18 @@ function _addSelectorsToResults(resultSelectors: Array<Rule>, selectorsToAdd: Ar
 }
 
 /** Finds matching selectors in CSS files; adds them to 'resultSelectors' */
-function _findMatchingRulesInCSSFiles(selector, resultSelectors: Array<Rule>): JQueryPromise<Array<Rule>> {
-    const result          = $.Deferred<Array<Rule>>();
+function _findMatchingRulesInCSSFiles(selector, resultSelectors: Array<Rule>): JQueryPromise<void> {
+    const result          = $.Deferred<void>();
 
     // Load one CSS file and search its contents
-    function _loadFileAndScan(fullPath, selector) {
-        const oneFileResult = $.Deferred();
+    function _loadFileAndScan(fullPath: string, selector: string): JQueryPromise<void> {
+        const oneFileResult = $.Deferred<void>();
 
         DocumentManager.getDocumentForPath(fullPath)
             .done(function (doc) {
                 // Find all matching rules for the given CSS file's content, and add them to the
                 // overall search result
-                const oneCSSFileMatches = _findAllMatchingSelectorsInText(doc!.getText(), selector, doc!.getLanguage().getMode());
+                const oneCSSFileMatches = _findAllMatchingSelectorsInText(doc!.getText()!, selector, doc!.getLanguage().getMode());
                 _addSelectorsToResults(resultSelectors, oneCSSFileMatches, doc, 0);
 
                 oneFileResult.resolve();
@@ -1556,7 +1556,7 @@ function _findMatchingRulesInCSSFiles(selector, resultSelectors: Array<Rule>): J
     ProjectManager.getAllFiles(ProjectManager.getLanguageFilter(["css", "less", "scss"]))
         .done(function (cssFiles) {
             // Load index of all CSS files; then process each CSS file in turn (see above)
-            Async.doInParallel(cssFiles, function (fileInfo, number) {
+            Async.doInParallel(cssFiles!, function (fileInfo, number) {
                 return _loadFileAndScan(fileInfo.fullPath, selector);
             })
                 .then(result.resolve, result.reject);

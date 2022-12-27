@@ -46,7 +46,9 @@ module.exports = {
             "excludedFiles": "**/*.js",
             "rules": {
                 "@typescript-eslint/naming-convention": "off",
-                "@typescript-eslint/no-shadow": "warn"
+                "no-shadow": "off",
+                "@typescript-eslint/no-shadow": "warn",
+                "no-dupe-class-members": "off"
             }
         },
         // app/
@@ -156,7 +158,6 @@ module.exports = {
                 "src/languageTools/**/*.ts",
                 "src/preferences/**/*.ts",
                 "src/project/**/*.ts",
-                "src/utils/**/*.ts",
                 "src/view/**/*.ts",
                 "src/widgets/**/*.ts",
                 "src/brackets.ts",

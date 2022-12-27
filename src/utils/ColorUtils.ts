@@ -51,7 +51,7 @@ export const COLOR_REGEX = new RegExp(/0x([a-f0-9]{6})\b|#[a-f0-9]{6}\b|#[a-f0-9
  *      align with the other hints
  * @return {jQuery} jQuery object with the correct class and/or style applied
  */
-export function formatColorHint($hintObj, color) {
+export function formatColorHint($hintObj: JQuery, color: string): JQuery {
     if (color) {
         $hintObj.prepend($("<span>")
             .addClass("color-swatch")

@@ -75,7 +75,7 @@ export class DropdownEventHandler {
     /**
      * Public open method
      */
-    public open() {
+    public open(): void {
         const self = this;
 
         /**
@@ -84,7 +84,7 @@ export class DropdownEventHandler {
          * @param {KeyboardEvent} event
          * @return {boolean} true if key was handled, otherwise false.
          */
-        function _keydownHook(event) {
+        function _keydownHook(event: KeyboardEvent): boolean {
             let keyCode;
 
             // (page) up, (page) down, enter and tab key are handled by the list
@@ -133,7 +133,7 @@ export class DropdownEventHandler {
         /**
          * PopUpManager callback
          */
-        function closeCallback() {
+        function closeCallback(): void {
             KeyBindingManager.removeGlobalKeydownHook(_keydownHook);
             self._cleanup();
         }
@@ -149,7 +149,7 @@ export class DropdownEventHandler {
     /**
      * Public close method
      */
-    public close() {
+    public close(): void {
         if (this.$list) {
             PopUpManager.removePopUp(this.$list);
         }
@@ -158,7 +158,7 @@ export class DropdownEventHandler {
     /**
      * Cleanup
      */
-    public _cleanup() {
+    public _cleanup(): void {
         if (this.$list) {
             this.$list.off(".dropdownEventHandler");
         }
@@ -176,7 +176,7 @@ export class DropdownEventHandler {
      * @param {number} direction  Either +1 or -1
      * @param {boolean=} noWrap  Clip out of range index values instead of wrapping. Default false (wrap).
      */
-    public _tryToSelect(index, direction, noWrap?) {
+    public _tryToSelect(index: number, direction: number, noWrap?: boolean): void {
         // Fix up 'index' if out of bounds (>= len or < 0)
         const len = this.$items.length;
         if (noWrap) {
@@ -208,7 +208,7 @@ export class DropdownEventHandler {
     /**
      * @return {number} The number of items per scroll page.
      */
-    public _itemsPerPage() {
+    public _itemsPerPage(): number {
         let itemsPerPage = 1;
         let itemHeight;
 
@@ -227,8 +227,7 @@ export class DropdownEventHandler {
     /**
      * Call selectionCallback with selected index
      */
-    public _selectionHandler() {
-
+    public _selectionHandler(): void {
         if (this._selectedIndex === -1) {
             return;
         }
@@ -242,8 +241,7 @@ export class DropdownEventHandler {
      *
      * @param {jQueryObject} $item
      */
-    public _clickHandler($link) {
-
+    public _clickHandler($link: JQuery): void {
         if (!this.selectionCallback || !this.$list || !$link) {
             return;
         }
@@ -262,8 +260,7 @@ export class DropdownEventHandler {
      * @private
      * @param {number} index
      */
-    private _setSelectedIndex(index, scrollIntoView) {
-
+    private _setSelectedIndex(index: number, scrollIntoView: boolean): void {
         // Range check
         index = Math.max(-1, Math.min(index, this.$items.length - 1));
 
@@ -289,7 +286,7 @@ export class DropdownEventHandler {
     /**
      * Register mouse event handlers
      */
-    public _registerMouseEvents() {
+    public _registerMouseEvents(): void {
         const self = this;
 
         this.$list
@@ -322,7 +319,7 @@ export class DropdownEventHandler {
      * Re-register mouse event handlers
      * @param {!jQueryObject} $list  newly updated list object
      */
-    public reRegisterMouseHandlers($list) {
+    public reRegisterMouseHandlers($list: JQuery): void {
         if (this.$list) {
             this.$list.off(".dropdownEventHandler");
 

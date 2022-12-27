@@ -232,7 +232,7 @@ export function getContextInfo(editor, constPos, requireParent, requireNextToken
         return _createContextInfo(ctx.token, TOKEN_KEY, offset, keyName, valueName, parentKeyName, null, exclusionList, shouldReplace);
     }
 
-    if (ctx.token && (valueTokenTypes.indexOf(ctx.token.type) !== -1 ||
+    if (ctx.token && (valueTokenTypes.indexOf(ctx.token.type!) !== -1 ||
                             (ctx.token.type === null && regexAllowedChars.test(ctx.token.string)))) {
         // Boolean, String, Number and variable literal values.
 

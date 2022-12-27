@@ -61,7 +61,7 @@ const MAX_COUNTER_VALUE = 4294967295; // 2^32 - 1
  * If the deferred is resolved/rejected manually, then the timeout is
  * automatically cleared.
  */
-function setDeferredTimeout(deferred, delay) {
+function setDeferredTimeout<T>(deferred: JQueryDeferred<T>, delay: number): void {
     const timer = setTimeout(function () {
         deferred.reject("timeout");
     }, delay);
@@ -72,8 +72,8 @@ function setDeferredTimeout(deferred, delay) {
  * @private
  * Helper function to attempt a single connection to the node server
  */
-function attemptSingleConnect() {
-    const deferred = $.Deferred();
+function attemptSingleConnect(): JQueryPromise<any> {
+    const deferred = $.Deferred<any>();
     let port = null;
     let ws: WebSocket;
     setDeferredTimeout(deferred, CONNECTION_TIMEOUT);
@@ -90,11 +90,11 @@ function attemptSingleConnect() {
             // If the server port isn't open, we get a close event
             // at some point in the future (and will not get an onopen
             // event)
-            ws.onclose = function () {
+            ws.onclose = function (): void {
                 deferred.reject("WebSocket closed");
             };
 
-            ws.onopen = function () {
+            ws.onopen = function (): void {
                 // If we successfully opened, remove the old onclose
                 // handler (which was present to detect failure to
                 // connect at all).
@@ -162,7 +162,7 @@ class NodeConnection extends EventDispatcher.EventDispatcherBase {
      * @type {?number}
      * The port the WebSocket is currently connected to
      */
-    private _port = null;
+    private _port: number | null = null;
 
     /**
      * @private
@@ -208,7 +208,7 @@ class NodeConnection extends EventDispatcher.EventDispatcherBase {
      * @return {number} The next command ID to use. Always representable as an
      * unsigned 32-bit integer.
      */
-    private _getNextCommandID() {
+    private _getNextCommandID(): number {
         let nextID;
 
         if (this._commandCount > MAX_COUNTER_VALUE) {
@@ -224,7 +224,7 @@ class NodeConnection extends EventDispatcher.EventDispatcherBase {
      * @private
      * Helper function to do cleanup work when a connection fails
      */
-    private _cleanup() {
+    private _cleanup(): void {
         // clear out the domains, since we may get different ones
         // on the next connection
         this.domains = {};
@@ -263,18 +263,18 @@ class NodeConnection extends EventDispatcher.EventDispatcherBase {
      * @return {jQuery.Promise} Promise that resolves/rejects when the
      *    connection succeeds/fails
      */
-    public connect(autoReconnect) {
+    public connect(autoReconnect: boolean): JQueryPromise<void> {
         const self = this;
         self._autoReconnect = autoReconnect;
-        const deferred = $.Deferred();
+        const deferred = $.Deferred<void>();
         let attemptCount = 0;
         let attemptTimestamp: number;
 
         // Called after a successful connection to do final setup steps
-        function registerHandlersAndDomains(ws, port) {
+        function registerHandlersAndDomains(ws: WebSocket, port: number): void {
             // Called if we succeed at the final setup
-            function success() {
-                self._ws!.onclose = function () {
+            function success(): void {
+                self._ws!.onclose = function (): void {
                     if (self._autoReconnect) {
                         const $promise = self.connect(true);
                         self.trigger("close", $promise);
@@ -286,7 +286,7 @@ class NodeConnection extends EventDispatcher.EventDispatcherBase {
                 deferred.resolve();
             }
             // Called if we fail at the final setup
-            function fail(err) {
+            function fail(err: Error): void {
                 self._cleanup();
                 deferred.reject(err);
             }
@@ -315,7 +315,7 @@ class NodeConnection extends EventDispatcher.EventDispatcherBase {
         // Repeatedly tries to connect until we succeed or until we've
         // failed CONNECTION_ATTEMPT times. After each attempt, waits
         // at least RETRY_DELAY before trying again.
-        function doConnect() {
+        function doConnect(): void {
             attemptCount++;
             attemptTimestamp = +new Date();
             attemptSingleConnect().then(
@@ -347,7 +347,7 @@ class NodeConnection extends EventDispatcher.EventDispatcherBase {
      * Determines whether the NodeConnection is currently connected
      * @return {boolean} Whether the NodeConnection is connected.
      */
-    public connected() {
+    public connected(): boolean {
         return !!(this._ws && this._ws.readyState === WebSocket.OPEN);
     }
 
@@ -357,7 +357,7 @@ class NodeConnection extends EventDispatcher.EventDispatcherBase {
      * will not reconnect after this call. Reconnection can be manually done
      * by calling connect() again.
      */
-    public disconnect() {
+    public disconnect(): void {
         this._autoReconnect = false;
         this._cleanup();
     }
@@ -372,8 +372,8 @@ class NodeConnection extends EventDispatcher.EventDispatcherBase {
      *    succeeded and the new API is availale at NodeConnection.domains,
      *    or that rejects on failure.
      */
-    public loadDomains(paths, autoReload) {
-        const deferred = $.Deferred();
+    public loadDomains(paths: Array<string>, autoReload: boolean): JQueryPromise<void> {
+        const deferred = $.Deferred<void>();
         setDeferredTimeout(deferred, CONNECTION_TIMEOUT);
         let pathArray = paths;
         if (!Array.isArray(paths)) {
@@ -414,7 +414,7 @@ class NodeConnection extends EventDispatcher.EventDispatcherBase {
      * the message if necessary.
      * @param {Object|string} m Object to send. Must be JSON.stringify-able.
      */
-    private _send(m) {
+    private _send(m): void {
         if (this.connected()) {
 
             // Convert the message to a string
@@ -448,7 +448,7 @@ class NodeConnection extends EventDispatcher.EventDispatcherBase {
      * and dispatches it appropriately.
      * @param {WebSocket.Message} message Message object from WebSocket
      */
-    private _receive(message) {
+    private _receive(message: MessageEvent): void {
         let responseDeferred: JQueryDeferred<any> | null = null;
         const data = message.data;
         let m;
@@ -531,8 +531,8 @@ class NodeConnection extends EventDispatcher.EventDispatcherBase {
      * Automatically called when the connection receives a base:newDomains
      * event from the server, and also called at connection time.
      */
-    private _refreshInterface() {
-        const deferred = $.Deferred();
+    private _refreshInterface(): JQueryPromise<void> {
+        const deferred = $.Deferred<void>();
         const self = this;
 
         const pendingDeferreds = this._pendingInterfaceRefreshDeferreds;
@@ -546,7 +546,7 @@ class NodeConnection extends EventDispatcher.EventDispatcherBase {
             }
         );
 
-        function refreshInterfaceCallback(spec) {
+        function refreshInterfaceCallback(spec): void {
             function makeCommandFunction(domainName, commandName) {
                 return function () {
                     const deferred = $.Deferred();
@@ -598,7 +598,7 @@ class NodeConnection extends EventDispatcher.EventDispatcherBase {
      * Get the default timeout value
      * @return {number} Timeout value in milliseconds
      */
-    public static _getConnectionTimeout() {
+    public static _getConnectionTimeout(): number {
         return CONNECTION_TIMEOUT;
     }
 }

@@ -40,7 +40,7 @@ import * as PreferencesManager from "preferences/PreferencesManager";
  * @param {!string} css CSS code to use as the tag's content
  * @return {!HTMLStyleElement} The generated HTML node
  */
-export function addEmbeddedStyleSheet(css) {
+export function addEmbeddedStyleSheet(css: string): HTMLElement {
     return $("<style>").text(css).appendTo("head")[0];
 }
 
@@ -51,7 +51,7 @@ export function addEmbeddedStyleSheet(css) {
  * @param {$.Deferred=} deferred Optionally check for load and error events
  * @return {!HTMLLinkElement} The generated HTML node
  */
-export function addLinkedStyleSheet(url, deferred) {
+export function addLinkedStyleSheet(url: string, deferred: JQueryDeferred<JQueryEventObject>): HTMLElement {
     const attributes = {
         type: "text/css",
         rel:  "stylesheet",
@@ -77,7 +77,7 @@ export function addLinkedStyleSheet(url, deferred) {
  * @return {!boolean} returns true if pathOrUrl is absolute url on win platform
  *                    or when it's absolute path on other platforms
  */
-function isAbsolutePathOrUrl(pathOrUrl) {
+function isAbsolutePathOrUrl(pathOrUrl: string): boolean {
     return brackets.platform === "win" ? PathUtils.isAbsoluteUrl(pathOrUrl) : FileSystem.isAbsolutePath(pathOrUrl);
 }
 
@@ -92,8 +92,8 @@ function isAbsolutePathOrUrl(pathOrUrl) {
  * @param {?string} url URL to the file containing the code
  * @return {!$.Promise} A promise object that is resolved with CSS code if the LESS code can be parsed
  */
-export function parseLessCode(code, url) {
-    const result = $.Deferred();
+export function parseLessCode(code: string, url: string): JQueryPromise<string> {
+    const result = $.Deferred<string>();
     const options: Less.Options = {
         math: "always"
     };
@@ -133,7 +133,7 @@ export function parseLessCode(code, url) {
  * @param {?string} path Relative path from the extension folder to a file
  * @return {!string} The path to the module's folder
  */
-export function getModulePath(module, path) {
+export function getModulePath(module, path: string): string {
     let modulePath = module.uri.substr(0, module.uri.lastIndexOf("/") + 1);
     if (path) {
         modulePath += path;
@@ -149,7 +149,7 @@ export function getModulePath(module, path) {
  * @param {?string} path Relative path from the extension folder to a file
  * @return {!string} The URL to the module's folder
  */
-export function getModuleUrl(module, path) {
+export function getModuleUrl(module, path: string): string {
     let url = encodeURI(getModulePath(module, path));
 
     // On Windows, $.get() fails if the url is a full pathname. To work around this,
@@ -172,7 +172,7 @@ export function getModuleUrl(module, path) {
  * @param {!string} path Relative path from the extension folder to a file
  * @return {!$.Promise} A promise object that is resolved with the contents of the requested file
  */
-export function loadFile(module, path) {
+export function loadFile(module, path: string): JQueryXHR {
     const url     = PathUtils.isAbsoluteUrl(path) ? path : getModuleUrl(module, path);
     const promise = $.get(url);
 
@@ -186,8 +186,8 @@ export function loadFile(module, path) {
  * @param {!string} path Relative path from the extension folder to a CSS or LESS file
  * @return {!$.Promise} A promise object that is resolved with an HTML node if the file can be loaded.
  */
-export function loadStyleSheet(module, path) {
-    const result = $.Deferred();
+export function loadStyleSheet(module, path: string): JQueryPromise<HTMLElement> {
+    const result = $.Deferred<HTMLElement>();
 
     loadFile(module, path)
         .done(function (this: any, content) {
@@ -196,11 +196,11 @@ export function loadStyleSheet(module, path) {
             if (url.slice(-5) === ".less") {
                 parseLessCode(content, url)
                     .done(function (css) {
-                        result.resolve(addEmbeddedStyleSheet(css));
+                        result.resolve(addEmbeddedStyleSheet(css!));
                     })
                     .fail(result.reject);
             } else {
-                const deferred = $.Deferred();
+                const deferred = $.Deferred<JQueryEventObject>();
                 const link = addLinkedStyleSheet(url, deferred);
 
                 deferred
@@ -237,11 +237,11 @@ export function loadStyleSheet(module, path) {
  * @return {$.Promise} A promise object that is resolved with the parsed contents of the package.json file,
  *     or rejected if there is no package.json with the boolean indicating whether .disabled file exists.
  */
-export function loadMetadata(folder) {
+export function loadMetadata(folder: string): JQueryPromise<any> {
     const packageJSONFile = FileSystem.getFileForPath(folder + "/package.json");
     const disabledFile = FileSystem.getFileForPath(folder + "/.disabled");
     const baseName = FileUtils.getBaseName(folder);
-    const result = $.Deferred();
+    const result = $.Deferred<any>();
     const jsonPromise = $.Deferred();
     const disabledPromise = $.Deferred();
     let json;

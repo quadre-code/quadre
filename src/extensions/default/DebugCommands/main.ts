@@ -166,7 +166,7 @@ function handleShowPerfData() {
     const perfData = PerfUtils.getData();
     _.forEach(perfData, function (value, testName) {
         templateVars.perfData.push({
-            testName: StringUtils.breakableUrl(testName),
+            testName: StringUtils.breakableUrl(testName!),
             value:    getValue(value)
         });
     });

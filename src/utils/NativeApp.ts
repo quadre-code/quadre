@@ -29,7 +29,7 @@ import FileSystemError = require("filesystem/FileSystemError");
  * @private
  * Map an fs error code to a FileError.
  */
-function _browserErrToFileError(err) {
+function _browserErrToFileError(err: string): FileSystemError {
     if (err === brackets.fs.ERR_NOT_FOUND) {
         return FileSystemError.NOT_FOUND;
     }
@@ -46,8 +46,8 @@ const liveBrowserOpenedPIDs: Array<any> = [];
  * @param {boolean=} enableRemoteDebugging Whether to turn on remote debugging. Default false.
  * @return {$.Promise}
  */
-export function openLiveBrowser(url, enableRemoteDebugging) {
-    const result = $.Deferred();
+export function openLiveBrowser(url: string, enableRemoteDebugging: boolean): JQueryPromise<number> {
+    const result = $.Deferred<number>();
 
     brackets.app.openLiveBrowser(url, !!enableRemoteDebugging, function onRun(err, pid) {
         if (!err) {
@@ -68,8 +68,8 @@ export function openLiveBrowser(url, enableRemoteDebugging) {
  *
  * @return {$.Promise}
  */
-export function closeLiveBrowser(pid) {
-    const result = $.Deferred();
+export function closeLiveBrowser(pid: number): JQueryPromise<void> {
+    const result = $.Deferred<void>();
 
     if (isNaN(pid)) {
         pid = 0;
@@ -94,7 +94,7 @@ export function closeLiveBrowser(pid) {
  * TODO: does not seem to work on Windows
  * @return {$.Promise}
  */
-export function closeAllLiveBrowsers() {
+export function closeAllLiveBrowsers(): JQueryPromise<void> {
     // make a copy incase the array is edited as we iterate
     const closeIDs = liveBrowserOpenedPIDs.concat();
     return Async.doSequentially(closeIDs, closeLiveBrowser, false);
@@ -103,6 +103,6 @@ export function closeAllLiveBrowsers() {
 /**
  * Opens a URL in the system default browser
  */
-export function openURLInDefaultBrowser(url) {
+export function openURLInDefaultBrowser(url: string): void {
     brackets.app.openURLInDefaultBrowser(url);
 }

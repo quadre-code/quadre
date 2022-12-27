@@ -1277,7 +1277,7 @@ export class ProjectModel extends EventDispatcher.EventDispatcherBase {
 
         this.setDirectoryOpen(path, true).then(function () {
             const projectRelativePath = self.makeProjectRelativeIfPossible(path);
-            const childNodes = self._viewModel.getChildDirectories(projectRelativePath);
+            const childNodes = self._viewModel.getChildDirectories(projectRelativePath)!;
 
             Async.doInParallel(childNodes, function (node) {
                 return self.setDirectoryOpen(path + node, openOrClose);

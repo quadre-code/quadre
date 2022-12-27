@@ -32,6 +32,13 @@ import * as StringUtils from "utils/StringUtils";
 // make sure the global brackets variable is loaded
 import "utils/Global";
 
+interface HealthReport {
+    AppStartupTime?: string;
+    ModuleDepsResolved?: string;
+    projectLoadTimes: string;
+    fileOpenTimes: string;
+}
+
 /**
  * Flag to enable/disable performance data gathering. Default is true (enabled)
  * @type {boolean} enabled
@@ -44,7 +51,7 @@ const enabled = brackets && !!brackets.app.getElapsedMilliseconds;
  * milliseconds, that it took to run the test. If multiple runs of the same test
  * are made, the value is an Array with each run stored as an entry in the Array.
  */
-let perfData = {};
+let perfData: Record<string, number | Array<number>>  = {};
 
 /**
  * Active tests. This is a hash of all tests that have had markStart() called,
@@ -93,7 +100,7 @@ class PerfMeasurement {
      * Override toString() to allow using PerfMeasurement as an array key without
      * explicit conversion.
      */
-    public toString() {
+    public toString(): string {
         return this.name;
     }
 }
@@ -105,7 +112,7 @@ class PerfMeasurement {
  * @param {!string} id Unique ID for this measurement name
  * @param {!name} name A short name for this measurement
  */
-export function createPerfMeasurement(id, name) {
+export function createPerfMeasurement(id: string, name: string): PerfMeasurement {
     const pm = new PerfMeasurement(id, name);
     exports[id] = pm;
 
@@ -116,7 +123,7 @@ export function createPerfMeasurement(id, name) {
  * @private
  * Generates PerfMeasurements based on the name or array of names.
  */
-function _generatePerfMeasurements(name) {
+function _generatePerfMeasurements(name): Array<PerfMeasurement> {
     // always convert it to array so that the rest of the routines could rely on it
     const id = (!Array.isArray(name)) ? [name] : name;
     // generate unique identifiers for each name
@@ -141,7 +148,7 @@ function _generatePerfMeasurements(name) {
  * @param {Object} id  Timer id.
  * @param {number} time  Timer start time.
  */
-function _markStart(id, time) {
+function _markStart(id, time: number): void {
     if (activeTests[id.id]) {
         console.warn("Recursive tests with the same id are not supported. Timer id: " + id.id);
     }
@@ -163,7 +170,7 @@ function _markStart(id, time) {
  * @param {(string|Array.<string>)} name  Single name or an Array of names.
  * @return {(Object|Array.<Object>)} Opaque timer id or array of timer ids.
  */
-export function markStart(name) {
+export function markStart(name: string | Array<string>): PerfMeasurement | Array<PerfMeasurement> | undefined {
     if (!enabled) {
         return;
     }
@@ -189,7 +196,7 @@ export function markStart(name) {
  *
  * @param {Object} id  Timer id.
  */
-export function addMeasurement(id) {
+export function addMeasurement(id): void {
     if (!enabled) {
         return;
     }
@@ -208,7 +215,7 @@ export function addMeasurement(id) {
     if (perfData[id]) {
         // We have existing data, add to it
         if (Array.isArray(perfData[id])) {
-            perfData[id].push(elapsedTime);
+            (perfData[id] as Array<number>).push(elapsedTime);
         } else {
             // Current data is a number, convert to Array
             perfData[id] = [perfData[id], elapsedTime];
@@ -224,7 +231,6 @@ export function addMeasurement(id) {
             _reentTests[id]--;
         }
     }
-
 }
 
 /**
@@ -246,7 +252,7 @@ export function addMeasurement(id) {
  *
  * @param {Object} id  Timer id.
  */
-export function updateMeasurement(id) {
+export function updateMeasurement(id): void {
     let elapsedTime = brackets.app.getElapsedMilliseconds();
 
     if (updatableTests[id.id]) {
@@ -256,7 +262,7 @@ export function updateMeasurement(id) {
         // update
         if (perfData[id] && Array.isArray(perfData[id])) {
             // We have existing data and it's an array, so update the last entry
-            perfData[id][perfData[id].length - 1] = elapsedTime;
+            perfData[id][(perfData[id] as Array<number>).length - 1] = elapsedTime;
         } else {
             // No current data or a single entry, so set/update it
             perfData[id] = elapsedTime;
@@ -283,7 +289,7 @@ export function updateMeasurement(id) {
  *
  * @param {Object} id  Timer id.
  */
-export function finalizeMeasurement(id) {
+export function finalizeMeasurement(id): void {
     if (activeTests[id.id]) {
         delete activeTests[id.id];
     }
@@ -301,7 +307,7 @@ export function finalizeMeasurement(id) {
  * @param {Object} id  Timer id.
  * @return {boolean} Whether a timer is active or not.
  */
-export function isActive(id) {
+export function isActive(id): boolean {
     return (activeTests[id.id]) ? true : false;
 }
 
@@ -314,9 +320,9 @@ export function isActive(id) {
  * @return {String}   a single value, or comma separated values in an array or
  *                     <min(avg)max[standard deviation]> if aggregateStats is set
  */
-function getValueAsString(entry, aggregateStats?) {
+function getValueAsString(entry: Array<number> | number, aggregateStats?: boolean): string {
     if (!Array.isArray(entry)) {
-        return entry;
+        return "" + entry;
     }
 
     if (aggregateStats) {
@@ -343,7 +349,7 @@ function getValueAsString(entry, aggregateStats?) {
  * Returns the performance data as a tab delimited string
  * @return {string}
  */
-export function getDelimitedPerfData() {
+export function getDelimitedPerfData(): string {
     let result = "";
     _.forEach(perfData, function (entry, testName) {
         result += getValueAsString(entry) + "\t" + testName + "\n";
@@ -356,7 +362,7 @@ export function getDelimitedPerfData() {
  * Returns the measured value for the given measurement name.
  * @param {Object} id The measurement to retreive.
  */
-export function getData(id?) {
+export function getData(id?): Record<string, number | Array<number>> | number | Array<number> {
     if (!id) {
         return perfData;
     }
@@ -368,20 +374,14 @@ export function getData(id?) {
  * Returns the Performance metrics to be logged for health report
  * @return {Object} An object with the health data logs to be sent
  */
-export function getHealthReport() {
-    interface HealthReport {
-        AppStartupTime?: string;
-        ModuleDepsResolved?: string;
-        projectLoadTimes: string;
-        fileOpenTimes: string;
-    }
-
+export function getHealthReport(): HealthReport {
     const healthReport: HealthReport = {
         projectLoadTimes : "",
         fileOpenTimes : ""
     };
 
-    _.forEach(perfData, function (entry, testName) {
+    _.forEach(perfData, function (entry, testNameData) {
+        const testName = testNameData!;
         if (StringUtils.startsWith(testName, "Application Startup")) {
             healthReport.AppStartupTime = getValueAsString(entry);
         } else if (StringUtils.startsWith(testName, "brackets module dependencies resolved")) {
@@ -396,7 +396,7 @@ export function getHealthReport() {
     return healthReport;
 }
 
-export function searchData(regExp) {
+export function searchData(regExp: RegExp): Array<any> {
     const keys = Object.keys(perfData).filter(function (key) {
         return regExp.test(key);
     });
@@ -413,7 +413,7 @@ export function searchData(regExp) {
 /**
  * Clear all logs including metric data and active tests.
  */
-export function clear() {
+export function clear(): void {
     perfData = {};
     activeTests = {};
     updatableTests = {};

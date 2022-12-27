@@ -37,7 +37,7 @@ import "utils/Global";
  * Loads a SHA from Git metadata file. If the file contains a symbolic ref name, follows the ref
  * and loads the SHA from that file in turn.
  */
-function _loadSHA(path): JQueryPromise<any> {
+function _loadSHA(path: string): JQueryPromise<any> {
     const result = $.Deferred();
 
     if (brackets.inBrowser) {
@@ -74,8 +74,8 @@ function _loadSHA(path): JQueryPromise<any> {
  *     of a local copy of a repository or the branch and SHA
  *     embedded at build-time in the package.json repository metadata.
  */
-export function getBracketsSHA() {
-    const result = $.Deferred();
+export function getBracketsSHA(): JQueryPromise<any> {
+    const result = $.Deferred<any>();
 
     // Look for Git metadata on disk to load the SHAs for 'brackets'. Done on
     // startup instead of on demand because the version that's currently running is what was

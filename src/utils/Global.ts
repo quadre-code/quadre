@@ -85,7 +85,7 @@ if (global.navigator.platform === "MacIntel" || global.navigator.platform === "M
 }
 
 // Expose platform info for build applicability consumption
-global.brackets.getPlatformInfo = function () {
+global.brackets.getPlatformInfo = function (): string {
     let OS = "";
 
     if (/Windows|Win32|WOW64|Win64/.test(window.navigator.userAgent)) {
@@ -113,16 +113,16 @@ if (hasNativeMenus) {
 }
 
 // Locale-related APIs
-global.brackets.isLocaleDefault = function () {
+global.brackets.isLocaleDefault = function (): boolean {
     return !global.localStorage.getItem("locale");
 };
 
-global.brackets.getLocale = function () {
+global.brackets.getLocale = function (): string {
     // By default use the locale that was determined in brackets.js
     return params.get("testEnvironment") ? "en" : (global.localStorage.getItem("locale") || global.require.s.contexts._.config.locale);
 };
 
-global.brackets.setLocale = function (locale) {
+global.brackets.setLocale = function (locale: string): void {
     if (locale) {
         global.localStorage.setItem("locale", locale);
     } else {
@@ -152,6 +152,6 @@ global.brackets.getModule = require;
 /* API for retrieving the global RequireJS config
  * For internal use only
  */
-global.brackets._getGlobalRequireJSConfig = function () {
+global.brackets._getGlobalRequireJSConfig = function (): RequireConfig {
     return global.require.s.contexts._.config;
 };

@@ -456,7 +456,7 @@ export class Language {
      * Human-readable name of this language
      * @type {string}
      */
-    private _name: string | null = null;
+    public _name: string | null = null;
 
     /**
      * CodeMirror mode for this language

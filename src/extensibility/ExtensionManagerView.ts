@@ -254,7 +254,7 @@ export class ExtensionManagerView extends EventDispatcher.EventDispatcherBase {
             context.isCompatibleLatest = latestVerCompatInfo.isLatestVersion;
             if (!context.isCompatibleLatest) {
                 const installWarningBase = context.requiresNewer ? Strings.EXTENSION_LATEST_INCOMPATIBLE_NEWER : Strings.EXTENSION_LATEST_INCOMPATIBLE_OLDER;
-                context.installWarning = StringUtils.format(installWarningBase, entry.registryInfo.versions[entry.registryInfo.versions.length - 1].version, latestVerCompatInfo.compatibleVersion);
+                context.installWarning = StringUtils.format(installWarningBase, entry.registryInfo.versions[entry.registryInfo.versions.length - 1].version, latestVerCompatInfo.compatibleVersion!);
             }
             context.downloadCount = entry.registryInfo.totalDownloads;
         } else {

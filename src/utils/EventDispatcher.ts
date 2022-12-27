@@ -54,6 +54,17 @@
 
 import * as _ from "lodash";
 
+interface EventListener {
+    eventName: string;
+    ns?: string;
+    handler?: () => void;
+}
+
+interface Listener {
+    _deprecatedEvents?: Record<string, string>;
+    _eventHandlers?: Record<string, Array<EventListener>>;
+}
+
 const LEAK_WARNING_THRESHOLD = 15;
 
 
@@ -62,7 +73,7 @@ const LEAK_WARNING_THRESHOLD = 15;
  * @param {string} eventName Event name and/or trailing ".namespace"
  * @return {!{event:string, ns:string}} Uses "" for missing parts.
  */
-function splitNs(eventStr) {
+function splitNs(eventStr: string): EventListener {
     const dot = eventStr.indexOf(".");
     if (dot === -1) {
         return { eventName: eventStr };
@@ -81,7 +92,7 @@ function splitNs(eventStr) {
  * @param {string} events
  * @param {!function(!{type:string, target:!Object}, ...)} fn
  */
-const on = function (this: any, events, fn) {
+const on = function<T> (this: T & Listener, events: string, fn): T {
     const eventsList = events.split(/\s+/).map(splitNs);
     let i;
 
@@ -132,7 +143,7 @@ const on = function (this: any, events, fn) {
  * @param {string} events
  * @param {?function(!{type:string, target:!Object}, ...)} fn
  */
-const off = function (this: any, events, fn?) {
+const off = function (this: any, events: string, fn?): void {
     if (!this._eventHandlers) {
         return this;
     }
@@ -140,7 +151,7 @@ const off = function (this: any, events, fn?) {
     const eventsList = events.split(/\s+/).map(splitNs);
     let i;
 
-    const removeAllMatches = function (this: any, eventRec, eventName) {
+    const removeAllMatches = function (this: any, eventRec: EventListener, eventName: string): void {
         const handlerList = this._eventHandlers[eventName];
         let k;
         if (!handlerList) {
@@ -162,7 +173,7 @@ const off = function (this: any, events, fn?) {
         }
     }.bind(this);
 
-    const doRemove = function (this: any, eventRec) {
+    const doRemove = function (this: any, eventRec: EventListener): void {
         if (eventRec.eventName) {
             // If arg calls out an event name, look at that handler list only
             removeAllMatches(eventRec, eventRec.eventName);
@@ -188,10 +199,10 @@ const off = function (this: any, events, fn?) {
  * @param {string} events
  * @param {?function(!{type:string, target:!Object}, ...)} fn
  */
-const one = function (this: any, events, fn) {
+const one = function (this: any, events: string, fn): any {
     // Wrap fn in a self-detaching handler; saved on the original fn so off() can detect it later
     if (!fn._eventOnceWrapper) {
-        fn._eventOnceWrapper = function (event) {
+        fn._eventOnceWrapper = function (event: any): void {
             // Note: this wrapper is reused for all attachments of the same fn, so it shouldn't reference
             // anything from the outer closure other than 'fn'
             event.target.off(event.type, fn._eventOnceWrapper);
@@ -206,7 +217,7 @@ const one = function (this: any, events, fn) {
  * @param {string} eventName
  * @param {*} ... Any additional args are passed to the event handler after the event object
  */
-const trigger = function (this: any, eventName, ...args) {
+const trigger = function (this: any, eventName: string, ...args): void {
     const event = { type: eventName, target: this };
     let handlerList = this._eventHandlers && this._eventHandlers[eventName];
     let i;
@@ -239,7 +250,7 @@ const trigger = function (this: any, eventName, ...args) {
  * called on a prototype object - each instance will still behave independently.
  * @param {!Object} obj Object to add event-dispatch methods to
  */
-export function makeEventDispatcher(obj) {
+export function makeEventDispatcher(obj): void {
     $.extend(obj, {
         on: on,
         off: off,
@@ -254,6 +265,7 @@ export function makeEventDispatcher(obj) {
     //   eventName to deprecation warning info
 }
 
+// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function withEventDispatcher<T extends { new(...args: Array<any>) }>(Base: T) {
     return class extends Base implements DispatcherEvents {
         public on = on;
@@ -279,7 +291,7 @@ export abstract class EventDispatcherBase implements DispatcherEvents {
  * @param {string} eventName
  * @param {!Array.<*>} argsArray
  */
-export function triggerWithArray(dispatcher, eventName, argsArray) {
+export function triggerWithArray(dispatcher, eventName: string, argsArray): void {
     const triggerArgs = [eventName].concat(argsArray);
     dispatcher.trigger.apply(dispatcher, triggerArgs);
 }
@@ -298,7 +310,7 @@ export function triggerWithArray(dispatcher, eventName, argsArray) {
  * @param {string} events
  * @param {?function(!{type:string, target:!Object}, ...)} fn
  */
-export function on_duringInit(futureDispatcher, events, fn) {
+export function on_duringInit(futureDispatcher, events: string, fn): void {
     on.call(futureDispatcher, events, fn);
 }
 
@@ -311,7 +323,7 @@ export function on_duringInit(futureDispatcher, events, fn) {
  * @param {string} eventName Name of deprecated event
  * @param {string=} insteadStr Suggested thing to use instead
  */
-export function markDeprecated(obj, eventName, insteadStr) {
+export function markDeprecated(obj, eventName: string, insteadStr: string): void {
     // Mark event as deprecated - on() will emit warnings when called with this event
     if (!obj._deprecatedEvents) {
         obj._deprecatedEvents = {};

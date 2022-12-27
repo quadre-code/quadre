@@ -145,7 +145,7 @@ export class Document extends EventDispatcher.EventDispatcherBase {
      * The Language for this document. Will be resolved by file extension in the constructor
      * @type {!Language}
      */
-    private language: LanguageManager.Language;
+    public language: LanguageManager.Language;
 
     /**
      * What we expect the file's timestamp to be on disk. If the timestamp differs from this, then

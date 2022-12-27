@@ -275,7 +275,7 @@ export function inspectFile(file, providerList: Array<Provider>): JQueryPromise<
                         };
                         runPromise.resolve({errors: [errTimeout]});
                     }, prefs.get(_PREF_ASYNC_TIMEOUT));
-                    provider.scanFileAsync(fileText, file.fullPath)
+                    provider.scanFileAsync(fileText!, file.fullPath)
                         .done(function (scanResult) {
                             PerfUtils.addMeasurement(perfTimerProvider);
                             runPromise.resolve(scanResult);
@@ -292,7 +292,7 @@ export function inspectFile(file, providerList: Array<Provider>): JQueryPromise<
                         });
                 } else {
                     try {
-                        const scanResult = provider.scanFile(fileText, file.fullPath);
+                        const scanResult = provider.scanFile!(fileText!, file.fullPath);
                         PerfUtils.addMeasurement(perfTimerProvider);
                         runPromise.resolve(scanResult);
                     } catch (err) {
