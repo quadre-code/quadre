@@ -26,6 +26,9 @@
  *  Utilities functions related to Health Data logging
  */
 
+import type { Document } from "document/DocumentManager";
+import type File = require("filesystem/File");
+
 import * as PreferencesManager from "preferences/PreferencesManager";
 import * as LanguageManager from "language/LanguageManager";
 import * as FileUtils from "file/FileUtils";
@@ -56,7 +59,7 @@ EventDispatcher.makeEventDispatcher(exports);
 /**
  * Init: creates the health log preference keys in the state.json file
  */
-export function init() {
+export function init(): void {
     PreferencesManager.stateManager.definePreference(HEALTH_DATA_STATE_KEY, "object", {});
 }
 
@@ -64,7 +67,7 @@ export function init() {
  * All the logging functions should be disabled if this returns false
  * @return {boolean} true if health data can be logged
  */
-export function shouldLogHealthData() {
+export function shouldLogHealthData(): boolean {
     return logHealthData;
 }
 
@@ -72,7 +75,7 @@ export function shouldLogHealthData() {
  * Return all health data logged till now stored in the state prefs
  * @return {Object} Health Data aggregated till now
  */
-function getStoredHealthData() {
+function getStoredHealthData(): any {
     const storedData = PreferencesManager.getViewState(HEALTH_DATA_STATE_KEY) || {};
     return storedData;
 }
@@ -81,7 +84,7 @@ function getStoredHealthData() {
  * Return the aggregate of all health data logged till now from all sources
  * @return {Object} Health Data aggregated till now
  */
-export function getAggregatedHealthData() {
+export function getAggregatedHealthData(): any {
     const healthData = getStoredHealthData();
     $.extend(healthData, PerfUtils.getHealthReport());
     $.extend(healthData, FindUtils.getHealthReport());
@@ -92,7 +95,7 @@ export function getAggregatedHealthData() {
  * Sets the health data
  * @param {Object} dataObject The object to be stored as health data
  */
-function setHealthData(dataObject) {
+function setHealthData(dataObject): void {
     if (!shouldLogHealthData()) {
         return;
     }
@@ -103,7 +106,7 @@ function setHealthData(dataObject) {
  * Returns health data logged for the given key
  * @return {Object} Health Data object for the key or undefined if no health data stored
  */
-export function getHealthDataLog(key) {
+export function getHealthDataLog(key: string): any {
     const healthData = getStoredHealthData();
     return healthData[key];
 }
@@ -112,7 +115,7 @@ export function getHealthDataLog(key) {
  * Sets the health data for the given key
  * @param {Object} dataObject The object to be stored as health data for the key
  */
-export function setHealthDataLog(key, dataObject) {
+export function setHealthDataLog(key: string, dataObject): void {
     const healthData = getStoredHealthData();
     healthData[key] = dataObject;
     setHealthData(healthData);
@@ -121,7 +124,7 @@ export function setHealthDataLog(key, dataObject) {
 /**
  * Clears all the health data recorded till now
  */
-export function clearHealthData() {
+export function clearHealthData(): void {
     PreferencesManager.setViewState(HEALTH_DATA_STATE_KEY, {});
     // clear the performance related health data also
     PerfUtils.clear();
@@ -131,7 +134,7 @@ export function clearHealthData() {
  * Enable or disable health data logs
  * @param {boolean} enabled true to enable health logs
  */
-export function setHealthLogsEnabled(enabled) {
+export function setHealthLogsEnabled(enabled: boolean): void {
     logHealthData = enabled;
     if (!enabled) {
         clearHealthData();
@@ -145,7 +148,7 @@ export function setHealthLogsEnabled(enabled) {
  * @param {boolean} addedToWorkingSet set to true if extensions of files added to the
  *                                    working set needs to be logged
  */
-export function fileOpened(filePath, addedToWorkingSet = false, encoding) {
+export function fileOpened(filePath: string, addedToWorkingSet = false, encoding: string | null): void {
     if (!shouldLogHealthData()) {
         return;
     }
@@ -193,12 +196,12 @@ export function fileOpened(filePath, addedToWorkingSet = false, encoding) {
  * We only log the standard filetypes and fileSize
  * @param {String} filePath The path of the file to be registered
  */
-export function fileSaved(docToSave) {
+export function fileSaved(docToSave: Document): void {
     if (!docToSave) {
         return;
     }
 
-    const fileType = docToSave.language ? docToSave.language._name : "";
+    const fileType = docToSave.language ? docToSave.language._name! : "";
     sendAnalyticsData(
         commonStrings.USAGE + commonStrings.FILE_SAVE + fileType,
         commonStrings.USAGE,
@@ -213,7 +216,7 @@ export function fileSaved(docToSave) {
  * We only log the standard filetypes and fileSize
  * @param {String} filePath The path of the file to be registered
  */
-export function fileClosed(file) {
+export function fileClosed(file: File): void {
     if (!file) {
         return;
     }
@@ -221,7 +224,7 @@ export function fileClosed(file) {
     const language = LanguageManager.getLanguageForPath(file._path);
     let size = -1;
 
-    function _sendData(fileSize) {
+    function _sendData(fileSize: number): void {
         let subType = "";
 
         if (fileSize / 1024 <= 1) {
@@ -276,7 +279,7 @@ export function fileClosed(file) {
  * @param {number} numFiles    The number of file in the project
  * @param {number} cacheSize   The node file cache memory consumed by the project
  */
-export function setProjectDetail(projectName, numFiles, cacheSize) {
+export function setProjectDetail(projectName: string, numFiles: number, cacheSize: number): void {
     const projectNameHash = StringUtils.hashCode(projectName);
     let FIFLog = getHealthDataLog("ProjectDetails");
     if (!FIFLog) {
@@ -293,7 +296,7 @@ export function setProjectDetail(projectName, numFiles, cacheSize) {
  * Increments health log count for a particular kind of search done
  * @param {string} searchType The kind of search type that needs to be logged- should be a js var compatible string
  */
-export function searchDone(searchType) {
+export function searchDone(searchType: string): void {
     let searchDetails = getHealthDataLog("searchDetails");
     if (!searchDetails) {
         searchDetails = {};
@@ -309,7 +312,7 @@ export function searchDone(searchType) {
  * Notifies the HealthData extension to send Analytics Data to server
  * @param{Object} eventParams Event Data to be sent to Analytics Server
  */
-function notifyHealthManagerToSendData(eventParams) {
+function notifyHealthManagerToSendData(eventParams): void {
     exports.trigger("SendAnalyticsData", eventParams);
 }
 
@@ -323,7 +326,7 @@ function notifyHealthManagerToSendData(eventParams) {
  * @param {string} eventSubType The kind of Event Sub Type that
  * needs to be logged- should be a js var compatible string
  */
-export function sendAnalyticsData(eventName, eventCategory, eventSubCategory, eventType, eventSubType?) {
+export function sendAnalyticsData(eventName: string, eventCategory: string, eventSubCategory: string, eventType: string, eventSubType?: string): void {
     const isEventDataAlreadySent = analyticsEventMap.get(eventName);
     const isHDTracking   = PreferencesManager.getExtensionPrefs("healthData").get("healthDataTracking");
     let eventParams = {};

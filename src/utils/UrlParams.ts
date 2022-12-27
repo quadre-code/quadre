@@ -25,7 +25,7 @@
 import * as _ from "lodash";
 
 interface StoreMap {
-    [name: string]: string;
+    [name: string]: string | boolean;
 }
 
 /**
@@ -42,7 +42,7 @@ export class UrlParams {
      * Parse the window location by default. Optionally specify a URL to parse.
      * @param {string} url
      */
-    public parse(url?) {
+    public parse(url?: string): void {
         let queryString = "";
         let urlParams;
         let p;
@@ -74,7 +74,7 @@ export class UrlParams {
      * @param {!string} name
      * @param {!string} value
      */
-    public put(name, value) {
+    public put(name: string, value: string | boolean): void {
         this._store[name] = value;
     }
 
@@ -83,15 +83,15 @@ export class UrlParams {
      * @param {!string} name
      * @return {string}
      */
-    public get(name) {
-        return this._store[name];
+    public get<T extends string | boolean>(name: string): T {
+        return this._store[name] as T;
     }
 
     /**
      * Remove a name/value string pair
      * @param {!string} name
      */
-    public remove(name) {
+    public remove(name: string): void {
         delete this._store[name];
     }
 
@@ -99,7 +99,7 @@ export class UrlParams {
      * Returns true if the parameter list is empty, else returns false.
      * @return {boolean}
      */
-    public isEmpty() {
+    public isEmpty(): boolean {
         return _.isEmpty(this._store);
     }
 
@@ -107,7 +107,7 @@ export class UrlParams {
      * Encode name/value pairs as URI components.
      * @return {string}
      */
-    public toString() {
+    public toString(): string {
         const strs: Array<string> = [];
         const self = this;
 

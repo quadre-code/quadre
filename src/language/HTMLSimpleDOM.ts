@@ -329,7 +329,7 @@ export class Builder {
         let timerBuildFull = "HTMLInstr. Build DOM Full";
         let timerBuildPart = "HTMLInstr. Build DOM Partial";
         // timer handles
-        const timers = PerfUtils.markStart([timerBuildFull, timerBuildPart]);
+        const timers = PerfUtils.markStart([timerBuildFull, timerBuildPart])!;
         timerBuildFull = timers[0];
         timerBuildPart = timers[1];
 

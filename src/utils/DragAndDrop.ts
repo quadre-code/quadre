@@ -39,13 +39,13 @@ import * as StringUtils from "utils/StringUtils";
  * @param {Array.<DataTransferItem>} items Array of items being dragged
  * @return {boolean} True if one or more items can be dropped.
  */
-export function isValidDrop(items) {
+export function isValidDrop(items: DataTransferItemList): boolean {
     let i;
     const len = items.length;
 
     for (i = 0; i < len; i++) {
         if (items[i].kind === "file") {
-            const entry = items[i].webkitGetAsEntry();
+            const entry = items[i].webkitGetAsEntry()!;
 
             if (entry.isFile) {
                 // If any files are being dropped, this is a valid drop
@@ -70,7 +70,7 @@ export function isValidDrop(items) {
  * @param {Array.<File>} files Array of File objects from the event datastructure. URLs are the only drop item that would contain a URI-list.
  * @param {event} event The event datastucture containing datatransfer information about the drag/drop event. Contains a type list which may or may not hold a URI-list depending on what was dragged/dropped. Interested if it does.
  */
-function stopURIListPropagation(files, event) {
+function stopURIListPropagation(files, event): void {
     const types = event.dataTransfer.types;
 
     if ((!files || !files.length) && types) { // We only want to check if a string of text was dragged into the editor
@@ -94,12 +94,12 @@ function stopURIListPropagation(files, event) {
  * @return {Promise} Promise that is resolved if all files are opened, or rejected
  *     if there was an error.
  */
-export function openDroppedFiles(paths) {
+export function openDroppedFiles(paths: Array<string>): JQueryPromise<void> {
     const errorFiles: Array<{path: string, error: string }> = [];
     const ERR_MULTIPLE_ITEMS_WITH_DIR = {};
 
     return Async.doInParallel(paths, function (path, idx) {
-        const result = $.Deferred();
+        const result = $.Deferred<void>();
 
         // Only open files.
         FileSystem.resolve(path, function (err, item) {
@@ -142,7 +142,7 @@ export function openDroppedFiles(paths) {
         return result.promise();
     }, false)
         .fail(function () {
-            function errorToString(err) {
+            function errorToString(err: string): string {
                 if (err === ERR_MULTIPLE_ITEMS_WITH_DIR) {
                     return Strings.ERROR_MIXED_DRAGDROP;
                 }
@@ -176,12 +176,12 @@ export function openDroppedFiles(paths) {
  * Attaches global drag & drop handlers to this window. This enables dropping files/folders to open them, and also
  * protects the Brackets app from being replaced by the browser trying to load the dropped file in its place.
  */
-export function attachHandlers() {
+export function attachHandlers(): void {
 
-    function handleDragOver(event) {
-        event = event.originalEvent || event;
+    function handleDragOver(eventParam: DragEvent | JQueryEventObject): void {
+        const event = ((eventParam as JQueryEventObject).originalEvent as DragEvent) || eventParam;
 
-        const files = event.dataTransfer.files;
+        const files = event.dataTransfer!.files;
 
         stopURIListPropagation(files, event);
 
@@ -189,20 +189,20 @@ export function attachHandlers() {
             event.stopPropagation();
             event.preventDefault();
 
-            let dropEffect = "none";
+            let dropEffect: typeof DataTransfer.prototype.dropEffect = "none";
 
             // Don't allow drag-and-drop of files/folders when a modal dialog is showing.
-            if ($(".modal.instance").length === 0 && isValidDrop(event.dataTransfer.items)) {
+            if ($(".modal.instance").length === 0 && isValidDrop(event.dataTransfer!.items)) {
                 dropEffect = "copy";
             }
-            event.dataTransfer.dropEffect = dropEffect;
+            event.dataTransfer!.dropEffect = dropEffect;
         }
     }
 
-    function handleDrop(event) {
-        event = event.originalEvent || event;
+    function handleDrop(eventParam: DragEvent | JQueryEventObject): void {
+        const event = ((eventParam as JQueryEventObject).originalEvent as DragEvent) || eventParam;
 
-        const files = event.dataTransfer.files;
+        const files = event.dataTransfer!.files;
 
         stopURIListPropagation(files, event);
 

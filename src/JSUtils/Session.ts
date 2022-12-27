@@ -274,7 +274,7 @@ class Session {
      */
     public getNextToken(cursor, skipWhitespace) {
         const token   = this.getToken(cursor);
-        let next    = token;
+        let next: CodeMirror.Token | null = token;
         const doc     = this.editor.document;
 
         do {

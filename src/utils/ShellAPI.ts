@@ -10,7 +10,7 @@ electron.ipcRenderer.on("updateShortcuts", function (evt: any, data: string) {
     appShortcuts = JSON.parse(data);
 });
 
-function executeCommand(eventName: string) {
+function executeCommand(eventName: string): boolean {
     // Temporary fix for #2616 - don't execute the command if a modal dialog is open.
     // This should really be fixed with proper menu enabling.
     if ($(".modal.instance").length || !appReady) {
@@ -29,7 +29,7 @@ function executeCommand(eventName: string) {
     return (promise && promise.state() === "rejected") ? false : true;
 }
 
-(window as any).triggerKeyboardShortcut = (shortcut: string) => {
+(window as any).triggerKeyboardShortcut = (shortcut: string): boolean | null => {
     const normalized = shortcut.replace(/-/g, "+");
     if (appShortcuts[normalized]) {
         return executeCommand(appShortcuts[normalized]);

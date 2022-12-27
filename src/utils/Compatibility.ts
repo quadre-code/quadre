@@ -28,10 +28,10 @@
 
 // [IE10] String.prototype missing trimRight() and trimLeft()
 if (!String.prototype.trimRight) {
-    String.prototype.trimRight = function () { return this.replace(/\s+$/, ""); };
+    String.prototype.trimRight = function (): string { return this.replace(/\s+$/, ""); };
 }
 if (!String.prototype.trimLeft) {
-    String.prototype.trimLeft = function () { return this.replace(/^\s+/, ""); };
+    String.prototype.trimLeft = function (): string { return this.replace(/^\s+/, ""); };
 }
 
 // Feature detection for Error.stack. Not all browsers expose it

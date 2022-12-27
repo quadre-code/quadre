@@ -72,7 +72,7 @@ Object.keys(globalPaths).forEach(function (key) {
 /**
  * Returns the full path to the default extensions directory.
  */
-export function getDefaultExtensionPath() {
+export function getDefaultExtensionPath(): string {
     return FileUtils.getNativeBracketsDirectoryPath() + "/extensions/default";
 }
 
@@ -82,7 +82,7 @@ export function getDefaultExtensionPath() {
  * /Users/<user>/Application Support/Brackets/extensions/user on the mac, and
  * C:\Users\<user>\AppData\Roaming\Brackets\extensions\user on windows.
  */
-export function getUserExtensionPath() {
+export function getUserExtensionPath(): string {
     if (brackets.app.getExtensionsFolder) {
         return brackets.app.getExtensionsFolder() + "/user";
     }
@@ -97,7 +97,7 @@ export function getUserExtensionPath() {
  * @return {!Object} A require.js require object used to load the extension, or undefined if
  * there is no require object with that name
  */
-export function getRequireContextForExtension(name) {
+export function getRequireContextForExtension(name: string): any {
     return contexts[name];
 }
 
@@ -107,7 +107,7 @@ export function getRequireContextForExtension(name) {
  * @return {number} Timeout in milliseconds
  */
 // For unit tests
-export function _getInitExtensionTimeout() {
+export function _getInitExtensionTimeout(): number {
     return _initExtensionTimeout;
 }
 
@@ -117,7 +117,7 @@ export function _getInitExtensionTimeout() {
  * @param {number} value Timeout in milliseconds
  */
 // For unit tests
-export function _setInitExtensionTimeout(value) {
+export function _setInitExtensionTimeout(value: number): void {
     _initExtensionTimeout = value;
 }
 
@@ -127,7 +127,7 @@ export function _setInitExtensionTimeout(value) {
  * @param {Object} baseConfig
  * @return {$.Promise}
  */
-function _mergeConfig(baseConfig) {
+function _mergeConfig(baseConfig): JQueryPromise<any> {
     const deferred = $.Deferred();
     const extensionConfigFile = FileSystem.getFileForPath(baseConfig.baseUrl + "/requirejs-config.json");
 
@@ -165,7 +165,7 @@ function _mergeConfig(baseConfig) {
  *              if the extension fails to load or throws an exception immediately when loaded.
  *              (Note: if extension contains a JS syntax error, promise is resolved not rejected).
  */
-function loadExtensionModule(name, config, entryPoint) {
+function loadExtensionModule(name: string, config, entryPoint: string): JQueryPromise<void> {
     const extensionConfig = {
         context: name,
         baseUrl: config.baseUrl,
@@ -248,7 +248,7 @@ function loadExtensionModule(name, config, entryPoint) {
  *              if the extension fails to load or throws an exception immediately when loaded.
  *              (Note: if extension contains a JS syntax error, promise is resolved not rejected).
  */
-export function loadExtension(name, config, entryPoint) {
+export function loadExtension(name: string, config, entryPoint): JQueryPromise<void> {
     const promise = $.Deferred<any>();
 
     // Try to load the package.json to figure out if we are loading a theme.
@@ -286,8 +286,8 @@ export function loadExtension(name, config, entryPoint) {
  * @param {!string} entryPoint, name of the main js file to load
  * @return {!$.Promise} A promise object that is resolved when all extensions complete loading.
  */
-export function testExtension(name, config, entryPoint) {
-    const result = $.Deferred();
+export function testExtension(name: string, config, entryPoint): JQueryPromise<void> {
+    const result = $.Deferred<void>();
     const extensionPath = config.baseUrl + "/" + entryPoint + ".js";
 
     FileSystem.resolve(extensionPath, function (err, entry) {
@@ -321,8 +321,8 @@ export function testExtension(name, config, entryPoint) {
  * @param {function} processExtension
  * @return {!$.Promise} A promise object that is resolved when all extensions complete loading.
  */
-function _loadAll(directory, config, entryPoint, processExtension) {
-    const result = $.Deferred();
+function _loadAll(directory: string, config, entryPoint: string, processExtension): JQueryPromise<void> {
+    const result = $.Deferred<void>();
 
     FileSystem.getDirectoryForPath(directory).getContents(function (err, contents) {
         if (!err) {
@@ -368,7 +368,7 @@ function _loadAll(directory, config, entryPoint, processExtension) {
  *                  each subdirectory is interpreted as an independent extension
  * @return {!$.Promise} A promise object that is resolved when all extensions complete loading.
  */
-export function loadAllExtensionsInNativeDirectory(directory) {
+export function loadAllExtensionsInNativeDirectory(directory: string): JQueryPromise<void> {
     return _loadAll(directory, {baseUrl: directory}, "main", loadExtension);
 }
 
@@ -379,7 +379,7 @@ export function loadAllExtensionsInNativeDirectory(directory) {
  *                  each subdirectory is interpreted as an independent extension
  * @return {!$.Promise} A promise object that is resolved when all extensions complete loading.
  */
-export function testAllExtensionsInNativeDirectory(directory) {
+export function testAllExtensionsInNativeDirectory(directory: string): JQueryPromise<void> {
     const bracketsPath = FileUtils.getNativeBracketsDirectoryPath();
     const config = {
         baseUrl: directory,
@@ -400,12 +400,12 @@ export function testAllExtensionsInNativeDirectory(directory) {
  *      src/extensions or (b) an absolute path.
  * @return {!$.Promise} A promise object that is resolved when all extensions complete loading.
  */
-export function init(paths) {
+export function init(paths: Array<string> | null): JQueryPromise<void> {
     const params = new UrlParams();
 
     if (_init) {
         // Only init once. Return a resolved promise.
-        return $.Deferred().resolve().promise();
+        return $.Deferred<void>().resolve().promise();
     }
 
     if (!paths) {

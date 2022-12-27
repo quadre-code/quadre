@@ -80,7 +80,7 @@ _callbacks[EXTENSIONS_LOADED] = [];
  * @param {function()} handler - the callback to call
  * @private
  */
-function _callHandler(handler) {
+function _callHandler(handler: () => void): void {
     try {
         // TODO (issue 1034): We *could* use a $.Deferred for this, except deferred objects enter a broken
         // state if any resolution callback throws an exception. Since third parties (e.g. extensions) may
@@ -98,7 +98,7 @@ function _callHandler(handler) {
  * @private
  */
 // Unit Test API
-export function _dispatchReady(type) {
+export function _dispatchReady(type: string): void {
     let i;
     const myHandlers = _callbacks[type];
 
@@ -119,7 +119,7 @@ export function _dispatchReady(type) {
  * @param {function} handler - callback funciton to call when the event is triggered
  * @private
  */
-function _addListener(type, handler) {
+function _addListener(type: string, handler: () => void): void {
     if (_status[type]) {
         _callHandler(handler);
     } else {
@@ -133,7 +133,7 @@ function _addListener(type, handler) {
  * loaded.
  * @param {function} handler - callback function to call when the event is fired
  */
-export function appReady(handler) {
+export function appReady(handler: () => void): void {
     _addListener(APP_READY, handler);
 }
 
@@ -142,7 +142,7 @@ export function appReady(handler) {
  * main application html template is rendered.
  * @param {function} handler - callback function to call when the event is fired
  */
-export function htmlReady(handler) {
+export function htmlReady(handler: () => void): void {
     _addListener(HTML_READY, handler);
 }
 
@@ -151,6 +151,6 @@ export function htmlReady(handler) {
  * extensions have been loaded
  * @param {function} handler - callback function to call when the event is fired
  */
-export function extensionsLoaded(handler) {
+export function extensionsLoaded(handler: () => void): void {
     _addListener(EXTENSIONS_LOADED, handler);
 }

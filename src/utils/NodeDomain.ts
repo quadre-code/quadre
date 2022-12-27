@@ -110,7 +110,7 @@ class NodeDomain extends EventDispatcher.EventDispatcherBase {
         this._connectionPromise = connection.connect(true)
             .then(this._load);
 
-        connection.on("close", function (this: NodeDomain, event, promise) {
+        connection.on("close", function (this: NodeDomain, event, promise): void {
             this.connection.off(EVENT_NAMESPACE);
             this._domainLoaded = false;
             // in case of calling .disconnect() on connection, promise is undefined
@@ -126,10 +126,10 @@ class NodeDomain extends EventDispatcher.EventDispatcherBase {
      * @return {jQuery.Promise} Resolves once the domain is been loaded.
      * @private
      */
-    private _load() {
+    private _load(): JQueryPromise<void> {
         const connection = this.connection;
         return connection.loadDomains(this._domainPath, true)
-            .done(function (this: NodeDomain) {
+            .done(function (this: NodeDomain): void {
                 this._domainLoaded = true;
                 this._connectionPromise = null;
 
@@ -137,13 +137,13 @@ class NodeDomain extends EventDispatcher.EventDispatcherBase {
                 eventNames.forEach(function (this: NodeDomain, domainEvent) {
                     const connectionEvent = this._domainName + ":" + domainEvent + EVENT_NAMESPACE;
 
-                    connection.on(connectionEvent, function (this: NodeDomain) {
+                    connection.on(connectionEvent, function (this: NodeDomain): void {
                         const params = Array.prototype.slice.call(arguments, 1);
                         EventDispatcher.triggerWithArray(this, domainEvent, params);
                     }.bind(this));
                 }, this);
             }.bind(this))
-            .fail(function (this: NodeDomain, err) {
+            .fail(function (this: NodeDomain, err): void {
                 console.error("[NodeDomain] Error loading domain \"" + this._domainName + "\": " + err);
             }.bind(this));
     }
@@ -154,7 +154,7 @@ class NodeDomain extends EventDispatcher.EventDispatcherBase {
      *
      * @return {boolean} Whether or not the domain is currently ready.
      */
-    public ready() {
+    public ready(): boolean {
         return this._domainLoaded && this.connection.connected();
     }
 
@@ -164,12 +164,12 @@ class NodeDomain extends EventDispatcher.EventDispatcherBase {
      *
      * @return {jQuery.Promise}
      */
-    public promise() {
+    public promise(): JQueryPromise<void> {
         if (this._connectionPromise) {
             return this._connectionPromise;
         }
 
-        const deferred = $.Deferred();
+        const deferred = $.Deferred<void>();
 
         if (this.ready()) {
             deferred.resolve();
@@ -190,10 +190,10 @@ class NodeDomain extends EventDispatcher.EventDispatcherBase {
      * @param {string} name The name of the domain command to execute
      * @return {jQuery.Promise} Resolves with the result of the command
      */
-    public exec<T = any>(name, ...args): JQueryPromise<T> {
+    public exec<T = any>(name: string, ...args): JQueryPromise<T> {
         const connection = this.connection;
         const params = Array.prototype.slice.call(arguments, 1);
-        const execConnected = function (this: NodeDomain) {
+        const execConnected = function (this: NodeDomain): JQueryPromise<T> {
             const domain  = connection.domains[this._domainName];
             const fn      = domain && domain[name];
             let execResult;

@@ -70,7 +70,7 @@ let isWindowResizing = false;
  * Shows a resizable element.
  * @param {DOMNode} element Html element to show if possible
  */
-export function show(element) {
+export function show(element: Element | JQuery): void {
     const showFunc = $(element).data("show");
     if (showFunc) {
         showFunc.apply(element);
@@ -81,7 +81,7 @@ export function show(element) {
  * Hides a resizable element.
  * @param {DOMNode} element Html element to hide if possible
  */
-export function hide(element) {
+export function hide(element: Element | JQuery): void {
     const hideFunc = $(element).data("hide");
     if (hideFunc) {
         hideFunc.apply(element);
@@ -93,7 +93,7 @@ export function hide(element) {
  * functionality is added when an element is made resizable.
  * @param {DOMNode} element Html element to toggle
  */
-export function toggle(element) {
+export function toggle(element: Element | JQuery): void {
     if ($(element).is(":visible")) {
         hide(element);
     } else {
@@ -105,7 +105,7 @@ export function toggle(element) {
  * Removes the resizability of an element if it's resizable
  * @param {DOMNode} element Html element in which to remove sizing
  */
-export function removeSizable(element) {
+export function removeSizable(element: Element | JQuery): void {
     const removeSizableFunc = $(element).data("removeSizable");
     if (removeSizableFunc) {
         removeSizableFunc.apply(element);
@@ -117,7 +117,7 @@ export function removeSizable(element) {
  * Call this method after manually changing the size of the element
  * @param {DOMNode} element Html element whose sizer should be resynchronized
  */
-export function resyncSizer(element) {
+export function resyncSizer(element: Element | JQuery): void {
     const resyncSizerFunc = $(element).data("resyncSizer");
     if (resyncSizerFunc) {
         resyncSizerFunc.apply(element);
@@ -129,19 +129,19 @@ export function resyncSizer(element) {
  * @param {DOMNode} element Html element to toggle
  * @return {boolean} true if element is visible, false if it is not visible
  */
-export function isVisible(element) {
+export function isVisible(element: Element): boolean {
     return $(element).is(":visible");
 }
 
-function _isPercentage(value) {
+function _isPercentage(value: any): boolean {
     return !$.isNumeric(value) && value.indexOf("%") > -1;
 }
 
-function _percentageToPixels(value, total) {
+function _percentageToPixels(value: string, total: number): number {
     return parseFloat(value.replace("%", "")) * (total / 100);
 }
 
-function _sideBarMaxSize() {
+function _sideBarMaxSize(): number {
     let siblingsWidth = 0;
     $sideBar.siblings().not(".content").each(function (i, elem) {
         const $elem = $(elem);
@@ -193,7 +193,17 @@ function _sideBarMaxSize() {
  *                          same offset as parent otherwise the resizer will be incorrectly positioned.
  *                          FOR INTERNAL USE ONLY
  */
-export function makeResizable(element, direction, position, minSize, collapsible, forceLeft?, createdByWorkspaceManager?, usePercentages?, _attachToParent?) {
+export function makeResizable(
+    element: Element | JQuery,
+    direction: string,
+    position: string,
+    minSize: number,
+    collapsible: boolean,
+    forceLeft?: string,
+    createdByWorkspaceManager?: boolean,
+    usePercentages?: boolean,
+    _attachToParent?: boolean,
+): void {
     const $resizer            = $('<div class="' + direction + '-resizer"></div>');
     const $element            = $(element);
     const $parent             = $element.parent();
@@ -206,7 +216,7 @@ export function makeResizable(element, direction, position, minSize, collapsible
     const directionIncrement  = (position === POSITION_TOP || position === POSITION_LEFT) ? 1 : -1;
     const parentSizeFunction  = direction === DIRECTION_HORIZONTAL ? $parent.innerWidth : $parent.innerHeight;
 
-    const elementSizeFunction = function (this: JQuery, newSize) {
+    const elementSizeFunction = function (this: JQuery, newSize: number): JQuery | number {
         if (!newSize) {
             // calling the function as a getter
             if (direction === DIRECTION_HORIZONTAL) {
@@ -271,13 +281,13 @@ export function makeResizable(element, direction, position, minSize, collapsible
     // Important so min/max sizes behave predictably
     $element.css("box-sizing", "border-box");
 
-    function adjustSibling(size) {
+    function adjustSibling(size: number): void {
         if (forceLeft !== undefined) {
             $(forceLeft, $parent).css("left", size);
         }
     }
 
-    function resizeElement(elementSize, contentSize) {
+    function resizeElement(elementSize: number, contentSize: number): void {
         elementSizeFunction.apply($element, [elementSize]);
 
         if ($resizableElement.length) {
@@ -287,7 +297,7 @@ export function makeResizable(element, direction, position, minSize, collapsible
 
     // If the resizer is positioned right or bottom of the panel, we need to listen to
     // reposition it if the element size changes externally
-    function repositionResizer(elementSize) {
+    function repositionResizer(elementSize: number): void {
         const resizerPosition = elementSize || 1;
         if (position === POSITION_RIGHT || position === POSITION_BOTTOM) {
             $resizer.css(resizerCSSPosition, resizerPosition);
@@ -385,7 +395,7 @@ export function makeResizable(element, direction, position, minSize, collapsible
             });
         }
 
-        function doRedraw() {
+        function doRedraw(): void {
             // only run this if the mouse is down so we don't constantly loop even
             // after we're done resizing.
             if (!isResizing) {
@@ -429,7 +439,7 @@ export function makeResizable(element, direction, position, minSize, collapsible
             animationRequest = window.requestAnimationFrame(doRedraw);
         }
 
-        function onMouseMove(e) {
+        function onMouseMove(e: JQueryEventObject): void {
             // calculate newSize adding to startSize the difference
             // between starting and current position, capped at minSize
             newSize = Math.max(startSize + directionIncrement * (startPosition - e[directionProperty]), minSize);
@@ -465,7 +475,7 @@ export function makeResizable(element, direction, position, minSize, collapsible
             });
         }
 
-        function endResize(e) {
+        function endResize(e: JQueryEventObject): void {
             if (isResizing) {
 
                 const elementSize = elementSizeFunction.apply($element);
@@ -520,7 +530,7 @@ export function makeResizable(element, direction, position, minSize, collapsible
     }
 }
 
-function updateResizeLimits() {
+function updateResizeLimits(): void {
     let sideBarMaxSize = _sideBarMaxSize();
     const maxSize = $sideBar.data("maxsize");
 
@@ -539,7 +549,7 @@ function updateResizeLimits() {
     }
 }
 
-function onWindowResize(e) {
+function onWindowResize(e: UIEvent): void {
     if ($sideBar.css("display") === "none") {
         return;
     }

@@ -34,8 +34,8 @@ import * as Async from "utils/Async";
  * Detect the browser's supported transitionend event.
  * @return {string} The supported transitionend event name.
  */
-function _detectTransitionEvent() {
-    let event;
+function _detectTransitionEvent(): string {
+    let event: string;
     const el = window.document.createElement("fakeelement");
 
     const transitions = {
@@ -50,7 +50,7 @@ function _detectTransitionEvent() {
             event = value;
         }
     });
-    return event;
+    return event!;
 }
 
 const _transitionEvent = _detectTransitionEvent();
@@ -65,19 +65,19 @@ const _transitionEvent = _detectTransitionEvent();
  * @param {number=} timeoutDuration Time to wait in ms before rejecting promise. Default is 400.
  * @return {$.Promise} A promise that is resolved when the animation completes. Never rejected.
  */
-export function animateUsingClass(target, animClass, timeoutDuration?) {
-    const result = $.Deferred();
+export function animateUsingClass(target, animClass: string, timeoutDuration?: number): JQueryPromise<void> {
+    const result = $.Deferred<void>();
     const $target = $(target);
 
     timeoutDuration = timeoutDuration || 400;
 
-    function finish(e) {
+    function finish(e: JQueryEventObject): void {
         if (e.target === target) {
             result.resolve();
         }
     }
 
-    function cleanup() {
+    function cleanup(): void {
         $target
             .removeClass(animClass)
             .off(_transitionEvent, finish);

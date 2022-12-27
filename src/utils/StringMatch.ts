@@ -72,6 +72,17 @@ export interface StringMatcherOptions {
     segmentedSearch?: boolean;
 }
 
+interface SpecialCharacters {
+    specials: Array<number>;
+    lastSegmentSpecialsIndex: number;
+}
+
+interface Matched {
+    remainder: string;
+    originalRemainder: string;
+    matchList: Array<_SpecialMatch | _NormalMatch>;
+}
+
 /*
  * Identifies the "special" characters in the given string.
  * Special characters for matching purposes are:
@@ -91,7 +102,7 @@ export interface StringMatcherOptions {
  * @param {string} input string to break apart (e.g. filename that is being searched)
  * @return {{specials:Array.<number>, lastSegmentSpecialsIndex:number}}
  */
-export function _findSpecialCharacters(str) {
+export function _findSpecialCharacters(str: string): SpecialCharacters {
     let i;
     let c;
 
@@ -147,7 +158,7 @@ const ANY_MATCH = 1;
 // provides a way to peek into the parts that made up a score.
 // This flag is used for manual debugging and in the unit tests only.
 let DEBUG_SCORES = false;
-export function _setDebugScores(ds) {
+export function _setDebugScores(ds: boolean): void {
     DEBUG_SCORES = ds;
 }
 
@@ -265,7 +276,14 @@ export class _NormalMatch {
  * @param {int} startingSpecial index into specials array to start scanning with
  * @return {Array.<SpecialMatch|NormalMatch>} matched indexes or null if no matches possible
  */
-export function _generateMatchList(query, str, originalQuery, originalStr, specials, startingSpecial) {
+export function _generateMatchList(
+    query: string,
+    str: string,
+    originalQuery: string,
+    originalStr: string,
+    specials: Array<number>,
+    startingSpecial: number,
+): Array<_SpecialMatch | _NormalMatch> | null {
     const result: Array<_SpecialMatch | _NormalMatch> = [];
 
     // used to keep track of which special character we're testing now
@@ -296,7 +314,7 @@ export function _generateMatchList(query, str, originalQuery, originalStr, speci
     // Compares the current character from the query string against the
     // special characters in str. Returns true if a match was found,
     // false otherwise.
-    function findMatchingSpecial() {
+    function findMatchingSpecial(): boolean {
         // used to loop through the specials
         let i;
 
@@ -335,7 +353,7 @@ export function _generateMatchList(query, str, originalQuery, originalStr, speci
     // a match with the query using the "search for specials first" approach.
     //
     // returns false when it is not able to backtrack successfully
-    function backtrack() {
+    function backtrack(): boolean {
 
         // The idea is to pull matches off of our match list, rolling back
         // characters from the query. We pay special attention to the special
@@ -452,7 +470,15 @@ export function _generateMatchList(query, str, originalQuery, originalStr, speci
  * @param {boolean} lastSegmentStart which character does the last segment start at
  * @return {{remainder:int, matchList:Array.<SpecialMatch|NormalMatch>}} matched indexes or null if no matches possible
  */
-export function _lastSegmentSearch(query, str, originalQuery, originalStr, specials, startingSpecial, lastSegmentStart) {
+export function _lastSegmentSearch(
+    query: string,
+    str: string,
+    originalQuery: string,
+    originalStr: string,
+    specials: Array<number>,
+    startingSpecial: number,
+    lastSegmentStart: number
+): Matched | null {
     let queryCounter;
     let matchList;
 
@@ -505,7 +531,14 @@ export function _lastSegmentSearch(query, str, originalQuery, originalStr, speci
  * @param {int} lastSegmentSpecialsIndex index into specials array to start scanning with
  * @return {Array.<SpecialMatch|NormalMatch>} matched indexes or null if no matches possible
  */
-export function _wholeStringSearch(queryLower, compareLower, originalQuery, originalStr, specials, lastSegmentSpecialsIndex) {
+export function _wholeStringSearch(
+    queryLower: string,
+    compareLower: string,
+    originalQuery: string,
+    originalStr: string,
+    specials: Array<number>,
+    lastSegmentSpecialsIndex: number,
+): Array<_SpecialMatch | _NormalMatch> | null {
     const lastSegmentStart = specials[lastSegmentSpecialsIndex];
     let matchList;
 
@@ -548,7 +581,11 @@ export function _wholeStringSearch(queryLower, compareLower, originalQuery, orig
  * @param {int} character index where last segment begins
  * @return {{ranges:Array.<{text:string, matched:boolean, includesLastSegment:boolean}>, matchGoodness:int, scoreDebug: Object}} matched ranges and score
  */
-export function _computeRangesAndScore(matchList, str, lastSegmentStart) {
+export function _computeRangesAndScore(
+    matchList: Array<_SpecialMatch | _NormalMatch>,
+    str: string,
+    lastSegmentStart: number,
+): SearchResult {
     let matchCounter;
     const ranges: Array<Range> = [];
     let lastMatchIndex = -1;
@@ -575,7 +612,7 @@ export function _computeRangesAndScore(matchList, str, lastSegmentStart) {
     // Records the current range and adds any additional ranges required to
     // get to character index c. This function is called before starting a new range
     // or returning from the function.
-    function closeRangeGap(c) {
+    function closeRangeGap(c: number): void {
         // Close the current range
         if (currentRange) {
             currentRange.includesLastSegment = lastMatchIndex >= lastSegmentStart;
@@ -613,7 +650,7 @@ export function _computeRangesAndScore(matchList, str, lastSegmentStart) {
     let numConsecutive = 0;
 
     // Adds a matched character to the appropriate range
-    function addMatch(match) {
+    function addMatch(match: _SpecialMatch | _NormalMatch): void {
         // Pull off the character index
         const c = match.index;
         let newPoints = 0;
@@ -750,7 +787,7 @@ export function _computeRangesAndScore(matchList, str, lastSegmentStart) {
  *                      and a non-matching range for the end of the str
  *                      the score is -Number.MAX_VALUE in all cases
  */
-function _prefixMatchResult(str, query) {
+function _prefixMatchResult(str: string, query: string): SearchResult {
     const result = new SearchResult(str);
 
     result.matchGoodness = -Number.MAX_VALUE;
@@ -892,7 +929,7 @@ export function stringMatch(str: string, query: string, options: StringMatcherOp
  * @param {!Array.<SearchResult>} searchResults
  * @param {!Array.<string, function>} fieldSpec
  */
-export function multiFieldSort(searchResults, fieldSpec) {
+export function multiFieldSort(searchResults: Array<SearchResult>, fieldSpec): void {
     // Move field names into an array, with primary field first
     let comparisons;
     if (Array.isArray(fieldSpec)) {
@@ -941,7 +978,7 @@ export function multiFieldSort(searchResults, fieldSpec) {
  * tiers based on how well they matched the search query, then sorted alphabetically
  * within each tier.
  */
-export function basicMatchSort(searchResults) {
+export function basicMatchSort(searchResults: Array<SearchResult>): void {
     multiFieldSort(searchResults, { matchGoodness: 0, label: 1 });
 }
 
@@ -984,7 +1021,7 @@ export class StringMatcher {
     /**
      * Clears the caches. Use this in the event that the caches may be invalid.
      */
-    public reset() {
+    public reset(): void {
         // We keep track of the last query to know when we need to invalidate.
         this._lastQuery = null;
 
@@ -999,8 +1036,7 @@ export class StringMatcher {
      * @param {string} query  The query string to find in string
      * @return {{ranges:Array.<{text:string, matched:boolean, includesLastSegment:boolean}>, matchGoodness:int, scoreDebug: Object}} matched ranges and score
      */
-    public match(str, query) {
-
+    public match(str: string, query: string): SearchResult | undefined {
         // If the query is not just added characters from the previous query, we invalidate
         // the no match cache and will re-match everything.
         if (this._lastQuery !== null && (this._lastQuery !== query.substring(0, this._lastQuery.length))) {

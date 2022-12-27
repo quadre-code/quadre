@@ -144,8 +144,8 @@ export function getTagAttributes(editor, pos): Array<string> {
     const forwardCtx  = $.extend({}, backwardCtx);
 
     if (editor.getModeForSelection() === "html") {
-        if (backwardCtx.token && !tagPrefixedRegExp.test(backwardCtx.token.type)) {
-            while (TokenUtils.movePrevToken(backwardCtx) && !tagPrefixedRegExp.test(backwardCtx.token.type)) {
+        if (backwardCtx.token && !tagPrefixedRegExp.test(backwardCtx.token.type!)) {
+            while (TokenUtils.movePrevToken(backwardCtx) && !tagPrefixedRegExp.test(backwardCtx.token.type!)) {
                 if (backwardCtx.token.type === "error" && backwardCtx.token.string.indexOf("<") === 0) {
                     break;
                 }
@@ -367,7 +367,7 @@ export function getTagInfo(editor, constPos, isHtmlMode?) {
 
             // Check whether the token type is one of the types prefixed with "tag"
             // (e.g. "tag", "tag error", "tag brackets")
-            if (tagPrefixedRegExp.test(ctx.token.type)) {
+            if (tagPrefixedRegExp.test(ctx.token.type!)) {
                 // Check to see if the cursor is just before a "<" but not in any tag.
                 if (ctx.token.string.charAt(0) === "<") {
                     return createTagInfo();
@@ -403,7 +403,7 @@ export function getTagInfo(editor, constPos, isHtmlMode?) {
                 return createTagInfo();
             }
 
-            if (!tagPrefixedRegExp.test(ctx.token.type) && ctx.token.string !== "=") {
+            if (!tagPrefixedRegExp.test(ctx.token.type!) && ctx.token.string !== "=") {
                 // If it wasn't the tag name, assume it was an attr value
                 // Also we don't handle the "=" here.
                 tagInfo = _getTagInfoStartingFromAttrValue(ctx);
@@ -411,7 +411,7 @@ export function getTagInfo(editor, constPos, isHtmlMode?) {
                 // Check to see if this is the closing of a tag (either the start or end)
                 // or a comment tag.
                 if (ctx.token.type === "comment" ||
-                        (tagPrefixedRegExp.test(ctx.token.type) &&
+                        (tagPrefixedRegExp.test(ctx.token.type!) &&
                         (ctx.token.string === ">" || ctx.token.string === "/>" ||
                             ctx.token.string === "</"))) {
                     return createTagInfo();
@@ -436,7 +436,7 @@ export function getTagInfo(editor, constPos, isHtmlMode?) {
         }
     }
 
-    if (tagPrefixedRegExp.test(ctx.token.type)) {
+    if (tagPrefixedRegExp.test(ctx.token.type!)) {
         if (ctx.token.type !== "tag bracket") {
             // Check if the user just typed a white space after "<" that made an existing tag invalid.
             if (TokenUtils.movePrevToken(ctx) && !/\S/.test(ctx.token.string)) {

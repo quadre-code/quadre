@@ -37,7 +37,7 @@ const displayedWarnings = {};
  * and all the calls to require.js to load the extension that shows
  * this deprecation warning.
  */
-function _trimStack(stack) {
+function _trimStack(stack: string): string {
     let indexOfFirstRequireJSline;
 
     // Remove everything in the stack up to the end of the line that shows this module file path
@@ -66,7 +66,7 @@ function _trimStack(stack) {
  * @param {number=} callerStackPos Only used if oncePerCaller=true. Overrides the `Error().stack` depth
  *     where the client-code caller can be found. Only needed if extra shim layers are involved.
  */
-export function deprecationWarning(message, oncePerCaller = false, callerStackPos = 3) {
+export function deprecationWarning(message: string, oncePerCaller = false, callerStackPos = 3): void {
     // If oncePerCaller isn't set, then only show the message once no matter who calls it.
     if (!message || (!oncePerCaller && displayedWarnings[message])) {
         return;
@@ -78,7 +78,7 @@ export function deprecationWarning(message, oncePerCaller = false, callerStackPo
     // * 1 is this function
     // * 2 is the caller of this function (the one throwing the deprecation warning)
     // * 3 is the actual caller of the deprecated function.
-    const stack = new Error().stack;
+    const stack = new Error().stack!;
     const callerLocation = stack ? stack.split("\n")[callerStackPos] : "Unknown stack";
     if (oncePerCaller && displayedWarnings[message] && displayedWarnings[message][callerLocation]) {
         return;
@@ -111,7 +111,7 @@ export function deprecationWarning(message, oncePerCaller = false, callerStackPo
  * @param {string=} canonicalOutboundName - the canonical name of the old event
  * @param {string=} canonicalInboundName - the canonical name of the new event
  */
-export function deprecateEvent(outbound, inbound, oldEventName, newEventName, canonicalOutboundName, canonicalInboundName) {
+export function deprecateEvent(outbound, inbound, oldEventName: string, newEventName: string, canonicalOutboundName: string, canonicalInboundName: string): void {
     // Mark deprecated so EventDispatcher.on() will emit warnings
     EventDispatcher.markDeprecated(outbound, oldEventName, canonicalInboundName);
 
@@ -128,7 +128,7 @@ export function deprecateEvent(outbound, inbound, oldEventName, newEventName, ca
  * @param {!string} old Menu Id
  * @param {!string} new Menu Id
  */
-export function deprecateConstant(obj, oldId, newId) {
+export function deprecateConstant(obj, oldId: string, newId: string): void {
     const warning     = "Use Menus." + newId + " instead of Menus." + oldId;
     const newValue    = obj[newId];
 

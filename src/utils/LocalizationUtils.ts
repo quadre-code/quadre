@@ -35,7 +35,7 @@ import * as Strings from "strings";
  * @param {string} locale The two-char language code
  * @return {string} The language's name or the given language code
  */
-export function getLocalizedLabel(locale) {
+export function getLocalizedLabel(locale: string): string {
     const key  = "LOCALE_" + locale.toUpperCase().replace("-", "_");
     const i18n = Strings[key];
 
