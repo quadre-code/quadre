@@ -253,8 +253,8 @@ class PrefsCodeHints implements CodeHintProvider {
                 // Provide hints for keys
 
                 // Get options for parent key else use general options.
-                if (data[ctxInfo.parentKeyName] && data[ctxInfo.parentKeyName].keys) {
-                    keys = data[ctxInfo.parentKeyName].keys;
+                if (data[ctxInfo.parentKeyName!] && data[ctxInfo.parentKeyName!].keys) {
+                    keys = data[ctxInfo.parentKeyName!].keys;
                 } else if (ctxInfo.parentKeyName === "language") {
                     keys = languages;
                     option.type = "object";
@@ -278,11 +278,11 @@ class PrefsCodeHints implements CodeHintProvider {
                 // Provide hints for values.
 
                 // Get the key from data.
-                if (data[ctxInfo.parentKeyName] && data[ctxInfo.parentKeyName].keys &&
-                        data[ctxInfo.parentKeyName].keys[ctxInfo.keyName]) {
-                    option = data[ctxInfo.parentKeyName].keys[ctxInfo.keyName];
-                } else if (data[ctxInfo.keyName]) {
-                    option = data[ctxInfo.keyName];
+                if (data[ctxInfo.parentKeyName!] && data[ctxInfo.parentKeyName!].keys &&
+                        data[ctxInfo.parentKeyName!].keys[ctxInfo.keyName]) {
+                    option = data[ctxInfo.parentKeyName!].keys[ctxInfo.keyName];
+                } else if (data[ctxInfo.keyName!]) {
+                    option = data[ctxInfo.keyName!];
                 }
 
                 // Get the values depending on the selected key.
@@ -291,8 +291,8 @@ class PrefsCodeHints implements CodeHintProvider {
                 } else if (option && option.values && (["number", "string"].indexOf(option.type!) !== -1 ||
                                                         (option.type === "array" && ctxInfo.isArray))) {
                     values = option.values;
-                } else if (ctxInfo.isArray && ctxInfo.keyName === "linting.prefer" && languages[ctxInfo.parentKeyName]) {
-                    values = CodeInspection.getProviderIDsForLanguage(ctxInfo.parentKeyName);
+                } else if (ctxInfo.isArray && ctxInfo.keyName === "linting.prefer" && languages[ctxInfo.parentKeyName!]) {
+                    values = CodeInspection.getProviderIDsForLanguage(ctxInfo.parentKeyName!);
                 } else if (ctxInfo.keyName === "themes.theme") {
                     values = ThemeManager.getAllThemes().map(function (theme) {
                         return theme.name;
@@ -356,7 +356,7 @@ class PrefsCodeHints implements CodeHintProvider {
         start.line = end.line = pos.line;
 
         if (ctxInfo.tokenType === JSONUtils.TOKEN_KEY) {
-            startChar = ctxInfo.token.string.charAt(0);
+            startChar = ctxInfo.token!.string.charAt(0);
 
             // Get the quote char.
             if (/^['"]$/.test(startChar)) {
@@ -386,7 +386,7 @@ class PrefsCodeHints implements CodeHintProvider {
             }
 
             start.ch = pos.ch - ctxInfo.offset;
-            end.ch = ctxInfo.token.end;
+            end.ch = ctxInfo.token!.end;
             this.editor.document.replaceRange(completion, start, end);
 
             // Place cursor inside the braces, brackets or quotes.
@@ -404,18 +404,18 @@ class PrefsCodeHints implements CodeHintProvider {
 
         if (ctxInfo.tokenType === JSONUtils.TOKEN_VALUE) {
             // In case the current token is a white-space, start and end will be same.
-            if (JSONUtils.regexAllowedChars.test(ctxInfo.token.string)) {
+            if (JSONUtils.regexAllowedChars.test(ctxInfo.token!.string)) {
                 start.ch = end.ch = pos.ch;
             } else if (ctxInfo.shouldReplace) {
-                start.ch = ctxInfo.token.start;
-                end.ch = ctxInfo.token.end;
+                start.ch = ctxInfo.token!.start;
+                end.ch = ctxInfo.token!.end;
             } else {
                 start.ch = pos.ch - ctxInfo.offset;
-                end.ch = ctxInfo.token.end;
+                end.ch = ctxInfo.token!.end;
             }
 
             if (!type || type === "string") {
-                startChar = ctxInfo.token.string.charAt(0);
+                startChar = ctxInfo.token!.string.charAt(0);
                 if (/^['"]$/.test(startChar)) {
                     quoteChar = startChar;
                 } else {

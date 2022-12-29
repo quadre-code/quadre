@@ -22,8 +22,100 @@
  *
  */
 
+import type { SimpleNode } from "language/HTMLSimpleDOM";
+
 /*unittests: HTML Instrumentation*/
 
+interface EditAttrChange {
+    type: "attrChange";
+    tagID: number;
+    attribute: string;
+    value: string | number;
+    beforeID?: number;
+}
+
+interface EditAttrAdd {
+    type: "attrAdd";
+    tagID: number;
+    attribute: string;
+    value: string | number;
+    beforeID?: number;
+}
+
+interface EditAttrDelete {
+    type: "attrDelete";
+    tagID: number;
+    attribute: string;
+    beforeID?: number;
+}
+
+interface EditElementInsert {
+    type: "elementInsert";
+    tag: string;
+    tagID: number;
+    parentID: number | null;
+    attributes: Record<string, string | number>;
+    lastChild?: boolean;
+    beforeID?: number;
+}
+
+interface EditTextReplace {
+    type: "textReplace";
+    content: string;
+    afterID?: number;
+    parentID?: number;
+    beforeID?: number;
+}
+
+interface EditTextDelete {
+    type: "textDelete";
+    parentID?: number;
+    afterID?: number;
+    beforeID?: number;
+}
+
+interface EditElementDelete {
+    type: "elementDelete";
+    tagID: number;
+}
+
+interface EditTextInsert {
+    type: "textInsert";
+    content: string;
+    parentID: number;
+    firstChild?: boolean;
+    afterID?: number;
+    lastChild?: boolean;
+    beforeID?: number;
+}
+
+interface EditElementMove {
+    type: "elementMove";
+    tagID: number;
+    parentID: number;
+    lastChild?: boolean;
+    beforeID?: number;
+}
+
+interface EditRememberNodes {
+    type: "rememberNodes";
+    tagIDs: Array<number>;
+    beforeID?: number;
+}
+
+export type EditOperation =
+    | EditAttrChange
+    | EditAttrAdd
+    | EditAttrDelete
+    | EditElementInsert
+    | EditTextReplace
+    | EditTextDelete
+    | EditElementDelete
+    | EditTextInsert
+    | EditElementMove
+    | EditRememberNodes;
+
+/*
 interface AttributeEdit {
     type: string;
     tagID: string;
@@ -39,11 +131,18 @@ interface Edit {
     value?: string;
     tag?: string;
     tagIDs?: Array<string>;
-    beforeID?: string;
+    beforeID?: number;
     afterID?: string;
     parentID?: string | null;
     firstChild?: unknown;
     lastChild?: unknown;
+}
+*/
+
+interface ChildEdits {
+    edits: Array<EditOperation>;
+    moves: Array<number>;
+    newElements: Array<SimpleNode>;
 }
 
 /**
@@ -55,11 +154,11 @@ interface Edit {
  * @param {SimpleNode} newNode node from new tree
  * @return {Array.<Object>} list of edits to mutate attributes from the old node to the new
  */
-function generateAttributeEdits(oldNode, newNode) {
+function generateAttributeEdits(oldNode: SimpleNode, newNode: SimpleNode): Array<EditOperation> {
     // shallow copy the old attributes object so that we can modify it
     const oldAttributes = $.extend({}, oldNode.attributes);
     const newAttributes = newNode.attributes;
-    const edits: Array<AttributeEdit> = [];
+    const edits: Array<EditOperation> = [];
 
     Object.keys(newAttributes).forEach(function (attributeName) {
         if (oldAttributes[attributeName] !== newAttributes[attributeName]) {
@@ -93,7 +192,7 @@ function generateAttributeEdits(oldNode, newNode) {
  * @param {Object} node SimpleDOM node for which to look up parent ID
  * @return {int?} ID or null if there is no parent
  */
-function getParentID(node) {
+function getParentID(node: SimpleNode): number {
     return node.parent && node.parent.tagID;
 }
 
@@ -109,21 +208,21 @@ function getParentID(node) {
  * @param {?Object} oldParent SimpleDOM node for the previous state of this element, null/undefined if the element is new
  * @param {Object} newParent SimpleDOM node for the current state of the element
  */
-const generateChildEdits = function (oldParent, oldNodeMap, newParent, newNodeMap) {
+const generateChildEdits = function (oldParent: SimpleNode | null, oldNodeMap: Record<string, SimpleNode>, newParent: SimpleNode, newNodeMap: Record<string, SimpleNode>): ChildEdits {
     /*jslint continue: true */
 
     let newIndex = 0;
     let oldIndex = 0;
     const newChildren = newParent.children;
     const oldChildren = oldParent ? oldParent.children : [];
-    let newChild;
-    let oldChild;
-    let newEdits: Array<Edit> = [];
-    let newEdit;
-    let textAfterID;
-    const edits = [];
-    const moves: Array<string> = [];
-    const newElements: Array<Edit> = [];
+    let newChild: SimpleNode;
+    let oldChild: SimpleNode;
+    let newEdits: Array<EditOperation> = [];
+    let newEdit: EditOperation;
+    let textAfterID: number;
+    const edits: Array<EditOperation> = [];
+    const moves: Array<number> = [];
+    const newElements: Array<SimpleNode> = [];
 
     /**
      * We initially put new edit objects into the `newEdits` array so that we
@@ -148,7 +247,7 @@ const generateChildEdits = function (oldParent, oldNodeMap, newParent, newNodeMa
      *     we can't use it as the `afterID` for future edits--whatever previous item
      *     was set as the `textAfterID` is still okay.
      */
-    const finalizeNewEdits = function (beforeID, isBeingDeleted) {
+    const finalizeNewEdits = function (beforeID: number, isBeingDeleted: boolean): void {
         newEdits.forEach(function (edit) {
             // elementDeletes don't need any positioning information
             if (edit.type !== "elementDelete") {
@@ -178,7 +277,7 @@ const generateChildEdits = function (oldParent, oldNodeMap, newParent, newNodeMa
      *
      * @return {boolean} true if an elementInsert was created
      */
-    const addElementInsert = function () {
+    const addElementInsert = function (): boolean {
         if (!oldNodeMap[newChild.tagID]) {
             newEdit = {
                 type: "elementInsert",
@@ -217,7 +316,7 @@ const generateChildEdits = function (oldParent, oldNodeMap, newParent, newNodeMa
      *
      * @return {boolean} true if elementDelete was generated
      */
-    const addElementDelete = function () {
+    const addElementDelete = function (): boolean {
         if (!newNodeMap[oldChild.tagID]) {
             // We can finalize existing edits relative to this node *before* it's
             // deleted.
@@ -241,7 +340,7 @@ const generateChildEdits = function (oldParent, oldNodeMap, newParent, newNodeMa
     /**
      * Adds a textInsert edit for a newly created text node.
      */
-    const addTextInsert = function () {
+    const addTextInsert = function (): void {
         newEdit = {
             type: "textInsert",
             content: newChild.content,
@@ -266,7 +365,7 @@ const generateChildEdits = function (oldParent, oldNodeMap, newParent, newNodeMa
      *
      * @return {?Object} previous child or null if there wasn't one
      */
-    const prevNode = function () {
+    const prevNode = function (): SimpleNode | null {
         if (newIndex > 0) {
             return newParent.children[newIndex - 1];
         }
@@ -283,7 +382,7 @@ const generateChildEdits = function (oldParent, oldNodeMap, newParent, newNodeMa
      * a textReplace which will result in the deletion of this node and
      * the maintaining of the old content.
      */
-    const addTextDelete = function () {
+    const addTextDelete = function (): void {
         const prev = prevNode();
         if (prev && !prev.children) {
             newEdit = {
@@ -335,7 +434,7 @@ const generateChildEdits = function (oldParent, oldNodeMap, newParent, newNodeMa
      *
      * @return {boolean} true if an elementMove was generated
      */
-    const addElementMove = function () {
+    const addElementMove = function (): boolean {
 
         // This check looks a little strange, but it suits what we're trying
         // to do: as we're walking through the children, a child node that has moved
@@ -368,7 +467,7 @@ const generateChildEdits = function (oldParent, oldNodeMap, newParent, newNodeMa
      *
      * @return {boolean} true if the element has moved
      */
-    const hasMoved = function (oldChild) {
+    const hasMoved = function (oldChild: SimpleNode): boolean {
         const oldChildInNewTree = newNodeMap[oldChild.tagID];
 
         return oldChild.children && oldChildInNewTree && getParentID(oldChild) !== getParentID(oldChildInNewTree);
@@ -448,7 +547,7 @@ const generateChildEdits = function (oldParent, oldNodeMap, newParent, newNodeMa
                     content: newChild.content,
                     parentID: newChild.parent.tagID
                 };
-                if (textAfterID) {
+                if (textAfterID!) {
                     newEdit.afterID = textAfterID;
                 }
                 newEdits.push(newEdit);
@@ -520,8 +619,8 @@ const generateChildEdits = function (oldParent, oldNodeMap, newParent, newNodeMa
     newEdits.forEach(function (edit) {
         if (edit.type === "textInsert" || edit.type === "elementInsert" || edit.type === "elementMove") {
             edit.lastChild = true;
-            delete edit.firstChild;
-            delete edit.afterID;
+            delete (edit as any).firstChild;
+            delete (edit as any).afterID;
         }
     });
     edits.push.apply(edits, newEdits);
@@ -552,9 +651,9 @@ const generateChildEdits = function (oldParent, oldNodeMap, newParent, newNodeMa
  * @param {Object} newNode SimpleDOM node with the new content
  * @return {Array.{Object}} list of edit operations
  */
-export function domdiff(oldNode, newNode) {
-    const queue: Array<Edit> = [];
-    const edits: Array<Edit> = [];
+export function domdiff(oldNode: SimpleNode, newNode: SimpleNode): Array<EditOperation> {
+    const queue: Array<SimpleNode> = [];
+    const edits: Array<EditOperation> = [];
     const moves = [];
     let newElement;
     let oldElement;
@@ -567,7 +666,7 @@ export function domdiff(oldNode, newNode) {
      * old nodeMap), are not added here because they will be added when generateChildEdits
      * creates the elementInsert edit.
      */
-    const queuePush = function (node) {
+    const queuePush = function (node: SimpleNode): void {
         if (node.children && oldNodeMap[node.tagID]) {
             queue.push(node);
         }
@@ -578,7 +677,7 @@ export function domdiff(oldNode, newNode) {
      *
      * @param {Object} delta edits, moves and newElements to add
      */
-    const addEdits = function (delta) {
+    const addEdits = function (delta: ChildEdits): void {
         edits.push.apply(edits, delta.edits);
         moves.push.apply(moves, delta.moves);
         queue.push.apply(queue, delta.newElements);

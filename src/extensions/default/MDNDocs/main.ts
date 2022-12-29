@@ -119,14 +119,14 @@ function inlineProvider(hostEditor, pos) {
 
     if (langId === "html") { // HTML
         jsonFile = "html.json";
-        let propInfo = HTMLUtils.getTagInfo(hostEditor, sel.start);
+        const propInfo = HTMLUtils.getTagInfo(hostEditor, sel.start);
         if (propInfo.position.tokenType === HTMLUtils.ATTR_NAME && propInfo.attr && propInfo.attr.name) {
             // we're on an HTML attribute (and not on its value)
             propQueue.push(propInfo.attr.name.toLowerCase());
         }
         if (propInfo.tagName) { // we're somehow on an HTML tag (no matter where exactly)
-            propInfo = propInfo.tagName.toLowerCase();
-            propQueue.push("<" + propInfo + ">");
+            const tagName = propInfo.tagName.toLowerCase();
+            propQueue.push("<" + tagName + ">");
         }
     } else { // CSS-like language
         jsonFile = "css.json";

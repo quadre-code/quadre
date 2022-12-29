@@ -22,8 +22,32 @@
  *
  */
 
+import type { Editor } from "editor/Editor";
+
 // Load dependencies.
 import * as TokenUtils from "utils/TokenUtils";
+
+interface TagInfo {
+    token: CodeMirror.Token | null;
+    tokenType: number | null;
+    offset: number;
+    exclusionList: Array<string>;
+    tagName: string;
+    attrName: string;
+    shouldReplace: boolean;
+}
+
+interface TagAttributes {
+    tagName: string;
+    exclusionList: Array<string>;
+    shouldReplace: boolean;
+}
+
+interface TagAttributeValue {
+    tagName: string;
+    attrName: string;
+    exclusionList: Array<string>;
+}
 
 // Enums of token types.
 export const TOKEN_TAG    = 1;
@@ -45,7 +69,7 @@ export const regexWhitespace = /^\s+$/;
  * @param {boolean} shouldReplace true if we don't want to append ="" to an attribute
  * @return {!{token: Token, tokenType: int, offset: int, exclusionList: Array.<string>, tagName: string, attrName: string, shouldReplace: boolean}}
  */
-function _createTagInfo(token?, tokenType?: number, offset?: number, exclusionList?: Array<string>, tagName?: string, attrName?: string | null, shouldReplace?: boolean) {
+function _createTagInfo(token?: CodeMirror.Token, tokenType?: number, offset?: number, exclusionList?: Array<string>, tagName?: string, attrName?: string | null, shouldReplace?: boolean): TagInfo {
     return {
         token: token || null,
         tokenType: tokenType || null,
@@ -64,7 +88,7 @@ function _createTagInfo(token?, tokenType?: number, offset?: number, exclusionLi
  * @param {!{line: number, ch: number}} constPos The position of cursor in the active editor
  * @return {!{tagName: string, exclusionList: Array.<string>, shouldReplace: boolean}}
  */
-function _getTagAttributes(editor, constPos) {
+function _getTagAttributes(editor: Editor, constPos: CodeMirror.Position): TagAttributes | null {
     let tagName;
     const exclusionList: Array<string> = [];
     let shouldReplace;
@@ -153,7 +177,7 @@ function _getTagAttributes(editor, constPos) {
  * @param {!{line: number, ch: number}} pos Position of cursor in the editor
  * @return {!{tagName: string, attrName: string, exclusionList: Array.<string>}}
  */
-function _getTagAttributeValue(editor, pos) {
+function _getTagAttributeValue(editor: Editor, pos: CodeMirror.Position): TagAttributeValue | null {
     let tagName;
     let attrName;
     let exclusionList: Array<string> = [];
@@ -226,7 +250,7 @@ function _getTagAttributeValue(editor, pos) {
  * @param {!{line: number, ch: number}} pos Position of cursor in the editor
  * @return {!{token: Object, tokenType: number, offset: number, exclusionList: Array.<string>, tagName: string, attrName: string, shouldReplace: boolean}}
  */
-export function getTagInfo(editor, pos) {
+export function getTagInfo(editor: Editor, pos: CodeMirror.Position): TagInfo {
     const ctx = TokenUtils.getInitialContext(editor._codeMirror, pos);
     const offset = TokenUtils.offsetInToken(ctx);
 
@@ -275,13 +299,13 @@ export function getTagInfo(editor, pos) {
  * @param {!{token: Object, tokenType: number, offset: number, exclusionList: Array.<string>, tagName: string, attrName: string, shouldReplace: boolean}}
  * @return {string}  The query to use to matching hints.
  */
-export function getValueQuery(tagInfo) {
-    if (tagInfo.token.string === "=") {
+export function getValueQuery(tagInfo: TagInfo): string {
+    if (tagInfo.token!.string === "=") {
         return "";
     }
 
     // Remove quotation marks in query.
-    const query = tagInfo.token.string.substr(1, tagInfo.offset - 1);
+    const query = tagInfo.token!.string.substr(1, tagInfo.offset - 1);
 
     // Get the last option to use as a query to support multiple options.
     return query.split(/\s+/).slice(-1)[0];

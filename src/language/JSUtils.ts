@@ -27,7 +27,7 @@
  */
 
 import * as _ from "lodash";
-import * as Acorn from "thirdparty/acorn/acorn";
+import * as Acorn from "acorn";
 import * as AcornLoose from "thirdparty/acorn/acorn_loose";
 import * as ASTWalker from "thirdparty/acorn/walk";
 
@@ -44,11 +44,66 @@ import * as StringUtils from "utils/StringUtils";
 interface FunctionInfo {
     offsetStart: number;
     label: string | null;
-    location: any;
+    location: {
+        start: {
+            line: number;
+            column: number;
+        };
+        end: {
+            line: number;
+            column: number;
+        };
+    };
+
+    offsetEnd?: number;
+    lineStart?: number;
+    lineEnd?: number;
 }
 
 interface FunctionInfoMap {
     [functionName: string]: Array<FunctionInfo>;
+}
+
+interface FileInfo extends FileLike {
+    JSUtils?: {
+        functions: FunctionInfoMap;
+        timestamp: Date;
+    };
+}
+
+interface DocInfoMap {
+    doc?: DocumentManager.Document;
+    fileInfo?: FileInfo;
+    functions: FunctionInfoMap;
+}
+
+interface DocInfoArray {
+    doc?: DocumentManager.Document;
+    fileInfo?: FileInfo;
+    functions: Array<FunctionInfo>;
+}
+
+interface MatchingFunctions {
+    name: string | undefined;
+    label: string | null;
+    lineStart: number | undefined;
+    lineEnd: number | undefined;
+    nameLineStart: number;
+    nameLineEnd: number;
+    columnStart: number;
+    columnEnd: number;
+}
+
+interface RangeResult {
+    document: DocumentManager.Document;
+    name: string;
+    lineStart: number;
+    lineEnd: number;
+}
+
+export interface FileLike {
+    name: string;
+    fullPath: string;
 }
 
 /**
@@ -64,7 +119,7 @@ const _changedDocumentTracker = new ChangedDocumentTracker();
  * @param {!string} text Document text
  * @return {Object.<string, Array.<{offsetStart: number, offsetEnd: number}>}
  */
-function _findAllFunctionsInText(text) {
+function _findAllFunctionsInText(text: string): FunctionInfoMap {
     let AST;
     const results: FunctionInfoMap = {};
     let functionName;
@@ -79,7 +134,7 @@ function _findAllFunctionsInText(text) {
         AST = AcornLoose.parse_dammit(text, {locations: true});
     }
 
-    function _addResult(node, offset?, prefix?) {
+    function _addResult(node, offset?: number, prefix?: string): void {
         memberPrefix = prefix ? prefix + " - " : "";
         resultNode = node.id || node.key || node;
         functionName = resultNode.name;
@@ -179,7 +234,7 @@ function _findAllFunctionsInText(text) {
 // Given the start offset of a function definition (before the opening brace), find
 // the end offset for the function (the closing "}"). Returns the position one past the
 // close brace. Properly ignores braces inside comments, strings, and regexp literals.
-export function _getFunctionEndOffset(text, offsetStart) {
+export function _getFunctionEndOffset(text: string, offsetStart: number): number {
     const mode = CodeMirror.getMode({}, "javascript");
     const state = CodeMirror.startState(mode);
     let stream: CodeMirror.StringStream;
@@ -193,7 +248,7 @@ export function _getFunctionEndOffset(text, offsetStart) {
 
     // Get a stream for the next line, and update curOffset and lineStart to point to the
     // beginning of that next line. Returns false if we're at the end of the text.
-    function nextLine() {
+    function nextLine(): boolean {
         if (stream) {
             curOffset++; // account for \n
             if (curOffset >= length) {
@@ -212,7 +267,7 @@ export function _getFunctionEndOffset(text, offsetStart) {
     // Get the next token, updating the style and token to refer to the current
     // token, and updating the curOffset to point to the end of the token (relative
     // to the start of the original text).
-    function nextToken() {
+    function nextToken(): boolean {
         if (curOffset >= length) {
             return false;
         }
@@ -260,8 +315,8 @@ export function _getFunctionEndOffset(text, offsetStart) {
  * @param {!Array.<{offsetStart: number, offsetEnd: number}>} functions
  * @param {!Array.<{document: Document, name: string, lineStart: number, lineEnd: number}>} rangeResults
  */
-function _computeOffsets(doc, functionName, functions, rangeResults) {
-    const text    = doc.getText();
+function _computeOffsets(doc: DocumentManager.Document, functionName: string, functions: Array<FunctionInfo>, rangeResults: Array<RangeResult>): void {
+    const text    = doc.getText()!;
     const lines   = StringUtils.getLines(text);
 
     functions.forEach(function (funcEntry) {
@@ -278,8 +333,8 @@ function _computeOffsets(doc, functionName, functions, rangeResults) {
         rangeResults.push({
             document:   doc,
             name:       functionName,
-            lineStart:  funcEntry.lineStart,
-            lineEnd:    funcEntry.lineEnd
+            lineStart:  funcEntry.lineStart!,
+            lineEnd:    funcEntry.lineEnd!
         });
     });
 }
@@ -290,17 +345,18 @@ function _computeOffsets(doc, functionName, functions, rangeResults) {
  * @param {!FileInfo} fileInfo File to parse
  * @param {!$.Deferred} result Deferred to resolve with all functions found and the document
  */
-function _readFile(fileInfo, result) {
+function _readFile(fileInfo: FileInfo, result: JQueryDeferred<DocInfoMap>): void {
     DocumentManager.getDocumentForPath(fileInfo.fullPath)
         .done(function (doc) {
-            const allFunctions = _findAllFunctionsInText(doc!.getText());
+            const allFunctions = _findAllFunctionsInText(doc!.getText()!);
 
             // Cache the result in the fileInfo object
-            fileInfo.JSUtils = {};
-            fileInfo.JSUtils.functions = allFunctions;
-            fileInfo.JSUtils.timestamp = doc!.diskTimestamp;
+            fileInfo.JSUtils = {
+                functions: allFunctions,
+                timestamp: doc!.diskTimestamp!,
+            };
 
-            result.resolve({doc: doc, functions: allFunctions});
+            result.resolve({doc: doc!, functions: allFunctions});
         })
         .fail(function (error) {
             result.reject(error);
@@ -313,8 +369,8 @@ function _readFile(fileInfo, result) {
  * @return {$.Promise} A promise resolved with true with true when a function cache is available for the document. Resolves
  *   with false when there is no cache or the cache is stale.
  */
-function _shouldGetFromCache(fileInfo) {
-    const result = $.Deferred();
+function _shouldGetFromCache(fileInfo: FileInfo): JQueryPromise<boolean> {
+    const result = $.Deferred<boolean>();
     const isChanged = _changedDocumentTracker.isPathChanged(fileInfo.fullPath);
 
     if (isChanged && fileInfo.JSUtils) {
@@ -329,7 +385,7 @@ function _shouldGetFromCache(fileInfo) {
 
             file.stat(function (err, stat) {
                 if (!err) {
-                    result.resolve(fileInfo.JSUtils.timestamp.getTime() === stat.mtime.getTime());
+                    result.resolve(fileInfo.JSUtils!.timestamp.getTime() === stat.mtime.getTime());
                 } else {
                     result.reject(err);
                 }
@@ -337,7 +393,7 @@ function _shouldGetFromCache(fileInfo) {
         }
     } else {
         // Use the cache if the file did not change and the cache exists
-        result.resolve(!isChanged && fileInfo.JSUtils);
+        result.resolve(!isChanged && !!fileInfo.JSUtils);
     }
 
     return result.promise();
@@ -351,11 +407,11 @@ function _shouldGetFromCache(fileInfo) {
  * @param {!Array.<document: Document, name: string, lineStart: number, lineEnd: number>} rangeResults
  * @return {$.Promise} A promise resolved with an array of document ranges to populate a MultiRangeInlineEditor.
  */
-function _getOffsetsForFunction(docEntries, functionName) {
+function _getOffsetsForFunction(docEntries: Array<DocInfoMap>, functionName: string): JQueryPromise<Array<RangeResult>> {
     // Filter for documents that contain the named function
-    const result              = $.Deferred<Array<any>>();
-    const matchedDocuments: Array<any> = [];
-    const rangeResults        = [];
+    const result              = $.Deferred<Array<RangeResult>>();
+    const matchedDocuments: Array<DocInfoArray> = [];
+    const rangeResults: Array<RangeResult> = [];
 
     docEntries.forEach(function (docEntry) {
         // Need to call _.has here since docEntry.functions could have an
@@ -373,9 +429,9 @@ function _getOffsetsForFunction(docEntries, functionName) {
 
         // doc will be undefined if we hit the cache
         if (!doc) {
-            DocumentManager.getDocumentForPath(docEntry.fileInfo.fullPath)
+            DocumentManager.getDocumentForPath(docEntry.fileInfo!.fullPath)
                 .done(function (fetchedDoc) {
-                    _computeOffsets(fetchedDoc, functionName, docEntry.functions, rangeResults);
+                    _computeOffsets(fetchedDoc!, functionName, docEntry.functions, rangeResults);
                 })
                 .always(function () {
                     oneResult.resolve();
@@ -400,15 +456,15 @@ function _getOffsetsForFunction(docEntries, functionName) {
  * @return {$.Promise} A promise resolved with a document info object that
  *   contains a map of all function names from the document and each function's start offset.
  */
-function _getFunctionsForFile(fileInfo) {
-    const result = $.Deferred();
+function _getFunctionsForFile(fileInfo: FileInfo): JQueryPromise<DocInfoMap> {
+    const result = $.Deferred<DocInfoMap>();
 
     _shouldGetFromCache(fileInfo)
         .done(function (useCache) {
             if (useCache) {
                 // Return cached data. doc property is undefined since we hit the cache.
                 // _getOffsets() will fetch the Document if necessary.
-                result.resolve({/*doc: undefined,*/fileInfo: fileInfo, functions: fileInfo.JSUtils.functions});
+                result.resolve({/*doc: undefined,*/fileInfo: fileInfo, functions: fileInfo.JSUtils!.functions});
             } else {
                 _readFile(fileInfo, result);
             }
@@ -426,18 +482,18 @@ function _getFunctionsForFile(fileInfo) {
  * @return {$.Promise} A promise resolved with an array of document info objects that each
  *   contain a map of all function names from the document and each function's start offset.
  */
-function _getFunctionsInFiles(fileInfos) {
-    const result      = $.Deferred();
-    const docEntries: Array<any> = [];
+function _getFunctionsInFiles(fileInfos: Array<FileInfo>): JQueryPromise<Array<DocInfoMap>> {
+    const result      = $.Deferred<Array<DocInfoMap>>();
+    const docEntries: Array<DocInfoMap> = [];
 
     PerfUtils.markStart((PerfUtils as any).JSUTILS_GET_ALL_FUNCTIONS);
 
     Async.doInParallel(fileInfos, function (fileInfo) {
-        const oneResult = $.Deferred();
+        const oneResult = $.Deferred<void>();
 
         _getFunctionsForFile(fileInfo)
             .done(function (docInfo) {
-                docEntries.push(docInfo);
+                docEntries.push(docInfo!);
             })
             .always(function (error) {
                 // If one file fails, continue to search
@@ -466,9 +522,9 @@ function _getFunctionsInFiles(fileInfos) {
  *      source document, start line, and end line (0-based, inclusive range) for each matching function list.
  *      Does not addRef() the documents returned in the array.
  */
-export function findMatchingFunctions(functionName, fileInfos, keepAllFiles?) {
-    const result  = $.Deferred<Array<any>>();
-    let jsFiles = [];
+export function findMatchingFunctions(functionName: string, fileInfos: Array<FileLike>, keepAllFiles?: boolean): JQueryPromise<Array<RangeResult>> {
+    const result  = $.Deferred<Array<RangeResult>>();
+    let jsFiles: Array<FileLike> = [];
 
     if (!keepAllFiles) {
         // Filter fileInfos for .js files
@@ -482,7 +538,7 @@ export function findMatchingFunctions(functionName, fileInfos, keepAllFiles?) {
     // RegExp search (or cache lookup) for all functions in the project
     _getFunctionsInFiles(jsFiles).done(function (docEntries) {
         // Compute offsets for all matched functions
-        _getOffsetsForFunction(docEntries, functionName).done(function (rangeResults) {
+        _getOffsetsForFunction(docEntries!, functionName).done(function (rangeResults) {
             result.resolve(rangeResults);
         });
     });
@@ -499,9 +555,9 @@ export function findMatchingFunctions(functionName, fileInfos, keepAllFiles?) {
  * @return {Array.<{offset:number, functionName:string}>}
  *      Array of objects containing the start offset for each matched function name.
  */
-export function findAllMatchingFunctionsInText(text, searchName) {
+export function findAllMatchingFunctionsInText(text: string, searchName: string): Array<MatchingFunctions> {
     const allFunctions = _findAllFunctionsInText(text);
-    const result: Array<any> = [];
+    const result: Array<MatchingFunctions> = [];
     const lines = text.split("\n");
 
     _.forEach(allFunctions, function (functions, functionName) {

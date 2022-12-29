@@ -29,6 +29,15 @@
 
 /*unittests: HTML Tokenizer*/
 
+export interface Token {
+    type: string;
+    contents: string;
+    start: number;
+    end: number;
+    startPos: CodeMirror.Position | null;
+    endPos: CodeMirror.Position;
+}
+
 let i = 0;
 
 const TEXT = i++;
@@ -102,7 +111,7 @@ const AFTER_STYLE_4 = i++; // E
  * @param {string} c the character to test
  * @return {boolean} true if c is whitespace
  */
-function isWhitespace(c) {
+function isWhitespace(c: string): boolean {
     return c === " " || c === "\t" || c === "\r" || c === "\n";
 }
 
@@ -111,7 +120,7 @@ function isWhitespace(c) {
  * @param {string} c the character to test
  * @return {boolean} true if c is legal in an HTML tag name
  */
-function isLegalInTagName(c) {
+function isLegalInTagName(c: string): boolean {
     // We allow "-" in tag names since they're popular in Angular custom tag names
     // and will be legal in the web components spec.
     return (/[A-Za-z0-9-]/).test(c);
@@ -122,7 +131,7 @@ function isLegalInTagName(c) {
  * @param {string} c the character to test
  * @return {boolean} true if c is legal in an HTML attribute name
  */
-function isLegalInAttributeName(c) {
+function isLegalInAttributeName(c: string): boolean {
     return c !== '"' && c !== "'" && c !== "<" && c !== "=";
 }
 
@@ -131,11 +140,14 @@ function isLegalInAttributeName(c) {
  * @param {string} c the character to test
  * @return {boolean} true if c is legal in an unquoted attribute value
  */
-function isLegalInUnquotedAttributeValue(c) {
+function isLegalInUnquotedAttributeValue(c: string): boolean {
     return c !== "<" && c !== "=";
 }
 
-function _clonePos(pos, offset?) {
+function _clonePos(pos: null, offset?: number): null;
+function _clonePos(pos: CodeMirror.Position, offset?: number): CodeMirror.Position;
+function _clonePos(pos: CodeMirror.Position | null, offset?: number): CodeMirror.Position | null;
+function _clonePos(pos: CodeMirror.Position | null, offset?: number): CodeMirror.Position | null {
     return pos ? { line: pos.line, ch: pos.ch + (offset || 0)} : null;
 }
 
@@ -148,11 +160,11 @@ export class Tokenizer {
     private _state: number;
     private _buffer: string;
     private _sectionStart: number;
-    private _sectionStartPos;
+    private _sectionStartPos: CodeMirror.Position | null;
     private _index: number;
-    public _indexPos;
+    public _indexPos: CodeMirror.Position;
     private _special: 0 | 1 | 2;
-    private _token;
+    private _token: Token | null;
     private _nextToken;
 
     constructor(text) {
@@ -188,7 +200,7 @@ export class Tokenizer {
      *    start: the start index of the token contents within the text, or -1 for "opentagend" and "selfclosingtag"
      *    end: the end index of the token contents within the text, or the position of the boundary for "opentagend" and "selfclosingtag"
      */
-    public nextToken() {
+    public nextToken(): Token | null {
         this._token = null;
 
         if (this._nextToken) {
@@ -696,10 +708,10 @@ export class Tokenizer {
                 this._startSection();
             }
         }
-        return this._token;
+        return this._token as Token | null;
     }
 
-    private _startSection(offset?) {
+    private _startSection(offset?: number): void {
         offset = offset || 0;
         this._sectionStart = this._index + offset;
 
@@ -717,14 +729,14 @@ export class Tokenizer {
      * @param {string} type The token's type (see documentation for `nextToken()`)
      * @param {number} index If specified, the index to use as the end of the token; uses this._index if not specified
      */
-    private _setToken(type, index?, indexPos?) {
+    private _setToken(type: string, index?: number, indexPos?: CodeMirror.Position): void {
         if (index === undefined) {
             index = this._index;
         }
         if (indexPos === undefined) {
             indexPos = this._indexPos;
         }
-        const token = {
+        const token: Token = {
             type: type,
             contents: this._sectionStart === -1 ? "" : this._buffer.substring(this._sectionStart, index),
             start: this._sectionStart,
@@ -752,7 +764,7 @@ export class Tokenizer {
      * @param {string} type The token's type (see documentation for `nextToken()`)
      * @param {number} index If specified, the index to use as the end of the token; uses this._index if not specified
      */
-    private _emitToken(type, index?, indexPos?) {
+    private _emitToken(type: string, index?: number, indexPos?: CodeMirror.Position): void {
         this._setToken(type, index, indexPos);
         this._sectionStart = -1;
         this._sectionStartPos = null;
@@ -764,7 +776,7 @@ export class Tokenizer {
      * @param {string} type The token's type (see documentation for `nextToken()`)
      * @param {number} index If specified, the index to use as the end of the token; uses this._index if not specified
      */
-    private _emitSpecialToken(type, index?, indexPos?) {
+    private _emitSpecialToken(type: string, index?: number, indexPos?: CodeMirror.Position): void {
         // Force the section start to be -1, since these tokens don't have meaningful content--they're
         // just marking particular boundaries we care about (end of an open tag or a self-closing tag).
         this._sectionStart = -1;
@@ -779,7 +791,7 @@ export class Tokenizer {
      * started before the next `_emit`.
      * @param {string} type The token's type (see documentation for `nextToken()`)
      */
-    private _emitTokenIfNonempty(type) {
+    private _emitTokenIfNonempty(type: string): void {
         if (this._index > this._sectionStart) {
             this._setToken(type);
         }

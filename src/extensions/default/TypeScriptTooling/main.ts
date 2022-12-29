@@ -138,9 +138,11 @@ function registerToolingProviders(): void {
     ParameterHintManager.registerHintProvider(phProvider, ["typescript", "tsx"], 0);
     FindReferencesManager.registerFindReferencesProvider(refProvider, ["typescript", "tsx"], 0);
     FindReferencesManager.setMenuItemStateForLanguage();
-    CodeInspection.register(["typescript", "tsx"], {
-        name: "",
-        scanFileAsync: lProvider.getInspectionResultsAsync.bind(lProvider)
+    ["typescript", "tsx"].forEach((languageId) => {
+        CodeInspection.register(languageId, {
+            name: "",
+            scanFileAsync: lProvider!.getInspectionResultsAsync.bind(lProvider)
+        });
     });
     // Attach plugin for Document Symbols
     QuickOpen.addQuickOpenPlugin({

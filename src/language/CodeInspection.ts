@@ -34,6 +34,8 @@
  * (e.g. a full-project compiler).
  */
 
+import type File = require("filesystem/File");
+
 import * as _ from "lodash";
 
 // Load dependent modules
@@ -164,12 +166,12 @@ let _currentPromise: JQueryPromise<Array<ProviderResult> | null> | null;
  * Enable or disable the "Go to First Error" command
  * @param {boolean} gotoEnabled Whether it is enabled.
  */
-function setGotoEnabled(gotoEnabled) {
+function setGotoEnabled(gotoEnabled: boolean): void {
     CommandManager.get(Commands.NAVIGATE_GOTO_FIRST_PROBLEM).setEnabled(gotoEnabled);
     _gotoEnabled = gotoEnabled;
 }
 
-export function _unregisterAll() {
+export function _unregisterAll(): void {
     _providers = {};
 }
 
@@ -180,7 +182,7 @@ export function _unregisterAll() {
  * @param {!string} filePath
  * @return {Array.<{name:string, scanFileAsync:?function(string, string):!{$.Promise}, scanFile:?function(string, string):?{errors:!Array, aborted:boolean}}>}
  */
-export function getProvidersForPath(filePath) {
+export function getProvidersForPath(filePath: string): Array<Provider> {
     const language            = LanguageManager.getLanguageForPath(filePath).getId();
     const context             = PreferencesManager._buildContext(filePath, language);
     const installedProviders  = getProvidersForLanguageId(language);
@@ -218,7 +220,7 @@ export function getProvidersForPath(filePath) {
  * @param {!string} languageId
  * @return {Array.<string>} Names of registered providers.
  */
-export function getProviderIDsForLanguage(languageId) {
+export function getProviderIDsForLanguage(languageId: string): Array<string> {
     if (!_providers[languageId]) {
         return [];
     }
@@ -242,7 +244,7 @@ export function getProviderIDsForLanguage(languageId) {
  * @param {?Array.<{name:string, scanFileAsync:?function(string, string):!{$.Promise}, scanFile:?function(string, string):?{errors:!Array, aborted:boolean}}>} providerList
  * @return {$.Promise} a jQuery promise that will be resolved with ?Array.<{provider:Object, result: ?{errors:!Array, aborted:boolean}}>
  */
-export function inspectFile(file, providerList: Array<Provider>): JQueryPromise<Array<ProviderResult> | null> {
+export function inspectFile(file: File, providerList: Array<Provider>): JQueryPromise<Array<ProviderResult> | null> {
     const response = $.Deferred<Array<ProviderResult> | null>();
     const results: Array<ProviderResult> = [];
 
@@ -336,8 +338,9 @@ export function inspectFile(file, providerList: Array<Provider>): JQueryPromise<
  * @param {Array.<{name:string, scanFileAsync:?function(string, string):!{$.Promise}, scanFile:?function(string, string):Object}>} providersReportingProblems - providers that reported problems
  * @param {boolean} aborted - true if any provider returned a result with the 'aborted' flag set
  */
-function updatePanelTitleAndStatusBar(numProblems, providersReportingProblems, aborted) {
+function updatePanelTitleAndStatusBar(numProblems: number, providersReportingProblems: Array<Provider>, aborted: boolean): void {
     let message;
+    let strNumProblems: string = "" + numProblems;
 
     if (providersReportingProblems.length === 1) {
         // don't show a header if there is only one provider available for this file type
@@ -348,19 +351,19 @@ function updatePanelTitleAndStatusBar(numProblems, providersReportingProblems, a
             message = StringUtils.format(Strings.SINGLE_ERROR, providersReportingProblems[0].name);
         } else {
             if (aborted) {
-                numProblems += "+";
+                strNumProblems += "+";
             }
 
-            message = StringUtils.format(Strings.MULTIPLE_ERRORS, providersReportingProblems[0].name, numProblems);
+            message = StringUtils.format(Strings.MULTIPLE_ERRORS, providersReportingProblems[0].name, strNumProblems);
         }
     } else if (providersReportingProblems.length > 1) {
         $problemsPanelTable.find(".inspector-section").show();
 
         if (aborted) {
-            numProblems += "+";
+            strNumProblems += "+";
         }
 
-        message = StringUtils.format(Strings.ERRORS_PANEL_TITLE_MULTIPLE, numProblems);
+        message = StringUtils.format(Strings.ERRORS_PANEL_TITLE_MULTIPLE, strNumProblems);
     } else {
         return;
     }
@@ -377,7 +380,7 @@ function updatePanelTitleAndStatusBar(numProblems, providersReportingProblems, a
  *
  * @param {?string} providerName name of the provider that is requesting a run
  */
-export function requestRun() {
+export function requestRun(): void {
     if (!_enabled) {
         _hasErrors = false;
         _currentPromise = null;
@@ -521,7 +524,7 @@ export function requestRun() {
  * If type is unspecified, Type.WARNING is assumed.
  * If no errors found, return either null or an object with a zero-length `errors` array.
  */
-export function register(languageId, provider) {
+export function register(languageId: string, provider: Provider): void {
     if (!_providers[languageId]) {
         _providers[languageId] = [];
     } else {
@@ -541,7 +544,7 @@ export function register(languageId, provider) {
 /**
  * Returns a list of providers registered for given languageId through register function
  */
-function getProvidersForLanguageId(languageId) {
+function getProvidersForLanguageId(languageId: string): Array<Provider> {
     let result: Array<Provider> = [];
     if (_providers[languageId]) {
         result = result.concat(_providers[languageId]);
@@ -555,7 +558,7 @@ function getProvidersForLanguageId(languageId) {
 /**
  * Update DocumentManager listeners.
  */
-function updateListeners() {
+function updateListeners(): void {
     if (_enabled) {
         // register our event listeners
         (MainViewManager as unknown as DispatcherEvents)
@@ -582,7 +585,7 @@ function updateListeners() {
  * @param {?boolean} enabled Enabled state. If omitted, the state is toggled.
  * @param {?boolean} doNotSave true if the preference should not be saved to user settings. This is generally for events triggered by project-level settings.
  */
-export function toggleEnabled(enabled, doNotSave) {
+export function toggleEnabled(enabled: boolean, doNotSave: boolean): void {
     if (enabled === undefined) {
         enabled = !_enabled;
     }
@@ -613,7 +616,7 @@ export function toggleEnabled(enabled, doNotSave) {
  * @param {?boolean} collapsed Collapsed state. If omitted, the state is toggled.
  * @param {?boolean} doNotSave true if the preference should not be saved to user settings. This is generally for events triggered by project-level settings.
  */
-function toggleCollapsed(collapsed?, doNotSave?) {
+function toggleCollapsed(collapsed?: boolean, doNotSave?: boolean): void {
     if (collapsed === undefined) {
         collapsed = !_collapsed;
     }
@@ -638,7 +641,7 @@ function toggleCollapsed(collapsed?, doNotSave?) {
 }
 
 /** Command to go to the first Problem */
-function handleGotoFirstProblem() {
+function handleGotoFirstProblem(): void {
     requestRun();
     if (_gotoEnabled) {
         $problemsPanel.find("tr:not(.inspector-section)").first().trigger("click");

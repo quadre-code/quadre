@@ -22,7 +22,21 @@
  *
  */
 
+import type { Editor } from "editor/Editor";
+
 import * as TokenUtils from "utils/TokenUtils";
+
+interface ContextInfo {
+    token: CodeMirror.Token | null;
+    tokenType: number | null;
+    offset: number;
+    keyName: string | null;
+    valueName: string | null;
+    parentKeyName: string | null;
+    isArray: boolean;
+    exclusionList: Array<string>;
+    shouldReplace: boolean;
+}
 
 // Enumerations for token types.
 export const TOKEN_KEY   = 1;
@@ -50,7 +64,17 @@ export const regexAllowedChars = /(?:^[:,[]$)|(?:^\s+$)/;
  * @param {Boolean} shouldReplace Should we just replace the current token or also add colons/braces/brackets to it
  * @return {!{token: Object, tokenType: number, offset: number, keyName: String, valueName: String, parentKeyName: String, isArray: Boolean, exclusionList: Array.<String>, shouldReplace: Boolean}}
  */
-function _createContextInfo(token, tokenType, offset, keyName, valueName, parentKeyName, isArray, exclusionList, shouldReplace) {
+function _createContextInfo(
+    token: CodeMirror.Token,
+    tokenType: number,
+    offset: number,
+    keyName: string,
+    valueName: string,
+    parentKeyName: string,
+    isArray: boolean | null,
+    exclusionList: Array<string> | null,
+    shouldReplace: boolean
+): ContextInfo {
     return {
         token: token || null,
         tokenType: tokenType || null,
@@ -70,7 +94,10 @@ function _createContextInfo(token, tokenType, offset, keyName, valueName, parent
  * @param {!String} string
  * @return {String}
  */
-export function stripQuotes(string: string): string {
+export function stripQuotes(string: null): null;
+export function stripQuotes(string: string): string;
+export function stripQuotes(string: string | null): string | null;
+export function stripQuotes(string: string | null): string | null {
     if (string) {
         if (/^['"]$/.test(string.charAt(0))) {
             string = string.substr(1);
@@ -90,7 +117,7 @@ export function stripQuotes(string: string): string {
  * @param {!{editor:!CodeMirror, pos:!{ch:number, line:number}, token:Object}} ctx
  * @return {String}
  */
-function _getParentKeyName(ctx) {
+function _getParentKeyName(ctx: TokenUtils.Context): string | null {
     let parentKeyName;
     let braceParity = 1;
     let hasColon;
@@ -133,7 +160,7 @@ function _getParentKeyName(ctx) {
  * @param {!{line: number, ch: number}} constPos
  * @return {Array.<String>}
  */
-function _getExclusionList(editor, constPos): Array<string> {
+function _getExclusionList(editor: Editor, constPos: CodeMirror.Position): Array<string> {
     const exclusionList: Array<string> = [];
 
     // Move back to find exclusions.
@@ -188,7 +215,7 @@ function _getExclusionList(editor, constPos): Array<string> {
  * @param {Boolean} requireNextToken if true we can replace the next token of a value.
  * @return {!{token: Object, tokenType: number, offset: number, keyName: String, valueName: String, parentKeyName: String, isArray: Boolean, exclusionList: Array.<String>, shouldReplace: Boolean}}
  */
-export function getContextInfo(editor, constPos, requireParent, requireNextToken?) {
+export function getContextInfo(editor: Editor, constPos: CodeMirror.Position, requireParent: boolean, requireNextToken?: boolean): ContextInfo | null {
     let ctxPrev;
     let keyName;
     let valueName;
@@ -215,7 +242,8 @@ export function getContextInfo(editor, constPos, requireParent, requireNextToken
         // Get parent key name.
         if (requireParent) {
             ctxPrev = $.extend(true, {}, ctx);
-            parentKeyName = stripQuotes(_getParentKeyName(ctxPrev));
+            const foo = _getParentKeyName(ctxPrev);
+            parentKeyName = stripQuotes(foo);
         }
 
         // Check if the key is followed by a colon, so we should not append colon again.

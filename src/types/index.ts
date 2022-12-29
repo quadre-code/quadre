@@ -1,4 +1,4 @@
-/* eslint-disable no-redeclare, no-undef */
+/* eslint-disable no-undef */
 
 import * as CommandManager from "command/CommandManager";
 import * as Commands from "command/Commands";
