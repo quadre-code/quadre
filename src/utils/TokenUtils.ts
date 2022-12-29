@@ -30,7 +30,7 @@
 import * as  _ from "lodash";
 import * as  CodeMirror from "codemirror";
 
-interface Context {
+export interface Context {
     editor: CodeMirror.Editor;
     pos: CodeMirror.Position;
     token: CodeMirror.Token;

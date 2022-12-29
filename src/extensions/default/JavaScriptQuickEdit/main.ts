@@ -22,6 +22,8 @@
  *
  */
 
+import type { FileLike } from "language/JSUtils";
+
 // Brackets modules
 const MultiRangeInlineEditor  = brackets.getModule("editor/MultiRangeInlineEditor").MultiRangeInlineEditor;
 const EditorManager           = brackets.getModule("editor/EditorManager");
@@ -84,7 +86,7 @@ export function _findInProject(functionName) {
 
     ProjectManager.getAllFiles(_nonBinaryFileFilter)
         .done(function (files) {
-            JSUtils.findMatchingFunctions(functionName, files)
+            JSUtils.findMatchingFunctions(functionName, files!)
                 .done(function (functions) {
                     PerfUtils.addMeasurement((PerfUtils as any).JAVASCRIPT_FIND_FUNCTION);
                     result.resolve(functions);
@@ -130,7 +132,7 @@ export function _createInlineEditor(hostEditor, functionName) {
 
                 // Tern doesn't always return entire function extent.
                 // Use QuickEdit search now that we know which file to look at.
-                const fileInfos: Array<{name: string, fullPath: string}> = [];
+                const fileInfos: Array<FileLike> = [];
                 fileInfos.push({name: jumpResp.resultFile, fullPath: resolvedPath});
                 JSUtils.findMatchingFunctions(functionName, fileInfos, true)
                     .done(function (functions) {

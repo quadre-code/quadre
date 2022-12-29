@@ -28,6 +28,9 @@
  * Set of utilities for simple parsing of CSS text.
  */
 
+import type { Editor } from "editor/Editor";
+import type { TextRange } from "document/TextRange";
+
 import * as CodeMirror from "codemirror";
 import * as Async from "utils/Async";
 import * as DocumentManager from "document/DocumentManager";
@@ -133,6 +136,24 @@ interface Rule {
     selectorGroup?: string;
 }
 
+interface RuleInfo {
+    context: string;
+    offset: number;
+    name: string;
+    index: number | undefined;
+    values: Array<string> | undefined;
+    isNewItem: boolean;
+    range: Range | undefined;
+}
+
+interface RangeLocation {
+    range: {
+        from: CodeMirror.Position;
+        to: CodeMirror.Position;
+    };
+    pos: CodeMirror.Position;
+}
+
 // Constants
 export const SELECTOR   = "selector";
 export const PROP_NAME  = "prop.name";
@@ -160,7 +181,7 @@ const _invertedBracketPairs = _.invert(_bracketPairs);
  * @param {string} filePath Absolute path to the file.
  * @return {boolean} true if LanguageManager identifies filePath as less or scss language.
  */
-export function isCSSPreprocessorFile(filePath) {
+export function isCSSPreprocessorFile(filePath: string): boolean {
     const languageId = LanguageManager.getLanguageForPath(filePath).getId();
     return (languageId === "less" || languageId === "scss");
 }
@@ -171,7 +192,7 @@ export function isCSSPreprocessorFile(filePath) {
  * @param {!string} text
  * @return {boolean} true if text has any non whitespace character
  */
-function _hasNonWhitespace(text) {
+function _hasNonWhitespace(text: string): boolean {
     return (/\S/.test(text));
 }
 
@@ -181,7 +202,7 @@ function _hasNonWhitespace(text) {
  * @param {{editor:{CodeMirror}, pos:{ch:{string}, line:{number}}, token:{object}}} ctx
  * @return {{tokenize:function, state:string, stateArg:string, context:Object}}
  */
-function _getContextState(ctx) {
+function _getContextState(ctx: TokenUtils.Context): any {
     if (!ctx || !ctx.token) {
         return null;
     }
@@ -203,7 +224,7 @@ function _getContextState(ctx) {
  * @param {editor:{CodeMirror}, pos:{ch:{string}, line:{number}}, token:{object}} context
  * @return {boolean} true if the context is in property name
  */
-function _isInPropName(ctx) {
+function _isInPropName(ctx: TokenUtils.Context): boolean {
     const state = _getContextState(ctx);
     if (!state || !state.context || ctx.token.type === "comment") {
         return false;
@@ -219,9 +240,9 @@ function _isInPropName(ctx) {
  * @param {editor:{CodeMirror}, pos:{ch:{string}, line:{number}}, token:{object}} context
  * @return {boolean} true if the context is in property value
  */
-function _isInPropValue(ctx) {
+function _isInPropValue(ctx: TokenUtils.Context): boolean {
 
-    function isInsideParens(context) {
+    function isInsideParens(context: any): boolean {
         if (context.type !== "parens" || !context.prev) {
             return false;
         }
@@ -249,7 +270,7 @@ function _isInPropValue(ctx) {
  * @param {editor:{CodeMirror}, pos:{ch:{string}, line:{number}}, token:{object}} context
  * @return {boolean} true if the context is in property value
  */
-function _isInAtRule(ctx) {
+function _isInAtRule(ctx: TokenUtils.Context): boolean {
     const state = _getContextState(ctx);
     if (!state || !state.context) {
         return false;
@@ -281,8 +302,16 @@ function _isInAtRule(ctx) {
  * The createInfo is really only for the unit tests so they can make the same
  * structure to compare results with.
  */
-export function createInfo(context?, offset?, name?, index?, values?, isNewItem?, range?) {
-    const ruleInfo = {
+export function createInfo(
+    context?: string,
+    offset?: number,
+    name?: string,
+    index?: number,
+    values?: Array<string>,
+    isNewItem?: boolean,
+    range?: Range
+): RuleInfo {
+    const ruleInfo: RuleInfo = {
         context: context || "",
         offset: offset || 0,
         name: name || "",
@@ -318,7 +347,7 @@ export function createInfo(context?, offset?, name?, index?, values?, isNewItem?
  *           range: {start: {line: number, ch: number},
  *                   end: {line: number, ch: number}}}} A CSS context info object.
  */
-function _getPropNameInfo(ctx) {
+function _getPropNameInfo(ctx: TokenUtils.Context): RuleInfo {
     let propName = "";
     let offset = TokenUtils.offsetInToken(ctx);
     const tokenString = ctx.token.string;
@@ -373,7 +402,7 @@ function _getPropNameInfo(ctx) {
  * @param {editor:{CodeMirror}, pos:{ch:{string}, line:{number}}, token:{object}} context
  * @return {string} the property name of the current rule.
  */
-function _getPropNameStartingFromPropValue(ctx) {
+function _getPropNameStartingFromPropValue(ctx: TokenUtils.Context): string {
     const ctxClone = $.extend({}, ctx);
     let propName = "";
     do {
@@ -500,7 +529,7 @@ function _getSucceedingPropValues(ctx, currentValue): Array<string> {
  * @return {{start: {line: number, ch: number},
  *           end: {line: number, ch: number}}} A range object.
  */
-function _getRangeForPropValue(startCtx, endCtx) {
+function _getRangeForPropValue(startCtx: TokenUtils.Context, endCtx: TokenUtils.Context): Range {
     const range: Range = {
         "start": {},
         "end": {}
@@ -542,7 +571,7 @@ function _getRangeForPropValue(startCtx, endCtx) {
  *           range: {start: {line: number, ch: number},
  *                   end: {line: number, ch: number}}}} A CSS context info object.
  */
-function _getRuleInfoStartingFromPropValue(ctx, editorParam) {
+function _getRuleInfoStartingFromPropValue(ctx: TokenUtils.Context, editorParam): RuleInfo {
     const editor      = editorParam._codeMirror || editorParam;
     const contextDoc  = editor.document || editor.doc;
     const propNamePos = $.extend({}, ctx.pos);
@@ -639,7 +668,7 @@ function _getRuleInfoStartingFromPropValue(ctx, editorParam) {
  *           range: {start: {line: number, ch: number},
  *                   end: {line: number, ch: number}}}} A CSS context info object.
  */
-function _getImportUrlInfo(ctx, editor) {
+function _getImportUrlInfo(ctx: TokenUtils.Context, editor: Editor): RuleInfo {
     const backwardPos = $.extend({}, ctx.pos);
     const forwardPos  = $.extend({}, ctx.pos);
     const index = 0;
@@ -705,7 +734,7 @@ function _getImportUrlInfo(ctx, editor) {
  *           range: {start: {line: number, ch: number},
  *                   end: {line: number, ch: number}}}} A CSS context info object.
  */
-export function getInfoAtPos(editor, constPos) {
+export function getInfoAtPos(editor: Editor, constPos: CodeMirror.Position): RuleInfo {
     // We're going to be changing pos a lot, but we don't want to mess up
     // the pos the caller passed in so we use extend to make a safe copy of it.
     const pos = $.extend({}, constPos);
@@ -762,7 +791,7 @@ export function getInfoAtPos(editor, constPos) {
  * @param {boolean=} useGroup true to append selectorGroup instead of selector
  * @return {string} the literal parent hierarchy of the selector
  */
-export function getCompleteSelectors(info: SelectorInfo, useGroup?) {
+export function getCompleteSelectors(info: SelectorInfo, useGroup?: boolean): string {
     if (info.parentSelectors) {
         // Show parents with / separators.
         let completeSelectors = info.parentSelectors + " / ";
@@ -857,7 +886,7 @@ export function extractAllSelectors(text, documentMode?): Array<SelectorInfo> {
     // implement _firstToken()/_nextToken() methods to
     // provide a single stream of tokens
 
-    function _hasStream() {
+    function _hasStream(): boolean {
         while (stream.eol()) {
             line++;
             if (line >= lineCount) {
@@ -873,7 +902,7 @@ export function extractAllSelectors(text, documentMode?): Array<SelectorInfo> {
         return true;
     }
 
-    function _firstToken() {
+    function _firstToken(): boolean {
         state = CodeMirror.startState(mode);
         lines = CodeMirror.splitLines(text);
         lineCount = lines.length;
@@ -890,7 +919,7 @@ export function extractAllSelectors(text, documentMode?): Array<SelectorInfo> {
         return true;
     }
 
-    function _nextToken() {
+    function _nextToken(): boolean {
         // advance the stream past this token
         stream.start = stream.pos;
         if (!_hasStream()) {
@@ -901,7 +930,7 @@ export function extractAllSelectors(text, documentMode?): Array<SelectorInfo> {
         return true;
     }
 
-    function _firstTokenSkippingWhitespace() {
+    function _firstTokenSkippingWhitespace(): boolean {
         if (!_firstToken()) {
             return false;
         }
@@ -913,7 +942,7 @@ export function extractAllSelectors(text, documentMode?): Array<SelectorInfo> {
         return true;
     }
 
-    function _nextTokenSkippingWhitespace() {
+    function _nextTokenSkippingWhitespace(): boolean {
         if (!_nextToken()) {
             return false;
         }
@@ -925,12 +954,12 @@ export function extractAllSelectors(text, documentMode?): Array<SelectorInfo> {
         return true;
     }
 
-    function _isStartComment() {
+    function _isStartComment(): boolean {
         // Also check for line comments used in LESS and SASS.
         return (/^\/[/*]/.test(token));
     }
 
-    function _parseComment() {
+    function _parseComment(): void {
         // If it is a line comment, then do nothing and just return. Unlike block
         // comment, a line comment is just one single token and the caller always
         // has to find the next token by skipping the current token. So leaving
@@ -945,7 +974,7 @@ export function extractAllSelectors(text, documentMode?): Array<SelectorInfo> {
         }
     }
 
-    function _nextTokenSkippingComments() {
+    function _nextTokenSkippingComments(): boolean {
         if (!_nextToken()) {
             return false;
         }
@@ -958,7 +987,7 @@ export function extractAllSelectors(text, documentMode?): Array<SelectorInfo> {
         return true;
     }
 
-    function _skipToClosingBracket(startChar) {
+    function _skipToClosingBracket(startChar: string): string {
         let skippedText = "";
         let unmatchedBraces = 0;
         if (!startChar) {
@@ -983,7 +1012,7 @@ export function extractAllSelectors(text, documentMode?): Array<SelectorInfo> {
         }
     }
 
-    function _maybeProperty() {
+    function _maybeProperty(): boolean {
         return (/^-(moz|ms|o|webkit)-$/.test(token) ||
                 (state.state !== "top" && state.state !== "block" && state.state !== "pseudo" &&
                 // Has a semicolon as in "rgb(0,0,0);", but not one of those after a LESS
@@ -991,7 +1020,7 @@ export function extractAllSelectors(text, documentMode?): Array<SelectorInfo> {
                 stream.string.indexOf(";") !== -1 && !/\([^)]+;/.test(stream.string)));
     }
 
-    function _skipProperty() {
+    function _skipProperty(): boolean {
         let prevToken = "";
         while (token !== ";") {
             // Skip tokens until the closing brace if we find an interpolated variable.
@@ -1017,7 +1046,7 @@ export function extractAllSelectors(text, documentMode?): Array<SelectorInfo> {
         return true;    // skip the entire property
     }
 
-    function _getParentSelectors() {
+    function _getParentSelectors(): string {
         for (let j = selectors.length - 1; j >= 0; j--) {
             if (selectors[j].declListEndLine === -1 && selectors[j].level < currentLevel) {
                 return getCompleteSelectors(selectors[j], true);
@@ -1026,8 +1055,7 @@ export function extractAllSelectors(text, documentMode?): Array<SelectorInfo> {
         return "";
     }
 
-    function _parseSelector(start, level) {
-
+    function _parseSelector(start: number, level: number): boolean {
         currentSelector = "";
         selectorStartChar = start;
         selectorStartLine = line;
@@ -1129,7 +1157,7 @@ export function extractAllSelectors(text, documentMode?): Array<SelectorInfo> {
         return true;
     }
 
-    function _parseSelectorList(level) {
+    function _parseSelectorList(level: number): boolean {
         selectorGroupStartLine = (stream.string.indexOf(",") !== -1) ? line : -1;
         selectorGroupStartChar = stream.start;
 
@@ -1149,8 +1177,7 @@ export function extractAllSelectors(text, documentMode?): Array<SelectorInfo> {
         return true;
     }
 
-    function _parseDeclarationList(level) {
-
+    function _parseDeclarationList(level: number): void {
         let j;
         declListStartLine = Math.min(line, lineCount - 1);
         declListStartChar = stream.start;
@@ -1231,7 +1258,7 @@ export function extractAllSelectors(text, documentMode?): Array<SelectorInfo> {
         } while (currentLevel > 0 && currentLevel === level);
     }
 
-    function includeCommentInNextRule() {
+    function includeCommentInNextRule(): boolean {
         if (ruleStartChar !== -1) {
             return false;       // already included
         }
@@ -1241,21 +1268,20 @@ export function extractAllSelectors(text, documentMode?): Array<SelectorInfo> {
         return true;
     }
 
-    function _isStartAtRule() {
+    function _isStartAtRule(): boolean {
         // Exclude @mixin from at-rule so that we can parse it like a normal rule list
         return (/^@/.test(token) && !/^@mixin/i.test(token) && token !== "@");
     }
 
-    function _followedByPseudoSelector() {
+    function _followedByPseudoSelector(): boolean {
         return (/\}:(enabled|disabled|checked|indeterminate|link|visited|hover|active|focus|target|lang|root|nth-|first-|last-|only-|empty|not)/.test(stream.string));
     }
 
-    function _isVariableInterpolatedProperty() {
+    function _isVariableInterpolatedProperty(): boolean {
         return (/[@#]\{\S+\}(\s*:|.*;)/.test(stream.string) && !_followedByPseudoSelector());
     }
 
-    function _parseAtRule(level) {
-
+    function _parseAtRule(level: number): void {
         // reset these fields to ignore comments preceding @rules
         ruleStartLine = -1;
         ruleStartChar = -1;
@@ -1314,7 +1340,7 @@ export function extractAllSelectors(text, documentMode?): Array<SelectorInfo> {
     }
 
     // parse a style rule
-    function _parseRule(level) {
+    function _parseRule(level: number): boolean {
         if (!_parseSelectorList(level)) {
             return false;
         }
@@ -1323,7 +1349,7 @@ export function extractAllSelectors(text, documentMode?): Array<SelectorInfo> {
         return true;
     }
 
-    const _parseRuleList = function (escapeToken?, level?) {
+    const _parseRuleList = function (escapeToken?: string, level?: number): boolean {
         while ((!escapeToken) || token !== escapeToken) {
             if (_isVariableInterpolatedProperty()) {
                 if (!_skipProperty()) {
@@ -1333,7 +1359,7 @@ export function extractAllSelectors(text, documentMode?): Array<SelectorInfo> {
                 }
             } else if (_isStartAtRule()) {
                 // @rule
-                _parseAtRule(level);
+                _parseAtRule(level!);
             } else if (_isStartComment()) {
                 // comment - make this part of style rule
                 if (includeCommentInNextRule()) {
@@ -1350,10 +1376,10 @@ export function extractAllSelectors(text, documentMode?): Array<SelectorInfo> {
                 }
             } else {
                 // Otherwise, it's style rule
-                if (!_parseRule(level === undefined ? 0 : level) && level > 0) {
+                if (!_parseRule(level === undefined ? 0 : level) && level! > 0) {
                     return false;
                 }
-                if (level > 0) {
+                if (level! > 0) {
                     return true;
                 }
                 // Clear ruleStartChar and ruleStartLine in case we have a comment
@@ -1404,7 +1430,7 @@ function checkIfSelectorSelectsHTML(selector, theHTML) {
  * @param {string} selector
  * @return {string}
  */
-function _stripAtRules(selector) {
+function _stripAtRules(selector: string): string {
     selector = selector.trim();
     if (selector.indexOf("@") === 0) {
         return "";
@@ -1468,7 +1494,7 @@ function _getSelectorInFinalCSSForm(selectorArray: Array<string>): string {
  *      Array of objects containing the start and end line numbers (0-based, inclusive range) for each
  *      matched selector.
  */
-export function _findAllMatchingSelectorsInText(text: string, selector: string, mode?) {
+export function _findAllMatchingSelectorsInText(text: string, selector: string, mode?: string): Array<SelectorInfo> {
     const allSelectors = extractAllSelectors(text, mode);
     const result: Array<SelectorInfo> = [];
 
@@ -1516,13 +1542,13 @@ export function _findAllMatchingSelectorsInText(text: string, selector: string, 
  * @param {!number} lineOffset Amount to offset all line number info by. Used if the first line
  *          of the parsed CSS text is not the first line of the sourceDoc.
  */
-function _addSelectorsToResults(resultSelectors: Array<Rule>, selectorsToAdd: Array<SelectorInfo>, sourceDoc, lineOffset) {
+function _addSelectorsToResults(resultSelectors: Array<Rule>, selectorsToAdd: Array<SelectorInfo>, sourceDoc: DocumentManager.Document, lineOffset: number): void {
     selectorsToAdd.forEach(function (selectorInfo) {
         resultSelectors.push({
             name: getCompleteSelectors(selectorInfo),
             document: sourceDoc,
             lineStart: selectorInfo.ruleStartLine + lineOffset,
-            lineEnd: selectorInfo.declListEndLine + lineOffset,
+            lineEnd: selectorInfo.declListEndLine! + lineOffset,
             selectorGroup: selectorInfo.selectorGroup
         });
     });
@@ -1541,7 +1567,7 @@ function _findMatchingRulesInCSSFiles(selector, resultSelectors: Array<Rule>): J
                 // Find all matching rules for the given CSS file's content, and add them to the
                 // overall search result
                 const oneCSSFileMatches = _findAllMatchingSelectorsInText(doc!.getText()!, selector, doc!.getLanguage().getMode());
-                _addSelectorsToResults(resultSelectors, oneCSSFileMatches, doc, 0);
+                _addSelectorsToResults(resultSelectors, oneCSSFileMatches, doc!, 0);
 
                 oneFileResult.resolve();
             })
@@ -1566,7 +1592,7 @@ function _findMatchingRulesInCSSFiles(selector, resultSelectors: Array<Rule>): J
 }
 
 /** Finds matching selectors in the <style> block of a single HTML file; adds them to 'resultSelectors' */
-function _findMatchingRulesInStyleBlocks(htmlDocument, selector, resultSelectors: Array<Rule>) {
+function _findMatchingRulesInStyleBlocks(htmlDocument: DocumentManager.Document, selector: string, resultSelectors: Array<Rule>): void {
     // HTMLUtils requires a real CodeMirror instance; make sure we can give it the right Editor
     const htmlEditor = EditorManager.getCurrentFullEditor();
     if (htmlEditor.document !== htmlDocument) {
@@ -1638,7 +1664,7 @@ export function findMatchingRules(selector, htmlDocument): JQueryPromise<Array<R
  *          is not within a style rule. If the rule has multiple selectors, a comma-separated
  *          selector string is returned.
  */
-export function findSelectorAtDocumentPos(editor, pos) {
+export function findSelectorAtDocumentPos(editor: Editor, pos: CodeMirror.Position): string {
     const cm = editor._codeMirror;
     let ctx = TokenUtils.getInitialContext(cm, $.extend({}, pos));
     let selector = "";
@@ -1646,7 +1672,7 @@ export function findSelectorAtDocumentPos(editor, pos) {
     const isPreprocessorDoc = isCSSPreprocessorFile(editor.document.file.fullPath);
     const selectorArray: Array<string> = [];
 
-    function _skipToOpeningBracket(ctx, startChar) {
+    function _skipToOpeningBracket(ctx: TokenUtils.Context, startChar: string): void {
         let unmatchedBraces = 0;
         if (!startChar) {
             startChar = "}";
@@ -1669,7 +1695,7 @@ export function findSelectorAtDocumentPos(editor, pos) {
 
     // Parse a selector. Assumes ctx is pointing at the opening
     // { that is after the selector name.
-    function _parseSelector(ctx) {
+    function _parseSelector(ctx: TokenUtils.Context): string {
         let selector = "";
 
         // Skip over {
@@ -1802,7 +1828,7 @@ export function findSelectorAtDocumentPos(editor, pos) {
  * @param {!string} content to reduce
  * @return {string} reduced content
  */
-function _removeComments(content) {
+function _removeComments(content: string): string {
     return content.replace(/\/\*(?:(?!\*\/)[\s\S])*\*\//g, "");
 }
 
@@ -1811,7 +1837,7 @@ function _removeComments(content) {
  * @param {!string} content to reduce
  * @return {string} reduced content
  */
-function _removeStrings(content) {
+function _removeStrings(content: string): string {
     // First remove escaped quotes so we can balance unescaped quotes
     // since JavaScript doesn't support negative lookbehind
     const s = content.replace(/\\"|\\'/g, "");
@@ -1826,7 +1852,7 @@ function _removeStrings(content) {
  * @param {!string} content to reduce
  * @return {string} reduced content
  */
-export function reduceStyleSheetForRegExParsing(content) {
+export function reduceStyleSheetForRegExParsing(content: string): string {
     return _removeStrings(_removeComments(content));
 }
 
@@ -1835,7 +1861,7 @@ export function reduceStyleSheetForRegExParsing(content) {
  * @param {!string} text to extract from
  * @return {Array.<string>} array of unique flow names found in the content (empty if none)
  */
-export function extractAllNamedFlows(text): Array<string> {
+export function extractAllNamedFlows(text: string): Array<string> {
     const namedFlowRegEx = /(?:flow-(into|from):\s*)([\w-]+)(?:\s*;)/gi;
     const result: Array<string> = [];
     const names = {};
@@ -1872,7 +1898,7 @@ export function extractAllNamedFlows(text): Array<string> {
  * @return {{range: {from: {line: number, ch: number}, to: {line: number, ch: number}}, pos: {line: number, ch: number}}}
  *     The range of the inserted rule and the location where the cursor should be placed.
  */
-export function addRuleToDocument(doc, selector, useTabChar, indentUnit) {
+export function addRuleToDocument(doc: DocumentManager.Document, selector: string, useTabChar: boolean, indentUnit: number): RangeLocation {
     let newRule = "\n" + selector + " {\n";
     let blankLineOffset;
     if (useTabChar) {
@@ -1886,7 +1912,7 @@ export function addRuleToDocument(doc, selector, useTabChar, indentUnit) {
     }
     newRule += "\n}\n";
 
-    const docLines = doc.getText().split("\n");
+    const docLines = doc.getText()!.split("\n");
     const lastDocLine = docLines.length - 1;
     const lastDocChar = docLines[docLines.length - 1].length;
     doc.replaceRange(newRule, {line: lastDocLine, ch: lastDocChar});
@@ -1932,19 +1958,19 @@ export function consolidateRules(rules: Array<Rule>): Array<Rule> {
  * @param {TextRange} range The range to extract the selector(s) from.
  * @return {string} The selector(s) for the rule in the range.
  */
-export function getRangeSelectors(range) {
+export function getRangeSelectors(range: TextRange): string {
     // There's currently no immediate way to access a given line in a Document, because it's just
     // stored as a string. Eventually, we should have Documents cache the lines in the document
     // as well, or make them use CodeMirror documents which do the same thing.
     let startIndex = 0;
     let endIndex;
-    const text = range.document.getText();
-    for (let i = 0; i < range.startLine; i++) {
+    const text = range.document.getText()!;
+    for (let i = 0; i < range.startLine!; i++) {
         startIndex = text.indexOf("\n", startIndex) + 1;
     }
     endIndex = startIndex;
     // Go one line past the end line. We'll extract text up to but not including the last newline.
-    for (let i = range.startLine + 1; i <= range.endLine + 1; i++) {
+    for (let i = range.startLine! + 1; i <= range.endLine! + 1; i++) {
         endIndex = text.indexOf("\n", endIndex) + 1;
     }
     const allSelectors = extractAllSelectors(text.substring(startIndex, endIndex));

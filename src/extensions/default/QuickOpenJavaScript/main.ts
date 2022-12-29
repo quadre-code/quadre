@@ -66,7 +66,7 @@ function createFunctionList() {
     }
 
     const functionList: Array<FileLocation> = [];
-    const docText = doc.getText();
+    const docText = doc.getText()!;
     const functions = JSUtils.findAllMatchingFunctionsInText(docText, "*");
     functions.forEach(function (funcEntry) {
         functionList.push(new FileLocation(null, funcEntry.nameLineStart, funcEntry.columnStart, funcEntry.columnEnd, funcEntry.label || funcEntry.name));

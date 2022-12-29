@@ -48,7 +48,9 @@ module.exports = {
                 "@typescript-eslint/naming-convention": "off",
                 "no-shadow": "off",
                 "@typescript-eslint/no-shadow": "warn",
-                "no-dupe-class-members": "off"
+                "no-dupe-class-members": "off",
+                "no-redeclare": "off",
+                "@typescript-eslint/no-redeclare": "error"
             }
         },
         // app/
@@ -154,7 +156,6 @@ module.exports = {
                 "src/extensions/default/**/*.ts",
                 "src/filesystem/**/*.ts",
                 "src/JSUtils/**/*.ts",
-                "src/language/**/*.ts",
                 "src/languageTools/**/*.ts",
                 "src/preferences/**/*.ts",
                 "src/project/**/*.ts",

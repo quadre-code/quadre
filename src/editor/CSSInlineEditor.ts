@@ -127,7 +127,7 @@ function _getSelectorName(editor, pos) {
  */
 function _addRule(selectorName, inlineEditor, path) {
     DocumentManager.getDocumentForPath(path).done(function (styleDoc) {
-        const newRuleInfo = CSSUtils.addRuleToDocument(styleDoc, selectorName, Editor.getUseTabChar(path), Editor.getSpaceUnits(path));
+        const newRuleInfo = CSSUtils.addRuleToDocument(styleDoc!, selectorName, Editor.getUseTabChar(path), Editor.getSpaceUnits(path));
         inlineEditor.addAndSelectRange(selectorName, styleDoc, newRuleInfo.range.from.line, newRuleInfo.range.to.line);
         inlineEditor.editor.setCursorPos(newRuleInfo.pos.line, newRuleInfo.pos.ch);
     });

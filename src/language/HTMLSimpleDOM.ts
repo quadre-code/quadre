@@ -24,9 +24,17 @@
 
 /*unittests: HTML Instrumentation*/
 
-import { Tokenizer } from "language/HTMLTokenizer";
+import { type Token, Tokenizer } from "language/HTMLTokenizer";
 import * as MurmurHash3 from "thirdparty/murmurhash3_gc";
 import * as PerfUtils from "utils/PerfUtils";
+
+export type DOMNode<T extends object> = SimpleNode & T;
+export type DOMNodePosition = DOMNode<{
+    start: number;
+    startPos: CodeMirror.Position;
+    end?: number;
+    endPos?: CodeMirror.Position;
+}>;
 
 export const _seed = Math.floor(Math.random() * 65535);
 
@@ -155,16 +163,17 @@ const voidElements = {
  * @param {Object} properties the properties provided will be set on the new object.
  */
 export class SimpleNode {
-    private children;
+    public children;
     public childSignature;
     public subtreeSignature;
     public textSignature;
     public attributeSignature;
-    private content;
-    private attributes;
-    public tagID;
-    public parent;
-    public tag;
+    public content: string;
+    public attributes: Record<string, string | number>;
+    public tagID: number;
+    public parent: SimpleNode;
+    public tag: string;
+    public nodeMap: Record<string, SimpleNode>;
 
     constructor(properties) {
         $.extend(this, properties);
@@ -179,7 +188,7 @@ export class SimpleNode {
      * * text content of a text node
      * * child node text
      */
-    public update() {
+    public update(): void {
         if (this.isElement()) {
             let subtreeHashes = "";
             let childHashes = "";
@@ -202,7 +211,7 @@ export class SimpleNode {
     /**
      * Updates the signature of this node's attributes. Call this after making attribute changes.
      */
-    public updateAttributeSignature() {
+    public updateAttributeSignature(): void {
         const attributeString = JSON.stringify(this.attributes);
         this.attributeSignature = MurmurHash3.hashString(attributeString, attributeString.length, _seed);
     }
@@ -212,7 +221,7 @@ export class SimpleNode {
      *
      * @return {bool} true if it is an element
      */
-    public isElement() {
+    public isElement(): boolean {
         return !!this.children;
     }
 
@@ -221,7 +230,7 @@ export class SimpleNode {
      *
      * @return {bool} true if it is text
      */
-    public isText() {
+    public isText(): boolean {
         return !this.children;
     }
 }
@@ -235,7 +244,7 @@ export class SimpleNode {
  * @param {Object} textNode new node for which we are generating an ID
  * @return {string} ID for the node
  */
-export function _getTextNodeID(textNode) {
+export function _getTextNodeID(textNode: SimpleNode): string {
     const childIndex = textNode.parent.children.indexOf(textNode);
     if (childIndex === 0) {
         return textNode.parent.tagID + ".0";
@@ -248,7 +257,7 @@ export function _getTextNodeID(textNode) {
  *
  * Adds two {line, ch}-style positions, returning a new pos.
  */
-function _addPos(pos1, pos2) {
+function _addPos(pos1: CodeMirror.Position, pos2: CodeMirror.Position): CodeMirror.Position {
     return {line: pos1.line + pos2.line, ch: (pos2.line === 0 ? pos1.ch + pos2.ch : pos2.ch)};
 }
 
@@ -258,7 +267,7 @@ function _addPos(pos1, pos2) {
  * Offsets the character offset of the given {line, ch} pos by the given amount and returns a new
  * pos. Not for general purpose use as it does not account for line boundaries.
  */
-export function _offsetPos(pos, offset) {
+export function _offsetPos(pos: CodeMirror.Position, offset: number): CodeMirror.Position {
     return {line: pos.line, ch: pos.ch + offset};
 }
 
@@ -291,7 +300,7 @@ export class Builder {
         this.startOffsetPos = startOffsetPos || {line: 0, ch: 0};
     }
 
-    private _logError(token) {
+    private _logError(token: Token | null): void {
         const error: any = { token: token };
         const startPos    = token ? (token.startPos || token.endPos) : this.startOffsetPos;
         const endPos      = token ? token.endPos : this.startOffsetPos;
@@ -313,9 +322,9 @@ export class Builder {
      * @param {?Object} markCache a cache that can be used in ID generation (is passed to `getID`)
      * @return {SimpleNode} root of tree or null if parsing failed
      */
-    public build(strict?, markCache?) {
+    public build(strict?: boolean, markCache?): SimpleNode | null {
         const self = this;
-        let token;
+        let token: Token | null;
         let lastClosedTag;
         let lastTextNode;
         const stack = this.stack;
@@ -333,7 +342,7 @@ export class Builder {
         timerBuildFull = timers[0];
         timerBuildPart = timers[1];
 
-        function closeTag(endIndex, endPos) {
+        function closeTag(endIndex: number, endPos: CodeMirror.Position): void {
             lastClosedTag = stack[stack.length - 1];
             stack.pop();
             lastClosedTag.update();
@@ -366,7 +375,7 @@ export class Builder {
                     while (stack.length > 0 && closable.hasOwnProperty(stack[stack.length - 1].tag)) {
                         // Close the previous tag at the start of this tag.
                         // Adjust backwards for the < before the tag name.
-                        closeTag(token.start - 1, _offsetPos(token.startPos, -1));
+                        closeTag(token.start - 1, _offsetPos(token.startPos!, -1));
                     }
                 }
 
@@ -376,7 +385,7 @@ export class Builder {
                     attributes: {},
                     parent: (stack.length ? stack[stack.length - 1] : null),
                     start: this.startOffset + token.start - 1,
-                    startPos: _addPos(this.startOffsetPos, _offsetPos(token.startPos, -1)) // ok because we know the previous char was a "<"
+                    startPos: _addPos(this.startOffsetPos, _offsetPos(token.startPos!, -1)) // ok because we know the previous char was a "<"
                 });
                 newTag.tagID = this.getID(newTag, markCache);
 
@@ -452,7 +461,7 @@ export class Builder {
                                     this._logError(token);
                                     return null;
                                 }
-                                closeTag(token.start - 2, _offsetPos(token.startPos, -2));
+                                closeTag(token.start - 2, _offsetPos(token.startPos!, -2));
                             }
                         } while (stack.length > i);
                     } else {
@@ -532,7 +541,7 @@ export class Builder {
      *
      * @return {int} unique tag ID
      */
-    public getNewID() {
+    public getNewID(): number {
         return tagID++;
     }
 
@@ -544,7 +553,7 @@ export class Builder {
      * @param {Object} newTag tag object to potentially inspect to choose an ID
      * @return {int} unique tag ID
      */
-    public getID(...args) {
+    public getID(...args): number {
         return this.getNewID();
     }
 }
@@ -557,7 +566,7 @@ export class Builder {
  * @param {bool} strict True for strict parsing
  * @return {SimpleNode} root of tree or null if strict failed
  */
-export function build(text, strict?) {
+export function build(text: string, strict?: boolean): SimpleNode | null {
     const builder = new Builder(text);
     return builder.build(strict);
 }
@@ -570,11 +579,11 @@ export function build(text, strict?) {
  * @param {SimpleNode} root root of the tree
  * @return {string} Text version of the tree.
  */
-export function _dumpDOM(root) {
+export function _dumpDOM(root: SimpleNode): string {
     let result = "";
     let indent = "";
 
-    function walk(node) {
+    function walk(node: SimpleNode): void {
         if (node.tag) {
             result += indent + "TAG " + node.tagID + " " + node.tag + " " + JSON.stringify(node.attributes) + "\n";
         } else {

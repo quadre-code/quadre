@@ -22,6 +22,8 @@
  *
  */
 
+import type { Editor } from "editor/Editor";
+
 import * as CodeMirror from "codemirror";
 import * as TokenUtils from "utils/TokenUtils";
 
@@ -35,6 +37,28 @@ interface StyleBlocks {
     start: Pos;
     end: Pos;
     text: string;
+}
+
+interface TagInfo {
+    tagName: string;
+    attr: {
+        name: string;
+        value: string;
+        valueAssigned: boolean;
+        quoteChar: string;
+        hasEndQuote: boolean;
+    };
+    position: {
+        tokenType: string;
+        offset: number;
+    };
+}
+
+interface AttrVal {
+    val: string;
+    offset: number;
+    quoteChar: string;
+    hasEndQuote: boolean;
 }
 
 // Constants
@@ -54,7 +78,7 @@ const tagPrefixedRegExp = /^tag/;
  * @param {editor:{CodeMirror}, pos:{ch:{string}, line:{number}}, token:{object}} context
  * @return { val:{string}, offset:{number}}
  */
-function _extractAttrVal(ctx) {
+function _extractAttrVal(ctx: TokenUtils.Context): AttrVal {
     let attrValue = ctx.token.string;
     let startChar = attrValue.charAt(0);
     const endChar = attrValue.charAt(attrValue.length - 1);
@@ -119,7 +143,7 @@ function _extractAttrVal(ctx) {
  * @param {editor:{CodeMirror}, pos:{ch:{string}, line:{number}}, token:{object}} context
  * @return {string}
  */
-function _extractTagName(ctx) {
+function _extractTagName(ctx: TokenUtils.Context): string {
     const mode = ctx.editor.getMode();
     const innerModeData = CodeMirror.innerMode(mode, ctx.token.state);
 
@@ -138,7 +162,7 @@ function _extractTagName(ctx) {
  * @param {ch:{string}, line:{number}} pos A CodeMirror position
  * @return {Array.<string>} A list of the used attributes inside the current tag
  */
-export function getTagAttributes(editor, pos): Array<string> {
+export function getTagAttributes(editor: Editor, pos): Array<string> {
     const attrs: Array<string> = [];
     const backwardCtx = TokenUtils.getInitialContext(editor._codeMirror, pos);
     const forwardCtx  = $.extend({}, backwardCtx);
@@ -198,7 +222,16 @@ export function getTagAttributes(editor, pos): Array<string> {
  * The createTagInfo is really only for the unit tests so they can make the same structure to
  * compare results with
  */
-export function createTagInfo(tokenType?, offset?, tagName?, attrName?, attrValue?, valueAssigned?, quoteChar?, hasEndQuote?) {
+export function createTagInfo(
+    tokenType?: string,
+    offset?: number,
+    tagName?: string,
+    attrName?: string,
+    attrValue?: string,
+    valueAssigned?: boolean,
+    quoteChar?: string,
+    hasEndQuote?: boolean
+): TagInfo {
     return {
         tagName: tagName || "",
         attr: {
@@ -221,7 +254,7 @@ export function createTagInfo(tokenType?, offset?, tagName?, attrName?, attrValu
  * @param {editor:{CodeMirror}, pos:{ch:{string}, line:{number}}, token:{object}} context
  * @return {string}
  */
-function _getTagInfoStartingFromAttrValue(ctx) {
+function _getTagInfoStartingFromAttrValue(ctx: TokenUtils.Context): TagInfo {
     // Assume we in the attr value
     // and validate that by going backwards
     const attrInfo = _extractAttrVal(ctx);
@@ -280,7 +313,7 @@ function _getTagInfoStartingFromAttrValue(ctx) {
  * @param {boolean} isPriorAttr indicates whether we're getting info for a prior attribute
  * @return {string}
  */
-function _getTagInfoStartingFromAttrName(ctx, isPriorAttr) {
+function _getTagInfoStartingFromAttrName(ctx: TokenUtils.Context, isPriorAttr: boolean): TagInfo {
     // Verify We're in the attribute name, move forward and try to extract the rest of
     // the info. If the user it typing the attr the rest might not be here
     if (isPriorAttr === false && ctx.token.type !== "attribute") {
@@ -335,7 +368,7 @@ function _getTagInfoStartingFromAttrName(ctx, isPriorAttr) {
  *         }}
  *         A tagInfo object with some context about the current tag hint.
  */
-export function getTagInfo(editor, constPos, isHtmlMode?) {
+export function getTagInfo(editor: Editor, constPos: CodeMirror.Position, isHtmlMode?: boolean): TagInfo {
     // We're going to be changing pos a lot, but we don't want to mess up
     // the pos the caller passed in so we use extend to make a safe copy of it.
     const pos = $.extend({}, constPos);

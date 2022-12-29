@@ -186,7 +186,7 @@ export function fileOpened(filePath: string, addedToWorkingSet = false, encoding
         commonStrings.USAGE + commonStrings.FILE_OPEN + language._name,
         commonStrings.USAGE,
         commonStrings.FILE_OPEN,
-        language._name.toLowerCase()
+        language._name!.toLowerCase()
     );
 }
 
@@ -259,7 +259,7 @@ export function fileClosed(file: File): void {
             commonStrings.USAGE + commonStrings.FILE_CLOSE + language._name + subType,
             commonStrings.USAGE,
             commonStrings.FILE_CLOSE,
-            language._name.toLowerCase(),
+            language._name!.toLowerCase(),
             subType
         );
     }

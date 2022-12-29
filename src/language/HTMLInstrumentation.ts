@@ -63,7 +63,50 @@ interface DOMUpdaterInit {
     startOffsetPos?: any;
     isIncremental?: boolean;
     text?: string;
-    changedTagID?: string;
+    changedTagID?: number;
+}
+
+interface DOMUpdate {
+    newDOM: HTMLSimpleDOM.SimpleNode;
+    oldSubtree: HTMLSimpleDOM.SimpleNode;
+    newSubtree: HTMLSimpleDOM.SimpleNode;
+}
+
+interface CacheItem {
+    mark: CodeMirror.TextMarker;
+    range: CodeMirror.MarkerRange; // | CodeMirror.Position;
+}
+
+type Cache = Record<number, CacheItem>;
+
+type NodeMap = Record<number, HTMLSimpleDOM.SimpleNode>;
+
+interface BrowserDiff {
+    diff: Array<HTMLDOMDiff.EditOperation>;
+    browser: HTMLSimpleDOM.SimpleNode;
+    editor: HTMLSimpleDOM.SimpleNode;
+}
+
+interface CacheValue {
+    timestamp: Date;
+    dom: HTMLSimpleDOM.SimpleNode;
+    dirty?: boolean;
+    invalid?: boolean;
+}
+
+interface DOMEditorState {
+    dom: HTMLSimpleDOM.SimpleNode;
+    edits: Array<HTMLDOMDiff.EditOperation>;
+    // for unit tests only
+    _wasIncremental: boolean;
+}
+
+interface DOMError {
+    errors: Array<unknown>;
+}
+
+interface UnappliedEdit {
+    edits: Array<HTMLDOMDiff.EditOperation>;
 }
 
 const allowIncremental = true;
@@ -71,7 +114,7 @@ const allowIncremental = true;
 // Hash of scanned documents. Key is the full path of the doc. Value is an object
 // with two properties: timestamp and dom. Timestamp is the document timestamp,
 // dom is the root node of a simple DOM tree.
-let _cachedValues = {};
+let _cachedValues: Record<string, CacheValue> = {};
 
 /**
  * @private
@@ -80,7 +123,7 @@ let _cachedValues = {};
  * @param {$.Event} event (unused)
  * @param {Document} document The document to clear from the cache.
  */
-function _removeDocFromCache(evt, document) {
+function _removeDocFromCache(evt, document: DocumentManager.Document): void {
     if (_cachedValues.hasOwnProperty(document.file.fullPath)) {
         delete _cachedValues[document.file.fullPath];
         document.off(".htmlInstrumentation");
@@ -94,11 +137,11 @@ function _removeDocFromCache(evt, document) {
  * @param {{line: number, ch: number}} pos2
  * @return {boolean} true if pos1 and pos2 are equal. Fails if either of them is falsy.
  */
-function _posEq(pos1, pos2) {
+function _posEq(pos1: CodeMirror.Position, pos2: CodeMirror.Position): boolean {
     return pos1 && pos2 && pos1.line === pos2.line && pos1.ch === pos2.ch;
 }
 
-function getPositionFromTagId(editor, tagId) {
+function getPositionFromTagId(editor: Editor, tagId: string): CodeMirror.Position | null {
     const marks = editor._codeMirror.getAllMarks();
 
     const markFound = _.find(marks, function (mark: any) {
@@ -124,23 +167,23 @@ function getPositionFromTagId(editor, tagId) {
  *     sorted array of mark info objects (each of which contains the mark and its range,
  *     so the range doesn't need to be looked up again).
  */
-function _getSortedTagMarks(marks, markCache) {
-    marks = marks.filter(function (mark) {
+function _getSortedTagMarks(marks: Array<CodeMirror.TextMarker<CodeMirror.MarkerRange | CodeMirror.Position>>, markCache: Cache): Array<CacheItem> {
+    const marksResult: Array<CacheItem> = marks.filter(function (mark) {
         return !!mark.tagID;
     }).map(function (mark) {
         // All marks should exist since we just got them from CodeMirror.
         if (!markCache[mark.tagID]) {
-            markCache[mark.tagID] = {mark: mark, range: mark.find()};
+            markCache[mark.tagID] = {mark: mark, range: mark.find()! as CodeMirror.MarkerRange};
         }
         return markCache[mark.tagID];
     });
-    marks.sort(function (mark1, mark2) {
+    marksResult.sort(function (mark1, mark2) {
         return (mark1.range.from.line === mark2.range.from.line
             ? mark1.range.from.ch - mark2.range.from.ch
             : mark1.range.from.line - mark2.range.from.line);
     });
 
-    return marks;
+    return marksResult;
 }
 
 /**
@@ -156,7 +199,7 @@ function _getSortedTagMarks(marks, markCache) {
  * @return {Object} The CodeMirror mark object that represents the DOM node at the
  *     given position.
  */
-function _getMarkerAtDocumentPos(editor, pos, preferParent, markCache?) {
+function _getMarkerAtDocumentPos(editor: Editor, pos: CodeMirror.Position, preferParent: boolean, markCache?: Cache): CodeMirror.TextMarker<CodeMirror.MarkerRange> | null | undefined {
     markCache = markCache || {};
     const marks = _getSortedTagMarks(editor._codeMirror.findMarksAt(pos), markCache);
     if (!marks.length) {
@@ -173,7 +216,7 @@ function _getMarkerAtDocumentPos(editor, pos, preferParent, markCache?) {
         }
     }
 
-    return match && match.mark;
+    return match && match.mark as unknown as CodeMirror.TextMarker<CodeMirror.MarkerRange>;
 }
 
 /**
@@ -183,7 +226,7 @@ function _getMarkerAtDocumentPos(editor, pos, preferParent, markCache?) {
  * @param {Object=} nodeMap If specified, a map of tag IDs to DOM nodes, used so we can indicate which tag name
  *     the DOM thinks corresponds to the given mark.
  */
-function _dumpMarks(editor, nodeMap) {
+function _dumpMarks(editor: Editor, nodeMap: NodeMap): void {
     const markCache = {};
     const marks = _getSortedTagMarks(editor._codeMirror.getAllMarks(), markCache);
     marks.forEach(function (markInfo) {
@@ -211,7 +254,7 @@ void (_dumpMarks);
  *     which is expensive.)
  * @return {number} tagID at the specified position, or -1 if there is no tag
  */
-function _getTagIDAtDocumentPos(editor, pos, markCache) {
+function _getTagIDAtDocumentPos(editor: Editor, pos: CodeMirror.Position, markCache: Cache): number {
     const match = _getMarkerAtDocumentPos(editor, pos, false, markCache);
 
     return (match) ? match.tagID : -1;
@@ -226,13 +269,13 @@ function _getTagIDAtDocumentPos(editor, pos, markCache) {
  * @param {CodeMirror} cm CodeMirror instance in which to mark tags
  * @param {Object} node SimpleDOM node to use as the root for marking
  */
-function _markTags(cm, node) {
+function _markTags(cm: CodeMirror.Editor, node: HTMLSimpleDOM.DOMNodePosition): void {
     node.children.forEach(function (childNode) {
         if (childNode.isElement()) {
             _markTags(cm, childNode);
         }
     });
-    const mark = cm.markText(node.startPos, node.endPos);
+    const mark = cm.markText(node.startPos, node.endPos!);
     mark.tagID = node.tagID;
 }
 
@@ -242,7 +285,7 @@ function _markTags(cm, node) {
  * @param {Editor} editor Editor object holding this document
  * @param {Object} dom SimpleDOM root object that contains the parsed structure
  */
-function _markTextFromDOM(editor, dom) {
+function _markTextFromDOM(editor: Editor, dom: HTMLSimpleDOM.DOMNodePosition): void {
     const cm = editor._codeMirror;
 
     // Remove existing marks
@@ -266,7 +309,7 @@ function _markTextFromDOM(editor, dom) {
  * @param {number} id The ID of the tag to check for.
  * @return {boolean} true if the node has an ancestor with that ID.
  */
-function _hasAncestorWithID(node, id) {
+function _hasAncestorWithID(node: HTMLSimpleDOM.SimpleNode, id: number): boolean {
     let ancestor = node.parent;
     while (ancestor && ancestor.tagID !== id) {
         ancestor = ancestor.parent;
@@ -274,16 +317,21 @@ function _hasAncestorWithID(node, id) {
     return !!ancestor;
 }
 
-function _DOMUpdaterInit(changeList, editor: Editor) {
+function _DOMUpdaterInit(changeList: Array<CodeMirror.EditorChange>, editor: Editor): DOMUpdaterInit {
     const result: DOMUpdaterInit = {
         startOffset: 0,
         isIncremental: false
     };
 
-    function isDangerousEdit(text) {
+    function isDangerousEdit(text: string | Array<string> | undefined): boolean {
         // We don't consider & dangerous since entities only affect text content, not
         // overall DOM structure.
-        return (/[<>/="']/).test(text);
+        if (!text) {
+            return false;
+        }
+
+        const texts = Array.isArray(text) ? text : [text];
+        return texts.some((x) => (/[<>/="']/).test(x));
     }
 
     // If there's more than one change, be conservative and assume we have to do a full reparse.
@@ -335,7 +383,7 @@ function _DOMUpdaterInit(changeList, editor: Editor) {
  */
 class DOMUpdater extends HTMLSimpleDOM.Builder {
     public isIncremental: boolean;
-    private changedTagID: string;
+    private changedTagID: number;
     private editor: Editor;
     private cm: CodeMirror.Editor & CodeMirror.Doc;
     private previousDOM;
@@ -360,7 +408,7 @@ class DOMUpdater extends HTMLSimpleDOM.Builder {
      * @param {Object} newTag tag object for the current element
      * @return {int} best ID
      */
-    public getID(newTag, markCache) {
+    public getID(newTag: HTMLSimpleDOM.DOMNodePosition, markCache: Cache): number {
         // Get the mark at the start of the tagname (not before the beginning of the tag, because that's
         // actually inside the parent).
         let currentTagID = _getTagIDAtDocumentPos(this.editor, HTMLSimpleDOM._offsetPos(newTag.startPos, 1), markCache);
@@ -386,7 +434,7 @@ class DOMUpdater extends HTMLSimpleDOM.Builder {
      * @param {Object} nodeMap The node map from the new DOM.
      * @param {Object} markCache The cache of existing mark ranges built during the latest parse.
      */
-    private _updateMarkedRanges(nodeMap, markCache) {
+    private _updateMarkedRanges(nodeMap: NodeMap, markCache: Cache): void {
         // FUTURE: this is somewhat inefficient (getting all the marks involves passing linearly through
         // the document once), but it doesn't seem to be a hotspot right now.
         const updateIDs = Object.keys(nodeMap);
@@ -396,13 +444,13 @@ class DOMUpdater extends HTMLSimpleDOM.Builder {
         cm.operation(function () {
             marks.forEach(function (mark) {
                 if (mark.hasOwnProperty("tagID") && nodeMap[mark.tagID]) {
-                    const node = nodeMap[mark.tagID];
+                    const node = nodeMap[mark.tagID] as HTMLSimpleDOM.DOMNodePosition;
                     const markInfo = markCache[mark.tagID];
                     // If the mark's bounds already match, avoid destroying and recreating the mark,
                     // since that incurs some overhead.
-                    if (!(markInfo && _posEq(markInfo.range.from, node.startPos) && _posEq(markInfo.range.to, node.endPos))) {
+                    if (!(markInfo && _posEq(markInfo.range.from, node.startPos) && _posEq(markInfo.range.to, node.endPos!))) {
                         mark.clear();
-                        mark = cm.markText(node.startPos, node.endPos);
+                        mark = cm.markText(node.startPos, node.endPos!);
                         mark.tagID = node.tagID;
                     }
                     updateIDs.splice(updateIDs.indexOf(String(node.tagID)), 1);
@@ -427,10 +475,10 @@ class DOMUpdater extends HTMLSimpleDOM.Builder {
      * stores it on the root.
      * @param {Object} root The root of an HTMLSimpleDOM tree.
      */
-    private _buildNodeMap(root) {
+    private _buildNodeMap(root: HTMLSimpleDOM.SimpleNode): void {
         const nodeMap = {};
 
-        function walk(node) {
+        function walk(node: HTMLSimpleDOM.SimpleNode): void {
             if (node.tagID) {
                 nodeMap[node.tagID] = node;
             }
@@ -452,7 +500,7 @@ class DOMUpdater extends HTMLSimpleDOM.Builder {
      *     first nodeMap).
      * @param {Object} newSubtreeMap The nodeMap for the new subtree.
      */
-    private _handleDeletions(nodeMap, oldSubtreeMap, newSubtreeMap) {
+    private _handleDeletions(nodeMap: NodeMap, oldSubtreeMap: NodeMap, newSubtreeMap: NodeMap): void {
         const deletedIDs: Array<number> = [];
         Object.keys(oldSubtreeMap).forEach(function (key: any) {
             if (!newSubtreeMap.hasOwnProperty(key)) {
@@ -485,10 +533,10 @@ class DOMUpdater extends HTMLSimpleDOM.Builder {
      *      as the original DOM (with newSubtree swapped in for oldSubtree).
      *      If the document can't be parsed due to invalid HTML, returns null.
      */
-    public update() {
+    public update(): DOMUpdate | null {
         const markCache = {};
-        const newSubtree = this.build(true, markCache);
-        const result = {
+        const newSubtree = this.build(true, markCache)!;
+        const result: DOMUpdate = {
             // default result if we didn't identify a changed portion
             newDOM: newSubtree,
             oldSubtree: this.previousDOM,
@@ -545,7 +593,7 @@ class DOMUpdater extends HTMLSimpleDOM.Builder {
                 }
             }
         } else {
-            _markTextFromDOM(this.editor, result.newDOM);
+            _markTextFromDOM(this.editor, result.newDOM as HTMLSimpleDOM.DOMNodePosition);
         }
 
         return result;
@@ -569,9 +617,9 @@ class DOMUpdater extends HTMLSimpleDOM.Builder {
  *     editor, and an array of edits that can be applied to update the browser (see
  *     HTMLDOMDiff for more information on the edit format).
  */
-function _updateDOM(previousDOM, editor, changeList) {
+function _updateDOM(previousDOM: HTMLSimpleDOM.SimpleNode, editor: Editor, changeList: Array<CodeMirror.EditorChange>): DOMEditorState | DOMError {
     if (!allowIncremental) {
-        changeList = undefined;
+        (changeList as any) = undefined;
     }
     const updater = new DOMUpdater(previousDOM, editor, changeList);
     const result = updater.update();
@@ -583,6 +631,7 @@ function _updateDOM(previousDOM, editor, changeList) {
 
     // We're done with the nodeMap that was added to the subtree by the updater.
     if (result.newSubtree !== result.newDOM) {
+        // @ts-ignore
         delete result.newSubtree.nodeMap;
     }
 
@@ -615,18 +664,19 @@ function _updateDOM(previousDOM, editor, changeList) {
  * @return {Array} edits A list of edits to apply in the browser. See HTMLDOMDiff for
  *     more information on the format of these edits.
  */
-function getUnappliedEditList(editor, changeList) {
+function getUnappliedEditList(editor: Editor, changeList: Array<CodeMirror.EditorChange>): UnappliedEdit | DOMError {
     const cachedValue = _cachedValues[editor.document.file.fullPath];
 
     // We might not have a previous DOM if the document was empty before this edit.
     if (!cachedValue || !cachedValue.dom || _cachedValues[editor.document.file.fullPath].invalid) {
         // We were in an invalid state, so do a full rebuild.
-        changeList = null;
+        (changeList as any) = null;
     }
 
     const result = _updateDOM(cachedValue && cachedValue.dom, editor, changeList);
 
-    if (!result.errors) {
+
+    if (!isDOMError(result)) {
         _cachedValues[editor.document.file.fullPath] = {
             timestamp: editor.document.diskTimestamp,
             dom: result.dom,
@@ -641,17 +691,21 @@ function getUnappliedEditList(editor, changeList) {
     return { errors: result.errors };
 }
 
+function isDOMError(value: UnappliedEdit | DOMError): value is DOMError {
+    return !!(value as DOMError).errors;
+}
+
 /**
  * @private
  * Add SimpleDOMBuilder metadata to browser DOM tree JSON representation
  * @param {Object} root
  */
-function _processBrowserSimpleDOM(browserRoot, editorRootTagID) {
+function _processBrowserSimpleDOM(browserRoot: HTMLSimpleDOM.SimpleNode, editorRootTagID: number): HTMLSimpleDOM.SimpleNode {
     const nodeMap = {};
     let root;
 
-    function _processElement(elem) {
-        elem.tagID = elem.attributes["data-brackets-id"];
+    function _processElement(elem: HTMLSimpleDOM.SimpleNode): void {
+        elem.tagID = elem.attributes["data-brackets-id"] as number;
 
         // remove data-brackets-id attribute for diff
         delete elem.attributes["data-brackets-id"];
@@ -695,7 +749,7 @@ function _processBrowserSimpleDOM(browserRoot, editorRootTagID) {
  * @param {Editor} editor
  * @param {Object} browserSimpleDOM
  */
-function _getBrowserDiff(editor, browserSimpleDOM) {
+function _getBrowserDiff(editor: Editor, browserSimpleDOM: HTMLSimpleDOM.SimpleNode): BrowserDiff {
     const cachedValue = _cachedValues[editor.document.file.fullPath];
     const editorRoot  = cachedValue.dom;
     const browserRoot = _processBrowserSimpleDOM(browserSimpleDOM, editorRoot.tagID);
@@ -721,7 +775,7 @@ function _getBrowserDiff(editor, browserSimpleDOM) {
  * @param {Document} doc The doc to scan.
  * @return {Object} Root DOM node of the document.
  */
-function scanDocument(doc) {
+function scanDocument(doc: DocumentManager.Document): HTMLSimpleDOM.SimpleNode {
     if (!_cachedValues.hasOwnProperty(doc.file.fullPath)) {
         doc.on("change.htmlInstrumentation", function () {
             if (_cachedValues[doc.file.fullPath]) {
@@ -730,7 +784,7 @@ function scanDocument(doc) {
         });
 
         // Assign to cache, but don't set a value yet
-        _cachedValues[doc.file.fullPath] = null;
+        (_cachedValues[doc.file.fullPath] as unknown) = null;
     }
 
     const cachedValue = _cachedValues[doc.file.fullPath];
@@ -738,13 +792,13 @@ function scanDocument(doc) {
         return cachedValue.dom;
     }
 
-    const text = doc.getText();
-    const dom = HTMLSimpleDOM.build(text);
+    const text = doc.getText()!;
+    const dom = HTMLSimpleDOM.build(text)!;
 
     if (dom) {
         // Cache results
         _cachedValues[doc.file.fullPath] = {
-            timestamp: doc.diskTimestamp,
+            timestamp: doc.diskTimestamp!,
             dom: dom,
             dirty: false
         };
@@ -770,9 +824,9 @@ function scanDocument(doc) {
  *     mark ranges in.
  * @return {string} instrumented html content
  */
-function generateInstrumentedHTML(editor) {
+function generateInstrumentedHTML(editor: Editor): string | null {
     const doc = editor.document;
-    const dom = scanDocument(doc);
+    const dom = scanDocument(doc) as HTMLSimpleDOM.DOMNodePosition;
     const orig = doc.getText();
     let gen = "";
     let lastIndex = 0;
@@ -786,7 +840,7 @@ function generateInstrumentedHTML(editor) {
 
     // Walk through the dom nodes and insert the 'data-brackets-id' attribute at the
     // end of the open tag
-    function walk(node) {
+    function walk(node: HTMLSimpleDOM.DOMNodePosition): void {
         if (node.tag) {
             const attrText = " data-brackets-id='" + node.tagID + "'";
 
@@ -818,7 +872,7 @@ function generateInstrumentedHTML(editor) {
  * @param {Editor} editor The editor whose text should be marked.
  * @return none
  */
-function _markText(editor) {
+function _markText(editor: Editor): void {
     const cache = _cachedValues[editor.document.file.fullPath];
     const dom = cache && cache.dom;
 
@@ -827,14 +881,14 @@ function _markText(editor) {
         return;
     }
 
-    _markTextFromDOM(editor, dom);
+    _markTextFromDOM(editor, dom as HTMLSimpleDOM.DOMNodePosition);
 }
 
 /**
  * @private
  * Clear the DOM cache. For unit testing only.
  */
-function _resetCache() {
+function _resetCache(): void {
     _cachedValues = {};
 }
 

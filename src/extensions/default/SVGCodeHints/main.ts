@@ -193,7 +193,7 @@ class SVGCodeHints implements CodeHintProvider {
         this.tagInfo = tagInfo;
 
         if (tagInfo && tagInfo.tokenType) {
-            query = tagInfo.token.string.substr(0, tagInfo.offset).trim();
+            query = tagInfo.token!.string.substr(0, tagInfo.offset).trim();
 
             if (tagInfo.tokenType === XMLUtils.TOKEN_TAG) {
                 hints = $.map(Object.keys(tagData.tags), function (tag) {
@@ -246,7 +246,7 @@ class SVGCodeHints implements CodeHintProvider {
                 }
 
                 // Stop if the attribute doesn't support multiple options.
-                if (!isMultiple && /\s+/.test(tagInfo.token.string)) {
+                if (!isMultiple && /\s+/.test(tagInfo.token!.string)) {
                     return null;
                 }
 

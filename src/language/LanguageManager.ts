@@ -148,6 +148,14 @@ interface ScriptTypes {
     scriptTypes: Array<ScriptType>;
 }
 
+interface State {
+    last: Record<string, any>;
+    overridden: Record<string, any>;
+    add: string;
+    remove: string;
+    get: string;
+}
+
 // PreferencesManager is loaded near the end of the file
 let PreferencesManager;
 
@@ -156,9 +164,9 @@ let _fallbackLanguage: Language | null = null;
 const _pendingLanguages               = {};
 const _languages: LanguageMap = {};
 const _baseFileExtensionToLanguageMap = {};
-const _fileExtensionToLanguageMap     = Object.create(_baseFileExtensionToLanguageMap);
+const _fileExtensionToLanguageMap: Record<string, Language> = Object.create(_baseFileExtensionToLanguageMap);
 const _fileNameToLanguageMap          = {};
-let _filePathToLanguageMap          = {};
+let _filePathToLanguageMap: Record<string, Language> = {};
 const _modeToLanguageMap              = {};
 
 // Constants
@@ -167,7 +175,7 @@ export const _EXTENSION_MAP_PREF = "language.fileExtensions";
 export const _NAME_MAP_PREF      = "language.fileNames";
 
 // Tracking for changes to mappings made by preferences
-const _prefState = {};
+const _prefState: Record<string, State> = {};
 
 _prefState[_EXTENSION_MAP_PREF] = {
     last: {},
@@ -196,7 +204,7 @@ _prefState[_NAME_MAP_PREF] = {
  * @param {?jQuery.Deferred} deferred      A deferred to reject with the error message in case of an error
  * @return {boolean} True if the value is a non-empty string, false otherwise
  */
-function _validateNonEmptyString(value, description, deferred?) {
+function _validateNonEmptyString(value: any, description: string, deferred?: JQueryDeferred<Language>): boolean {
     const reportError = deferred ? deferred.reject : console.error;
 
     // http://stackoverflow.com/questions/1303646/check-whether-variable-is-number-or-string-in-javascript
@@ -215,9 +223,9 @@ function _validateNonEmptyString(value, description, deferred?) {
  * Monkey-patch CodeMirror to prevent modes from being overwritten by extensions.
  * We may rely on the tokens provided by some of these modes.
  */
-function _patchCodeMirror() {
+function _patchCodeMirror(): void {
     const originalCodeMirrorDefineMode = CodeMirror.defineMode;
-    function wrappedCodeMirrorDefineMode(name) {
+    function wrappedCodeMirrorDefineMode(name: string): void {
         if (CodeMirror.modes[name]) {
             console.error("There already is a CodeMirror mode with the name \"" + name + "\"");
             return;
@@ -232,7 +240,7 @@ function _patchCodeMirror() {
  * @param {!string} mode The mode to associate the language with
  * @param {!Language} language The language to associate with the mode
  */
-function _setLanguageForMode(mode, language) {
+function _setLanguageForMode(mode: string, language: Language): void {
     if (_modeToLanguageMap[mode]) {
         console.warn("CodeMirror mode \"" + mode + "\" is already used by language " + _modeToLanguageMap[mode]._name + " - cannot fully register language " + language._name +
                      " using the same mode. Some features will treat all content with this mode as language " + _modeToLanguageMap[mode]._name);
@@ -248,7 +256,7 @@ function _setLanguageForMode(mode, language) {
  * @param {!string} id Identifier for this language: lowercase letters, digits, and _ separators (e.g. "cpp", "foo_bar", "c99")
  * @return {Language} The language with the provided identifier or undefined
  */
-export function getLanguage(id: string) {
+export function getLanguage(id: string): Language {
     return _languages[id];
 }
 
@@ -259,7 +267,7 @@ export function getLanguage(id: string) {
  * @param {!string} extension Extension that language should be resolved for
  * @return {?Language} The language for the provided extension or null if none exists
  */
-export function getLanguageForExtension(extension) {
+export function getLanguageForExtension(extension: string): Language {
     return _fileExtensionToLanguageMap[extension.toLowerCase()];
 }
 
@@ -271,7 +279,7 @@ export function getLanguageForExtension(extension) {
  *
  * @return {Language} The language for the provided file type or the fallback language
  */
-export function getLanguageForPath(path, ignoreOverride?) {
+export function getLanguageForPath(path: string, ignoreOverride?: boolean): Language {
     let language = _filePathToLanguageMap[path];
     let extension;
     let parts;
@@ -346,7 +354,7 @@ export function getLanguages(): LanguageMap {
  * @param {!string} mode CodeMirror mode
  * @return {Language} The language for the provided mode or the fallback language
  */
-function _getLanguageForMode(mode) {
+function _getLanguageForMode(mode: string): Language {
     const language = _modeToLanguageMap[mode];
     if (language) {
         return language;
@@ -354,7 +362,7 @@ function _getLanguageForMode(mode) {
 
     // In case of unsupported languages
     console.log("Called LanguageManager._getLanguageForMode with a mode for which no language has been registered:", mode);
-    return _fallbackLanguage;
+    return _fallbackLanguage!;
 }
 
 /**
@@ -362,7 +370,7 @@ function _getLanguageForMode(mode) {
  * Notify listeners when a language is added
  * @param {!Language} language The new language
  */
-function _triggerLanguageAdded(language) {
+function _triggerLanguageAdded(language: Language): void {
     // finally, store language to _language map
     _languages[language.getId()] = language;
     exports.trigger("languageAdded", language);
@@ -373,7 +381,7 @@ function _triggerLanguageAdded(language) {
  * Notify listeners when a language is modified
  * @param {!Language} language The modified language
  */
-function _triggerLanguageModified(language) {
+function _triggerLanguageModified(language: Language): void {
     exports.trigger("languageModified", language);
 }
 
@@ -384,7 +392,7 @@ function _triggerLanguageModified(language) {
  * @param {!fullPath} fullPath absolute path of the file
  * @param {?object} language language to associate the file with or falsy value to remove any existing override
  */
-export function setLanguageOverrideForPath(fullPath, language) {
+export function setLanguageOverrideForPath(fullPath: string, language: Language): void {
     const oldLang = getLanguageForPath(fullPath);
     if (!language) {
         delete _filePathToLanguageMap[fullPath];
@@ -402,7 +410,7 @@ export function setLanguageOverrideForPath(fullPath, language) {
 /**
  * Resets all the language overrides for file paths. Used by unit tests only.
  */
-export function _resetPathLanguageOverrides() {
+export function _resetPathLanguageOverrides(): void {
     _filePathToLanguageMap = {};
 }
 
@@ -417,7 +425,7 @@ export function _resetPathLanguageOverrides() {
  * @return {string} Returns the extension of a filename or empty string if
  * the argument is a directory or a filename with no extension
  */
-export function getCompoundFileExtension(fullPath) {
+export function getCompoundFileExtension(fullPath: string): string {
     const baseName = FileUtils.getBaseName(fullPath);
     const parts = baseName.split(".");
 
@@ -450,7 +458,7 @@ export class Language {
      * Identifier for this language
      * @type {string}
      */
-    private _id;
+    private _id: string;
 
     /**
      * Human-readable name of this language
@@ -462,7 +470,7 @@ export class Language {
      * CodeMirror mode for this language
      * @type {string}
      */
-    private _mode = null;
+    private _mode: string | null = null;
 
     /**
      * File extensions that use this language
@@ -492,7 +500,7 @@ export class Language {
      * Block comment syntax
      * @type {{ prefix: string, suffix: string }}
      */
-    private _blockCommentSyntax;
+    private _blockCommentSyntax: { prefix: string, suffix: string };
 
     /**
      * Whether or not the language is binary
@@ -511,7 +519,7 @@ export class Language {
      * Returns the identifier for this language.
      * @return {string} The identifier
      */
-    public getId() {
+    public getId(): string {
         return this._id;
     }
 
@@ -520,7 +528,7 @@ export class Language {
      * @param {!string} id Identifier for this language: lowercase letters, digits, and _ separators (e.g. "cpp", "foo_bar", "c99")
      * @return {boolean} Whether the ID was valid and set or not
      */
-    public _setId(id) {
+    public _setId(id: string): boolean {
         if (!_validateNonEmptyString(id, "Language ID")) {
             return false;
         }
@@ -539,7 +547,7 @@ export class Language {
      * Returns the human-readable name of this language.
      * @return {string} The name
      */
-    public getName() {
+    public getName(): string {
         return this._name!;
     }
 
@@ -548,7 +556,7 @@ export class Language {
      * @param {!string} name Human-readable name of the language, as it's commonly referred to (e.g. "C++")
      * @return {boolean} Whether the name was valid and set or not
      */
-    public _setName(name) {
+    public _setName(name: string): boolean {
         if (!_validateNonEmptyString(name, "name")) {
             return false;
         }
@@ -561,8 +569,8 @@ export class Language {
      * Returns the CodeMirror mode for this language.
      * @return {string} The mode
      */
-    public getMode() {
-        return this._mode;
+    public getMode(): string {
+        return this._mode!;
     }
 
     /**
@@ -573,8 +581,8 @@ export class Language {
      *      you need to first load it yourself.
      * @return {$.Promise} A promise object that will be resolved when the mode is loaded and set
      */
-    public _loadAndSetMode(mode) {
-        const result      = $.Deferred();
+    public _loadAndSetMode(mode: string | Array<string>): JQueryPromise<Language> {
+        const result      = $.Deferred<Language>();
         const self        = this;
         let mimeMode; // Mode can be an array specifying a mode plus a MIME mode defined by that mode ["clike", "text/x-c++src"]
 
@@ -593,8 +601,8 @@ export class Language {
             return result.promise();
         }
 
-        const finish = function () {
-            if (!CodeMirror.modes[mode]) {
+        const finish = function (): void {
+            if (!CodeMirror.modes[mode as string]) {
                 result.reject("CodeMirror mode \"" + mode + "\" is not loaded");
                 return;
             }
@@ -629,7 +637,7 @@ export class Language {
      * Returns an array of file extensions for this language.
      * @return {Array.<string>} File extensions used by this language
      */
-    public getFileExtensions() {
+    public getFileExtensions(): Array<string> {
         // Use concat to create a copy of this array, preventing external modification
         return this._fileExtensions.concat();
     }
@@ -638,7 +646,7 @@ export class Language {
      * Returns an array of file names for extensionless files that use this language.
      * @return {Array.<string>} Extensionless file names used by this language
      */
-    public getFileNames() {
+    public getFileNames(): Array<string> {
         // Use concat to create a copy of this array, preventing external modification
         return this._fileNames.concat();
     }
@@ -647,7 +655,7 @@ export class Language {
      * Adds one or more file extensions to this language.
      * @param {!string|Array.<string>} extension A file extension (or array thereof) used by this language
      */
-    public addFileExtension(extension) {
+    public addFileExtension(extension: string | Array<string>): void {
         if (Array.isArray(extension)) {
             extension.forEach(this._addFileExtension.bind(this));
         } else {
@@ -655,7 +663,7 @@ export class Language {
         }
     }
 
-    private _addFileExtension(extension) {
+    private _addFileExtension(extension: string): void {
         // Remove a leading dot if present
         if (extension.charAt(0) === ".") {
             extension = extension.substr(1);
@@ -687,7 +695,7 @@ export class Language {
      * Unregisters one or more file extensions from this language.
      * @param {!string|Array.<string>} extension File extension (or array thereof) to stop using for this language
      */
-    public removeFileExtension(extension) {
+    public removeFileExtension(extension: string | Array<string>): void {
         if (Array.isArray(extension)) {
             extension.forEach(this._removeFileExtension.bind(this));
         } else {
@@ -695,7 +703,7 @@ export class Language {
         }
     }
 
-    private _removeFileExtension(extension) {
+    private _removeFileExtension(extension: string): void {
         // Remove a leading dot if present
         if (extension.charAt(0) === ".") {
             extension = extension.substr(1);
@@ -718,7 +726,7 @@ export class Language {
      * Adds one or more file names to the language which is used to match files that don't have extensions like "Makefile" for example.
      * @param {!string|Array.<string>} extension An extensionless file name (or array thereof) used by this language
      */
-    public addFileName(name) {
+    public addFileName(name: string | Array<string>): void {
         if (Array.isArray(name)) {
             name.forEach(this._addFileName.bind(this));
         } else {
@@ -726,7 +734,7 @@ export class Language {
         }
     }
 
-    private _addFileName(name) {
+    private _addFileName(name: string): void {
         // Make checks below case-INsensitive
         name = name.toLowerCase();
 
@@ -748,7 +756,7 @@ export class Language {
      * Unregisters one or more file names from this language.
      * @param {!string|Array.<string>} extension An extensionless file name (or array thereof) used by this language
      */
-    public removeFileName(name) {
+    public removeFileName(name: string | Array<string>): void {
         if (Array.isArray(name)) {
             name.forEach(this._removeFileName.bind(this));
         } else {
@@ -756,7 +764,7 @@ export class Language {
         }
     }
 
-    private _removeFileName(name) {
+    private _removeFileName(name: string): void {
         // Make checks below case-INsensitive
         name = name.toLowerCase();
 
@@ -774,7 +782,7 @@ export class Language {
      * Returns whether the line comment syntax is defined for this language.
      * @return {boolean} Whether line comments are supported
      */
-    public hasLineCommentSyntax() {
+    public hasLineCommentSyntax(): boolean {
         return this._lineCommentSyntax.length > 0;
     }
 
@@ -782,7 +790,7 @@ export class Language {
      * Returns an array of prefixes to use for line comments.
      * @return {Array.<string>} The prefixes
      */
-    public getLineCommentPrefixes() {
+    public getLineCommentPrefixes(): Array<string> {
         return this._lineCommentSyntax;
     }
 
@@ -792,7 +800,7 @@ export class Language {
      *   to use for line comments (e.g. "//" or ["//", "#"])
      * @return {boolean} Whether the syntax was valid and set or not
      */
-    public setLineCommentSyntax(prefix) {
+    public setLineCommentSyntax(prefix: string | Array<string>): boolean {
         const prefixes = Array.isArray(prefix) ? prefix : [prefix];
 
         if (prefixes.length) {
@@ -814,7 +822,7 @@ export class Language {
      * Returns whether the block comment syntax is defined for this language.
      * @return {boolean} Whether block comments are supported
      */
-    public hasBlockCommentSyntax() {
+    public hasBlockCommentSyntax(): boolean {
         return Boolean(this._blockCommentSyntax);
     }
 
@@ -822,7 +830,7 @@ export class Language {
      * Returns the prefix to use for block comments.
      * @return {string} The prefix
      */
-    public getBlockCommentPrefix() {
+    public getBlockCommentPrefix(): string {
         return this._blockCommentSyntax && this._blockCommentSyntax.prefix;
     }
 
@@ -830,7 +838,7 @@ export class Language {
      * Returns the suffix to use for block comments.
      * @return {string} The suffix
      */
-    public getBlockCommentSuffix() {
+    public getBlockCommentSuffix(): string {
         return this._blockCommentSyntax && this._blockCommentSyntax.suffix;
     }
 
@@ -840,7 +848,7 @@ export class Language {
      * @param {!string} suffix Suffix string to use for block comments (e.g. "-->")
      * @return {boolean} Whether the syntax was valid and set or not
      */
-    public setBlockCommentSyntax(prefix, suffix) {
+    public setBlockCommentSyntax(prefix: string, suffix: string): boolean {
         if (!_validateNonEmptyString(prefix, "prefix") || !_validateNonEmptyString(suffix, "suffix")) {
             return false;
         }
@@ -857,7 +865,7 @@ export class Language {
      * @param {!string} mode The mode to associate the language with
      * @return {Language} This language if it uses the mode, or whatever {@link #_getLanguageForMode} returns
      */
-    public getLanguageForMode(mode) {
+    public getLanguageForMode(mode: string): Language {
         if (mode === this._mode) {
             return this;
         }
@@ -872,7 +880,7 @@ export class Language {
      * @return {boolean} Whether the mode-to-language association was valid and set or not
      * @private
      */
-    public _setLanguageForMode(mode, language) {
+    public _setLanguageForMode(mode: string, language: Language): boolean {
         if (mode === this._mode && language !== this) {
             console.error("A language must always map its mode to itself");
             return false;
@@ -888,7 +896,7 @@ export class Language {
      * Determines whether this is the fallback language or not
      * @return {boolean} True if this is the fallback language, false otherwise
      */
-    public isFallbackLanguage() {
+    public isFallbackLanguage(): boolean {
         return this === _fallbackLanguage;
     }
 
@@ -897,7 +905,7 @@ export class Language {
      * @see #_triggerLanguageModified
      * @private
      */
-    private _wasModified() {
+    private _wasModified(): void {
         if (_languages[this._id]) {
             _triggerLanguageModified(this);
         }
@@ -907,7 +915,7 @@ export class Language {
      * Indicates whether or not the language is binary (e.g., image or audio).
      * @return {boolean}
      */
-    public isBinary() {
+    public isBinary(): boolean {
         return this._isBinary;
     }
 
@@ -915,7 +923,7 @@ export class Language {
      * Sets whether or not the language is binary
      * @param {!boolean} isBinary
      */
-    public _setBinary(isBinary) {
+    public _setBinary(isBinary: boolean): void {
         this._isBinary = isBinary;
     }
 }
@@ -954,7 +962,7 @@ export function defineLanguage(id, definition): JQueryPromise<Language> {
     const blockComment   = definition.blockComment;
     const lineComment    = definition.lineComment;
 
-    function _finishRegisteringLanguage() {
+    function _finishRegisteringLanguage(): void {
         if (fileExtensions) {
             for (const fileExtension of fileExtensions) {
                 language.addFileExtension(fileExtension);
@@ -1030,7 +1038,7 @@ export function defineLanguage(id, definition): JQueryPromise<Language> {
  * @param {string} name Extension or filename that should be restored
  * @param {{overridden: string, add: string}} prefState object for the pref that is currently being updated
  */
-function _restoreOverriddenDefault(name, state) {
+function _restoreOverriddenDefault(name: string, state: State): void {
     if (state.overridden[name]) {
         const language = getLanguage(state.overridden[name]);
         language[state.add](name);
@@ -1058,7 +1066,7 @@ function _restoreOverriddenDefault(name, state) {
  *         "Gemfile": "ruby"
  *     }
  */
-function _updateFromPrefs(pref) {
+function _updateFromPrefs(pref: string): void {
     const newMapping = PreferencesManager.get(pref);
     const newNames = Object.keys(newMapping);
     const state = _prefState[pref];
