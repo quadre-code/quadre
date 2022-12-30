@@ -51,6 +51,11 @@
  *      just gained focus.
  */
 
+import type { InlineWidget } from "editor/InlineWidget";
+import type { Document } from "document/Document";
+import type File = require("filesystem/File");
+import type { Pane } from "view/Pane";
+
 // Load dependent modules
 import * as Commands from "command/Commands";
 import * as EventDispatcher from "utils/EventDispatcher";
@@ -67,12 +72,29 @@ import * as Strings from "strings";
 import * as LanguageManager from "language/LanguageManager";
 import * as DeprecationWarning from "utils/DeprecationWarning";
 
+type ProviderFn<T> = (editor: Editor, pos: CodeMirror.Position) => JQueryPromise<T> | string | null;
+
+interface Provider<T> {
+    priority: number;
+    provider: ProviderFn<T>;
+}
+
+interface Range {
+    startLine: number;
+    endLine: number;
+}
+
+interface ContentEditor {
+    content: HTMLDivElement;
+    editor: Editor;
+}
+
 /**
  * Currently focused Editor (full-size, inline, or otherwise)
  * @type {?Editor}
  * @private
  */
-let _lastFocusedEditor = null;
+let _lastFocusedEditor: Editor | null = null;
 
 /**
  * Registered inline-editor widget providers sorted descending by priority.
@@ -102,7 +124,7 @@ let _$hiddenEditorsContainer;
  * Retrieves the visible full-size Editor for the currently opened file in the ACTIVE_PANE
  * @return {?Editor} editor of the current view or null
  */
-export function getCurrentFullEditor() {
+export function getCurrentFullEditor(): Editor {
     const currentPath = MainViewManager.getCurrentlyViewedPath(MainViewManager.ACTIVE_PANE);
     const doc = currentPath && DocumentManager.getOpenDocumentForPath(currentPath);
     return doc && doc._masterEditor;
@@ -114,7 +136,7 @@ export function getCurrentFullEditor() {
  * @private
  * @param {!Editor} editor - editor to cache data for
  */
-export function _saveEditorViewState(editor) {
+export function _saveEditorViewState(editor: Editor): void {
     ViewStateManager.updateViewState(editor);
 }
 
@@ -123,7 +145,7 @@ export function _saveEditorViewState(editor) {
  * @param {!Editor} editor - editor restore cached data
  * @private
  */
-function _restoreEditorViewState(editor) {
+function _restoreEditorViewState(editor: Editor): void {
     // We want to ignore the current state of the editor, so don't call __getViewState()
     const viewState = ViewStateManager.getViewState(editor.document.file);
     if (viewState) {
@@ -137,7 +159,7 @@ function _restoreEditorViewState(editor) {
  * @private
  * @param {?Editor} current - the editor that will be the active editor
  */
-export function _notifyActiveEditorChanged(current) {
+export function _notifyActiveEditorChanged(current: Editor): void {
     // Skip if the Editor that gained focus was already the most recently focused editor.
     // This may happen e.g. if the window loses then regains focus.
     if (_lastFocusedEditor === current) {
@@ -161,7 +183,7 @@ export function _notifyActiveEditorChanged(current) {
  * @param {!jQuery.Event} e - event
  * @param {?File} file - current file (can be null)
  */
-function _handleCurrentFileChange(e, file) {
+function _handleCurrentFileChange(e: JQueryEventObject, file: File): void {
     const doc = file && DocumentManager.getOpenDocumentForPath(file.fullPath);
     _notifyActiveEditorChanged(doc && doc._masterEditor);
 }
@@ -179,7 +201,7 @@ function _handleCurrentFileChange(e, file) {
  * @param {!Object} editorOptions If specified, contains editor options that can be passed to CodeMirror
  * @return {Editor} the newly created editor.
  */
-function _createEditorForDocument(doc, makeMasterEditor, container, range?, editorOptions?) {
+function _createEditorForDocument(doc: Document, makeMasterEditor: boolean, container: HTMLDivElement, range?: Range, editorOptions?): Editor {
     const editor = new Editor(doc, makeMasterEditor, container, range, editorOptions);
 
     editor.on("focus", function () {
@@ -207,13 +229,13 @@ function _createEditorForDocument(doc, makeMasterEditor, container, range?, edit
  * @return {$.Promise} a promise that will be resolved when an InlineWidget
  *      is created or rejected if no inline providers have offered one.
  */
-function _openInlineWidget(editor, providers, defaultErrorMsg) {
+function _openInlineWidget(editor: Editor, providers: Array<Provider<unknown>>, defaultErrorMsg: string): JQueryPromise<void> {
     PerfUtils.markStart((PerfUtils as any).INLINE_WIDGET_OPEN);
 
     // Run through inline-editor providers until one responds
     const pos = editor.getCursorPos();
     let inlinePromise;
-    const result = $.Deferred();
+    const result = $.Deferred<void>();
     let errorMsg;
 
     // Query each provider in priority order. Provider may return:
@@ -274,8 +296,8 @@ function _openInlineWidget(editor, providers, defaultErrorMsg) {
  *   when closed. Rejected if there is neither an existing widget to close nor a provider
  *   willing to create a widget (or if no editor is open).
  */
-function _toggleInlineWidget(providers, errorMsg) {
-    const result = $.Deferred();
+function _toggleInlineWidget(providers: Array<Provider<unknown>>, errorMsg: string): JQueryPromise<boolean> {
+    const result = $.Deferred<boolean>();
 
     const currentEditor = getCurrentFullEditor();
 
@@ -313,9 +335,9 @@ function _toggleInlineWidget(providers, errorMsg) {
  * @param {number} priority
  * @param {function(...)} provider
  */
-function _insertProviderSorted(array, provider, priority) {
+function _insertProviderSorted(array: Array<Provider<unknown>>, provider: ProviderFn<any>, priority: number): void {
     let index;
-    const prioritizedProvider = {
+    const prioritizedProvider: Provider<unknown> = {
         priority: priority,
         provider: provider
     };
@@ -338,7 +360,7 @@ function _insertProviderSorted(array, provider, priority) {
  * when the document is opened using pane.addView()
  * @param {!Document} doc - document to create a hidden editor for
  */
-export function _createUnattachedMasterEditor(doc) {
+export function _createUnattachedMasterEditor(doc: Document): void {
     // attach to the hidden containers DOM node if necessary
     if (!_$hiddenEditorsContainer) {
         _$hiddenEditorsContainer = $("#hidden-editors");
@@ -356,15 +378,15 @@ export function _createUnattachedMasterEditor(doc) {
  * @param {!InlineWidget} inlineWidget The inline widget to close.
  * @return {$.Promise} A promise that's resolved when the widget is fully closed.
  */
-export function closeInlineWidget(hostEditor, inlineWidget) {
+export function closeInlineWidget(hostEditor: Editor, inlineWidget: InlineWidget): JQueryPromise<void> {
     // If widget has focus, return it to the hostEditor & move the cursor to where the inline used to be
     if (inlineWidget.hasFocus()) {
         // Place cursor back on the line just above the inline (the line from which it was opened)
         // If cursor's already on that line, leave it be to preserve column position
-        const widgetLine = hostEditor._codeMirror.getLineNumber(inlineWidget.info.line);
+        const widgetLine = hostEditor._codeMirror.getLineNumber(inlineWidget.info!.line);
         const cursorLine = hostEditor.getCursorPos().line;
         if (cursorLine !== widgetLine) {
-            hostEditor.setCursorPos({ line: widgetLine, pos: 0 });
+            hostEditor.setCursorPos({ line: widgetLine, pos: 0 } as any);
         }
 
         hostEditor.focus();
@@ -384,7 +406,7 @@ export function closeInlineWidget(hostEditor, inlineWidget) {
  * The provider returns a promise that will be resolved with an InlineWidget, or returns a string
  * indicating why the provider cannot respond to this case (or returns null to indicate no reason).
  */
-export function registerInlineEditProvider(provider, priority?) {
+export function registerInlineEditProvider(provider: ProviderFn<any>, priority?: number): void {
     if (priority === undefined) {
         priority = 0;
     }
@@ -402,7 +424,7 @@ export function registerInlineEditProvider(provider, priority?) {
  * The provider returns a promise that will be resolved with an InlineWidget, or returns a string
  * indicating why the provider cannot respond to this case (or returns null to indicate no reason).
  */
-export function registerInlineDocsProvider(provider, priority?: number) {
+export function registerInlineDocsProvider(provider: ProviderFn<any>, priority?: number): void {
     if (priority === undefined) {
         priority = 0;
     }
@@ -417,7 +439,7 @@ export function registerInlineDocsProvider(provider, priority?: number) {
  * @return {Array.<Editor>}
  *
  */
-export function getInlineEditors(hostEditor: Editor) {
+export function getInlineEditors(hostEditor: Editor): Array<Editor> {
     const inlineEditors: Array<Editor> = [];
 
     if (hostEditor) {
@@ -443,7 +465,7 @@ export function getInlineEditors(hostEditor: Editor) {
  * can be passed to CodeMirror
  * @return {!Editor}
  */
-export function _createFullEditorForDocument(document, pane, editorOptions) {
+export function _createFullEditorForDocument(document: Document, pane: Pane, editorOptions): Editor {
     // Create editor; make it initially invisible
     const editor = _createEditorForDocument(document, true, pane.$content, undefined, editorOptions);
     editor.setVisible(false);
@@ -464,7 +486,7 @@ export function _createFullEditorForDocument(document, pane, editorOptions) {
  *
  * @return {{content:DOMElement, editor:Editor}}
  */
-export function createInlineEditorForDocument(doc, range, inlineContent) {
+export function createInlineEditorForDocument(doc: Document, range: Range, inlineContent: HTMLDivElement): ContentEditor {
     // Hide the container for the editor before creating it so that CodeMirror doesn't do extra work
     // when initializing the document. When we construct the editor, we have to set its text and then
     // set the (small) visible range that we show in the editor. If the editor is visible, CM has to
@@ -483,7 +505,7 @@ export function createInlineEditorForDocument(doc, range, inlineContent) {
  * This function should be called to restore editor focus after it has been temporarily
  * removed. For example, after a dialog with editable text is closed.
  */
-export function focusEditor() {
+export function focusEditor(): void {
     DeprecationWarning.deprecationWarning("Use MainViewManager.focusActivePane() instead of EditorManager.focusEditor().", true);
     MainViewManager.focusActivePane();
 }
@@ -492,7 +514,7 @@ export function focusEditor() {
  * @deprecated
  * resizes the editor
  */
-export function resizeEditor() {
+export function resizeEditor(): void {
     DeprecationWarning.deprecationWarning("Use WorkspaceManager.recomputeLayout() instead of EditorManager.resizeEditor().", true);
     WorkspaceManager.recomputeLayout();
 }
@@ -505,7 +527,7 @@ export function resizeEditor() {
  * editor options that can be passed to CodeMirror
  * @private
  */
-function _showEditor(document, pane, editorOptions) {
+function _showEditor(document: Document, pane: Pane, editorOptions): void {
     // Ensure a main editor exists for this document to show in the UI
     let createdNewEditor = false;
     let editor = document._masterEditor;
@@ -551,7 +573,7 @@ function _showEditor(document, pane, editorOptions) {
  * @deprecated use MainViewManager.getCurrentlyViewedFile() instead
  * @return {string=} path of the file currently viewed in the active, full sized editor or null when there is no active editor
  */
-export function getCurrentlyViewedPath() {
+export function getCurrentlyViewedPath(): string | null {
     DeprecationWarning.deprecationWarning("Use MainViewManager.getCurrentlyViewedFile() instead of EditorManager.getCurrentlyViewedPath().", true);
 
     // We only want to return a path of a document object
@@ -574,7 +596,7 @@ export function getCurrentlyViewedPath() {
  * @deprecated There is no equivalent API moving forward.
  * Use MainViewManager._initialize() from a unit test to create a Main View attached to a specific DOM element
  */
-export function setEditorHolder() {
+export function setEditorHolder(): void {
     throw new Error("EditorManager.setEditorHolder() has been removed.");
 }
 
@@ -582,7 +604,7 @@ export function setEditorHolder() {
  * @deprecated Register a View Factory instead
  * @see MainViewFactory::#registerViewFactory
  */
-export function registerCustomViewer() {
+export function registerCustomViewer(): void {
     throw new Error("EditorManager.registerCustomViewer() has been removed.");
 }
 
@@ -591,7 +613,7 @@ export function registerCustomViewer() {
  * @param {!string} fullPath - file to be opened
  * @return {boolean} true if the file can be opened in an editor, false if not
  */
-export function canOpenPath(fullPath) {
+export function canOpenPath(fullPath: string): boolean {
     return !LanguageManager.getLanguageForPath(fullPath).isBinary();
 }
 
@@ -603,7 +625,7 @@ export function canOpenPath(fullPath) {
  * editor options that can be passed to CodeMirror
  * @return {boolean} true if the file can be opened, false if not
  */
-export function openDocument(doc, pane, editorOptions) {
+export function openDocument(doc: Document, pane: Pane, editorOptions): void {
     const perfTimerName = PerfUtils.markStart("EditorManager.openDocument():\t" + (!doc || doc.file.fullPath));
 
     if (doc && pane) {
@@ -617,7 +639,7 @@ export function openDocument(doc, pane, editorOptions) {
  * Returns the currently focused inline widget, if any.
  * @return {?InlineWidget}
  */
-export function getFocusedInlineWidget() {
+export function getFocusedInlineWidget(): InlineWidget | null {
     const currentEditor = getCurrentFullEditor();
     if (currentEditor) {
         return currentEditor.getFocusedInlineWidget();
@@ -629,7 +651,7 @@ export function getFocusedInlineWidget() {
  * Returns the focused Editor within an inline text editor, or null if something else has focus
  * @return {?Editor}
  */
-function _getFocusedInlineEditor() {
+function _getFocusedInlineEditor(): Editor | null {
     const focusedWidget = getFocusedInlineWidget();
     if (focusedWidget instanceof InlineTextEditor) {
         return focusedWidget.getFocusedEditor();
@@ -646,7 +668,7 @@ function _getFocusedInlineEditor() {
  * is open).
  * @return {?Editor}
  */
-export function getFocusedEditor() {
+export function getFocusedEditor(): Editor | null {
     const currentEditor = getCurrentFullEditor();
     if (currentEditor) {
 
@@ -681,8 +703,8 @@ export function getActiveEditor(): Editor | null {
  * @param {jQuery.Event} e
  * @param {File|Array.<File>} removedFiles - file, path or array of files or paths that are being removed
  */
-function _handleRemoveFromPaneView(e, removedFiles) {
-    const handleFileRemoved = function (file) {
+function _handleRemoveFromPaneView(e, removedFiles: File | Array<File>): void {
+    const handleFileRemoved = function (file: File): void {
         const doc = DocumentManager.getOpenDocumentForPath(file.fullPath);
 
         if (doc) {

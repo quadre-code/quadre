@@ -26,6 +26,8 @@
  * Manages parts of the status bar related to the current editor's state.
  */
 
+import type { Document } from "document/Document";
+
 // Load dependent modules
 import * as _ from "lodash";
 import * as AnimationUtils from "utils/AnimationUtils";
@@ -74,7 +76,7 @@ const LANGUAGE_SET_AS_DEFAULT = {};
  * @param {string} pluralStr Plural string
  * @return {string} Proper string to use for count
  */
-function _formatCountable(number, singularStr, pluralStr) {
+function _formatCountable(number: number, singularStr: string, pluralStr: string): string {
     return StringUtils.format(number > 1 ? pluralStr : singularStr, number);
 }
 
@@ -82,7 +84,7 @@ function _formatCountable(number, singularStr, pluralStr) {
  * Update file mode
  * @param {Editor} editor Current editor
  */
-function _updateLanguageInfo(editor) {
+function _updateLanguageInfo(editor: Editor): void {
     const doc = editor.document;
     const lang = doc.getLanguage();
 
@@ -94,7 +96,7 @@ function _updateLanguageInfo(editor) {
  * Update encoding
  * @param {Editor} editor Current editor
  */
-function _updateEncodingInfo(editor) {
+function _updateEncodingInfo(editor: Editor): void {
     const doc = editor.document;
 
     // Show the current encoding as button title
@@ -108,7 +110,7 @@ function _updateEncodingInfo(editor) {
  * Update file information
  * @param {Editor} editor Current editor
  */
-function _updateFileInfo(editor) {
+function _updateFileInfo(editor: Editor): void {
     const lines = editor.lineCount();
     $fileInfo.text(_formatCountable(lines, Strings.STATUSBAR_LINE_COUNT_SINGULAR, Strings.STATUSBAR_LINE_COUNT_PLURAL));
 }
@@ -117,7 +119,7 @@ function _updateFileInfo(editor) {
  * Update indent type and size
  * @param {string} fullPath Path to file in current editor
  */
-function _updateIndentType(fullPath) {
+function _updateIndentType(fullPath: string): void {
     const indentWithTabs = Editor.getUseTabChar(fullPath);
     $indentType.text(indentWithTabs ? Strings.STATUSBAR_TAB_SIZE : Strings.STATUSBAR_SPACES);
     $indentType.attr("title", indentWithTabs ? Strings.STATUSBAR_INDENT_TOOLTIP_SPACES : Strings.STATUSBAR_INDENT_TOOLTIP_TABS);
@@ -129,7 +131,7 @@ function _updateIndentType(fullPath) {
  * @param {string} fullPath Path to file in current editor
  * @return {number} Indent size
  */
-function _getIndentSize(fullPath) {
+function _getIndentSize(fullPath: string): number {
     return Editor.getUseTabChar(fullPath) ? Editor.getTabSize(fullPath) : Editor.getSpaceUnits(fullPath);
 }
 
@@ -137,7 +139,7 @@ function _getIndentSize(fullPath) {
  * Update indent size
  * @param {string} fullPath Path to file in current editor
  */
-function _updateIndentSize(fullPath) {
+function _updateIndentSize(fullPath: string): void {
     const size = _getIndentSize(fullPath);
     $indentWidthLabel.text(size);
     $indentWidthInput.val(size);
@@ -146,13 +148,13 @@ function _updateIndentSize(fullPath) {
 /**
  * Toggle indent type
  */
-function _toggleIndentType() {
+function _toggleIndentType(): void {
     const current = EditorManager.getActiveEditor();
     const fullPath = current && current.document.file.fullPath;
 
     Editor.setUseTabChar(!Editor.getUseTabChar(fullPath), fullPath);
-    _updateIndentType(fullPath);
-    _updateIndentSize(fullPath);
+    _updateIndentType(fullPath!);
+    _updateIndentSize(fullPath!);
 }
 
 /**
@@ -160,8 +162,8 @@ function _toggleIndentType() {
  * @param {Event} event (unused)
  * @param {Editor} editor Current editor
  */
-function _updateCursorInfo(event?, editor?) {
-    editor = editor || EditorManager.getActiveEditor();
+function _updateCursorInfo(event?: JQueryEventObject | null, editor?: Editor): void {
+    editor = editor || EditorManager.getActiveEditor()!;
 
     // compute columns, account for tab size
     const cursor = editor.getCursorPos(true);
@@ -201,7 +203,7 @@ function _updateCursorInfo(event?, editor?) {
  * @param {string} fullPath Path to file in current editor
  * @param {string} value Size entered into status bar
  */
-function _changeIndentWidth(fullPath, value) {
+function _changeIndentWidth(fullPath: string, value: string | boolean): void {
     $indentWidthLabel.removeClass("hidden");
     $indentWidthInput.addClass("hidden");
 
@@ -211,7 +213,7 @@ function _changeIndentWidth(fullPath, value) {
     // restore focus to the editor
     MainViewManager.focusActivePane();
 
-    const valInt = parseInt(value, 10);
+    const valInt = parseInt(value as string, 10);
     if (Editor.getUseTabChar(fullPath)) {
         if (!Editor.setTabSize(valInt, fullPath)) {
             return;     // validation failed
@@ -236,7 +238,7 @@ function _changeIndentWidth(fullPath, value) {
  * @param {string} newstate New overwrite state
  * @param {boolean=} doNotAnimate True if state should not be animated
  */
-function _updateOverwriteLabel(event, editor, newstate, doNotAnimate) {
+function _updateOverwriteLabel(event: JQueryEventObject, editor: Editor, newstate: boolean, doNotAnimate: boolean): void {
     if ($statusOverwrite.text() === (newstate ? Strings.STATUSBAR_OVERWRITE : Strings.STATUSBAR_INSERT)) {
         // label already up-to-date
         return;
@@ -253,7 +255,7 @@ function _updateOverwriteLabel(event, editor, newstate, doNotAnimate) {
  * Update insert/overwrite indicator
  * @param {Event} event (unused)
  */
-function _updateEditorOverwriteMode(event) {
+function _updateEditorOverwriteMode(event: JQueryEventObject): void {
     const editor = EditorManager.getActiveEditor()!;
     const newstate = !editor._codeMirror.state.overwrite;
 
@@ -266,7 +268,7 @@ function _updateEditorOverwriteMode(event) {
  * Initialize insert/overwrite indicator
  * @param {Editor} currentEditor Current editor
  */
-function _initOverwriteMode(currentEditor) {
+function _initOverwriteMode(currentEditor: Editor): void {
     currentEditor.toggleOverwrite($statusOverwrite.text() === Strings.STATUSBAR_OVERWRITE);
     $statusOverwrite.attr("title", Strings.STATUSBAR_INSOVR_TOOLTIP);
 }
@@ -277,7 +279,7 @@ function _initOverwriteMode(currentEditor) {
  * @param {Editor} current Current editor
  * @param {Editor} previous Previous editor
  */
-function _onActiveEditorChange(event, current, previous) {
+function _onActiveEditorChange(event: JQueryEventObject | null, current: Editor | null, previous: Editor | null): void {
     if (previous) {
         previous.off(".statusbar");
         previous.document.off(".statusbar");
@@ -319,7 +321,7 @@ function _onActiveEditorChange(event, current, previous) {
 /**
  * Populate the languageSelect DropdownButton's menu with all registered Languages
  */
-function _populateLanguageDropdown() {
+function _populateLanguageDropdown(): void {
     // Get all non-binary languages
     const languages: Array<LanguageManager.Language> = _.values<LanguageManager.Language>(LanguageManager.getLanguages()).filter(function (language) {
         return !language.isBinary();
@@ -341,7 +343,7 @@ function _populateLanguageDropdown() {
  * Change the encoding and reload the current document.
  * If passed then save the preferred encoding in state.
  */
-function _changeEncodingAndReloadDoc(document) {
+function _changeEncodingAndReloadDoc(document: Document): void {
     const promise = document.reload();
     promise.done(function (text, readTimestamp) {
         encodingSelect.$button.text(document.file._encoding);
@@ -367,14 +369,14 @@ function _changeEncodingAndReloadDoc(document) {
 /**
  * Populate the encodingSelect DropdownButton's menu with all registered encodings
  */
-function _populateEncodingDropdown() {
+function _populateEncodingDropdown(): void {
     encodingSelect.items = SupportedEncodings;
 }
 
 /**
  * Initialize
  */
-function _init() {
+function _init(): void {
 
     $cursorInfo         = $("#status-cursor");
     $fileInfo           = $("#status-file");
@@ -519,8 +521,8 @@ function _init() {
 // Initialize: status bar focused listener
 (EditorManager as unknown as DispatcherEvents).on("activeEditorChange", _onActiveEditorChange);
 
-function _checkFileExistance(filePath, index, encoding) {
-    const deferred = $.Deferred();
+function _checkFileExistance(filePath: string, index: number, encoding: string): JQueryPromise<void> {
+    const deferred = $.Deferred<void>();
     const fileEntry = FileSystem.getFileForPath(filePath);
 
     fileEntry.exists(function (err, exists) {

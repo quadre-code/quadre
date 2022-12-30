@@ -56,8 +56,8 @@ interface Item {
     pre: string;
     highlight: string;
     post: string;
-    start: number;
-    end: number;
+    start: CodeMirror.Position;
+    end: CodeMirror.Position;
     isChecked: boolean;
     isCollapsed: boolean;
 }

@@ -180,7 +180,7 @@ export class InlineColorEditor extends InlineWidget {
         super.load(hostEditor);
 
         // Create color picker control
-        const allColorsInDoc = this.hostEditor!.document.getText().match(ColorUtils.COLOR_REGEX);
+        const allColorsInDoc = this.hostEditor!.document.getText()!.match(ColorUtils.COLOR_REGEX);
         const swatchInfo = this._collateColors(allColorsInDoc, MAX_USED_COLORS);
         this.colorEditor = new ColorEditor(this.$htmlContent, this._color, this._handleColorChange, swatchInfo);
     }

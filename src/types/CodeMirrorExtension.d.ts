@@ -12,4 +12,15 @@ declare module "codemirror" {
     export interface TextMarker {
         tagID: number;
     }
+
+    // Verify to upstream.
+    export interface LineWidget {
+        line: LineHandle;
+        height: number;
+    }
+
+    // Verify to upstream.
+    interface Editor {
+        moveV(direction: number, unit: "line" | "page");
+    }
 }

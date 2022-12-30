@@ -361,7 +361,7 @@ function _DOMUpdaterInit(changeList: Array<CodeMirror.EditorChange>, editor: Edi
 
     if (!result.changedTagID) {
         // We weren't able to incrementally update, so just rebuild and diff everything.
-        result.text = editor.document.getText();
+        result.text = editor.document.getText()!;
     }
 
     return result;
@@ -678,7 +678,7 @@ function getUnappliedEditList(editor: Editor, changeList: Array<CodeMirror.Edito
 
     if (!isDOMError(result)) {
         _cachedValues[editor.document.file.fullPath] = {
-            timestamp: editor.document.diskTimestamp,
+            timestamp: editor.document.diskTimestamp!,
             dom: result.dom,
             dirty: false
         };
@@ -827,7 +827,7 @@ function scanDocument(doc: DocumentManager.Document): HTMLSimpleDOM.SimpleNode {
 function generateInstrumentedHTML(editor: Editor): string | null {
     const doc = editor.document;
     const dom = scanDocument(doc) as HTMLSimpleDOM.DOMNodePosition;
-    const orig = doc.getText();
+    const orig = doc.getText()!;
     let gen = "";
     let lastIndex = 0;
 

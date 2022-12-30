@@ -58,6 +58,12 @@ interface ViewHints {
     hints: Array<Hint>;
 }
 
+interface HintListLocation {
+    left: number;
+    top: number;
+    width: number;
+}
+
 /**
  * Displays a popup list of hints for a given editor context.
  *
@@ -167,7 +173,7 @@ export class CodeHintList {
      * @private
      * @param {number} index
      */
-    private _setSelectedIndex(index) {
+    private _setSelectedIndex(index: number): void {
         const items = this.$hintMenu.find("li");
 
         // Range check
@@ -199,7 +205,7 @@ export class CodeHintList {
      *
      * @param {string} text
      */
-    public addPendingText(text) {
+    public addPendingText(text: string): void {
         this.pendingText += text;
     }
 
@@ -208,7 +214,7 @@ export class CodeHintList {
      *
      * @param {string} text
      */
-    public removePendingText(text) {
+    public removePendingText(text: string): void {
         if (this.pendingText.indexOf(text) === 0) {
             this.pendingText = this.pendingText.slice(text.length);
         }
@@ -219,7 +225,7 @@ export class CodeHintList {
      *
      * @private
      */
-    private _buildListView(hintObj: HintObject<Hint>) {
+    private _buildListView(hintObj: HintObject<Hint>): void {
         const self            = this;
         const match           = hintObj.match;
         const selectInitial   = hintObj.selectInitial;
@@ -233,7 +239,7 @@ export class CodeHintList {
         // if there is no match, assume name is already a formatted jQuery
         // object; otherwise, use match to format name for display.
         if (match) {
-            _addHint = function (name) {
+            _addHint = function (name: string): void {
                 const displayName = name.replace(
                     new RegExp(StringUtils.regexEscape(match), "i"),
                     "<strong>$&</strong>"
@@ -242,7 +248,7 @@ export class CodeHintList {
                 view.hints.push({ formattedHint: "<span>" + displayName + "</span>" });
             };
         } else {
-            _addHint = function (hint) {
+            _addHint = function (hint: Hint): void {
                 view.hints.push({ formattedHint: (hint.jquery) ? "" : hint });
             };
         }
@@ -322,7 +328,7 @@ export class CodeHintList {
      * @private
      * @return {{left: number, top: number, width: number}}
      */
-    private _calcHintListLocation() {
+    private _calcHintListLocation(): HintListLocation {
         const cursor      = this.editor._codeMirror.cursorCoords();
         let posTop        = cursor.bottom;
         let posLeft       = cursor.left;
@@ -367,7 +373,7 @@ export class CodeHintList {
      *
      * @param {KeyBoardEvent|keyBoardEvent.keyCode} keyEvent
      */
-    public isHandlingKeyCode(keyCodeOrEvent) {
+    public isHandlingKeyCode(keyCodeOrEvent: JQueryKeyEventObject | string): boolean {
         const keyCode = typeof keyCodeOrEvent === "object" ? keyCodeOrEvent.keyCode : keyCodeOrEvent;
         const ctrlKey = typeof keyCodeOrEvent === "object" ? keyCodeOrEvent.ctrlKey : false;
 
@@ -387,12 +393,12 @@ export class CodeHintList {
      * @param {KeyBoardEvent} keyEvent
      * @param {bool} isFakeKeydown - True if faked key down call (for example calling CTRL+Space while hints are open)
      */
-    private _keydownHook(event, isFakeKeydown) {
+    private _keydownHook(event: JQueryKeyEventObject, isFakeKeydown: boolean): boolean {
         let keyCode;
         const self = this;
 
         // positive distance rotates down; negative distance rotates up
-        function _rotateSelection(distance) {
+        function _rotateSelection(distance: number): void {
             const len = Math.min(self.hints.length, self.maxResults);
             let pos;
 
@@ -424,7 +430,7 @@ export class CodeHintList {
         }
 
         // Calculate the number of items per scroll page.
-        function _itemsPerPage() {
+        function _itemsPerPage(): number {
             let itemsPerPage = 1;
             const $items = self.$hintMenu.find("li");
             const $view = self.$hintMenu.find("ul.dropdown-menu");
@@ -523,7 +529,7 @@ export class CodeHintList {
      *
      * @return {boolean}
      */
-    public isOpen() {
+    public isOpen(): boolean {
         // We don't get a notification when the dropdown closes. The best
         // we can do is keep an "opened" flag and check to see if we
         // still have the "open" class applied.
@@ -540,7 +546,7 @@ export class CodeHintList {
      * @param {{hints: Array.<string|jQueryObject>, match: string,
      *          selectInitial: boolean}} hintObj
      */
-    public open(hintObj) {
+    public open(hintObj: HintObject<Hint>): void {
         Menus.closeAll();
         this._buildListView(hintObj);
 
@@ -564,7 +570,7 @@ export class CodeHintList {
      * @param {{hints: Array.<string|jQueryObject>, match: string,
      *          selectInitial: boolean}} hintObj
      */
-    public update(hintObj) {
+    public update(hintObj: HintObject<Hint>): void {
         this.$hintMenu.addClass("apply-transition");
         this._buildListView(hintObj);
 
@@ -580,14 +586,14 @@ export class CodeHintList {
      *
      * @param {KeyBoardEvent} keyEvent
      */
-    public callMoveUp(event) {
+    public callMoveUp(event: JQueryKeyEventObject): void {
         this._keydownHook(event, true);
     }
 
     /**
      * Closes the hint list
      */
-    public close() {
+    public close(): void {
         this.opened = false;
 
         if (this.$hintMenu) {
@@ -604,7 +610,7 @@ export class CodeHintList {
      *
      * @param {Function} callback
      */
-    public onSelect(callback) {
+    public onSelect(callback: (item) => void): void {
         this.handleSelect = callback;
     }
 
@@ -622,7 +628,7 @@ export class CodeHintList {
      *
      * @param {Function} callback
      */
-    public onClose(callback) {
+    public onClose(callback: (item) => void): void {
         // TODO: Due to #1381, this won't get called if the user clicks out of
         // the code hint menu. That's (sort of) okay right now since it doesn't
         // really matter if a single old invisible code hint list is lying

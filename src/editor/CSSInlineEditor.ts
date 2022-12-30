@@ -22,6 +22,9 @@
  *
  */
 
+import type File = require("filesystem/File");
+import type { InlineWidget } from "editor/InlineWidget";
+
 // Load dependent modules
 import * as CSSUtils from "language/CSSUtils";
 import { DropdownButton } from "widgets/DropdownButton";
@@ -39,7 +42,6 @@ import * as Strings from "strings";
 import * as ViewUtils from "utils/ViewUtils";
 import * as HealthLogger from "utils/HealthLogger";
 import * as _ from "lodash";
-import File = require("filesystem/File");
 
 interface FileNameMap {
     [fileName: string]: Array<File>;
@@ -48,6 +50,11 @@ interface FileNameMap {
 interface RuleHandler {
     inlineEditor: MultiRangeInlineEditor;
     handler: (e?) => void;
+}
+
+interface SelectorName {
+    selectorName: string;
+    reason: string;
 }
 
 const _newRuleHandlers: Array<RuleHandler> = [];
@@ -64,7 +71,7 @@ function _getCSSFilesInProject(): JQueryPromise<Array<File>> {
  * @return {selectorName: {string}, reason: {string}}
  * @private
  */
-function _getSelectorName(editor, pos) {
+function _getSelectorName(editor: Editor, pos: CodeMirror.Position): SelectorName {
     const tagInfo = HTMLUtils.getTagInfo(editor, pos);
     let selectorName = "";
     let reason;
@@ -125,11 +132,11 @@ function _getSelectorName(editor, pos) {
  * @param {MultiRangeInlineEditor} inlineEditor The inline editor to display the new rule in.
  * @param {string} path The path to the stylesheet file.
  */
-function _addRule(selectorName, inlineEditor, path) {
+function _addRule(selectorName: string, inlineEditor: MultiRangeInlineEditor, path: string): void {
     DocumentManager.getDocumentForPath(path).done(function (styleDoc) {
         const newRuleInfo = CSSUtils.addRuleToDocument(styleDoc!, selectorName, Editor.getUseTabChar(path), Editor.getSpaceUnits(path));
-        inlineEditor.addAndSelectRange(selectorName, styleDoc, newRuleInfo.range.from.line, newRuleInfo.range.to.line);
-        inlineEditor.editor.setCursorPos(newRuleInfo.pos.line, newRuleInfo.pos.ch);
+        inlineEditor.addAndSelectRange(selectorName, styleDoc!, newRuleInfo.range.from.line, newRuleInfo.range.to.line);
+        inlineEditor.editor!.setCursorPos(newRuleInfo.pos.line, newRuleInfo.pos.ch);
     });
 }
 
@@ -137,7 +144,7 @@ function _addRule(selectorName, inlineEditor, path) {
  * @private
  * Handle the "new rule" menu item by dispatching it to the handler for the focused inline editor.
  */
-function _handleNewRule() {
+function _handleNewRule(): void {
     const inlineEditor = getFocusedMultiRangeInlineEditor();
     if (inlineEditor) {
         const handlerInfo = _.find(_newRuleHandlers, function (entry) {
@@ -150,7 +157,7 @@ function _handleNewRule() {
 }
 
 /** Item renderer for stylesheet-picker dropdown */
-function _stylesheetListRenderer(item) {
+function _stylesheetListRenderer(item: File): string {
     let html = "<span class='stylesheet-name'>" + _.escape(item.name);
     if (item.subDirStr) {
         html += "<span class='stylesheet-dir'> — " + _.escape(item.subDirStr) + "</span>";
@@ -170,7 +177,7 @@ function _stylesheetListRenderer(item) {
  *         {string} if pos is in tag but not in tag name, class attr, or id attr; or null if the
  *         selection isn't even close to a context where we could provide anything.
  */
-function htmlToCSSProvider(hostEditor, pos) {
+function htmlToCSSProvider(hostEditor: Editor, pos: CodeMirror.Position): JQueryPromise<InlineWidget | string> | string | null {
 
     // Only provide a CSS editor when cursor is in HTML content
     if (hostEditor.getLanguageForSelection().getId() !== "html") {
@@ -200,7 +207,7 @@ function htmlToCSSProvider(hostEditor, pos) {
 
     const selectorName = selectorResult.selectorName;
 
-    const result = $.Deferred();
+    const result = $.Deferred<InlineWidget | string>();
     let cssInlineEditor;
     let cssFileInfos: Array<File> = [];
     let newRuleButton;
@@ -209,7 +216,7 @@ function htmlToCSSProvider(hostEditor, pos) {
      * @private
      * Callback when item from dropdown list is selected
      */
-    function _onDropdownSelect(event, fileInfo) {
+    function _onDropdownSelect(event: JQueryEventObject, fileInfo: File): void {
         _addRule(selectorName, cssInlineEditor, fileInfo.fullPath);
     }
 
@@ -219,8 +226,8 @@ function htmlToCSSProvider(hostEditor, pos) {
      * "no rules"/"no stylesheets" message accordingly.
      * @return {$.Promise} a promise that is resolved with the message to show. Never rejected.
      */
-    function _getNoRulesMsg() {
-        const result = $.Deferred();
+    function _getNoRulesMsg(): JQueryDeferred<string> {
+        const result = $.Deferred<string>();
         _getCSSFilesInProject().done(function (fileInfos: Array<File>) {
             result.resolve(fileInfos.length ? Strings.CSS_QUICK_EDIT_NO_MATCHES : Strings.CSS_QUICK_EDIT_NO_STYLESHEETS);
         });
@@ -231,7 +238,7 @@ function htmlToCSSProvider(hostEditor, pos) {
      * @private
      * Update the enablement of associated menu commands.
      */
-    function _updateCommands() {
+    function _updateCommands(): void {
         _newRuleCmd!.setEnabled(cssInlineEditor.hasFocus() && !newRuleButton.$button.hasClass("disabled"));
     }
 
@@ -239,7 +246,7 @@ function htmlToCSSProvider(hostEditor, pos) {
      * @private
      * Create a new rule on click.
      */
-    function _handleNewRuleClick(e) {
+    function _handleNewRuleClick(e: JQueryEventObject): void {
         if (!newRuleButton.$button.hasClass("disabled")) {
             if (cssFileInfos.length === 1) {
                 // Just go ahead and create the rule.
@@ -259,7 +266,7 @@ function htmlToCSSProvider(hostEditor, pos) {
      * @param {!File} a, b
      * @return {number}
      */
-    function _fileComparator(a, b) {
+    function _fileComparator(a: File, b: File): number {
         const aIsCSS = LanguageManager.getLanguageForPath(a.fullPath).getId() === "css";
         const bIsCSS = LanguageManager.getLanguageForPath(b.fullPath).getId() === "css";
         if (aIsCSS && !bIsCSS) {
@@ -304,7 +311,7 @@ function htmlToCSSProvider(hostEditor, pos) {
         return files;
     }
 
-    function _onHostEditorScroll() {
+    function _onHostEditorScroll(): void {
         newRuleButton.closeDropdown();
     }
 

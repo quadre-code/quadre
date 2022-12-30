@@ -29,6 +29,9 @@
  * the project, and/or jump to a line number. Providers can plug in to offer additional search modes.
  */
 
+import type { Selection } from "document/Document";
+import type File = require("filesystem/File");
+
 import * as DocumentManager from "document/DocumentManager";
 import * as EditorManager from "editor/EditorManager";
 import * as MainViewManager from "view/MainViewManager";
@@ -44,7 +47,6 @@ import { QuickSearchField } from "search/QuickSearchField";
 import * as StringMatch from "utils/StringMatch";
 import { RegistrationHandler as ProviderRegistrationHandler, Provider } from "features/PriorityBasedRegistration";
 import { DispatcherEvents } from "utils/EventDispatcher";
-import File = require("filesystem/File");
 
 interface PluginDef {
     name: string;
@@ -451,7 +453,7 @@ class QuickNavigateDialog {
      * no document was open when Quick Open was invoked.
      * @type {?Array.<{{start:{line:number, ch:number}, end:{line:number, ch:number}, primary:boolean, reversed:boolean}}>}
      */
-    private _origSelections = null;
+    private _origSelections: Array<Selection> | null = null;
 
     /**
      * @private
@@ -612,7 +614,7 @@ class QuickNavigateDialog {
             // Validate (could just use 0 and lineCount() here, but in future might want this to work for inline editors too)
             if (cursorPos && editor && cursorPos.line >= editor.getFirstVisibleLine() && cursorPos.line <= editor.getLastVisibleLine()) {
                 const from = {line: cursorPos.line, ch: cursorPos.ch};
-                const to   = {line: cursorPos.line};
+                const to   = {line: cursorPos.line} as unknown as CodeMirror.Position;
                 EditorManager.getCurrentFullEditor().setSelection(from, to, true);
 
                 return { error: null };  // no error even though no results listed

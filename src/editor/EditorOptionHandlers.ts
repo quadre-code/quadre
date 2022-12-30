@@ -63,7 +63,7 @@ _optionMapping[EditorOptionsHandler.AUTO_HIDE_SEARCH] = Commands.TOGGLE_SEARCH_A
  *
  * @param {string} name Name of preference that has changed
  */
-function _updateCheckedState(name) {
+function _updateCheckedState(name: string): void {
     const mapping = _optionMapping[name];
     if (!mapping) {
         return;
@@ -85,12 +85,12 @@ Object.keys(_optionMapping).forEach(function (preference) {
  * @param {string} prefName Name of preference that should be toggled by the function
  */
 function _getToggler(prefName) {
-    return function () {
+    return function (): void {
         PreferencesManager.set(prefName, !PreferencesManager.get(prefName));
     };
 }
 
-function _init() {
+function _init(): void {
     _.each(_optionMapping, function (commandName: string, prefName: string): void {
         CommandManager.get(commandName).setChecked(PreferencesManager.get(prefName));
     });
