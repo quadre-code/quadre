@@ -76,8 +76,8 @@ declare module "codemirror" {
     interface Editor {
         _lineFolds: Record<number, SimpleRange>;
 
-        foldCode: (line: number, options?: any) => void;
-        unfoldCode: (line: number, options: any) => void;
+        foldCode: (line: number, options?: any) => boolean;
+        unfoldCode: (line: number, options?: any) => void;
         isFolded: (line: number) => boolean;
 
         getValidFolds: (fold: Record<number, any>) => Record<number, any>;

@@ -22,6 +22,10 @@
  *
  */
 
+import type RemoteFile = require("extensions/default/RemoteFileAdapter/RemoteFile");
+import type File = require("filesystem/File");
+import type { Pane, View } from "view/Pane";
+
 import * as DocumentManager from "document/DocumentManager";
 import * as ImageViewTemplate from "text!htmlContent/image-view.html";
 import * as ProjectManager from "project/ProjectManager";
@@ -55,9 +59,9 @@ interface ScaleDivInfo {
  * This class is exported for extensions that want to create a
  * view factory based on ImageViewer
  */
-export class ImageView {
-    private file;
-    private $el: JQuery;
+export class ImageView implements View {
+    private file: File;
+    public $el: JQuery;
     private _naturalWidth: number;
     private _naturalHeight: number;
     private _scale: number;
@@ -77,10 +81,10 @@ export class ImageView {
     private $horzGuide: JQuery;
     private $vertGuide: JQuery;
 
-    constructor(file, $container) {
+    constructor(file: File, $container: JQuery) {
         this.file = file;
         this.$el = $(Mustache.render(ImageViewTemplate, {
-            fullPath: file.encodedPath || "file:///" + FileUtils.encodeFilePath(file.fullPath),
+            fullPath: (file as unknown as RemoteFile).encodedPath || "file:///" + FileUtils.encodeFilePath(file.fullPath),
             now: new Date().valueOf()
         }));
 
@@ -121,7 +125,7 @@ export class ImageView {
      * @param {!string} newPath - the name of the file that's changing changing
      * @private
      */
-    private _onFilenameChange(e, oldPath, newPath) {
+    private _onFilenameChange(e, oldPath: string, newPath: string): void {
         /*
         * File objects are already updated when the event is triggered
         * so we just need to see if the file has the same path as our image
@@ -139,10 +143,10 @@ export class ImageView {
      * @param {Event} e - event
      * @private
      */
-    private _onImageLoaded(e) {
+    private _onImageLoaded(e: JQueryEventObject): void {
         // add dimensions and size
-        this._naturalWidth = e.currentTarget.naturalWidth;
-        this._naturalHeight = e.currentTarget.naturalHeight;
+        this._naturalWidth = (e.currentTarget as HTMLImageElement).naturalWidth;
+        this._naturalHeight = (e.currentTarget as HTMLImageElement).naturalHeight;
 
         const extension = FileUtils.getFileExtension(this.file.fullPath);
         let dimensionString = this._naturalWidth + " &times; " + this._naturalHeight + " " + Strings.UNIT_PIXELS;
@@ -186,7 +190,7 @@ export class ImageView {
      * Update the scale element
      * @private
      */
-    private _updateScale() {
+    private _updateScale(): void {
         const currentWidth = this.$imagePreview.width();
 
         if (currentWidth && currentWidth < this._naturalWidth) {
@@ -209,7 +213,7 @@ export class ImageView {
      * @param {Event} e - event
      * @private
      */
-    private _showImageTip(e) {
+    private _showImageTip(e: JQueryEventObject): void {
         // Don't show image tip if this._scale is close to zero.
         // since we won't have enough room to show tip anyway.
         if (Math.floor(this._scale) === 0) {
@@ -282,7 +286,7 @@ export class ImageView {
      * @param {Event} e - event
      * @private
      */
-    private _hideImageTip(e) {
+    private _hideImageTip(e: JQueryEventObject): void {
         const $target   = $(e.target);
         const targetPos = $target.position();
         const imagePos  = this.$imagePreview.position();
@@ -306,7 +310,7 @@ export class ImageView {
      * Hides both guides and the tip
      * @private
      */
-    private _hideGuidesAndTip() {
+    private _hideGuidesAndTip(): void {
         this.$imageTip.hide();
         this.$imageGuides.hide();
     }
@@ -319,7 +323,7 @@ export class ImageView {
      * @param {number} offsetY mouseoffset from the top of the previewing image
      * @private
      */
-    private _handleMouseEnterOrExitScaleSticker(offsetX, offsetY) {
+    private _handleMouseEnterOrExitScaleSticker(offsetX: number, offsetY: number): void {
         const imagePos       = this.$imagePreview.position();
         const scaleDivPos    = this.$imageScale.position();
         const imgWidth       = this.$imagePreview.width();
@@ -382,14 +386,14 @@ export class ImageView {
     * Retrieves the file object for this view
     * return {!File} the file object for this view
     */
-    public getFile() {
+    public getFile(): File {
         return this.file;
     }
 
     /*
     * Updates the layout of the view
     */
-    public updateLayout() {
+    public updateLayout(): void {
         this._hideGuidesAndTip();
 
         const $container = this.$el.parent();
@@ -412,7 +416,7 @@ export class ImageView {
     /*
     * Destroys the view
     */
-    public destroy() {
+    public destroy(): void {
         delete _viewers[this.file.fullPath];
         (DocumentManager as unknown as DispatcherEvents).off(".ImageView");
         this.$image.off(".ImageView");
@@ -422,7 +426,7 @@ export class ImageView {
     /*
     * Refreshes the image preview with what's on disk
     */
-    public refresh() {
+    public refresh(): void {
         let noCacheUrl = this.$imagePreview.attr("src");
         const now = new Date().valueOf();
         const index = noCacheUrl.indexOf("?");
@@ -448,7 +452,7 @@ export class ImageView {
  * @param {!Pane} pane - the pane in which to host the view
  * @return {jQuery.Promise}
  */
-function _createImageView(file, pane) {
+function _createImageView(file: File, pane: Pane): JQueryPromise<void> {
     let view = pane.getViewForPath(file.fullPath);
 
     if (view) {
@@ -457,7 +461,7 @@ function _createImageView(file, pane) {
         view = new ImageView(file, pane.$content);
         pane.addView(view, true);
     }
-    return $.Deferred().resolve().promise();
+    return $.Deferred<void>().resolve().promise();
 }
 
 /**
@@ -468,7 +472,7 @@ function _createImageView(file, pane) {
  * @param {Array.<FileSystemEntry>=} added If entry is a Directory, contains zero or more added children
  * @param {Array.<FileSystemEntry>=} removed If entry is a Directory, contains zero or more removed children
  */
-function _handleFileSystemChange(event, entry, added, removed) {
+function _handleFileSystemChange(event: JQueryEventObject, entry: File, added: Array<FileSystemEntry>, removed: Array<FileSystemEntry>): void {
     // this may have been called because files were added
     //  or removed to the file system.  We don't care about those
     if (!entry || entry.isDirectory) {

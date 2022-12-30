@@ -30,6 +30,8 @@
  * Originally based on the code in CodeMirror/lib/util/search.js.
  */
 
+import type { Selection } from "document/Document";
+
 import * as CommandManager from "command/CommandManager";
 import * as Commands from "command/Commands";
 import * as MainViewManager from "view/MainViewManager";
@@ -260,7 +262,7 @@ function _updateFindBarWithMatchInfo(state: SearchState, matchRange: MatchRange,
  * @return {?{start: {line: number, ch: number}, end: {line: number, ch: number}}} The range for the next match, or
  *      null if there is no match.
  */
-function _getNextMatch(editor, searchBackwards, pos?, wrap?): Editor.Selection | null {
+function _getNextMatch(editor, searchBackwards, pos?, wrap?): Selection | null {
     const cm = editor._codeMirror;
     const state = getSearchState(cm);
     let cursor = getSearchCursor(cm, state, pos || editor.getCursorPos(false, searchBackwards ? "start" : "end"));
@@ -292,10 +294,10 @@ function _getNextMatch(editor, searchBackwards, pos?, wrap?): Editor.Selection |
  *      into view if it's offscreen, but will not be centered.
  * @param {boolean=} preferNoScroll If center is true, whether to avoid scrolling if the hit is in the top half of the screen. Default false.
  */
-function _selectAndScrollTo(editor: Editor.Editor, selections: Array<Editor.Selection>, center: boolean, preferNoScroll?: boolean): void {
+function _selectAndScrollTo(editor: Editor.Editor, selections: Array<Selection>, center: boolean, preferNoScroll?: boolean): void {
     const primarySelection = _.find(selections, function (sel) { return sel.primary; }) || _.last(selections);
     const resultVisible = editor.isLineVisible(primarySelection.start.line);
-    let centerOptions = Editor.BOUNDARY_CHECK_NORMAL;
+    let centerOptions: Editor.Boundary = Editor.BOUNDARY_CHECK_NORMAL;
 
     if (preferNoScroll && resultVisible) {
         // no need to scroll if the line with the match is in view
@@ -343,7 +345,7 @@ export function _getWordAt(editor: Editor.Editor, pos: CodeMirror.Position): Tex
  * @param {!{start: {line: number, ch: number}, end: {line: number, ch: number}}} sel2 The second selection to compare
  * @return {boolean} true if the selections are equal
  */
-function _selEq(sel1: Editor.Selection, sel2: Editor.Selection): boolean {
+function _selEq(sel1: Selection, sel2: Selection): boolean {
     return (CodeMirror.cmpPos(sel1.start, sel2.start) === 0 && CodeMirror.cmpPos(sel1.end, sel2.end) === 0);
 }
 
@@ -451,14 +453,14 @@ export function _findAllAndSelect(editor: Editor.Editor): void {
     }
 
     let sel = editor.getSelection();
-    const newSelections: Array<Editor.Selection> = [];
+    const newSelections: Array<Selection> = [];
     if (CodeMirror.cmpPos(sel.start, sel.end) === 0) {
         sel = _getWordAt(editor, sel.start);
     }
     if (CodeMirror.cmpPos(sel.start, sel.end) !== 0) {
         let searchStart = {line: 0, ch: 0};
         const state = getSearchState(editor._codeMirror);
-        let nextMatch: Editor.Selection | null;
+        let nextMatch: Selection | null;
         setQueryInfo(state, { query: editor.document.getRange(sel.start, sel.end), isCaseSensitive: false, isRegexp: false, isWholeWord: false });
 
         // tslint:disable-next-line:no-conditional-assignment

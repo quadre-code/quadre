@@ -477,11 +477,11 @@ function _scrollLine(direction) {
         const coords = editor._codeMirror.charCoords({line: line, ch: 0}, "local");
 
         if (coords.top < scrollInfo.top) {
-            scrollTop     -= inlineEditor.info.height;
-            removedScroll += inlineEditor.info.height;
+            scrollTop     -= inlineEditor.info!.height;
+            removedScroll += inlineEditor.info!.height;
 
-        } else if (coords.top + inlineEditor.info.height < scrollInfo.top + editorHeight) {
-            editorHeight -= inlineEditor.info.height;
+        } else if (coords.top + inlineEditor.info!.height < scrollInfo.top + editorHeight) {
+            editorHeight -= inlineEditor.info!.height;
         }
     });
 

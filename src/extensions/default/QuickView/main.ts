@@ -25,6 +25,7 @@
 /// <amd-dependency path="module" name="module"/>
 
 import type { Editor } from "editor/Editor";
+import type { InlineTextEditor } from "editor/InlineTextEditor";
 
 // Brackets modules
 const ColorUtils          = brackets.getModule("utils/ColorUtils");
@@ -579,7 +580,7 @@ function getHoveredEditor(mousePos) {
     }
 
     // Check for inline Editor instances first
-    const inlines = fullEditor.getInlineWidgets();
+    const inlines = fullEditor.getInlineWidgets() as Array<InlineTextEditor>;
     let editor;
 
     for (const inline of inlines) {

@@ -33,6 +33,13 @@ enum SpaceOption {
     showNoBreakSpace = "showNoBreakSpace",
 }
 
+declare module "codemirror" {
+    interface EditorConfiguration {
+        showTrailingSpace?: string;
+        showNoBreakSpace?: string;
+    }
+}
+
 function updateEditors(spaceOption: SpaceOption, includeEditor?) {
     const fullEditor = EditorManager.getCurrentFullEditor();
     if (!fullEditor) {

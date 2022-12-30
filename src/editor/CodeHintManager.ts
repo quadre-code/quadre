@@ -257,10 +257,10 @@ interface HintProvider {
 const hintProviders  = { "all" : [] };
 let lastChar: string | null = null;
 let sessionProvider: CodeHintProvider | null = null;
-let sessionEditor    = null;
+let sessionEditor: Editor | null = null;
 let hintList: CodeHintList | null = null;
 let deferredHints: JQueryDeferred<HintObject<string | JQuery>> | null = null;
-let keyDownEditor    = null;
+let keyDownEditor: Editor | null = null;
 let codeHintsEnabled = true;
 
 
@@ -281,7 +281,7 @@ PreferencesManager.on("change", "showCodeHints", function () {
 /**
  * Comparator to sort providers from high to low priority
  */
-function _providerSort(a, b) {
+function _providerSort(a: HintProvider, b: HintProvider): number {
     return b.priority - a.priority;
 }
 
@@ -302,7 +302,7 @@ function _providerSort(a, b) {
  * Providers with a higher number will be asked for hints before those
  * with a lower priority value. Defaults to zero.
  */
-export function registerHintProvider(providerInfo: CodeHintProvider, languageIds, priority) {
+export function registerHintProvider(providerInfo: CodeHintProvider, languageIds: Array<string>, priority: number): void {
     const providerObj = {
         provider: providerInfo,
         priority: priority || 0
@@ -337,7 +337,7 @@ export function registerHintProvider(providerInfo: CodeHintProvider, languageIds
  *     language IDs for languages to remove the provider for. Defaults
  *     to all languages.
  */
-export function _removeHintProvider(provider: CodeHintProvider, targetLanguageId) {
+export function _removeHintProvider(provider: CodeHintProvider, targetLanguageId: Array<string> | string): void {
     let index;
     let providers;
     let targetLanguageIdArr;
@@ -384,7 +384,7 @@ function _getProvidersForLanguageId(languageId): Array<HintProvider> {
 /**
  * End the current hinting session
  */
-function _endSession() {
+function _endSession(): void {
     if (!hintList) {
         return;
     }
@@ -408,7 +408,7 @@ function _endSession() {
  * @param {Editor} editor
  * @return boolean
  */
-function _inSession(editor) {
+function _inSession(editor: Editor): boolean {
     if (sessionEditor) {
         if (sessionEditor === editor &&
                 (hintList!.isOpen() ||
@@ -427,17 +427,16 @@ function _inSession(editor) {
  *
  * Assumes that it is called when a session is active (i.e. sessionProvider is not null).
  */
-function _updateHintList(callMoveUpEvent?) {
-
-    callMoveUpEvent = typeof callMoveUpEvent === "undefined" ? false : callMoveUpEvent;
+function _updateHintList(callMoveUpEvent?: JQueryKeyEventObject): void {
+    const callEvent = typeof callMoveUpEvent === "undefined" ? false : callMoveUpEvent;
 
     if (deferredHints) {
         deferredHints.reject();
         deferredHints = null;
     }
 
-    if (callMoveUpEvent) {
-        return hintList!.callMoveUp(callMoveUpEvent);
+    if (callEvent) {
+        return hintList!.callMoveUp(callEvent);
     }
 
     const response = sessionProvider!.getHints(lastChar);
@@ -449,20 +448,20 @@ function _updateHintList(callMoveUpEvent?) {
     } else {
         // if the response is true, end the session and begin another
         if (response === true) {
-            const previousEditor = sessionEditor;
+            const previousEditor = sessionEditor!;
 
             _endSession();
             _beginSession(previousEditor);
         } else if (response.hasOwnProperty("hints")) { // a synchronous response
             if (hintList!.isOpen()) {
                 // the session is open
-                hintList!.update(response);
+                hintList!.update(response as any);
             } else {
-                hintList!.open(response);
+                hintList!.open(response as any);
             }
         } else { // response is a deferred
             deferredHints = response as JQueryDeferred<HintObject<string | JQuery>>;
-            (response as JQueryDeferred<HintObject<string | JQuery>>).done(function (hints) {
+            (response as JQueryDeferred<HintObject<string | JQuery>>).done(function (hints: any) {
                 // Guard against timing issues where the session ends before the
                 // response gets a chance to execute the callback.  If the session
                 // ends first while still waiting on the response, then hintList
@@ -486,7 +485,7 @@ function _updateHintList(callMoveUpEvent?) {
  * Try to begin a new hinting session.
  * @param {Editor} editor
  */
-const _beginSession = function (editor) {
+const _beginSession = function (editor: Editor): void {
 
     if (!codeHintsEnabled) {
         return;
@@ -543,7 +542,7 @@ const _beginSession = function (editor) {
         });
         hintList.onSelect(function (hint) {
             const restart = sessionProvider!.insertHint(hint);
-            const previousEditor = sessionEditor;
+            const previousEditor = sessionEditor!;
             _endSession();
             if (restart) {
                 _beginSession(previousEditor);
@@ -570,7 +569,7 @@ const _beginSession = function (editor) {
  * @param {Editor} editor
  * @param {KeyboardEvent} event
  */
-function _handleKeydownEvent(jqEvent, editor, event) {
+function _handleKeydownEvent(jqEvent: JQueryEventObject, editor: Editor, event: JQueryEventObject): void {
     keyDownEditor = editor;
     if (!(event.ctrlKey || event.altKey || event.metaKey) &&
             (event.keyCode === KeyEvent.DOM_VK_ENTER ||
@@ -579,7 +578,7 @@ function _handleKeydownEvent(jqEvent, editor, event) {
         lastChar = String.fromCharCode(event.keyCode);
     }
 }
-function _handleKeypressEvent(jqEvent, editor, event) {
+function _handleKeypressEvent(jqEvent: JQueryEventObject, editor: Editor, event: JQueryEventObject): void {
     keyDownEditor = editor;
 
     // Last inserted character, used later by handleChange
@@ -590,7 +589,7 @@ function _handleKeypressEvent(jqEvent, editor, event) {
         hintList.addPendingText(lastChar);
     }
 }
-function _handleKeyupEvent(jqEvent, editor, event) {
+function _handleKeyupEvent(jqEvent: JQueryEventObject, editor: Editor, event: JQueryEventObject): void {
     keyDownEditor = editor;
     if (_inSession(editor)) {
         if (event.keyCode === KeyEvent.DOM_VK_HOME ||
@@ -615,7 +614,7 @@ function _handleKeyupEvent(jqEvent, editor, event) {
  * @param {BracketsEvent} event
  * @param {Editor} editor
  */
-function _handleCursorActivity(event, editor) {
+function _handleCursorActivity(event: JQueryEventObject, editor: Editor): void {
     if (_inSession(editor)) {
         if (editor.getSelections().length > 1) {
             _endSession();
@@ -632,7 +631,7 @@ function _handleCursorActivity(event, editor) {
  * @param {Editor} editor
  * @param {{from: Pos, to: Pos, text: Array, origin: string}} changeList
  */
-function _handleChange(event, editor, changeList) {
+function _handleChange(event: JQueryEventObject, editor: Editor, changeList: Array<CodeMirror.EditorChange>): void {
     if (lastChar && editor === keyDownEditor) {
         keyDownEditor = null;
         if (_inSession(editor)) {
@@ -676,8 +675,8 @@ function _handleChange(event, editor, changeList) {
  * @return {boolean} true if the exclusion is not null and is exactly the same as textAfterCursor,
  * false otherwise.
  */
-export function hasValidExclusion(exclusion, textAfterCursor) {
-    return (exclusion && exclusion === textAfterCursor);
+export function hasValidExclusion(exclusion: string, textAfterCursor: string): boolean {
+    return (!!exclusion && exclusion === textAfterCursor);
 }
 
 /**
@@ -685,8 +684,8 @@ export function hasValidExclusion(exclusion, textAfterCursor) {
  *
  * @return {boolean} - true if the hints are open, false otherwise.
  */
-export function isOpen() {
-    return (hintList && hintList.isOpen());
+export function isOpen(): boolean {
+    return (hintList && hintList.isOpen())!;
 }
 
 /**
@@ -694,7 +693,7 @@ export function isOpen() {
  * then close the current one and restart a new one.
  * @param {Editor} editor
  */
-function _startNewSession(editor) {
+function _startNewSession(editor: Editor | null): void {
     if (isOpen()) {
         return;
     }
@@ -716,11 +715,11 @@ function _startNewSession(editor) {
 /**
  * Expose CodeHintList for unit testing
  */
-export function _getCodeHintList() {
+export function _getCodeHintList(): CodeHintList | null {
     return hintList;
 }
 
-function activeEditorChangeHandler(event, current, previous) {
+function activeEditorChangeHandler(event: JQueryEventObject | null, current: Editor | null, previous: Editor | null): void {
     if (current) {
         current.on("editorChange", _handleChange);
         current.on("keydown",  _handleKeydownEvent);

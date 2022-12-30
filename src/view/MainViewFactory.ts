@@ -62,12 +62,14 @@
  *
  */
 
+import type File = require("filesystem/File");
+
 import * as _ from "lodash";
 import { Pane } from "view/Pane";
 
 interface Factory {
     canOpenFile(path: string): boolean;
-    openFile(path: string, pane: Pane): JQueryPromise<any>;
+    openFile(path: File, pane: Pane): JQueryPromise<any>;
 }
 
 /**

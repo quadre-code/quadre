@@ -272,7 +272,7 @@ export function handleExtractToVariable() {
             expns = getExpressions(ast, start, end);
 
             expns.forEach(function (expn, index) {
-                expn.value = doc.getText().substr(expn.start, expn.end - expn.start);
+                expn.value = doc.getText()!.substr(expn.start, expn.end - expn.start);
             });
 
             // Sort expressions by their length

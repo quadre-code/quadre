@@ -40,20 +40,20 @@ interface EditPerform {
     end?: CodeMirror.Position;
 }
 
-interface Selection {
+export interface Selection {
     start: CodeMirror.Position;
     end: CodeMirror.Position;
-    primary: boolean;
-    reversed: boolean;
-    isBeforeEdit: boolean;
+    primary?: boolean;
+    reversed?: boolean;
+    isBeforeEdit?: boolean;
 }
 
-interface Edit {
+export interface Edit {
     edit: EditPerform | Array<EditPerform>;
     selection?: Selection | Array<Selection>;
 }
 
-interface SelectionAdjusted {
+export interface SelectionAdjusted {
     start: CodeMirror.Position;
     end: CodeMirror.Position;
     primary: boolean;
@@ -468,7 +468,7 @@ export class Document extends EventDispatcher.EventDispatcherBase {
      *     (Note that this is a higher level of batching than batchOperation(), which already batches all
      *     edits within it for undo. Origin batching works across operations.)
      */
-    public replaceRange(text: string, start: CodeMirror.Position, end?: CodeMirror.Position, origin?: string): void {
+    public replaceRange(text: string, start: CodeMirror.Position, end?: CodeMirror.Position, origin?: string | null): void {
         this._ensureMasterEditor();
         this._masterEditor._codeMirror.replaceRange(text, start, end, origin);
         // _handleEditorChange() triggers "change" event

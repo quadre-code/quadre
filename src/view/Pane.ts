@@ -169,19 +169,20 @@ import * as paneTemplate from "text!htmlContent/pane.html";
 import File = require("filesystem/File");
 import * as CodeMirror from "codemirror";
 
-interface View {
+export interface View {
     $el: JQuery;
-    _codeMirror: CodeMirror.Editor;
+    _codeMirror?: CodeMirror.Editor;
     getFile(): File;
     updateLayout(forceRefresh?: boolean);
     destroy();
-    getScrollPos(): any;
-    adjustScrollPos(state: any, heightDelta: number): any;
-    getViewState(): any;
-    restoreViewState(viewState: any): any;
-    notifyContainerChange(): any;
-    notifyVisibilityChange(boolean): any;
+    getScrollPos?(): any;
+    adjustScrollPos?(state: any, heightDelta: number): any;
+    getViewState?(): any;
+    restoreViewState?(viewState: any): any;
+    notifyContainerChange?(): any;
+    notifyVisibilityChange?(boolean): any;
     focus?();
+    markPaneId?(id: string): void;
 }
 
 interface ViewMap {
@@ -1162,7 +1163,7 @@ export class Pane extends EventDispatcher.EventDispatcherBase {
      * @param {!View} view - the View object to add
      * @param {boolean} show - true to show the view right away, false otherwise
      */
-    public addView(view, show) {
+    public addView(view: View, show?: boolean) {
         const file = view.getFile();
         const path = file && file.fullPath;
 

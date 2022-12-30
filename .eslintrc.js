@@ -151,7 +151,6 @@ module.exports = {
         // Enable incrementally
         {
             "files": [
-                "src/editor/**/*.ts",
                 "src/extensibility/**/*.ts",
                 "src/extensions/default/**/*.ts",
                 "src/filesystem/**/*.ts",

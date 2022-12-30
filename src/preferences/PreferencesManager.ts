@@ -39,7 +39,7 @@ import * as Strings from "strings";
 import * as PreferencesImpl from "preferences/PreferencesImpl";
 import * as _ from "lodash";
 
-interface PreferenceContext {
+export interface PreferenceContext {
     path?: string | null;
     language?: string | null;
     scopeOrder?: any;

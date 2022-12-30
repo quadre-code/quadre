@@ -26,10 +26,12 @@
  * Text-editing commands that apply to whichever Editor is currently focused
  */
 
+import type { Edit, SelectionAdjusted, Selection } from "document/Document";
+
 // Load dependent modules
 import * as Commands from "command/Commands";
 import * as Strings from "strings";
-import { Editor, Selection, LineSelection } from "editor/Editor";
+import { Editor, LineSelection } from "editor/Editor";
 import * as CommandManager from "command/CommandManager";
 import * as EditorManager from "editor/EditorManager";
 import * as CodeMirror from "codemirror";
@@ -45,14 +47,10 @@ interface SimpleEdit {
     edit: EditGroup;
 }
 
-interface EditText {
-    edit: Array<EditGroup>;
-    selection?: Array<Selection>;
-}
-
-interface EditLine {
-    edit: EditGroup;
-    selection: Selection;
+interface Mode {
+    lineComment: Array<string>;
+    blockCommentStart: string;
+    blockCommentEnd: string;
 }
 
 /**
@@ -61,8 +59,8 @@ interface EditLine {
 const DIRECTION_UP    = -1;
 const DIRECTION_DOWN  = +1;
 
-function _getMode(editor, mode) {
-    const language = editor.document.getLanguage().getLanguageForMode(mode.name || mode);
+function _getMode(editor: Editor, mode: CodeMirror.Mode<any> | string): Mode {
+    const language = editor.document.getLanguage().getLanguageForMode((mode as CodeMirror.Mode<any>).name || (mode as string));
     return {
         lineComment: language.getLineCommentPrefixes(),
         blockCommentStart: language.getBlockCommentPrefix(),
@@ -74,13 +72,13 @@ function _getMode(editor, mode) {
  * Invokes a language-specific line-comment/uncomment handler
  * @param {?Editor} editor If unspecified, applies to the currently focused editor
  */
-function lineComment(editor) {
+function lineComment(editor: Editor): void {
     editor = editor || EditorManager.getFocusedEditor();
     if (!editor) {
         return;
     }
 
-    editor._codeMirror.toggleLineComment({
+    (editor._codeMirror as any).toggleLineComment({
         indent: Editor.getIndentLineComment(),
         padding: Editor.getPaddingComment(),
         commentBlankLines: Editor.getCommentBlankLines(),
@@ -94,13 +92,13 @@ function lineComment(editor) {
  * Invokes a language-specific block-comment/uncomment handler
  * @param {?Editor} editor If unspecified, applies to the currently focused editor
  */
-function blockComment(editor) {
+function blockComment(editor: Editor): void {
     editor = editor || EditorManager.getFocusedEditor();
     if (!editor) {
         return;
     }
 
-    editor._codeMirror.toggleBlockComment({
+    (editor._codeMirror as any).toggleBlockComment({
         indent: Editor.getIndentLineComment(),
         padding: Editor.getPaddingComment(),
         getMode: function (mode) {
@@ -113,7 +111,7 @@ function blockComment(editor) {
  * Duplicates the selected text, or current line if no selection. The cursor/selection is left
  * on the second copy.
  */
-function duplicateText(editor: Editor) {
+function duplicateText(editor: Editor): void {
     editor = editor || EditorManager.getFocusedEditor();
     if (!editor) {
         return;
@@ -157,7 +155,7 @@ function duplicateText(editor: Editor) {
  * Deletes the current line if there is no selection or the lines for the selection
  * (removing the end of line too)
  */
-function deleteCurrentLines(editor) {
+function deleteCurrentLines(editor: Editor): void {
     editor = editor || EditorManager.getFocusedEditor();
     if (!editor) {
         return;
@@ -202,7 +200,7 @@ function deleteCurrentLines(editor) {
  * @param {Editor} editor - target editor
  * @param {Number} direction - direction of the move (-1,+1) => (Up,Down)
  */
-function moveLine(editor: Editor, direction) {
+function moveLine(editor: Editor, direction: 1 | -1): void {
     editor = editor || EditorManager.getFocusedEditor();
     if (!editor) {
         return;
@@ -215,8 +213,8 @@ function moveLine(editor: Editor, direction) {
     const lastLine        = editor.getLastVisibleLine()!;
     const totalLines      = editor.lineCount();
     let lineLength        = 0;
-    const edits: Array<EditText> = [];
-    let newSels           = [];
+    const edits: Array<Edit> = [];
+    let newSels: Array<SelectionAdjusted> = [];
 
     _.each(lineSelections, function (lineSel: LineSelection) {
         const sel = lineSel.selectionForEdit;
@@ -310,7 +308,7 @@ function moveLine(editor: Editor, direction) {
  * Moves the selected text, or current line if no selection, one line up. The cursor/selection
  * moves with the line/lines.
  */
-function moveLineUp(editor) {
+function moveLineUp(editor: Editor): void {
     moveLine(editor, DIRECTION_UP);
 }
 
@@ -318,7 +316,7 @@ function moveLineUp(editor) {
  * Moves the selected text, or current line if no selection, one line down. The cursor/selection
  * moves with the line/lines.
  */
-function moveLineDown(editor) {
+function moveLineDown(editor: Editor): void {
     moveLine(editor, DIRECTION_DOWN);
 }
 
@@ -328,7 +326,7 @@ function moveLineDown(editor) {
  * @param {Editor} editor - target editor
  * @param {Number} direction - direction where to place the new line (-1,+1) => (Up,Down)
  */
-function openLine(editor: Editor, direction) {
+function openLine(editor: Editor, direction: 1 | -1): void {
     editor = editor || EditorManager.getFocusedEditor();
     if (!editor) {
         return;
@@ -338,7 +336,7 @@ function openLine(editor: Editor, direction) {
     const isInlineWidget = !!EditorManager.getFocusedInlineWidget();
     const lastLine       = editor.getLastVisibleLine()!;
     const doc            = editor.document;
-    const edits: Array<EditLine> = [];
+    const edits: Array<Edit> = [];
     let newSelections;
     let line;
 
@@ -376,13 +374,14 @@ function openLine(editor: Editor, direction) {
                     insertPos = {line: line, ch: 0};
                 }
                 // We want the selection after this edit to be right before the \n we just inserted.
-                edits.push({edit: {text: "\n", start: insertPos}, selection: {start: insertPos, end: insertPos, primary: sel.primary}});
+                // edits.push({edit: {text: "\n", start: insertPos}, selection: {start: insertPos, end: insertPos, primary: sel.primary}});
+                edits.push({edit: {text: "\n", start: insertPos}, selection: {start: insertPos, end: insertPos, primary: sel.primary!}});
             } else {
                 // We just want to discard this selection, since we've already operated on the
                 // same line and it would just collapse to the same location. But if this was
                 // primary, make sure the last selection we did operate on ends up as primary.
                 if (sel.primary) {
-                    edits[edits.length - 1].selection.primary = true;
+                    (edits[edits.length - 1].selection as Selection).primary = true;
                 }
             }
         });
@@ -408,7 +407,7 @@ function openLine(editor: Editor, direction) {
  * The cursor is moved in the new line.
  * @param {Editor} editor - target editor
  */
-function openLineAbove(editor) {
+function openLineAbove(editor: Editor): void {
     openLine(editor, DIRECTION_UP);
 }
 
@@ -417,14 +416,14 @@ function openLineAbove(editor) {
  * The cursor is moved in the new line.
  * @param {Editor} editor - target editor
  */
-function openLineBelow(editor) {
+function openLineBelow(editor: Editor): void {
     openLine(editor, DIRECTION_DOWN);
 }
 
 /**
  * Indent a line of text if no selection. Otherwise, indent all lines in selection.
  */
-function indentText() {
+function indentText(): void {
     const editor = EditorManager.getFocusedEditor();
     if (!editor) {
         return;
@@ -436,7 +435,7 @@ function indentText() {
 /**
  * Unindent a line of text if no selection. Otherwise, unindent all lines in selection.
  */
-function unindentText() {
+function unindentText(): void {
     const editor = EditorManager.getFocusedEditor();
     if (!editor) {
         return;
@@ -445,7 +444,7 @@ function unindentText() {
     editor._codeMirror.execCommand("indentLess");
 }
 
-function selectLine(editor) {
+function selectLine(editor: Editor): void {
     editor = editor || EditorManager.getFocusedEditor();
     if (editor) {
         // We can just use `convertToLineSelections`, but throw away the original tracked selections and just use the
@@ -459,7 +458,7 @@ function selectLine(editor) {
  * Takes the current selection and splits each range into separate selections, one per line.
  * @param {!Editor} editor The editor to operate on.
  */
-function splitSelIntoLines(editor) {
+function splitSelIntoLines(editor: Editor): void {
     editor = editor || EditorManager.getFocusedEditor();
     if (editor) {
         editor._codeMirror.execCommand("splitSelectionByLine");
@@ -472,7 +471,7 @@ function splitSelIntoLines(editor) {
  * @param {!Editor} editor The editor to operate on.
  * @param {number} dir The direction to add - 1 is down, -1 is up.
  */
-function addCursorToSelection(editor, dir) {
+function addCursorToSelection(editor: Editor, dir: 1 | -1): void {
     editor = editor || EditorManager.getFocusedEditor();
     if (editor) {
         const origSels = editor.getSelections();
@@ -511,7 +510,7 @@ function addCursorToSelection(editor, dir) {
  * Adds a cursor on the previous line before each selected range to the selection.
  * @param {!Editor} editor The editor to operate on.
  */
-function addCursorToPrevLine(editor) {
+function addCursorToPrevLine(editor: Editor): void {
     addCursorToSelection(editor, -1);
 }
 
@@ -520,13 +519,13 @@ function addCursorToPrevLine(editor) {
  * Adds a cursor on the next line after each selected range to the selection.
  * @param {!Editor} editor The editor to operate on.
  */
-function addCursorToNextLine(editor) {
+function addCursorToNextLine(editor: Editor): void {
     addCursorToSelection(editor, 1);
 }
 
-function handleUndoRedo(operation) {
+function handleUndoRedo(operation: "undo" | "redo"): JQueryPromise<void> {
     const editor = EditorManager.getFocusedEditor();
-    const result = $.Deferred();
+    const result = $.Deferred<void>();
 
     if (editor) {
         editor[operation]();
@@ -538,16 +537,16 @@ function handleUndoRedo(operation) {
     return result.promise();
 }
 
-function handleUndo() {
+function handleUndo(): JQueryPromise<void> {
     return handleUndoRedo("undo");
 }
 
-function handleRedo() {
+function handleRedo(): JQueryPromise<void> {
     return handleUndoRedo("redo");
 }
 
-function _handleSelectAll() {
-    const result = $.Deferred();
+function _handleSelectAll(): JQueryPromise<void> {
+    const result = $.Deferred<void>();
     const editor = EditorManager.getFocusedEditor();
 
     if (editor) {
@@ -560,16 +559,16 @@ function _handleSelectAll() {
     return result.promise();
 }
 
-function _execCommand(cmd) {
+function _execCommand(cmd: string): void {
     window.document.execCommand(cmd);
 }
-function _execCommandCut() {
+function _execCommandCut(): void {
     _execCommand("cut");
 }
-function _execCommandCopy() {
+function _execCommandCopy(): void {
     _execCommand("copy");
 }
-function _execCommandPaste() {
+function _execCommandPaste(): void {
     _execCommand("paste");
 }
 

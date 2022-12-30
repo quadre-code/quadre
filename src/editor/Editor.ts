@@ -61,6 +61,10 @@
  *     `editorInstance.on("eventname", handler);`
  */
 
+import type { Document, Selection } from "document/Document";
+import type File = require("filesystem/File");
+import type { InlineWidget } from "editor/InlineWidget";
+
 import * as AnimationUtils from "utils/AnimationUtils";
 import * as Async from "utils/Async";
 import * as CodeMirror from "codemirror";
@@ -85,13 +89,6 @@ interface Gutter {
     languages?: Array<string>;
 }
 
-export interface Selection {
-    start: CodeMirror.Position;
-    end: CodeMirror.Position;
-    reversed?: boolean;
-    primary?: boolean;
-}
-
 export interface LineSelection {
     selectionForEdit: Selection;
     selectionsToTrack: Array<Selection>;
@@ -100,6 +97,20 @@ export interface LineSelection {
 interface CmSelection {
     anchor: CodeMirror.Position;
     head: CodeMirror.Position;
+}
+
+interface ScrollPosition {
+    x: number;
+    y: number;
+}
+
+interface EditorViewState {
+    selections: Array<Selection>;
+    scrollPos: ScrollPosition;
+    selection?: {
+        start: CodeMirror.Position;
+        end: CodeMirror.Position;
+    };
 }
 
 /** Editor preferences */
@@ -312,6 +323,7 @@ let _duringFocus = false;
  */
 export const BOUNDARY_CHECK_NORMAL   = 0;
 export const BOUNDARY_IGNORE_TOP     = 1;
+export type Boundary = typeof BOUNDARY_CHECK_NORMAL | typeof BOUNDARY_IGNORE_TOP;
 
 /**
  * @private
@@ -319,7 +331,7 @@ export const BOUNDARY_IGNORE_TOP     = 1;
  * @param {!CodeMirror.Pos} pos
  * @return {CodeMirror.Pos}
  */
-function _copyPos(pos) {
+function _copyPos(pos: CodeMirror.Position): CodeMirror.Position {
     return new CodeMirror.Pos(pos.line, pos.ch);
 }
 
@@ -327,11 +339,11 @@ function _copyPos(pos) {
  * Helper functions to check options.
  * @param {number} options BOUNDARY_CHECK_NORMAL or BOUNDARY_IGNORE_TOP
  */
-function _checkTopBoundary(options) {
+function _checkTopBoundary(options: Boundary): boolean {
     return (options !== BOUNDARY_IGNORE_TOP);
 }
 
-function _checkBottomBoundary(options) {
+function _checkBottomBoundary(options: Boundary): boolean {
     return true;
 }
 
@@ -343,7 +355,7 @@ function _checkBottomBoundary(options) {
  *
  * @return {*} A context for the specified file name
  */
-function _buildPreferencesContext(fullPath) {
+function _buildPreferencesContext(fullPath: string | null | undefined): PreferencesManager.PreferenceContext {
     return PreferencesManager._buildContext(fullPath,
         fullPath ? LanguageManager.getLanguageForPath(fullPath).getId() : undefined);
 }
@@ -379,7 +391,7 @@ export class Editor extends EventDispatcher.EventDispatcherBase {
      * The Document we're bound to
      * @type {!Document}
      */
-    public document;
+    public document: Document;
 
     /**
      * The Editor's last known width.
@@ -403,13 +415,13 @@ export class Editor extends EventDispatcher.EventDispatcherBase {
      * CodeMirror directly.
      * @type {!CodeMirror}
      */
-    public _codeMirror: CodeMirror.Editor & CodeMirror.Doc;
+    public _codeMirror: CodeMirror.Editor;
 
     /**
      * @private
      * @type {!Array.<{id:number, data:Object}>}
      */
-    private _inlineWidgets;
+    private _inlineWidgets: Array<InlineWidget>;
 
     /**
      * @private
@@ -422,7 +434,7 @@ export class Editor extends EventDispatcher.EventDispatcherBase {
      * @type {Object}
      * Promise queues for inline widgets being added to a given line.
      */
-    private _inlineWidgetQueues;
+    private _inlineWidgetQueues: Record<number, Async.PromiseQueue>;
 
     /**
      * @private
@@ -432,10 +444,10 @@ export class Editor extends EventDispatcher.EventDispatcherBase {
     private _hideMarks;
 
     private _$messagePopover: JQuery | null;
-    private _paneId;
+    private _paneId: string | null;
     public _hostEditor;
     private _currentOptions;
-    private _focused;
+    private _focused: boolean;
     public $el: JQuery;
 
     constructor(document, makeMasterEditor, container, range?, options?) {
@@ -494,26 +506,26 @@ export class Editor extends EventDispatcher.EventDispatcherBase {
         const codeMirrorKeyMap = {
             // calls to triggerKeyboardShortcut are here to stop codemirror stealing shortcuts
             // note: order of shift and ctrl must be reversed
-            "Ctrl-D": function () { (window as any).triggerKeyboardShortcut("Ctrl-D"); },
-            "Shift-Ctrl-Up": function () { (window as any).triggerKeyboardShortcut("Ctrl-Shift-Up"); },
-            "Shift-Ctrl-Down": function () { (window as any).triggerKeyboardShortcut("Ctrl-Shift-Down"); },
+            "Ctrl-D": function (): void { (window as any).triggerKeyboardShortcut("Ctrl-D"); },
+            "Shift-Ctrl-Up": function (): void { (window as any).triggerKeyboardShortcut("Ctrl-Shift-Up"); },
+            "Shift-Ctrl-Down": function (): void { (window as any).triggerKeyboardShortcut("Ctrl-Shift-Down"); },
 
-            "Tab": function () { self._handleTabKey(); },
+            "Tab": function (): void { self._handleTabKey(); },
             "Shift-Tab": "indentLess",
 
-            "Left": function (instance) {
+            "Left": function (instance): void {
                 self._handleSoftTabNavigation(-1, "moveH");
             },
-            "Right": function (instance) {
+            "Right": function (instance): void {
                 self._handleSoftTabNavigation(1, "moveH");
             },
-            "Backspace": function (instance) {
+            "Backspace": function (instance): void {
                 self._handleSoftTabNavigation(-1, "deleteH");
             },
-            "Delete": function (instance) {
+            "Delete": function (instance): void {
                 self._handleSoftTabNavigation(1, "deleteH");
             },
-            "Esc": function (instance) {
+            "Esc": function (instance): void {
                 if (self.getSelections().length > 1) {
                     CodeMirror.commands.singleSelection(instance);
                 } else {
@@ -582,7 +594,7 @@ export class Editor extends EventDispatcher.EventDispatcherBase {
         this.on("keypress", function (event, editor, domEvent) {
             self._handleKeypressEvents(domEvent);
         });
-        this.on("change", function (event, editor, changeList) {
+        this.on("change", function (event, editor, changeList: Array<CodeMirror.EditorChange>) {
             self._handleEditorChange(changeList);
         });
         this.on("focus", function (event, editor) {
@@ -629,7 +641,7 @@ export class Editor extends EventDispatcher.EventDispatcherBase {
         });
     }
 
-    public markPaneId(paneId) {
+    public markPaneId(paneId: string): void {
         this._paneId = paneId;
 
         // Also add this to the pool of full editors
@@ -641,7 +653,7 @@ export class Editor extends EventDispatcher.EventDispatcherBase {
         this._doWorkingSetSync(null, this.document);
     }
 
-    private _doWorkingSetSync(event, doc) {
+    private _doWorkingSetSync(event, doc: Document): void {
         if (doc === this.document && this._paneId && this.document.isDirty) {
             MainViewManager.addToWorkingSet(this._paneId, this.document.file, -1, false);
         }
@@ -652,7 +664,7 @@ export class Editor extends EventDispatcher.EventDispatcherBase {
      * Editor that is secretly providing the Document's backing state, then the Document reverts to
      * a read-only string-backed mode.
      */
-    public destroy() {
+    public destroy(): void {
         this.trigger("beforeDestroy", this);
 
         // CodeMirror docs for getWrapperElement() say all you have to do is "Remove this from your
@@ -692,7 +704,7 @@ export class Editor extends EventDispatcher.EventDispatcherBase {
      * Handle any cursor movement in editor, including selecting and unselecting text.
      * @param {!Event} event
      */
-    private _handleCursorActivity(event) {
+    private _handleCursorActivity(event): void {
         this._updateStyleActiveLine();
     }
 
@@ -700,7 +712,7 @@ export class Editor extends EventDispatcher.EventDispatcherBase {
      * @private
      * Removes any whitespace after one of ]{}) to prevent trailing whitespace when auto-indenting
      */
-    private _handleWhitespaceForElectricChars() {
+    private _handleWhitespaceForElectricChars(): void {
         const self        = this;
         const instance    = this._codeMirror;
 
@@ -723,7 +735,7 @@ export class Editor extends EventDispatcher.EventDispatcherBase {
      * Handle CodeMirror key events.
      * @param {!Event} event
      */
-    private _handleKeypressEvents(event) {
+    private _handleKeypressEvents(event): void {
         const keyStr = String.fromCharCode(event.which || event.keyCode);
 
         if (/[\]{})]/.test(keyStr)) {
@@ -737,7 +749,7 @@ export class Editor extends EventDispatcher.EventDispatcherBase {
      * @param {Array.<{start:{line:number, ch:number}, end:{line:number, ch:number}, reversed:boolean, primary:boolean}>} selections
      *     The selections to indent.
      */
-    private _addIndentAtEachSelection(selections) {
+    private _addIndentAtEachSelection(selections: Array<Selection>): void {
         const instance = this._codeMirror;
         const usingTabs = instance.getOption("indentWithTabs");
         const indentUnit = instance.getOption("indentUnit")!;
@@ -765,7 +777,7 @@ export class Editor extends EventDispatcher.EventDispatcherBase {
      * @param {Array.<{start:{line:number, ch:number}, end:{line:number, ch:number}, reversed:boolean, primary:boolean}>} selections
      *     The selections to indent.
      */
-    private _autoIndentEachSelection(selections: Array<Selection>) {
+    private _autoIndentEachSelection(selections: Array<Selection>): void {
         // Capture all the line lengths, so we can tell if anything changed.
         // Note that this function should only be called if all selections are within a single line.
         const instance = this._codeMirror;
@@ -806,7 +818,7 @@ export class Editor extends EventDispatcher.EventDispatcherBase {
      * @private
      * Handle Tab key press.
      */
-    private _handleTabKey() {
+    private _handleTabKey(): void {
         // Tab key handling is done as follows:
         // 1. If any of the selections are multiline, just add one indent level to the
         //    beginning of all lines that intersect any selection.
@@ -872,7 +884,7 @@ export class Editor extends EventDispatcher.EventDispatcherBase {
      * @param {number} direction Direction of movement: 1 for forward, -1 for backward
      * @param {string} functionName name of the CodeMirror function to call if we handle the key
      */
-    private _handleSoftTabNavigation(direction, functionName) {
+    private _handleSoftTabNavigation(direction: 1 | -1, functionName: string): void {
         const instance = this._codeMirror;
         let overallJump: number | null = null;
 
@@ -947,7 +959,7 @@ export class Editor extends EventDispatcher.EventDispatcherBase {
      * Uses "text/plain" if the language does not define a mode
      * @return {string} The mode to use
      */
-    private _getModeFromDocument() {
+    private _getModeFromDocument(): string {
         // We'd like undefined/null/"" to mean plain text mode. CodeMirror defaults to plaintext for any
         // unrecognized mode, but it complains on the console in that fallback case: so, convert
         // here so we're always explicit, avoiding console noise.
@@ -958,7 +970,7 @@ export class Editor extends EventDispatcher.EventDispatcherBase {
     /**
      * Selects all text and maintains the current scroll position.
      */
-    public selectAllNoScroll() {
+    public selectAllNoScroll(): void {
         const cm = this._codeMirror;
         const info = this._codeMirror.getScrollInfo();
 
@@ -973,7 +985,7 @@ export class Editor extends EventDispatcher.EventDispatcherBase {
     /**
      * @return {boolean} True if editor is not showing the entire text of the document (i.e. an inline editor)
      */
-    public isTextSubset() {
+    public isTextSubset(): boolean {
         return Boolean(this._visibleRange);
     }
 
@@ -981,7 +993,7 @@ export class Editor extends EventDispatcher.EventDispatcherBase {
      * Ensures that the lines that are actually hidden in the inline editor correspond to
      * the desired visible range.
      */
-    private _updateHiddenLines() {
+    private _updateHiddenLines(): void {
         if (this._visibleRange) {
             const cm = this._codeMirror;
             const self = this;
@@ -992,13 +1004,13 @@ export class Editor extends EventDispatcher.EventDispatcherBase {
                     }
                 });
                 self._hideMarks = [];
-                self._hideMarks.push(self._hideLines(0, self._visibleRange!.startLine));
+                self._hideMarks.push(self._hideLines(0, self._visibleRange!.startLine!));
                 self._hideMarks.push(self._hideLines(self._visibleRange!.endLine! + 1, self.lineCount()));
             });
         }
     }
 
-    private _applyChanges(changeList) {
+    private _applyChanges(changeList: Array<CodeMirror.EditorChange>): void {
         // _visibleRange has already updated via its own Document listener. See if this change caused
         // it to lose sync. If so, our whole view is stale - signal our owner to close us.
         if (this._visibleRange) {
@@ -1037,7 +1049,7 @@ export class Editor extends EventDispatcher.EventDispatcherBase {
      *  - if we're a secondary editor, editor changes should be ignored if they were caused by us reacting
      *    to a Document change
      */
-    private _handleEditorChange(changeList) {
+    private _handleEditorChange(changeList: Array<CodeMirror.EditorChange>): void {
         // we're currently syncing from the Document, so don't echo back TO the Document
         if (this._duringSync) {
             return;
@@ -1083,7 +1095,7 @@ export class Editor extends EventDispatcher.EventDispatcherBase {
      *  - if we're a secondary editor, Document changes should be ignored if they were caused by us sending
      *    the document an editor change that originated with us
      */
-    private _handleDocumentChange(event, doc, changeList) {
+    private _handleDocumentChange(event: JQueryEventObject, doc: Document, changeList: Array<CodeMirror.EditorChange>): void {
         // we're currently syncing to the Document, so don't echo back FROM the Document
         if (this._duringSync) {
             return;
@@ -1107,7 +1119,7 @@ export class Editor extends EventDispatcher.EventDispatcherBase {
      * Responds to the Document's underlying file being deleted. The Document is now basically dead,
      * so we must close.
      */
-    private _handleDocumentDeleted(event) {
+    private _handleDocumentDeleted(event): void {
         // Pass the delete event along as the cause (needed in MultiRangeInlineEditor)
         this.trigger("lostContent", event);
     }
@@ -1115,7 +1127,7 @@ export class Editor extends EventDispatcher.EventDispatcherBase {
     /**
      * Responds to language changes, for instance when the file extension is changed.
      */
-    private _handleDocumentLanguageChanged(event) {
+    private _handleDocumentLanguageChanged(event): void {
         this._codeMirror.setOption("mode", this._getModeFromDocument());
     }
 
@@ -1124,11 +1136,11 @@ export class Editor extends EventDispatcher.EventDispatcherBase {
      * Install event handlers on the CodeMirror instance, translating them into
      * jQuery events on the Editor instance.
      */
-    private _installEditorListeners() {
+    private _installEditorListeners(): void {
         const self = this;
 
         // Redispatch these CodeMirror key events as Editor events
-        function _onKeyEvent(instance, event) {
+        function _onKeyEvent(instance, event): void {
             self.trigger("keyEvent", self, event);  // deprecated
             self.trigger(event.type, self, event);
             return event.defaultPrevented;   // false tells CodeMirror we didn't eat the event
@@ -1204,7 +1216,7 @@ export class Editor extends EventDispatcher.EventDispatcherBase {
      * Semi-private: only Document should call this.
      * @param {!string} text
      */
-    private _resetText(text) {
+    private _resetText(text: string): void {
         const currentText = this._codeMirror.getValue();
 
         // compare with ignoring line-endings, issue #11826
@@ -1230,7 +1242,7 @@ export class Editor extends EventDispatcher.EventDispatcherBase {
         this._codeMirror.markClean();
 
         // restore cursor and scroll positions
-        this.setCursorPos(cursorPos);
+        this.setCursorPos(cursorPos as any);
         this.setScrollPos(scrollPos.x, scrollPos.y);
 
         PerfUtils.addMeasurement(perfTimerName);
@@ -1241,7 +1253,7 @@ export class Editor extends EventDispatcher.EventDispatcherBase {
      * This is a required Pane-View interface method
      * @return {!File} the file associated with this editor
      */
-    public getFile() {
+    public getFile(): File {
         return this.document.file;
     }
 
@@ -1256,16 +1268,17 @@ export class Editor extends EventDispatcher.EventDispatcherBase {
      *  passing "head". A {line, ch} object will be returned.)
      * @return {!{line:number, ch:number}}
      */
-    public getCursorPos(expandTabs?, which?) {
+    public getCursorPos(expandTabs?: boolean, which?: "start" | "end" | "head" | "anchor"): CodeMirror.Position {
         // Translate "start" and "end" to the official CM names (it actually
         // supports them as-is, but that isn't documented and we don't want to
         // rely on it).
+        let start: string | undefined = which;
         if (which === "start") {
-            which = "from";
+            start = "from";
         } else if (which === "end") {
-            which = "to";
+            start = "to";
         }
-        const cursor = _copyPos(this._codeMirror.getCursor(which));
+        const cursor = _copyPos(this._codeMirror.getCursor(start));
 
         if (expandTabs) {
             cursor.ch = this.getColOffset(cursor);
@@ -1279,7 +1292,7 @@ export class Editor extends EventDispatcher.EventDispatcherBase {
      * @param {!{line:number, ch:number}} pos
      * @return {number}
      */
-    public getColOffset(pos) {
+    public getColOffset(pos: CodeMirror.Position): number {
         const line = this._codeMirror.getRange({line: pos.line, ch: 0}, pos);
         let tabSize: number | null = null;
         let column = 0;
@@ -1306,7 +1319,7 @@ export class Editor extends EventDispatcher.EventDispatcherBase {
      * @param {number} column Display column number
      * @return {number}
      */
-    public getCharIndexForColumn(lineNum, column) {
+    public getCharIndexForColumn(lineNum: number, column: number): number {
         const line = this._codeMirror.getLine(lineNum);
         let tabSize: number | null = null;
         let iCol = 0;
@@ -1335,9 +1348,10 @@ export class Editor extends EventDispatcher.EventDispatcherBase {
      * @param {boolean=} expandTabs  If true, use the actual visual column number instead of the character offset as
      *      the "ch" parameter.
      */
-    public setCursorPos(line, ch = 0, center?, expandTabs?) {
+    public setCursorPos(line: number | CodeMirror.Position, ch = 0, center?: boolean, expandTabs?: boolean): void {
         if (expandTabs) {
-            ch = this.getColOffset({line: line, ch: ch});
+            const pos = _.has(line, "line") ? line as CodeMirror.Position : CodeMirror.Pos(line as number, ch);
+            ch = this.getColOffset(pos);
         }
         this._codeMirror.setCursor(line, ch);
         if (center) {
@@ -1350,7 +1364,7 @@ export class Editor extends EventDispatcher.EventDispatcherBase {
      * @param {(number|string)} width
      * @param {(number|string)} height
      */
-    public setSize(width, height) {
+    public setSize(width: number | string | null, height: number | string): void {
         this._codeMirror.setSize(width, height);
     }
 
@@ -1363,7 +1377,7 @@ export class Editor extends EventDispatcher.EventDispatcherBase {
      *
      * @param {number} centerOptions Option value, or 0 for no options; one of the BOUNDARY_* constants above.
      */
-    public centerOnCursor(centerOptions = 0) {
+    public centerOnCursor(centerOptions: Boundary = 0): void {
         const $scrollerElement = $(this.getScrollerElement());
         const editorHeight = $scrollerElement.height();
 
@@ -1397,11 +1411,11 @@ export class Editor extends EventDispatcher.EventDispatcherBase {
      * @param {!{line:number, ch:number}}
      * @return {number}
      */
-    public indexFromPos(coords) {
+    public indexFromPos(coords: CodeMirror.Position): number {
         return this._codeMirror.indexFromPos(coords);
     }
 
-    public posFromIndex(index) {
+    public posFromIndex(index: number): CodeMirror.Position {
         return this._codeMirror.posFromIndex(index);
     }
 
@@ -1414,7 +1428,7 @@ export class Editor extends EventDispatcher.EventDispatcherBase {
      * @param {boolean} endInclusive
      *
      */
-    public posWithinRange(pos, start, end, endInclusive) {
+    public posWithinRange(pos: CodeMirror.Position, start: CodeMirror.Position, end: CodeMirror.Position, endInclusive: boolean): boolean {
         if (start.line <= pos.line && end.line >= pos.line) {
             if (endInclusive) {
                 return (start.line < pos.line || start.ch <= pos.ch) &&  // inclusive
@@ -1430,7 +1444,7 @@ export class Editor extends EventDispatcher.EventDispatcherBase {
     /**
      * @return {boolean} True if there's a text selection; false if there's just an insertion point
      */
-    public hasSelection() {
+    public hasSelection(): boolean {
         return this._codeMirror.somethingSelected();
     }
 
@@ -1442,7 +1456,7 @@ export class Editor extends EventDispatcher.EventDispatcherBase {
      * @param {!{line: number, ch: number}} headPos
      * @return {!{start:{line:number, ch:number}, end:{line:number, ch:number}}, reversed:boolean} the normalized range with start <= end
      */
-    private _normalizeRange(anchorPos, headPos): Selection {
+    private _normalizeRange(anchorPos: CodeMirror.Position, headPos: CodeMirror.Position): Selection {
         if (headPos.line < anchorPos.line || (headPos.line === anchorPos.line && headPos.ch < anchorPos.ch)) {
             return {start: _copyPos(headPos), end: _copyPos(anchorPos), reversed: true};
         }
@@ -1475,7 +1489,7 @@ export class Editor extends EventDispatcher.EventDispatcherBase {
     public getSelections(): Array<Selection> {
         const primarySel = this.getSelection();
 
-        return _.map<CmSelection, Selection>(this._codeMirror.listSelections(), function (this: Editor, sel: CmSelection) {
+        return _.map<CmSelection, Selection>(this._codeMirror.listSelections(), function (this: Editor, sel: CmSelection): Selection {
             const result = this._normalizeRange(sel.anchor, sel.head);
             if (result.start.line === primarySel.start.line && result.start.ch === primarySel.start.ch &&
                     result.end.line === primarySel.end.line && result.end.ch === primarySel.end.ch) {
@@ -1550,7 +1564,7 @@ export class Editor extends EventDispatcher.EventDispatcherBase {
      *     by newlines) instead of just the primary selection. Default false.
      * @return {!string} The selected text.
      */
-    public getSelectedText(allSelections?) {
+    public getSelectedText(allSelections?: boolean): string {
         if (allSelections) {
             return this._codeMirror.getSelection();
         }
@@ -1571,7 +1585,7 @@ export class Editor extends EventDispatcher.EventDispatcherBase {
      * @param {?string} origin An optional string that describes what other selection or edit operations this
      *      should be merged with for the purposes of undo. See {@link Document#replaceRange} for more details.
      */
-    public setSelection(start, end, center?, centerOptions?, origin?) {
+    public setSelection(start: CodeMirror.Position, end: CodeMirror.Position, center?: boolean, centerOptions?: Boundary, origin?: string | null): void {
         this.setSelections([{start: start, end: end || start}], center, centerOptions, origin);
     }
 
@@ -1590,7 +1604,7 @@ export class Editor extends EventDispatcher.EventDispatcherBase {
      * @param {?string} origin An optional string that describes what other selection or edit operations this
      *      should be merged with for the purposes of undo. See {@link Document#replaceRange} for more details.
      */
-    public setSelections(selections: Array<Selection>, center?, centerOptions?, origin?) {
+    public setSelections(selections: Array<Selection>, center?: boolean, centerOptions?: Boundary, origin?: string | null): void {
         let primIndex = selections.length - 1;
         let options;
         if (origin) {
@@ -1612,7 +1626,7 @@ export class Editor extends EventDispatcher.EventDispatcherBase {
      *
      * @param {?boolean} start
      */
-    public toggleOverwrite(state) {
+    public toggleOverwrite(state: boolean): void {
         this._codeMirror.toggleOverwrite(state);
     }
 
@@ -1621,7 +1635,7 @@ export class Editor extends EventDispatcher.EventDispatcherBase {
      * (e.g. within a token like "//"), moves the cursor to pos without selecting a range.
      * @param {!{line:number, ch:number}}
      */
-    public selectWordAt(pos) {
+    public selectWordAt(pos: CodeMirror.Position): void {
         const word = this._codeMirror.findWordAt(pos);
         this.setSelection(word.anchor, word.head);
     }
@@ -1630,7 +1644,7 @@ export class Editor extends EventDispatcher.EventDispatcherBase {
      * Gets the total number of lines in the document (includes lines not visible in the viewport)
      * @return {!number}
      */
-    public lineCount() {
+    public lineCount(): number {
         return this._codeMirror.lineCount();
     }
 
@@ -1639,7 +1653,7 @@ export class Editor extends EventDispatcher.EventDispatcherBase {
      * @param {number} zero-based index of the line to test
      * @return {boolean} true if the line is fully visible, false otherwise
      */
-    public isLineVisible(line) {
+    public isLineVisible(line: number): boolean {
         const coords = this._codeMirror.charCoords({line: line, ch: 0}, "local");
         const scrollInfo = this._codeMirror.getScrollInfo();
         const top = scrollInfo.top;
@@ -1653,16 +1667,16 @@ export class Editor extends EventDispatcher.EventDispatcherBase {
      * Gets the number of the first visible line in the editor.
      * @return {number} The 0-based index of the first visible line.
      */
-    public getFirstVisibleLine() {
-        return (this._visibleRange ? this._visibleRange.startLine : 0);
+    public getFirstVisibleLine(): number {
+        return (this._visibleRange ? this._visibleRange.startLine! : 0);
     }
 
     /**
      * Gets the number of the last visible line in the editor.
      * @return {number} The 0-based index of the last visible line.
      */
-    public getLastVisibleLine() {
-        return (this._visibleRange ? this._visibleRange.endLine : this.lineCount() - 1);
+    public getLastVisibleLine(): number {
+        return (this._visibleRange ? this._visibleRange.endLine! : this.lineCount() - 1);
     }
 
     /* Hides the specified line number in the editor
@@ -1670,7 +1684,7 @@ export class Editor extends EventDispatcher.EventDispatcherBase {
         * @param {!to} line to end hiding at (exclusive)
         * @return {TextMarker} The CodeMirror mark object that's hiding the lines
         */
-    private _hideLines(from, to) {
+    private _hideLines(from: number, to: number): CodeMirror.TextMarker<CodeMirror.MarkerRange> | undefined {
         if (to <= from) {
             return;
         }
@@ -1692,7 +1706,7 @@ export class Editor extends EventDispatcher.EventDispatcherBase {
      * Gets the total height of the document in pixels (not the viewport)
      * @return {!number} height in pixels
      */
-    public totalHeight() {
+    public totalHeight(): number {
         return this.getScrollerElement().scrollHeight;
     }
 
@@ -1700,16 +1714,16 @@ export class Editor extends EventDispatcher.EventDispatcherBase {
      * Gets the scroller element from the editor.
      * @return {!HTMLDivElement} scroller
      */
-    public getScrollerElement() {
-        return this._codeMirror.getScrollerElement();
+    public getScrollerElement(): HTMLDivElement {
+        return this._codeMirror.getScrollerElement() as HTMLDivElement;
     }
 
     /**
      * Gets the root DOM node of the editor.
      * @return {!HTMLDivElement} The editor's root DOM node.
      */
-    public getRootElement() {
-        return this._codeMirror.getWrapperElement();
+    public getRootElement(): HTMLDivElement {
+        return this._codeMirror.getWrapperElement() as HTMLDivElement;
     }
 
 
@@ -1719,15 +1733,15 @@ export class Editor extends EventDispatcher.EventDispatcherBase {
      * editors.
      * @return {!HTMLDivElement} The editor's lineSpace element.
      */
-    private _getLineSpaceElement() {
-        return $(".CodeMirror-lines", this.getScrollerElement()).children().get(0);
+    public _getLineSpaceElement(): HTMLDivElement {
+        return $(".CodeMirror-lines", this.getScrollerElement()).children().get(0) as HTMLDivElement;
     }
 
     /**
      * Returns the current scroll position of the editor.
      * @return {{x:number, y:number}} The x,y scroll position in pixels
      */
-    public getScrollPos() {
+    public getScrollPos(): ScrollPosition {
         const scrollInfo = this._codeMirror.getScrollInfo();
         return { x: scrollInfo.left, y: scrollInfo.top };
     }
@@ -1737,7 +1751,7 @@ export class Editor extends EventDispatcher.EventDispatcherBase {
      * @param {{x:number, y:number}} scrollPos - The x,y scroll position in pixels
      * @param {!number} heightDelta - The amount of delta H to apply to the scroll position
      */
-    public adjustScrollPos(scrollPos, heightDelta) {
+    public adjustScrollPos(scrollPos: ScrollPosition, heightDelta: number): void {
         this._codeMirror.scrollTo(scrollPos.x, scrollPos.y + heightDelta);
     }
 
@@ -1746,7 +1760,7 @@ export class Editor extends EventDispatcher.EventDispatcherBase {
      * @param {number} x scrollLeft position in pixels
      * @param {number} y scrollTop position in pixels
      */
-    public setScrollPos(x, y) {
+    public setScrollPos(x: number | null, y: number): void {
         this._codeMirror.scrollTo(x, y);
     }
 
@@ -1754,7 +1768,7 @@ export class Editor extends EventDispatcher.EventDispatcherBase {
         * Returns the current text height of the editor.
         * @return {number} Height of the text in pixels
         */
-    public getTextHeight() {
+    public getTextHeight(): number {
         return this._codeMirror.defaultTextHeight();
     }
 
@@ -1767,10 +1781,10 @@ export class Editor extends EventDispatcher.EventDispatcherBase {
      * @return {$.Promise} A promise object that is resolved when the widget has been added (but might
      *     still be animating open). Never rejected.
      */
-    public addInlineWidget(pos, inlineWidget, scrollLineIntoView) {
+    public addInlineWidget(pos: CodeMirror.Position, inlineWidget: InlineWidget, scrollLineIntoView?: boolean): JQueryPromise<void> {
         const self = this;
         let queue = this._inlineWidgetQueues[pos.line];
-        const deferred = $.Deferred();
+        const deferred = $.Deferred<void>();
         if (!queue) {
             queue = new Async.PromiseQueue();
             this._inlineWidgetQueues[pos.line] = queue;
@@ -1786,7 +1800,7 @@ export class Editor extends EventDispatcher.EventDispatcherBase {
      * @private
      * Does the actual work of addInlineWidget().
      */
-    private _addInlineWidgetInternal(pos, inlineWidget, scrollLineIntoView, deferred) {
+    private _addInlineWidgetInternal(pos: CodeMirror.Position, inlineWidget: InlineWidget, scrollLineIntoView: boolean | undefined, deferred: JQueryDeferred<void>): void {
         const self = this;
 
         this.removeAllInlineWidgetsForLine(pos.line).done(function () {
@@ -1821,9 +1835,9 @@ export class Editor extends EventDispatcher.EventDispatcherBase {
     /**
      * Removes all inline widgets
      */
-    public removeAllInlineWidgets() {
+    public removeAllInlineWidgets(): JQueryPromise<void> {
         // copy the array because _removeInlineWidgetInternal will modify the original
-        const widgets = [].concat(this.getInlineWidgets());
+        const widgets = ([] as Array<InlineWidget>).concat(this.getInlineWidgets());
 
         return Async.doInParallel(
             widgets,
@@ -1836,12 +1850,12 @@ export class Editor extends EventDispatcher.EventDispatcherBase {
      * @param {number} inlineWidget The widget to remove.
      * @return {$.Promise} A promise that is resolved when the inline widget is fully closed and removed from the DOM.
      */
-    public removeInlineWidget(inlineWidget) {
-        const deferred = $.Deferred();
+    public removeInlineWidget(inlineWidget: InlineWidget): JQueryPromise<void> {
+        const deferred = $.Deferred<void>();
         const self = this;
 
-        function finishRemoving() {
-            self._codeMirror.removeLineWidget(inlineWidget.info);
+        function finishRemoving(): void {
+            self._codeMirror.removeLineWidget(inlineWidget.info!);
             self._removeInlineWidgetInternal(inlineWidget);
             deferred.resolve();
         }
@@ -1873,7 +1887,7 @@ export class Editor extends EventDispatcher.EventDispatcherBase {
      * Removes all inline widgets for a given line
      * @param {number} lineNum The line number to modify
      */
-    public removeAllInlineWidgetsForLine(lineNum) {
+    public removeAllInlineWidgetsForLine(lineNum: number): JQueryPromise<void> {
         const lineInfo = this._codeMirror.lineInfo(lineNum);
         const widgetInfos = (lineInfo && lineInfo.widgets) ? [].concat(lineInfo.widgets) : null;
         const self = this;
@@ -1894,12 +1908,12 @@ export class Editor extends EventDispatcher.EventDispatcherBase {
                         return self.removeInlineWidget(inlineWidget);
                     }
 
-                    return $.Deferred().resolve().promise();
+                    return $.Deferred<void>().resolve().promise();
                 }
             );
         }
 
-        return $.Deferred().resolve().promise();
+        return $.Deferred<void>().resolve().promise();
     }
 
     /**
@@ -1908,7 +1922,7 @@ export class Editor extends EventDispatcher.EventDispatcherBase {
      * the widget has already been removed.
      * @param {InlineWidget} inlineWidget  an inline widget.
      */
-    private _removeInlineWidgetFromList(inlineWidget) {
+    private _removeInlineWidgetFromList(inlineWidget: InlineWidget): void {
         const l = this._inlineWidgets.length;
         for (let i = 0; i < l; i++) {
             if (this._inlineWidgets[i] === inlineWidget) {
@@ -1922,7 +1936,7 @@ export class Editor extends EventDispatcher.EventDispatcherBase {
      * Removes the inline widget from the editor and notifies it to clean itself up.
      * @param {InlineWidget} inlineWidget  an inline widget.
      */
-    private _removeInlineWidgetInternal(inlineWidget) {
+    private _removeInlineWidgetInternal(inlineWidget: InlineWidget): void {
         if (!inlineWidget.isClosed) {
             this._removeInlineWidgetFromList(inlineWidget);
             inlineWidget.onClosed();
@@ -1935,7 +1949,7 @@ export class Editor extends EventDispatcher.EventDispatcherBase {
      * inline's id, and the data parameter that was passed to addInlineWidget().
      * @return {!Array.<{id:number, data:Object}>}
      */
-    public getInlineWidgets() {
+    public getInlineWidgets(): Array<InlineWidget> {
         return this._inlineWidgets;
     }
 
@@ -1943,8 +1957,8 @@ export class Editor extends EventDispatcher.EventDispatcherBase {
      * Returns the currently focused inline widget, if any.
      * @return {?InlineWidget}
      */
-    public getFocusedInlineWidget() {
-        let result = null;
+    public getFocusedInlineWidget(): InlineWidget | null {
+        let result: InlineWidget | null = null;
 
         this.getInlineWidgets().forEach(function (widget) {
             if (widget.hasFocus()) {
@@ -1961,18 +1975,18 @@ export class Editor extends EventDispatcher.EventDispatcherBase {
      *
      * @param {string} errorMsg Error message to display
      */
-    public displayErrorMessageAtCursor(errorMsg) {
+    public displayErrorMessageAtCursor(errorMsg: string): void {
         const self = this;
         const POPOVER_MARGIN = 10;
         const POPOVER_ARROW_HALF_WIDTH = 10;
         const POPOVER_ARROW_HALF_BASE = POPOVER_ARROW_HALF_WIDTH + 3; // 3 is border radius
 
-        function _removeListeners() {
+        function _removeListeners(): void {
             self.off(".msgbox");
         }
 
         // PopUpManager.removePopUp() callback
-        function _clearMessagePopover() {
+        function _clearMessagePopover(): void {
             if (self._$messagePopover && self._$messagePopover.length > 0) {
                 // self._$messagePopover.remove() is done by PopUpManager
                 self._$messagePopover = null;
@@ -1982,13 +1996,13 @@ export class Editor extends EventDispatcher.EventDispatcherBase {
 
         // PopUpManager.removePopUp() is called either directly by this closure, or by
         // PopUpManager as a result of another popup being invoked.
-        function _removeMessagePopover() {
+        function _removeMessagePopover(): void {
             if (self._$messagePopover) {
                 PopUpManager.removePopUp(self._$messagePopover);
             }
         }
 
-        function _addListeners() {
+        function _addListeners(): void {
             self
                 .on("blur.msgbox",           _removeMessagePopover)
                 .on("change.msgbox",         _removeMessagePopover)
@@ -2089,7 +2103,7 @@ export class Editor extends EventDispatcher.EventDispatcherBase {
      * the top of the virtual scroll area (excluding the top padding).
      * @return {number}
      */
-    public getVirtualScrollAreaTop() {
+    public getVirtualScrollAreaTop(): number {
         const topPadding = this._getLineSpaceElement().offsetTop; // padding within mover
         const scroller = this.getScrollerElement();
         return $(scroller).offset().top - scroller.scrollTop + topPadding;
@@ -2101,22 +2115,22 @@ export class Editor extends EventDispatcher.EventDispatcherBase {
      * @param {!number} height The height of the widget.
      * @param {boolean=} ensureVisible Whether to scroll the entire widget into view. Default false.
      */
-    public setInlineWidgetHeight(inlineWidget, height, ensureVisible) {
+    public setInlineWidgetHeight(inlineWidget: InlineWidget, height: number, ensureVisible: boolean): void {
         const self = this;
         const node = inlineWidget.htmlContent;
         const oldHeight = (node && $(node).height()) || 0;
         const changed = (oldHeight !== height);
         const isAttached = inlineWidget.info !== undefined;
 
-        function updateHeight() {
+        function updateHeight(): void {
             // Notify CodeMirror for the height change.
             if (isAttached) {
-                inlineWidget.info.changed();
+                inlineWidget.info!.changed();
             }
         }
 
-        function setOuterHeight() {
-            function finishAnimating(e) {
+        function setOuterHeight(): void {
+            function finishAnimating(e: JQueryEventObject): void {
                 if (e.target === node) {
                     updateHeight();
                     $(node).off("webkitTransitionEnd", finishAnimating);
@@ -2161,12 +2175,12 @@ export class Editor extends EventDispatcher.EventDispatcherBase {
      * @param {!InlineWidget} inlineWidget
      * @return {number} The line number of the widget or -1 if not found.
      */
-    public _getInlineWidgetLineNumber(inlineWidget) {
-        return this._codeMirror.getLineNumber(inlineWidget.info.line);
+    public _getInlineWidgetLineNumber(inlineWidget: InlineWidget): number {
+        return this._codeMirror.getLineNumber(inlineWidget.info!.line)!;
     }
 
     /** Gives focus to the editor control */
-    public focus() {
+    public focus(): void {
         // Focusing an editor synchronously triggers focus/blur handlers. If a blur handler attemps to focus
         // another editor, we'll put CM in a bad state (because CM assumes programmatically focusing itself
         // will always succeed, and if you're in the middle of another focus change that appears to be untrue).
@@ -2185,7 +2199,7 @@ export class Editor extends EventDispatcher.EventDispatcherBase {
     }
 
     /** Returns true if the editor has focus */
-    public hasFocus() {
+    public hasFocus(): boolean {
         return this._focused;
     }
 
@@ -2197,19 +2211,18 @@ export class Editor extends EventDispatcher.EventDispatcherBase {
         * returns the view state for the editor
         * @return {!EditorViewState}
         */
-    public getViewState() {
+    public getViewState(): EditorViewState {
         return {
             selections: this.getSelections(),
             scrollPos: this.getScrollPos()
         };
-
     }
 
     /*
         * Restores the view state
         * @param {!EditorViewState} viewState - the view state object to restore
         */
-    public restoreViewState(viewState) {
+    public restoreViewState(viewState: EditorViewState): void {
         if (viewState.selection) {
             // We no longer write out single-selection, but there might be some view state
             // from an older version.
@@ -2227,7 +2240,7 @@ export class Editor extends EventDispatcher.EventDispatcherBase {
      * Re-renders the editor UI
      * @param {boolean=} handleResize true if this is in response to resizing the editor. Default false.
      */
-    public refresh(handleResize?) {
+    public refresh(handleResize?: boolean): void {
         // If focus is currently in a child of the CodeMirror editor (e.g. in an inline widget), but not in
         // the CodeMirror input field itself, remember the focused item so we can restore focus after the
         // refresh (which might cause the widget to be removed from the display list temporarily).
@@ -2243,7 +2256,7 @@ export class Editor extends EventDispatcher.EventDispatcherBase {
      * Re-renders the editor, and all children inline editors.
      * @param {boolean=} handleResize true if this is in response to resizing the editor. Default false.
      */
-    public refreshAll(handleResize?) {
+    public refreshAll(handleResize?: boolean): void {
         this.refresh(handleResize);
         this.getInlineWidgets().forEach(function (inlineWidget) {
             inlineWidget.refresh();
@@ -2251,12 +2264,12 @@ export class Editor extends EventDispatcher.EventDispatcherBase {
     }
 
     /** Undo the last edit. */
-    public undo() {
+    public undo(): void {
         this._codeMirror.undo();
     }
 
     /** Redo the last un-done edit. */
-    public redo() {
+    public redo(): void {
         this._codeMirror.redo();
     }
 
@@ -2266,7 +2279,7 @@ export class Editor extends EventDispatcher.EventDispatcherBase {
      * @param {boolean} show true to show the editor, false to hide it
      * @param {boolean} refresh true (default) to refresh the editor, false to skip refreshing it
      */
-    public notifyVisibilityChange(show, refresh = true) {
+    public notifyVisibilityChange(show: boolean, refresh = true): void {
         if (show && (refresh || refresh === undefined)) {
             this.refresh();
         }
@@ -2283,7 +2296,7 @@ export class Editor extends EventDispatcher.EventDispatcherBase {
      * @param {boolean} show true to show the editor, false to hide it
      * @param {boolean} refresh true (default) to refresh the editor, false to skip refreshing it
      */
-    public setVisible(show, refresh = true) {
+    public setVisible(show: boolean, refresh = true): void {
         this.$el.css("display", (show ? "" : "none"));
         this.notifyVisibilityChange(show, refresh);
     }
@@ -2292,7 +2305,7 @@ export class Editor extends EventDispatcher.EventDispatcherBase {
      * Returns true if the editor is fully visible--i.e., is in the DOM, all ancestors are
      * visible, and has a non-zero width/height.
      */
-    public isFullyVisible() {
+    public isFullyVisible(): boolean {
         return $(this.getRootElement()).is(":visible");
     }
 
@@ -2310,13 +2323,13 @@ export class Editor extends EventDispatcher.EventDispatcherBase {
      *     naming the mode along with configuration options required by the mode.
      * @see {@link LanguageManager::#getLanguageForPath} and {@link LanguageManager::Language#getMode}.
      */
-    public getModeForRange(start, end, knownMixed) {
+    public getModeForRange(start: CodeMirror.Position, end: CodeMirror.Position, knownMixed: boolean): string | CodeMirror.ModeSpec<CodeMirror.ModeSpecOptions> | null {
         const outerMode = this._codeMirror.getMode();
         const startMode = TokenUtils.getModeAt(this._codeMirror, start);
         const endMode = TokenUtils.getModeAt(this._codeMirror, end);
         if (!knownMixed && outerMode.name === startMode.name) {
             // Mode does not vary: just use the editor-wide mode name
-            return this._codeMirror.getOption("mode");
+            return this._codeMirror.getOption("mode")!;
         }
 
         if (!startMode || !endMode || startMode.name !== endMode.name) {
@@ -2338,7 +2351,7 @@ export class Editor extends EventDispatcher.EventDispatcherBase {
      *     naming the mode along with configuration options required by the mode.
      * @see {@link LanguageManager::#getLanguageForPath} and {@link LanguageManager::Language#getMode}.
      */
-    public getModeForSelection() {
+    public getModeForSelection(): string | null {
         // Check for mixed mode info
         const self        = this;
         const sels        = this.getSelections();
@@ -2388,15 +2401,15 @@ export class Editor extends EventDispatcher.EventDispatcherBase {
         }
 
         // Mode does not vary: just use the editor-wide mode
-        return this._codeMirror.getOption("mode");
+        return this._codeMirror.getOption("mode") as string;
     }
 
     /*
         * gets the language for the selection. (Javascript selected from an HTML document or CSS selected from an HTML document, etc...)
         * @return {!Language}
         */
-    public getLanguageForSelection() {
-        return this.document.getLanguage().getLanguageForMode(this.getModeForSelection());
+    public getLanguageForSelection(): LanguageManager.Language {
+        return this.document.getLanguage().getLanguageForMode(this.getModeForSelection()!);
     }
 
     /**
@@ -2405,8 +2418,8 @@ export class Editor extends EventDispatcher.EventDispatcherBase {
      * @return {Object|String} Object or Name of syntax-highlighting mode
      * @see {@link LanguageManager::#getLanguageForPath|LanguageManager.getLanguageForPath} and {@link LanguageManager::Language#getMode|Language.getMode}.
      */
-    public getModeForDocument() {
-        return this._codeMirror.getOption("mode");
+    public getModeForDocument(): string | CodeMirror.ModeSpec<CodeMirror.ModeSpecOptions> {
+        return this._codeMirror.getOption("mode")!;
     }
 
     /**
@@ -2417,7 +2430,7 @@ export class Editor extends EventDispatcher.EventDispatcherBase {
      * @param {string} prefName Name of preference to retrieve.
      * @return {*} current value of that pref
      */
-    private _getOption(prefName) {
+    private _getOption<T>(prefName: string): T {
         return PreferencesManager.get(prefName, PreferencesManager._buildContext(this.document.file.fullPath, this.document.getLanguage().getId()));
     }
 
@@ -2428,7 +2441,7 @@ export class Editor extends EventDispatcher.EventDispatcherBase {
      *
      * @param {string} prefName Name of the preference to visibly update
      */
-    public _updateOption(prefName) {
+    public _updateOption(prefName: string): void {
         const oldValue = this._currentOptions[prefName];
         const newValue = this._getOption(prefName);
 
@@ -2470,7 +2483,7 @@ export class Editor extends EventDispatcher.EventDispatcherBase {
      *
      * Used to ensure that "style active line" is turned off when there is a selection.
      */
-    private _updateStyleActiveLine() {
+    private _updateStyleActiveLine(): void {
         if (this.hasSelection()) {
             // @ts-ignore
             if (this._codeMirror.getOption("styleActiveLine")) {
@@ -2489,7 +2502,7 @@ export class Editor extends EventDispatcher.EventDispatcherBase {
      * @param {boolean=} forceRefresh - forces the editor to update its layout
      *                                   even if it already matches the container's height / width
      */
-    public updateLayout(forceRefresh) {
+    public updateLayout(forceRefresh: boolean): void {
         const curRoot = this.getRootElement();
         const curWidth = $(curRoot).width();
         const $editorHolder = this.$el.parent();
@@ -2518,7 +2531,7 @@ export class Editor extends EventDispatcher.EventDispatcherBase {
      * Clears all marks from the gutter with the specified name.
      * @param {string} name The name of the gutter to clear.
      */
-    public clearGutter(name) {
+    public clearGutter(name: string): void {
         this._codeMirror.clearGutter(name);
     }
 
@@ -2526,18 +2539,18 @@ export class Editor extends EventDispatcher.EventDispatcherBase {
      * Renders all registered gutters
      * @private
      */
-    private _renderGutters() {
+    private _renderGutters(): void {
         const languageId = this.document.getLanguage().getId();
 
-        function _filterByLanguages(gutter) {
+        function _filterByLanguages(gutter: Gutter): boolean {
             return !gutter.languages || gutter.languages.indexOf(languageId) > -1;
         }
 
-        function _sortByPriority(a, b) {
+        function _sortByPriority(a: Gutter, b: Gutter): number {
             return a.priority - b.priority;
         }
 
-        function _getName(gutter) {
+        function _getName(gutter: Gutter): string {
             return gutter.name;
         }
 
@@ -2571,7 +2584,7 @@ export class Editor extends EventDispatcher.EventDispatcherBase {
      * @param   {string}   gutterName The name of the gutter
      * @param   {object}   marker     The dom element representing the marker to the inserted in the gutter
      */
-    public setGutterMarker(lineNumber, gutterName, marker) {
+    public setGutterMarker(lineNumber: number, gutterName: string, marker: HTMLElement): void {
         const gutterNameRegistered = registeredGutters.some(function (gutter) {
             return gutter.name === gutterName;
         });
@@ -2588,7 +2601,7 @@ export class Editor extends EventDispatcher.EventDispatcherBase {
      * Returns the list of gutters current registered on all editors.
      * @return {!Array.<{name: string, priority: number}>}
      */
-    public static getRegisteredGutters() {
+    public static getRegisteredGutters(): Array<Gutter> {
         return registeredGutters;
     }
 
@@ -2598,7 +2611,7 @@ export class Editor extends EventDispatcher.EventDispatcherBase {
      * @param {number} priority  A number denoting the priority of the gutter. Priorities higher than LINE_NUMBER_GUTTER_PRIORITY appear after the line numbers. Priority less than LINE_NUMBER_GUTTER_PRIORITY appear before.
      * @param {?Array<string>} languageIds A list of language ids that this gutter is valid for. If no language ids are passed, then the gutter is valid in all languages.
      */
-    public static registerGutter(name, priority, languageIds?) {
+    public static registerGutter(name: string, priority: number, languageIds?: Array<string>): void {
         if (isNaN(priority)) {
             console.warn("A non-numeric priority value was passed to registerGutter. The value will default to 0.");
             priority = 0;
@@ -2627,7 +2640,7 @@ export class Editor extends EventDispatcher.EventDispatcherBase {
      * Unregisters the gutter with the specified name and removes it from the UI.
      * @param {string} name The name of the gutter to be unregistered.
      */
-    public static unregisterGutter(name) {
+    public static unregisterGutter(name: string): void {
         registeredGutters = registeredGutters.filter(function (gutter) {
             return gutter.name !== name;
         });
@@ -2646,7 +2659,7 @@ export class Editor extends EventDispatcher.EventDispatcherBase {
      * @param {string=} fullPath Path to file to get preference for
      * @return {boolean} true if value was valid
      */
-    public static setUseTabChar(value, fullPath?) {
+    public static setUseTabChar(value: boolean, fullPath?: string | null): boolean {
         const options = fullPath && {context: fullPath};
         return PreferencesManager.set(EditorOptions.USE_TAB_CHAR, value, options);
     }
@@ -2656,7 +2669,7 @@ export class Editor extends EventDispatcher.EventDispatcherBase {
      * @param {string=} fullPath Path to file to get preference for
      * @return {boolean}
      */
-    public static getUseTabChar(fullPath?) {
+    public static getUseTabChar(fullPath?: string | null): boolean {
         return PreferencesManager.get(EditorOptions.USE_TAB_CHAR, _buildPreferencesContext(fullPath));
     }
 
@@ -2667,7 +2680,7 @@ export class Editor extends EventDispatcher.EventDispatcherBase {
      * @param {string=} fullPath Path to file to get preference for
      * @return {boolean} true if value was valid
      */
-    public static setTabSize(value, fullPath?) {
+    public static setTabSize(value: number, fullPath?: string): boolean {
         const options = fullPath && {context: fullPath};
         return PreferencesManager.set(EditorOptions.TAB_SIZE, value, options);
     }
@@ -2677,7 +2690,7 @@ export class Editor extends EventDispatcher.EventDispatcherBase {
      * @param {string=} fullPath Path to file to get preference for
      * @return {number}
      */
-    public static getTabSize(fullPath?): number {
+    public static getTabSize(fullPath?: string): number {
         return PreferencesManager.get(EditorOptions.TAB_SIZE, _buildPreferencesContext(fullPath));
     }
 
@@ -2688,7 +2701,7 @@ export class Editor extends EventDispatcher.EventDispatcherBase {
      * @param {string=} fullPath Path to file to get preference for
      * @return {boolean} true if value was valid
      */
-    public static setSpaceUnits(value, fullPath?) {
+    public static setSpaceUnits(value: number, fullPath?: string): boolean {
         const options = fullPath && {context: fullPath};
         return PreferencesManager.set(EditorOptions.SPACE_UNITS, value, options);
     }
@@ -2698,7 +2711,7 @@ export class Editor extends EventDispatcher.EventDispatcherBase {
      * @param {string=} fullPath Path to file to get preference for
      * @return {number}
      */
-    public static getSpaceUnits(fullPath?) {
+    public static getSpaceUnits(fullPath?: string): number {
         return PreferencesManager.get(EditorOptions.SPACE_UNITS, _buildPreferencesContext(fullPath));
     }
 
@@ -2709,7 +2722,7 @@ export class Editor extends EventDispatcher.EventDispatcherBase {
      * @param {string=} fullPath Path to file to get preference for
      * @return {boolean} true if value was valid
      */
-    public static setCloseBrackets(value, fullPath?) {
+    public static setCloseBrackets(value: boolean, fullPath?: string): boolean {
         const options = fullPath && {context: fullPath};
         return PreferencesManager.set(EditorOptions.CLOSE_BRACKETS, value, options);
     }
@@ -2719,7 +2732,7 @@ export class Editor extends EventDispatcher.EventDispatcherBase {
      * @param {string=} fullPath Path to file to get preference for
      * @return {boolean}
      */
-    public static getCloseBrackets(fullPath?) {
+    public static getCloseBrackets(fullPath?: string): boolean {
         return PreferencesManager.get(EditorOptions.CLOSE_BRACKETS, _buildPreferencesContext(fullPath));
     }
 
@@ -2730,7 +2743,7 @@ export class Editor extends EventDispatcher.EventDispatcherBase {
      * @param {string=} fullPath Path to file to get preference for
      * @return {boolean} true if value was valid
      */
-    public static setShowLineNumbers(value, fullPath?) {
+    public static setShowLineNumbers(value: boolean, fullPath?: string): boolean {
         const options = fullPath && {context: fullPath};
         return PreferencesManager.set(EditorOptions.SHOW_LINE_NUMBERS, value, options);
     }
@@ -2740,7 +2753,7 @@ export class Editor extends EventDispatcher.EventDispatcherBase {
      * @param {string=} fullPath Path to file to get preference for
      * @return {boolean}
      */
-    public static getShowLineNumbers(fullPath?) {
+    public static getShowLineNumbers(fullPath?: string): boolean {
         return PreferencesManager.get(EditorOptions.SHOW_LINE_NUMBERS, _buildPreferencesContext(fullPath));
     }
 
@@ -2751,7 +2764,7 @@ export class Editor extends EventDispatcher.EventDispatcherBase {
      * @param {string=} fullPath Path to file to get preference for
      * @return {boolean} true if value was valid
      */
-    public static setShowActiveLine(value, fullPath?) {
+    public static setShowActiveLine(value: boolean, fullPath?: string): boolean {
         return PreferencesManager.set(EditorOptions.STYLE_ACTIVE_LINE, value);
     }
 
@@ -2760,7 +2773,7 @@ export class Editor extends EventDispatcher.EventDispatcherBase {
      * @param {string=} fullPath Path to file to get preference for
      * @return {boolean}
      */
-    public static getShowActiveLine(fullPath?) {
+    public static getShowActiveLine(fullPath?: string): boolean {
         return PreferencesManager.get(EditorOptions.STYLE_ACTIVE_LINE, _buildPreferencesContext(fullPath));
     }
 
@@ -2771,7 +2784,7 @@ export class Editor extends EventDispatcher.EventDispatcherBase {
      * @param {string=} fullPath Path to file to get preference for
      * @return {boolean} true if value was valid
      */
-    public static setWordWrap(value, fullPath?) {
+    public static setWordWrap(value: boolean, fullPath?: string): boolean {
         const options = fullPath && {context: fullPath};
         return PreferencesManager.set(EditorOptions.WORD_WRAP, value, options);
     }
@@ -2781,7 +2794,7 @@ export class Editor extends EventDispatcher.EventDispatcherBase {
      * @param {string=} fullPath Path to file to get preference for
      * @return {boolean}
      */
-    public static getWordWrap(fullPath?) {
+    public static getWordWrap(fullPath?: string): boolean {
         return PreferencesManager.get(EditorOptions.WORD_WRAP, _buildPreferencesContext(fullPath));
     }
 
@@ -2792,7 +2805,7 @@ export class Editor extends EventDispatcher.EventDispatcherBase {
      * @param {string=} fullPath Path to file to get preference for
      * @return {boolean} true if value was valid
      */
-    public static setIndentLineComment(value, fullPath?) {
+    public static setIndentLineComment(value: boolean, fullPath?: string): boolean {
         const options = fullPath && {context: fullPath};
         return PreferencesManager.set(EditorOptions.INDENT_LINE_COMMENT, value, options);
     }
@@ -2802,7 +2815,7 @@ export class Editor extends EventDispatcher.EventDispatcherBase {
      * @param {string=} fullPath Path to file to get preference for
      * @return {boolean}
      */
-    public static getIndentLineComment(fullPath?) {
+    public static getIndentLineComment(fullPath?: string): boolean {
         return PreferencesManager.get(EditorOptions.INDENT_LINE_COMMENT, _buildPreferencesContext(fullPath));
     }
 
@@ -2813,7 +2826,7 @@ export class Editor extends EventDispatcher.EventDispatcherBase {
      * @param {string=} fullPath Path to file to get preference for
      * @return {boolean} true if value was valid
      */
-    public static setPaddingComment(value, fullPath?) {
+    public static setPaddingComment(value: boolean, fullPath?: string): boolean {
         const options = fullPath && {context: fullPath};
         return PreferencesManager.set(EditorOptions.PADDING_COMMENT, value, options);
     }
@@ -2823,7 +2836,7 @@ export class Editor extends EventDispatcher.EventDispatcherBase {
      * @param {string=} fullPath Path to file to get preference for
      * @return {boolean}
      */
-    public static getPaddingComment(fullPath?) {
+    public static getPaddingComment(fullPath?: string): boolean {
         return PreferencesManager.get(EditorOptions.PADDING_COMMENT, _buildPreferencesContext(fullPath));
     }
 
@@ -2834,7 +2847,7 @@ export class Editor extends EventDispatcher.EventDispatcherBase {
      * @param {string=} fullPath Path to file to get preference for
      * @return {boolean} true if value was valid
      */
-    public static setCommentBlankLines(value, fullPath?) {
+    public static setCommentBlankLines(value: boolean, fullPath?: string): boolean {
         const options = fullPath && {context: fullPath};
         return PreferencesManager.set(EditorOptions.COMMENT_BLANK_LINES, value, options);
     }
@@ -2844,7 +2857,7 @@ export class Editor extends EventDispatcher.EventDispatcherBase {
      * @param {string=} fullPath Path to file to get preference for
      * @return {boolean}
      */
-    public static getCommentBlankLines(fullPath?) {
+    public static getCommentBlankLines(fullPath?: string): boolean {
         return PreferencesManager.get(EditorOptions.COMMENT_BLANK_LINES, _buildPreferencesContext(fullPath));
     }
 
@@ -2852,7 +2865,7 @@ export class Editor extends EventDispatcher.EventDispatcherBase {
      * Runs callback for every Editor instance that currently exists
      * @param {!function(!Editor)} callback
      */
-    public static forEveryEditor(callback) {
+    public static forEveryEditor(callback: (editor: Editor) => void): void {
         _instances.forEach(callback);
     }
 
@@ -2863,7 +2876,7 @@ export class Editor extends EventDispatcher.EventDispatcherBase {
      * line numbers are hidden.
      * @param {boolean} showLinePadding
      */
-    public static _toggleLinePadding(showLinePadding) {
+    public static _toggleLinePadding(showLinePadding: boolean): void {
         // apply class to all pane DOM nodes
         const $holders: Array<JQuery> = [];
         _instances.forEach(function (editor) {

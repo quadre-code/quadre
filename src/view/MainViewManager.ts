@@ -1221,7 +1221,7 @@ export function _edit(paneId, doc, optionsIn?) {
     }
 
     // open document will show the editor if there is one already
-    EditorManager.openDocument(doc, pane, options);
+    EditorManager.openDocument(doc, pane!, options);
     _makeFileMostRecent(paneId, doc.file);
 
     if (!options.noPaneActivate) {

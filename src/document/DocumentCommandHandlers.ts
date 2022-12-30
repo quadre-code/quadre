@@ -1185,7 +1185,7 @@ function saveAll(): JQueryPromise<Array<File>> {
  */
 const handleFileSaveAs = function (commandData): JQueryPromise<File> {
     // Default to current document if doc is null
-    let doc = null;
+    let doc: Document | null = null;
     let settings;
 
     if (commandData) {

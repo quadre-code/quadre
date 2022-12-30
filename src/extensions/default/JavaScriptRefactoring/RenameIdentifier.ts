@@ -22,6 +22,8 @@
  *
  */
 
+import type { InlineTextEditor } from "thirdparty/editor/InlineTextEditor";
+
 type TSession = any;
 
 const EditorManager        = brackets.getModule("editor/EditorManager");
@@ -124,7 +126,7 @@ export function handleRename() {
             return;
         }
 
-        const inlineWidget = EditorManager.getFocusedInlineWidget();
+        const inlineWidget = EditorManager.getFocusedInlineWidget() as InlineTextEditor;
         const editor = EditorManager.getActiveEditor()!;
         const refs = refsResp.references.refs;
         const type = refsResp.references.type;

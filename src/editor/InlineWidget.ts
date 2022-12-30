@@ -39,6 +39,10 @@ export class InlineWidget extends EventDispatcher.EventDispatcherBase {
     public hostEditor: Editor | null = null;
     private $closeBtn: JQuery;
 
+    public info?: CodeMirror.LineWidget;
+    public closePromise?: JQueryPromise<void>;
+    public isClosed?: boolean;
+
     constructor() {
         super();
 
@@ -76,15 +80,15 @@ export class InlineWidget extends EventDispatcher.EventDispatcherBase {
      * Closes this inline widget and all its contained Editors
      * @return {$.Promise} A promise that's resolved when the widget is fully closed.
      */
-    public close() {
-        return EditorManager.closeInlineWidget(this.hostEditor, this);
+    public close(): JQueryPromise<void> {
+        return EditorManager.closeInlineWidget(this.hostEditor!, this);
         // closeInlineWidget() causes our onClosed() handler to be called
     }
 
     /**
      * @return {boolean} True if any part of the inline widget is focused
      */
-    public hasFocus() {
+    public hasFocus(): boolean {
         const focusedItem = window.document.activeElement;
         const htmlContent = this.$htmlContent[0];
         return $.contains(htmlContent, focusedItem!) || htmlContent === focusedItem;
@@ -93,7 +97,7 @@ export class InlineWidget extends EventDispatcher.EventDispatcherBase {
     /**
      * Called any time inline is closed, whether manually or automatically.
      */
-    public onClosed() {
+    public onClosed(): void {
         this.trigger("close");
     }
 
@@ -104,28 +108,28 @@ export class InlineWidget extends EventDispatcher.EventDispatcherBase {
      * IMPORTANT: onAdded() MUST be overridden to call hostEditor.setInlineWidgetHeight() at least once to
      * set the initial height (required to animate it open). The widget will never open otherwise.
      */
-    public onAdded() {
+    public onAdded(): void {
         this.trigger("add");
     }
 
     /**
      * @param {Editor} hostEditor
      */
-    public load(hostEditor) {
+    public load(hostEditor: Editor): void {
         this.hostEditor = hostEditor;
     }
 
     /**
      * Called when the editor containing the inline is made visible.
      */
-    public onParentShown() {
+    public onParentShown(): void {
         // do nothing - base implementation
     }
 
     /**
      * Called when the parent editor does a full refresh--for example, when the font size changes.
      */
-    public refresh() {
+    public refresh(): void {
         // do nothing - base implementation
     }
 }

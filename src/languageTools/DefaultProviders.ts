@@ -314,7 +314,7 @@ export class JumpToDefProvider extends BaseProvider {
             return null;
         }
 
-        const editor = EditorManager.getFocusedEditor();
+        const editor = EditorManager.getFocusedEditor()!;
         const pos = editor.getCursorPos();
         const docPath = editor.document.file._path;
         const docPathUri = PathConverters.pathToUri(docPath);
