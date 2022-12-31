@@ -74,6 +74,10 @@
  *    `MainViewManager.on("eventname", handler);`
  */
 
+import type { Document } from "document/Document";
+import type { Editor } from "editor/Editor";
+import type File = require("filesystem/File");
+
 import * as _ from "lodash";
 import * as EventDispatcher from "utils/EventDispatcher";
 import * as Strings from "strings";
@@ -93,8 +97,6 @@ import * as ViewUtils from "utils/ViewUtils";
 import * as Resizer from "utils/Resizer";
 import { Pane } from "view/Pane";
 import * as KeyBindingManager from "command/KeyBindingManager";
-import File = require("filesystem/File");
-import { Editor } from "editor/Editor";
 
 export interface MRUEntry {
     file: File;
@@ -108,6 +110,29 @@ interface PaneIndex {
 
 interface PaneMap {
     [key: string]: Pane;
+}
+
+interface Result {
+    orientation?: Orientation | null;
+    activePaneId: string;
+    panes: { [key: string]: Array<File> };
+}
+
+interface LayoutScheme {
+    rows: number;
+    columns: number;
+}
+
+interface OpenOptions {
+    noPaneActivate?: boolean;
+}
+
+interface EditOptions {
+    noPaneActivate?: boolean;
+}
+
+interface CloseOptions {
+    noOpenNextFile?: boolean;
 }
 
 /**
@@ -173,6 +198,8 @@ const VERTICAL            = "VERTICAL";
  * @private
  */
 const HORIZONTAL          = "HORIZONTAL";
+
+type Orientation = typeof VERTICAL | typeof HORIZONTAL;
 
 /**
  * The minimum width or height that a pane can be
@@ -457,7 +484,7 @@ export function getCurrentlyViewedPath(paneId: string): string | null {
  * @param {!jQuery.Event} e - jQuery Event object
  * @param {Editor=} current - editor being made the current editor
  */
-function _activeEditorChange(e, current: Editor) {
+function _activeEditorChange(e: JQueryEventObject, current: Editor): void {
     if (current) {
         let $container = current.$el.parent().parent();
         let pane = _getPaneFromElement($container);
@@ -497,7 +524,7 @@ function _activeEditorChange(e, current: Editor) {
  * The callback will receive a Pane and should return false to stop iterating.
  * @private
  */
-function _forEachPaneOrPanes(paneId: string, callback: (pane: Pane) => boolean | void) {
+function _forEachPaneOrPanes(paneId: string, callback: (pane: Pane) => boolean | void): void {
     if (paneId === ALL_PANES) {
         _.forEach(_panes, callback);
     } else {
@@ -511,7 +538,7 @@ function _forEachPaneOrPanes(paneId: string, callback: (pane: Pane) => boolean |
  * @param {!string} paneId - id of the pane in which to cache the scroll state,
  *                            ALL_PANES or ACTIVE_PANE
  */
-export function cacheScrollState(paneId: string) {
+export function cacheScrollState(paneId: string): void {
     _forEachPaneOrPanes(paneId, function (pane) {
         _paneScrollStates[pane.id] = pane.getScrollState();
     });
@@ -528,7 +555,7 @@ export function cacheScrollState(paneId: string) {
  *                              ALL_PANES or ACTIVE_PANE
  * @param {!number} heightDelta - delta H to apply to the scroll state
  */
-export function restoreAdjustedScrollState(paneId: string, heightDelta: number) {
+export function restoreAdjustedScrollState(paneId: string, heightDelta: number): void {
     _forEachPaneOrPanes(paneId, function (pane) {
         pane.restoreAndAdjustScrollState(_paneScrollStates[pane.id], heightDelta);
         delete _paneScrollStates[pane.id];
@@ -616,7 +643,7 @@ export function getPaneCount(): number {
  *
  * @private
  */
-function _doFindInWorkingSet(paneId: string, fullPath: string, method: string) {
+function _doFindInWorkingSet(paneId: string, fullPath: string, method: string): number {
     let result = -1;
     _forEachPaneOrPanes(paneId, function (pane) {
         const index = pane[method].call(pane, fullPath);
@@ -723,7 +750,7 @@ export function _getPaneIdForPath(fullPath: string): string | null {
  * @param {boolean=} forceRedraw - If true, a workingset change notification is always sent
  *    (useful if suppressRedraw was used with removeView() earlier)
  */
-export function addToWorkingSet(paneId, file, index?, force?) {
+export function addToWorkingSet(paneId: string, file: File, index?: number, force?: boolean): void {
     // look for the file to have already been added to another pane
     const pane = _getPane(paneId);
     if (!pane) {
@@ -760,7 +787,7 @@ export function addToWorkingSet(paneId, file, index?, force?) {
  * @param {!string} paneId - The id of the pane in which to add the file object to or ACTIVE_PANE
  * @param {!Array.<File>} fileList - Array of files to add to the pane
  */
-export function addListToWorkingSet(paneId, fileList) {
+export function addListToWorkingSet(paneId: string, fileList: Array<File>): void {
     const pane = _getPane(paneId)!;
 
     const uniqueFileList = pane.addListToViewList(fileList);
@@ -783,7 +810,7 @@ export function addListToWorkingSet(paneId, fileList) {
     // Use the pane id of the first one in the list for pane id and recurse
     //  if we add more panes, then this will recurse until all items in the list are satisified
     if (unsolvedList.length) {
-        addListToWorkingSet(_getPaneIdForPath(unsolvedList[0].fullPath), unsolvedList);
+        addListToWorkingSet(_getPaneIdForPath(unsolvedList[0].fullPath)!, unsolvedList);
     }
 }
 
@@ -794,9 +821,9 @@ export function addListToWorkingSet(paneId, fileList) {
  * @param {File} file The file object to remove.
  * @private
  */
-function _removeFileFromMRU(paneId, file) {
+function _removeFileFromMRU(paneId: string, file: File): void {
     let index;
-    const compare = function (record) {
+    const compare = function (record: MRUEntry): boolean {
         return (record.file === file && record.paneId === paneId);
     };
 
@@ -817,7 +844,7 @@ function _removeFileFromMRU(paneId, file) {
  *          Use the suppressRedraw flag when calling this function along with many changes to prevent flicker
  * @private
  */
-export function _removeView(paneId, file, suppressRedraw?) {
+export function _removeView(paneId: string, file: File, suppressRedraw?: boolean): void {
     const pane = _getPane(paneId)!;
 
     if (pane.removeView(file)) {
@@ -835,8 +862,8 @@ export function _removeView(paneId, file, suppressRedraw?) {
  * @return {jQuery.Promise} a promise that resolves when the move has completed.
  * @private
  */
-export function _moveView(sourcePaneId, destinationPaneId, file, destinationIndex?) {
-    const result = $.Deferred();
+export function _moveView(sourcePaneId: string, destinationPaneId: string, file: File, destinationIndex?: number): JQueryPromise<void> {
+    const result = $.Deferred<void>();
     const sourcePane = _getPane(sourcePaneId)!;
     const destinationPane = _getPane(destinationPaneId)!;
 
@@ -862,7 +889,7 @@ export function _moveView(sourcePaneId, destinationPaneId, file, destinationInde
 /**
  * Switch between panes
  */
-export function switchPaneFocus() {
+export function switchPaneFocus(): void {
     const $firstPane = $("#first-pane");
     const $secondPane = $("#second-pane");
     if ($firstPane.hasClass("active-pane")) {
@@ -879,9 +906,9 @@ export function switchPaneFocus() {
  * @param {!string} fullPath - path of the file to remove
  * @private
  */
-function _removeDeletedFileFromMRU(e, fullPath) {
+function _removeDeletedFileFromMRU(e: JQueryEventObject, fullPath: string): void {
     let index;
-    const compare = function (record) {
+    const compare = function (record: MRUEntry): boolean {
         return (record.file.fullPath === fullPath);
     };
 
@@ -902,7 +929,7 @@ function _removeDeletedFileFromMRU(e, fullPath) {
  * @see {@link https://developer.mozilla.org/en-US/docs/JavaScript/Reference/Global_Objects/Array/sort|Sort Array - MDN}
  * @private
  */
-export function _sortWorkingSet(paneId, compareFn) {
+export function _sortWorkingSet(paneId: string, compareFn): void {
     _forEachPaneOrPanes(paneId, function (pane) {
         pane.sortViewList(compareFn);
         exports.trigger("workingSetSort", pane.id);
@@ -917,7 +944,7 @@ export function _sortWorkingSet(paneId, compareFn) {
  * @param {!number} toIndex - the index to move to
  * @private
  */
-export function _moveWorkingSetItem(paneId, fromIndex, toIndex) {
+export function _moveWorkingSetItem(paneId: string, fromIndex: number, toIndex: number): void {
     const pane = _getPane(paneId)!;
 
     pane.moveWorkingSetItem(fromIndex, toIndex);
@@ -932,7 +959,7 @@ export function _moveWorkingSetItem(paneId, fromIndex, toIndex) {
  * @param {!number} index2 - the index on the rigth
  * @private
  */
-export function _swapWorkingSetListIndexes(paneId, index1, index2) {
+export function _swapWorkingSetListIndexes(paneId: string, index1: number, index2: number): void {
     const pane = _getPane(paneId)!;
 
     pane.swapViewListIndexes(index1, index2);
@@ -946,7 +973,7 @@ export function _swapWorkingSetListIndexes(paneId, index1, index2) {
  * @return {?{file:File, paneId:string}} The File object of the next item in the traversal order or null if there aren't any files to traverse.
  *                                       May return current file if there are no other files to traverse.
  */
-export function traverseToNextViewByMRU(direction) {
+export function traverseToNextViewByMRU(direction: 1 | -1): MRUEntry | null {
     const file = getCurrentlyViewedFile();
     const paneId = getActivePaneId();
     const index = _.findIndex(_mruList, function (record) {
@@ -986,7 +1013,7 @@ export function traverseToNextViewInListOrder(direction: number): MRUEntry | nul
  * Indicates that traversal has begun.
  * Can be called any number of times.
  */
-export function beginTraversal() {
+export function beginTraversal(): void {
     _traversingFileList = true;
 }
 
@@ -994,7 +1021,7 @@ export function beginTraversal() {
  * Un-freezes the MRU list after one or more beginTraversal() calls.
  * Whatever file is current is bumped to the front of the MRU list.
  */
-export function endTraversal() {
+export function endTraversal(): void {
     const pane = _getPane(ACTIVE_PANE)!;
 
     if (_traversingFileList) {
@@ -1010,7 +1037,7 @@ export function endTraversal() {
  * @param {boolean} forceRefresh - true to force a resize and refresh of the entire view
  * @private
  */
-function _synchronizePaneSize(pane: Pane, forceRefresh?) {
+function _synchronizePaneSize(pane: Pane, forceRefresh?: boolean): void {
     let available;
 
     if (_orientation === VERTICAL) {
@@ -1033,7 +1060,7 @@ function _synchronizePaneSize(pane: Pane, forceRefresh?) {
  * @param {boolean} forceRefresh - true to force a resize and refresh of the entire view
  * @private
  */
-function _updateLayout(event?, viewAreaHeight?, forceRefresh?) {
+function _updateLayout(event?: JQueryEventObject, viewAreaHeight?: number, forceRefresh?: boolean): void {
     let available;
 
     if (_orientation === VERTICAL) {
@@ -1062,7 +1089,7 @@ function _updateLayout(event?, viewAreaHeight?, forceRefresh?) {
  * @param {boolean} forceRefresh - true to force a resize and refresh of the entire view
  * @private
  */
-function _initialLayout(forceRefresh?) {
+function _initialLayout(forceRefresh?: boolean): void {
     const panes = Object.keys(_panes);
     const size = 100 / panes.length;
 
@@ -1098,7 +1125,7 @@ function _initialLayout(forceRefresh?) {
 /**
  * Updates the header text for all panes
  */
-function _updatePaneHeaders() {
+function _updatePaneHeaders(): void {
     _forEachPaneOrPanes(ALL_PANES, function (pane) {
         pane.updateHeaderText();
     });
@@ -1111,7 +1138,7 @@ function _updatePaneHeaders() {
  * @private
  * @return {?Pane} - the pane object of the new pane, or undefined if no pane created
  */
-function _createPaneIfNecessary(paneId) {
+function _createPaneIfNecessary(paneId: string): Pane {
     let newPane;
 
     if (!_panes.hasOwnProperty(paneId)) {
@@ -1149,7 +1176,7 @@ function _createPaneIfNecessary(paneId) {
  * Makes the first pane resizable
  * @private
  */
-function _makeFirstPaneResizable() {
+function _makeFirstPaneResizable(): void {
     const firstPane = _panes[FIRST_PANE];
     Resizer.makeResizable(firstPane.$el,
         _orientation === HORIZONTAL ? Resizer.DIRECTION_VERTICAL : Resizer.DIRECTION_HORIZONTAL,
@@ -1167,7 +1194,7 @@ function _makeFirstPaneResizable() {
  * @private
  * @param {!string} orientation (VERTICAL|HORIZONTAL)
  */
-function _doSplit(orientation) {
+function _doSplit(orientation: Orientation): void {
     if (orientation === _orientation) {
         return;
     }
@@ -1209,8 +1236,8 @@ function _doSplit(orientation) {
  * @param {{noPaneActivate:boolean=}=} optionsIn - options
  * @private
  */
-export function _edit(paneId, doc, optionsIn?) {
-    const options = optionsIn || {};
+export function _edit(paneId: string, doc: Document, optionsIn?: EditOptions): void {
+    const options: EditOptions = optionsIn || {};
 
     const pane = _getPane(paneId);
 
@@ -1238,11 +1265,11 @@ export function _edit(paneId, doc, optionsIn?) {
  * @return {jQuery.Promise}  promise that resolves to a File object or
  *                           rejects with a File error or string
  */
-export function _open(paneId: string, file, optionsIn?) {
+export function _open(paneId: string, file: File, optionsIn?: OpenOptions): JQueryPromise<File | null> {
     const result = $.Deferred<File | null>();
-    const options = optionsIn || {};
+    const options: OpenOptions = optionsIn || {};
 
-    function doPostOpenActivation() {
+    function doPostOpenActivation(): void {
         if (!options.noPaneActivate) {
             setActivePaneId(paneId);
         }
@@ -1311,7 +1338,7 @@ export function _open(paneId: string, file, optionsIn?) {
  * Merges second pane into first pane and opens the current file
  * @private
  */
-function _mergePanes() {
+function _mergePanes(): void {
     if (_panes.hasOwnProperty(SECOND_PANE)) {
 
         const firstPane = _panes[FIRST_PANE];
@@ -1362,8 +1389,8 @@ function _mergePanes() {
  * @param {Object={noOpenNextFile:boolean}} optionsIn - options
  * This function does not fail if the file is not open
  */
-export function _close(paneId, file, optionsIn?) {
-    const options = optionsIn || {};
+export function _close(paneId: string, file: File, optionsIn?: CloseOptions): void {
+    const options: CloseOptions = optionsIn || {};
     _forEachPaneOrPanes(paneId, function (pane) {
         if (pane.removeView(file, options.noOpenNextFile) && (paneId === ACTIVE_PANE || pane.id === paneId)) {
             _removeFileFromMRU(pane.id, file);
@@ -1381,7 +1408,7 @@ export function _close(paneId, file, optionsIn?) {
  * @param {!Array.<File>} fileList - files to close
  * This function does not fail if the file is not open
  */
-export function _closeList(paneId, fileList) {
+export function _closeList(paneId: string, fileList: Array<File>): void {
     _forEachPaneOrPanes(paneId, function (pane) {
         const closedList = pane.removeViews(fileList);
         closedList.forEach(function (file) {
@@ -1397,7 +1424,7 @@ export function _closeList(paneId, fileList) {
  * @param {!string} paneId - id of the pane in which to open the document
  * This function does not fail if the file is not open
  */
-export function _closeAll(paneId) {
+export function _closeAll(paneId: string): void {
     _forEachPaneOrPanes(paneId, function (pane) {
         const closedList = pane.getViewList();
         closedList.forEach(function (file) {
@@ -1416,7 +1443,7 @@ export function _closeAll(paneId) {
  * @return {?Pane} the pane where the document lives or NULL if it isn't in a pane
  * @private
  */
-function _findPaneForDocument(document) {
+function _findPaneForDocument(document: Document): Pane {
     // First check for an editor view of the document
     let pane = _getPaneFromElement($(document._masterEditor.$el.parent().parent()));
 
@@ -1435,7 +1462,7 @@ function _findPaneForDocument(document) {
  * Destroys an editor object if a document is no longer referenced
  * @param {!Document} doc - document to destroy
  */
-export function _destroyEditorIfNotNeeded(document) {
+export function _destroyEditorIfNotNeeded(document: Document): void {
     if (!(document instanceof DocumentManager.Document)) {
         throw new Error("_destroyEditorIfUnneeded() should be passed a Document");
     }
@@ -1461,7 +1488,7 @@ export function _destroyEditorIfNotNeeded(document) {
  * Loads the workingset state
  * @private
  */
-function _loadViewState(e) {
+function _loadViewState(e: JQueryEventObject): void {
     // file root is appended for each project
     let promises: Array<JQueryDeferred<any> | JQueryPromise<DocumentManager.Document | null>> = [];
     const context = {
@@ -1472,7 +1499,7 @@ function _loadViewState(e) {
     };
     let state = PreferencesManager.getViewState(PREFS_NAME, context);
 
-    function convertViewState() {
+    function convertViewState(): Result | undefined {
         const context = {
             location : {
                 scope: "user",
@@ -1484,12 +1511,6 @@ function _loadViewState(e) {
         if (!files) {
             // nothing to convert
             return;
-        }
-
-        interface Result {
-            orientation?;
-            activePaneId: string;
-            panes: { [key: string]: Array<File> };
         }
 
         const result: Result = {
@@ -1592,8 +1613,8 @@ function _loadViewState(e) {
  * Saves the workingset state
  * @private
  */
-function _saveViewState() {
-    function _computeSplitPercentage() {
+function _saveViewState(): void {
+    function _computeSplitPercentage(): number {
         let available;
         let used;
 
@@ -1647,7 +1668,7 @@ function _saveViewState() {
  * @param {jQuery} $container - the container where the main view will live
  * @private
  */
-export function _initialize($container) {
+export function _initialize($container: JQuery): void {
     if (_activePaneId) {
         throw new Error("MainViewManager has already been initialized");
     }
@@ -1675,7 +1696,7 @@ export function _initialize($container) {
  * @param {!number} columns (may be 1 or 2)
  * @summay Rows or Columns may be 1 or 2 but both cannot be 2. 1x2, 2x1 or 1x1 are the legal values
  */
-export function setLayoutScheme(rows, columns) {
+export function setLayoutScheme(rows: number, columns: number): boolean {
     if ((rows < 1) || (rows > 2) || (columns < 1) || (columns > 2) || (columns === 2 && rows === 2)) {
         console.error("setLayoutScheme unsupported layout " + rows + ", " + columns);
         return false;
@@ -1695,7 +1716,7 @@ export function setLayoutScheme(rows, columns) {
  * Retrieves the current layout scheme
  * @return {!{rows: number, columns: number>}}
  */
-export function getLayoutScheme() {
+export function getLayoutScheme(): LayoutScheme {
     const result = {
         rows: 1,
         columns: 1

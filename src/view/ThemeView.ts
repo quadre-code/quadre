@@ -21,6 +21,8 @@
  *
  */
 
+import type { Theme } from "view/ThemeManager";
+
 import * as CodeMirror from "codemirror";
 import * as PreferencesManager from "preferences/PreferencesManager";
 
@@ -35,10 +37,11 @@ const $scrollbars = $("<style id='scrollbars'>").appendTo("head");
  * @param {ThemeManager.Theme} theme Is the theme object with the corresponding scrollbar style
  *   to be updated
  */
-export function updateScrollbars(theme) {
-    theme = theme || {};
+export function updateScrollbars(theme: Theme | null): void {
+    // tslint:disable-next-line: no-object-literal-type-assertion
+    const themeToUpdate = theme || {} as Theme;
     if (prefs.get("themeScrollbars")) {
-        const scrollbar = (theme.scrollbar || []).join(" ");
+        const scrollbar = (themeToUpdate.scrollbar || []).join(" ");
         $scrollbars.text(scrollbar || "");
     } else {
         $scrollbars.text("");
@@ -51,7 +54,7 @@ export function updateScrollbars(theme) {
  *
  * @param {CodeMirror} cm is the CodeMirror instance currently loaded
  */
-export function updateThemes(cm) {
+export function updateThemes(cm: CodeMirror.Editor): void {
     const newTheme = prefs.get("theme");
     const cmTheme  = (cm.getOption("theme") || "").replace(/[\s]*/, ""); // Normalize themes string
 

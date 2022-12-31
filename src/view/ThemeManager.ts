@@ -24,6 +24,9 @@
 /*jslint regexp: true */
 /*global less */
 
+import type { InstallInfo, Metadata } from "extensibility/ExtensionManager";
+import type File = require("filesystem/File");
+
 import * as _ from "lodash";
 import * as EventDispatcher from "utils/EventDispatcher";
 import * as FileSystem from "filesystem/FileSystem";
@@ -33,10 +36,14 @@ import * as ExtensionUtils from "utils/ExtensionUtils";
 import * as ThemeSettings from "view/ThemeSettings";
 import * as ThemeView from "view/ThemeView";
 import * as PreferencesManager from "preferences/PreferencesManager";
-import File = require("filesystem/File");
 
 interface ThemeMap {
     [themeName: string]: Theme;
+}
+
+interface ContentScrollbar {
+    content: string;
+    scrollbar: Array<string>;
 }
 
 const prefs = PreferencesManager.getExtensionPrefs("themes");
@@ -58,7 +65,7 @@ const stylesPath      = FileUtils.getNativeBracketsDirectoryPath() + "/styles/";
  * @param {string} name is what needs to be procseed to generate a display name
  * @return {string} theme name properly formatted for display
  */
-export function _toDisplayName(name) {
+export function _toDisplayName(name: string): string {
     const extIndex = name.lastIndexOf(".");
     name = name.substring(0, extIndex !== -1 ? extIndex : undefined).replace(/-/g, " ");
 
@@ -77,15 +84,15 @@ export function _toDisplayName(name) {
  * @param {{name: string, title: string}} options to configure different
  *   properties in the theme
  */
-class Theme {
+export class Theme {
     public file: File;
-    public name;
+    public name: string;
     public displayName;
     public dark;
     public addModeClass;
     public scrollbar?;
 
-    constructor(file: File, options) {
+    constructor(file: File, options: Metadata) {
         options = options || {};
         const fileName = file.name;
 
@@ -125,7 +132,7 @@ class Theme {
  * @return {{content: string, scrollbar: Array.<string>}} content is the new css/less content
  *   with the scrollbar rules extracted out and put in scrollbar
  */
-export function _extractScrollbars(content: string) {
+export function _extractScrollbars(content: string): ContentScrollbar {
     const scrollbar: Array<string> = [];
 
     // Go through and extract out scrollbar customizations so that we can
@@ -155,7 +162,7 @@ export function _extractScrollbars(content: string) {
  *
  * @return {string} Windows Drive letter in lowercase.
  */
-function fixPath(path) {
+function fixPath(path: string): string {
     return path.replace(/^([A-Z]+:)?\//, function (match) {
         return match.toLocaleLowerCase();
     });
@@ -171,8 +178,8 @@ function fixPath(path) {
  * @param {Theme} theme is the object the css/less corresponds to
  * @return {$.Promise} promise with the processed css/less as the resolved value
  */
-function lessifyTheme(content, theme) {
-    const deferred = $.Deferred();
+function lessifyTheme(content: string, theme: Theme): JQueryPromise<string> {
+    const deferred = $.Deferred<string>();
     const options: Less.Options = {
         rootpath: fixPath(stylesPath),
         filename: fixPath(theme.file._path),
@@ -197,7 +204,7 @@ function lessifyTheme(content, theme) {
  * @param {File} file is the search criteria
  * @return {Theme} theme that matches the file
  */
-function getThemeByFile(file) {
+function getThemeByFile(file: File): Theme | undefined {
     const path = file._path;
     return _.find(loadedThemes, function (item: Theme) {
         return item.file._path === path;
@@ -223,7 +230,7 @@ export function getCurrentTheme(): Theme | null {
  * Gets all available themes
  * @return {Array.<Theme>} collection of all available themes
  */
-export function getAllThemes() {
+export function getAllThemes(): Array<Theme> {
     return _.map(loadedThemes, function (theme) {
         return theme;
     });
@@ -237,7 +244,7 @@ export function getAllThemes() {
  * @return {$.Promise} promise object resolved with the theme object and all
  *    corresponding new css/less and scrollbar information
  */
-function loadCurrentTheme() {
+function loadCurrentTheme(): JQueryPromise<Theme> {
     const theme = getCurrentTheme();
 
     const pending = theme && FileUtils.readAsText(theme.file)
@@ -264,12 +271,12 @@ function loadCurrentTheme() {
  *
  * @param {boolean} force Forces a reload of the current theme.  It reloads the theme file.
  */
-export function refresh(force?) {
+export function refresh(force?: boolean): void {
     if (force) {
         currentTheme = null;
     }
 
-    $.when(force && loadCurrentTheme()).done(function () {
+    $.when((force && loadCurrentTheme()) as any).done(function () {
         const editor = EditorManager.getActiveEditor();
         if (!editor || !editor._codeMirror) {
             return;
@@ -292,8 +299,8 @@ export function refresh(force?) {
  *    for the theme.
  * @return {$.Promise} promise object resolved with the theme to be loaded from fileName
  */
-export function loadFile(fileName, options) {
-    const deferred         = $.Deferred();
+export function loadFile(fileName: string, options: Metadata): JQueryPromise<Theme> {
+    const deferred         = $.Deferred<Theme>();
     const file             = FileSystem.getFileForPath(fileName);
     const currentThemeName = prefs.get("theme");
 
@@ -326,9 +333,9 @@ export function loadFile(fileName, options) {
  * @param {Object} themePackage is a package from the extension manager for the theme to be loaded.
  * @return {$.Promise} promise object resolved with the theme to be loaded from the pacakge
  */
-export function loadPackage(themePackage) {
-    const fileName = themePackage.path + "/" + themePackage.metadata.theme.file;
-    return loadFile(fileName, themePackage.metadata);
+export function loadPackage(themePackage: InstallInfo): JQueryPromise<Theme> {
+    const fileName = themePackage.path + "/" + themePackage.metadata!.theme!.file;
+    return loadFile(fileName, themePackage.metadata!);
 }
 
 

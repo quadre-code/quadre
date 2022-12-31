@@ -195,6 +195,21 @@ interface State {
     viewState: any;
 }
 
+interface IndexRequest {
+    indexRequested: boolean;
+    index: number | undefined;
+}
+
+interface FileLike {
+    fullPath: string;
+}
+
+type ReorderItemKind = -1 | 0 | 1;
+
+interface ScrollState {
+    scrollPos: any;
+}
+
 /**
  * Internal pane id
  * @const
@@ -231,7 +246,7 @@ PreferencesManager.definePreference("pane.mergePanesWhenLastFileClosed", "boolea
  * {@link Pane#addToViewList} to insert the item at a specific index
  * @see Pane#addToViewList
  */
-function _makeIndexRequestObject(requestIndex, index) {
+function _makeIndexRequestObject(requestIndex: boolean, index: number | undefined): IndexRequest {
     return {indexRequested: requestIndex, index: index};
 }
 
@@ -240,7 +255,7 @@ function _makeIndexRequestObject(requestIndex, index) {
  * @params {string} paneId - paneId of the pane to focus
  * @private
  */
-function _ensurePaneIsFocused(paneId) {
+function _ensurePaneIsFocused(paneId: string): void {
     const pane = MainViewManager._getPane(paneId)!;
 
     // Defer the focusing until other focus events have occurred.
@@ -403,7 +418,7 @@ export class Pane extends EventDispatcher.EventDispatcherBase {
                     // Trigger view list changes for both panes
                     self.trigger("viewListChange");
                     otherPane.trigger("viewListChange");
-                    _ensurePaneIsFocused(activePaneIdBeforeFlip);
+                    _ensurePaneIsFocused(activePaneIdBeforeFlip!);
                 });
             });
         });
@@ -528,7 +543,7 @@ export class Pane extends EventDispatcher.EventDispatcherBase {
      * Initializes the Pane to its default state
      * @private
      */
-    private _initialize() {
+    private _initialize(): void {
         this._viewList = [];
         this._viewListMRUOrder = [];
         this._viewListAddedOrder = [];
@@ -544,7 +559,7 @@ export class Pane extends EventDispatcher.EventDispatcherBase {
      * @param {!string} name - the name of the event to namespace
      * @return {string} an event namespaced to this pane
      */
-    private _makeEventName(name) {
+    private _makeEventName(name: string): string {
         return name + ".pane-" + this.id;
     }
 
@@ -553,7 +568,7 @@ export class Pane extends EventDispatcher.EventDispatcherBase {
      * @private
      * @param {!View} view - the view to reparent
      */
-    private _reparent(view) {
+    private _reparent(view: View): void {
         view.$el.appendTo(this.$content);
         this._views[view.getFile().fullPath] = view;
         if (view.notifyContainerChange) {
@@ -565,7 +580,7 @@ export class Pane extends EventDispatcher.EventDispatcherBase {
      * Hides the current view if there is one, shows the
      *  interstitial screen and notifies that the view changed
      */
-    private _hideCurrentView() {
+    private _hideCurrentView(): void {
         if (this._currentView) {
             const currentView = this._currentView;
             this._setViewVisibility(this._currentView, false);
@@ -584,10 +599,10 @@ export class Pane extends EventDispatcher.EventDispatcherBase {
      * replacement document has been opened
      * @private
      */
-    public moveView(file, destinationPane, destinationIndex) {
+    public moveView(file: File, destinationPane: Pane, destinationIndex: number | undefined): JQueryPromise<void> {
         const self = this;
         const openNextPromise = $.Deferred();
-        const result = $.Deferred();
+        const result = $.Deferred<void>();
 
         // if we're moving the currently viewed file we
         //  need to open another file so wait for that operation
@@ -668,7 +683,7 @@ export class Pane extends EventDispatcher.EventDispatcherBase {
      * Merges the another Pane object's contents into this Pane
      * @param {!Pane} Other - Pane from which to copy
      */
-    public mergeFrom(other) {
+    public mergeFrom(other: Pane): void {
         // save this because we're setting it to null and we
         //  may need to destroy it if it's a temporary view
         const otherCurrentView = other._currentView;
@@ -718,7 +733,7 @@ export class Pane extends EventDispatcher.EventDispatcherBase {
      * Removes the DOM node for the Pane, removes all
      *  event handlers and _resets all internal data structures
      */
-    public destroy() {
+    public destroy(): void {
         if (this._currentView ||
                 Object.keys(this._views).length > 0 ||
                 this._viewList.length > 0) {
@@ -738,7 +753,7 @@ export class Pane extends EventDispatcher.EventDispatcherBase {
      * Returns a copy of the view file list
      * @return {!Array.<File>}
      */
-    public getViewList() {
+    public getViewList(): Array<File> {
         return _.clone(this._viewList);
     }
 
@@ -746,7 +761,7 @@ export class Pane extends EventDispatcher.EventDispatcherBase {
      * Returns the number of entries in the view file list
      * @return {number}
      */
-    public getViewListSize() {
+    public getViewListSize(): number {
         return this._viewList.length;
     }
 
@@ -755,7 +770,7 @@ export class Pane extends EventDispatcher.EventDispatcherBase {
      * @param {!string} fullPath the full path of the item to look for
      * @return {number} index of the item or -1 if not found
      */
-    public findInViewList(fullPath) {
+    public findInViewList(fullPath: string): number {
         return _.findIndex(this._viewList, function (file) {
             return file.fullPath === fullPath;
         });
@@ -766,7 +781,7 @@ export class Pane extends EventDispatcher.EventDispatcherBase {
      * @param {!string} fullPath the full path of the item to look for
      * @return {number} order of the item or -1 if not found
      */
-    public findInViewListAddedOrder(fullPath) {
+    public findInViewListAddedOrder(fullPath: string): number {
         return _.findIndex(this._viewListAddedOrder, function (file) {
             return file.fullPath === fullPath;
         });
@@ -778,7 +793,7 @@ export class Pane extends EventDispatcher.EventDispatcherBase {
      * @return {number} order of the item or -1 if not found.
      *      0 indicates most recently used, followed by 1 and so on...
      */
-    public findInViewListMRUOrder(fullPath) {
+    public findInViewListMRUOrder(fullPath: string): number {
         return _.findIndex(this._viewListMRUOrder, function (file) {
             return file.fullPath === fullPath;
         });
@@ -789,7 +804,7 @@ export class Pane extends EventDispatcher.EventDispatcherBase {
      * @see {@link Pane#reorderItem}
      * @const
      */
-    public ITEM_NOT_FOUND = -1;
+    public ITEM_NOT_FOUND: ReorderItemKind = -1;
 
     /**
      * Return value from reorderItem when the Item was found at its natural index
@@ -797,7 +812,7 @@ export class Pane extends EventDispatcher.EventDispatcherBase {
      * @see {@link Pane#reorderItem}
      * @const
      */
-    public ITEM_FOUND_NO_SORT = 0;
+    public ITEM_FOUND_NO_SORT: ReorderItemKind = 0;
 
     /**
      * Return value from reorderItem when the Item was found and reindexed
@@ -805,7 +820,7 @@ export class Pane extends EventDispatcher.EventDispatcherBase {
      * @see {@link Pane#reorderItem}
      * @const
      */
-    public ITEM_FOUND_NEEDS_SORT = 1;
+    public ITEM_FOUND_NEEDS_SORT: ReorderItemKind = 1;
 
     /**
      * reorders the specified file in the view list to the desired position
@@ -818,7 +833,7 @@ export class Pane extends EventDispatcher.EventDispatcherBase {
      *            ITEM_FOUND_NO_SORT    : The request file object was found but it was already at the requested index
      *            ITEM_FOUND_NEEDS_SORT : The request file object was found and moved to a new index and the list should be resorted
      */
-    public reorderItem(file, index, force) {
+    public reorderItem(file: File, index: number | undefined, force: boolean | undefined): ReorderItemKind {
         const indexRequested = (index !== undefined && index !== null && index >= 0);
         const curIndex = this.findInViewList(file.fullPath);
 
@@ -826,7 +841,7 @@ export class Pane extends EventDispatcher.EventDispatcherBase {
             // File is in view list, but not at the specifically requested index - only need to reorder
             if (force || (indexRequested && curIndex !== index)) {
                 const entry = this._viewList.splice(curIndex, 1)[0];
-                this._viewList.splice(index, 0, entry);
+                this._viewList.splice(index!, 0, entry);
                 return this.ITEM_FOUND_NEEDS_SORT;
             }
             return this.ITEM_FOUND_NO_SORT;
@@ -841,7 +856,7 @@ export class Pane extends EventDispatcher.EventDispatcherBase {
      * @param {!File} file - file object to test
      * @return {boolean} true if it can be added, false if not
      */
-    private _canAddFile(file) {
+    private _canAddFile(file: File): boolean {
         return ((this._views.hasOwnProperty(file.fullPath) && this.findInViewList(file.fullPath) === -1) ||
                     (MainViewManager._getPaneIdForPath(file.fullPath) !== this.id));
     }
@@ -852,10 +867,10 @@ export class Pane extends EventDispatcher.EventDispatcherBase {
      * @param {!File} file
      * @param {Object=} inPlace record with inPlace add data (index, indexRequested). Used internally
      */
-    private _addToViewList(file, inPlace?) {
+    private _addToViewList(file: File, inPlace?: IndexRequest): void {
         if (inPlace && inPlace.indexRequested) {
             // If specified, insert into the workingset at this 0-based index
-            this._viewList.splice(inPlace.index, 0, file);
+            this._viewList.splice(inPlace.index!, 0, file);
         } else {
             // If no index is specified, just add the file to the end of the workingset.
             this._viewList.push(file);
@@ -881,7 +896,7 @@ export class Pane extends EventDispatcher.EventDispatcherBase {
      * @param {number=} index - position where to add the item
      * @return {number} index of where the item was added
      */
-    public addToViewList(file, index) {
+    public addToViewList(file: File, index: number | undefined): number {
         const indexRequested = (index !== undefined && index !== null && index >= 0 && index < this._viewList.length);
         this._addToViewList(file, _makeIndexRequestObject(indexRequested, index));
 
@@ -889,7 +904,7 @@ export class Pane extends EventDispatcher.EventDispatcherBase {
             index = this._viewList.length - 1;
         }
 
-        return index;
+        return index!;
     }
 
 
@@ -918,7 +933,7 @@ export class Pane extends EventDispatcher.EventDispatcherBase {
      * @param {?View} newView - the view become the current view
      * @param {?View} oldView - the view being replaced
      */
-    private _notifyCurrentViewChange(newView, oldView) {
+    private _notifyCurrentViewChange(newView: View | null, oldView: View | null): void {
         this.updateHeaderText();
 
         this.trigger("currentViewChange", newView, oldView);
@@ -931,7 +946,7 @@ export class Pane extends EventDispatcher.EventDispatcherBase {
      * @private
      * @param {!View} view - view to destroy
      */
-    private _doDestroyView(view) {
+    private _doDestroyView(view: View): void {
         if (this._currentView === view) {
             // if we're removing the current
             //  view then we need to hide the view
@@ -957,7 +972,7 @@ export class Pane extends EventDispatcher.EventDispatcherBase {
      *
      * @return {boolean} true if removed, false if the file was not found either in a list or view
      */
-    private _doRemove(file, preventViewChange?) {
+    private _doRemove(file: FileLike, preventViewChange?: boolean): boolean {
 
         // If it's in the view list then we need to remove it
         const index = this.findInViewList(file.fullPath);
@@ -985,7 +1000,7 @@ export class Pane extends EventDispatcher.EventDispatcherBase {
      * Moves the specified file to the front of the MRU list
      * @param {!File} file
      */
-    public makeViewMostRecent(file) {
+    public makeViewMostRecent(file: File): void {
         const index = this.findInViewListMRUOrder(file.fullPath);
         if (index !== -1) {
             this._viewListMRUOrder.splice(index, 1);
@@ -1002,7 +1017,7 @@ export class Pane extends EventDispatcher.EventDispatcherBase {
      * invokes Array.sort method on the internal view list.
      * @param {sortFunctionCallback} compareFn - the function to call to determine if the
      */
-    public sortViewList(compareFn) {
+    public sortViewList(compareFn): void {
         this._viewList.sort(_.partial(compareFn, this.id));
     }
 
@@ -1013,7 +1028,7 @@ export class Pane extends EventDispatcher.EventDispatcherBase {
      * @param {!number} toIndex - the index to move to
      * @private
      */
-    public moveWorkingSetItem(fromIndex, toIndex) {
+    public moveWorkingSetItem(fromIndex: number, toIndex: number): void {
         this._viewList.splice(toIndex, 0, this._viewList.splice(fromIndex, 1)[0]);
     }
 
@@ -1023,7 +1038,7 @@ export class Pane extends EventDispatcher.EventDispatcherBase {
      * @param {number} index2 - the index of the second item to swap
      * @return {boolean}} true
      */
-    public swapViewListIndexes(index1, index2) {
+    public swapViewListIndexes(index1: number, index2: number): boolean {
         const temp = this._viewList[index1];
         this._viewList[index1] = this._viewList[index2];
         this._viewList[index2] = temp;
@@ -1038,7 +1053,7 @@ export class Pane extends EventDispatcher.EventDispatcherBase {
      *                              If the current view is a temporary view then the first item in the MRU list is returned
      * @return {?File}  The File object of the next item in the travesal order or null if there isn't one.
      */
-    public traverseViewListByMRU(direction, current) {
+    public traverseViewListByMRU(direction: 1 | -1, current: string | null): File | null {
         if (!current && this._currentView) {
             const file = this._currentView!.getFile();
             current = file && file.fullPath;
@@ -1052,7 +1067,7 @@ export class Pane extends EventDispatcher.EventDispatcherBase {
      * Updates flipview icon in pane header
      * @private
      */
-    public updateFlipViewIcon() {
+    public updateFlipViewIcon(): void {
         const paneID = this.id;
         let directionIndex = 0;
         const ICON_CLASSES = ["flipview-icon-none", "flipview-icon-top", "flipview-icon-right", "flipview-icon-bottom", "flipview-icon-left"];
@@ -1076,7 +1091,7 @@ export class Pane extends EventDispatcher.EventDispatcherBase {
      * Updates text in pane header
      * @private
      */
-    public updateHeaderText() {
+    public updateHeaderText(): void {
         const file = this.getCurrentlyViewedFile();
 
         if (file) {
@@ -1103,7 +1118,7 @@ export class Pane extends EventDispatcher.EventDispatcherBase {
      * @param {!string} oldname - path of the file that was renamed
      * @param {!string} newname - the new path to the file
      */
-    private _handleFileNameChange(e, oldname, newname) {
+    private _handleFileNameChange(e: JQueryEventObject, oldname: string, newname: string): void {
         // Check to see if we need to dispatch a viewListChange event
         // The list contains references to file objects and, for a rename event,
         // the File object's name has changed by the time we've gotten the event.
@@ -1133,7 +1148,7 @@ export class Pane extends EventDispatcher.EventDispatcherBase {
      * @param {!JQuery.Event} e - jQuery event object
      * @param {!string} fullPath - path of the file that was deleted
      */
-    private _handleFileDeleted(e, fullPath) {
+    private _handleFileDeleted(e: JQueryEventObject, fullPath: string): void {
         if (this.removeView({fullPath: fullPath})) {
             this.trigger("viewListChange");
         }
@@ -1143,7 +1158,7 @@ export class Pane extends EventDispatcher.EventDispatcherBase {
      * Shows the pane's interstitial page
      * @param {boolean} show - show or hide the interstitial page
      */
-    public showInterstitial(show) {
+    public showInterstitial(show: boolean): void {
         if (this.$content) {
             this.$content.find(".not-editor").css("display", (show) ? "" : "none");
         }
@@ -1154,7 +1169,7 @@ export class Pane extends EventDispatcher.EventDispatcherBase {
      * @param {!string}  path - the fullPath of the view to retrieve
      * @return {boolean} show - show or hide the interstitial page
      */
-    public getViewForPath(path) {
+    public getViewForPath(path: string): View {
         return this._views[path];
     }
 
@@ -1163,7 +1178,7 @@ export class Pane extends EventDispatcher.EventDispatcherBase {
      * @param {!View} view - the View object to add
      * @param {boolean} show - true to show the view right away, false otherwise
      */
-    public addView(view: View, show?: boolean) {
+    public addView(view: View, show?: boolean): void {
         const file = view.getFile();
         const path = file && file.fullPath;
 
@@ -1194,7 +1209,7 @@ export class Pane extends EventDispatcher.EventDispatcherBase {
      * @param {boolean} visible - true to show the view, false to hide it
      * @private
      */
-    private _setViewVisibility(view, visible) {
+    private _setViewVisibility(view: View, visible: boolean): void {
         view.$el.css("display", (visible ? "" : "none"));
         if (view.notifyVisibilityChange) {
             view.notifyVisibilityChange(visible);
@@ -1207,7 +1222,7 @@ export class Pane extends EventDispatcher.EventDispatcherBase {
      * If the currentView is a temporary view, it is destroyed.
      * @param {!View} view - the to show
      */
-    public showView(view) {
+    public showView(view: View): void {
         if (this._currentView && this._currentView === view) {
             this._setViewVisibility(this._currentView, true);
             this.updateLayout(true);
@@ -1245,7 +1260,7 @@ export class Pane extends EventDispatcher.EventDispatcherBase {
     /**
      * Update header and content height
      */
-    private _updateHeaderHeight() {
+    private _updateHeaderHeight(): void {
         let paneContentHeight = this.$el.height();
 
         // Adjust pane content height for header
@@ -1265,7 +1280,7 @@ export class Pane extends EventDispatcher.EventDispatcherBase {
      * false if just to resize forceRefresh is only used by Editor views to force a relayout
      * of all editor DOM elements. Custom View implementations should just ignore this flag.
      */
-    public updateLayout(forceRefresh?) {
+    public updateLayout(forceRefresh?: boolean): void {
         this._updateHeaderHeight();
         if (this._currentView) {
             this._currentView.updateLayout(forceRefresh);
@@ -1278,7 +1293,7 @@ export class Pane extends EventDispatcher.EventDispatcherBase {
      * @param {!View} view - the View object to test
      * @return {boolean}} true if the view can be disposed, false if not
      */
-    private _isViewNeeded(view) {
+    private _isViewNeeded(view: View): boolean {
         const path = view.getFile().fullPath;
         const currentPath = this.getCurrentlyViewedPath();
 
@@ -1290,7 +1305,7 @@ export class Pane extends EventDispatcher.EventDispatcherBase {
      * Retrieves the File object of the current view
      * @return {?File} the File object of the current view or null if there isn't one
      */
-    public getCurrentlyViewedFile() {
+    public getCurrentlyViewedFile(): File | null {
         return this._currentView ? this._currentView.getFile() : null;
     }
 
@@ -1298,7 +1313,7 @@ export class Pane extends EventDispatcher.EventDispatcherBase {
      * Retrieves the path of the current view
      * @return {?string} the path of the current view or null if there isn't one
      */
-    public getCurrentlyViewedPath() {
+    public getCurrentlyViewedPath(): string | null {
         const file = this.getCurrentlyViewedFile();
         return file ? file.fullPath : null;
     }
@@ -1307,7 +1322,7 @@ export class Pane extends EventDispatcher.EventDispatcherBase {
      * destroys the view if it isn't needed
      * @param {View} view - the view to destroy
      */
-    public destroyViewIfNotNeeded(view) {
+    public destroyViewIfNotNeeded(view: View): void {
         if (!this._isViewNeeded(view)) {
             const file = view.getFile();
             const path = file && file.fullPath;
@@ -1321,7 +1336,7 @@ export class Pane extends EventDispatcher.EventDispatcherBase {
      * _resets the pane to an empty state
      * @private
      */
-    public _reset() {
+    public _reset(): void {
         const self = this;
         const views: Array<View> = [];
         const view = this._currentView;
@@ -1356,7 +1371,7 @@ export class Pane extends EventDispatcher.EventDispatcherBase {
      * @param  {!string} fullPath - path of the file to open
      * @return {jQuery.promise} promise that will resolve when the file is opened
      */
-    private _execOpenFile(fullPath) {
+    private _execOpenFile(fullPath: string): JQueryPromise<void> {
         return CommandManager.execute(Commands.CMD_ADD_TO_WORKINGSET_AND_OPEN, { fullPath: fullPath, paneId: this.id, options: {noPaneActivate: true}});
     }
 
@@ -1370,7 +1385,7 @@ export class Pane extends EventDispatcher.EventDispatcherBase {
      * @return {boolean} true if the file was removed from the working set
      *  This function will remove a temporary view of a file but will return false in that case
      */
-    public removeView(file, suppressOpenNextFile?, preventViewChange?) {
+    public removeView(file: FileLike, suppressOpenNextFile?: boolean, preventViewChange?: boolean): boolean {
         const nextFile = !suppressOpenNextFile && this.traverseViewListByMRU(1, file.fullPath);
         if (nextFile && nextFile.fullPath !== file.fullPath && this.getCurrentlyViewedPath() === file.fullPath) {
             const self = this;
@@ -1383,7 +1398,7 @@ export class Pane extends EventDispatcher.EventDispatcherBase {
                     this._execOpenFile(fullPath)
                         .fail(function () {
                             // the FILE_OPEN op failed so destroy the current view
-                            self._doDestroyView(self._currentView);
+                            self._doDestroyView(self._currentView!);
                         });
                 }
                 return true;
@@ -1404,7 +1419,7 @@ export class Pane extends EventDispatcher.EventDispatcherBase {
      *  This function will remove temporary views but the file objects for those views will not be found
      *  in the result set.  Only the file objects removed from the working set are returned.
      */
-    public removeViews(list: Array<File>) {
+    public removeViews(list: Array<File>): Array<File> {
         const self = this;
         let needsDestroyCurrentView = false;
 
@@ -1430,11 +1445,11 @@ export class Pane extends EventDispatcher.EventDispatcherBase {
                 this._execOpenFile(fullPath)
                     .fail(function () {
                         // the FILE_OPEN op failed so destroy the current view
-                        self._doDestroyView(self._currentView);
+                        self._doDestroyView(self._currentView!);
                     });
             } else {
                 // Nothing left to show so destroy the current view
-                this._doDestroyView(this._currentView);
+                this._doDestroyView(this._currentView!);
             }
         }
 
@@ -1445,12 +1460,12 @@ export class Pane extends EventDispatcher.EventDispatcherBase {
     /**
      * Gives focus to the last thing that had focus, the current view or the pane in that order
      */
-    public focus() {
+    public focus(): void {
         const current = window.document.activeElement!;
         const self = this;
 
         // Helper to focus the current view if it can
-        function tryFocusingCurrentView() {
+        function tryFocusingCurrentView(): void {
             if (self._currentView) {
                 if (self._currentView.focus) {
                     //  Views can implement a focus
@@ -1505,7 +1520,7 @@ export class Pane extends EventDispatcher.EventDispatcherBase {
      * @param {jQuery.event} e - event data
      * @param {!string} activePaneId - the new active pane id
      */
-    public _handleActivePaneChange(e, activePaneId) {
+    public _handleActivePaneChange(e: JQueryEventObject | undefined, activePaneId: string): void {
         this.$el.toggleClass("active-pane", Boolean(activePaneId === this.id));
     }
 
@@ -1524,7 +1539,7 @@ export class Pane extends EventDispatcher.EventDispatcherBase {
         let data;
         const self = this;
 
-        const getInitialViewFilePath = function () {
+        const getInitialViewFilePath = function (): string | null {
             return (self._viewList.length > 0) ? self._viewList[0].fullPath : null;
         };
 
@@ -1588,7 +1603,7 @@ export class Pane extends EventDispatcher.EventDispatcherBase {
      * gets the current view's scroll state data
      * @return {Object=} scroll state - the current scroll state
      */
-    public getScrollState() {
+    public getScrollState(): ScrollState | undefined {
         if (this._currentView && this._currentView.getScrollPos) {
             return {scrollPos: this._currentView.getScrollPos()};
         }
@@ -1601,7 +1616,7 @@ export class Pane extends EventDispatcher.EventDispatcherBase {
      * @param {Object=} state - the current scroll state
      * @param {number=} heightDelta - the amount to add or subtract from the state
      */
-    public restoreAndAdjustScrollState(state, heightDelta) {
+    public restoreAndAdjustScrollState(state: ScrollState, heightDelta: number): void {
         if (this._currentView && state && state.scrollPos && this._currentView.adjustScrollPos) {
             this._currentView.adjustScrollPos(state.scrollPos, heightDelta);
         }

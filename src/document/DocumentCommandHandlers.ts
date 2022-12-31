@@ -605,7 +605,7 @@ function handleDocumentOpen(commandData: FileCommandData): JQueryPromise<Documen
 function handleFileAddToWorkingSetAndOpen(commandData: PaneCommandData): JQueryPromise<File> {
     return handleFileOpen(commandData).done(function (file) {
         const paneId = (commandData && commandData.paneId) || MainViewManager.ACTIVE_PANE;
-        MainViewManager.addToWorkingSet(paneId, file, commandData.index, commandData.forceRedraw);
+        MainViewManager.addToWorkingSet(paneId, file!, commandData.index, commandData.forceRedraw);
         HealthLogger.fileOpened(file!.fullPath, true, file!._encoding);
     });
 }
@@ -1606,7 +1606,7 @@ function detectDocumentNavEnd(event): void {
  * @param {!number} inc Delta indicating in which direction we're going
  * @param {?boolean} listOrder Whether to navigate using MRU or list order. Defaults to MRU order
  */
-function goNextPrevDoc(inc: number, listOrder?: boolean): void {
+function goNextPrevDoc(inc: 1 | -1, listOrder?: boolean): void {
     let result;
     if (listOrder) {
         result = MainViewManager.traverseToNextViewInListOrder(inc);

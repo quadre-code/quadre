@@ -83,7 +83,7 @@ const _factories: Array<Factory> = [];
  * Registers a view factory
  * @param {!Factory} factory - the view factory to register
  */
-export function registerViewFactory(factory: Factory) {
+export function registerViewFactory(factory: Factory): void {
     _factories.push(factory);
 }
 
@@ -92,7 +92,7 @@ export function registerViewFactory(factory: Factory) {
  * @param {!string} fullPath - the file to open
  * @return {?Factory} A factory that can create a view for the path or undefined if there isn't one.
  */
-export function findSuitableFactoryForPath(fullPath) {
+export function findSuitableFactoryForPath(fullPath: string): Factory | undefined {
     return _.find(_factories, function (factory) {
         // This could get more complex in the future by searching in this order
         //  1) a factory that can open the file by fullPath

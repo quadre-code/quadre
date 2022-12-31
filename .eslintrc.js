@@ -158,7 +158,6 @@ module.exports = {
                 "src/languageTools/**/*.ts",
                 "src/preferences/**/*.ts",
                 "src/project/**/*.ts",
-                "src/view/**/*.ts",
                 "src/widgets/**/*.ts",
                 "src/brackets.ts",
                 "src/xorigin.ts",
