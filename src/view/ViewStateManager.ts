@@ -34,6 +34,9 @@
  * by recalling the cached state.  Views determine what data is store in the view state and how to restore it.
  */
 
+import type File = require("filesystem/File");
+import type { View } from "view/Pane";
+
 import * as _ from "lodash";
 
 /**
@@ -41,12 +44,12 @@ import * as _ from "lodash";
  * @type {Object.<string,*>}
  * @private
  */
-let _viewStateCache = {};
+let _viewStateCache: Record<string, any> = {};
 
 /**
  * resets the view state cache
  */
-export function reset() {
+export function reset(): void {
     _viewStateCache = {};
 }
 
@@ -55,7 +58,7 @@ export function reset() {
  * @param {!File} file - the file to record the view state for
  * @param {?*} viewState - any data that the view needs to restore the view state.
  */
-function _setViewState(file, viewState) {
+function _setViewState(file: File, viewState: any): void {
     _viewStateCache[file.fullPath] = viewState;
 }
 
@@ -65,7 +68,7 @@ function _setViewState(file, viewState) {
  * @param {!{!getFile:function():File, getViewState:function():*}} view - the to save state
  * @param {?*} viewState - any data that the view needs to restore the view state.
  */
-export function updateViewState(view) {
+export function updateViewState(view: View): void {
     if (view.getViewState) {
         _setViewState(view.getFile(), view.getViewState());
     }
@@ -76,7 +79,7 @@ export function updateViewState(view) {
  * @param {!File} file - the file to record the view state for
  * @return {?*} whatever data that was saved earlier with a call setViewState
  */
-export function getViewState(file) {
+export function getViewState(file: File): any {
     return _viewStateCache[file.fullPath];
 }
 
@@ -84,6 +87,6 @@ export function getViewState(file) {
  * adds an array of view states
  * @param {!object.<string, *>} viewStates - View State object to append to the current set of view states
  */
-export function addViewStates(viewStates) {
+export function addViewStates(viewStates: Record<string, any>): void {
     _viewStateCache = _.extend(_viewStateCache, viewStates);
 }

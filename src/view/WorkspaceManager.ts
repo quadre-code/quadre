@@ -72,7 +72,7 @@ let windowResizing = false;
  * accounting for the current size of all visible panels, toolbar, & status bar.
  * @return {number}
  */
-function calcAvailableHeight() {
+function calcAvailableHeight(): number {
     let availableHt = $windowContent.height();
 
     $editorHolder.siblings().each(function (i, elem) {
@@ -87,7 +87,7 @@ function calcAvailableHeight() {
 }
 
 /** Updates panel resize limits to disallow making panels big enough to shrink editor area below 0 */
-function updateResizeLimits() {
+function updateResizeLimits(): void {
     const editorAreaHeight = $editorHolder.height();
 
     $editorHolder.siblings().each(function (i, elem) {
@@ -107,7 +107,7 @@ function updateResizeLimits() {
  *
  * @param {boolean=} refreshHint  true to force a complete refresh
  */
-function triggerUpdateLayout(refreshHint?) {
+function triggerUpdateLayout(refreshHint?: boolean): void {
     // Find how much space is left for the editor
     const editorAreaHeight = calcAvailableHeight();
 
@@ -119,7 +119,7 @@ function triggerUpdateLayout(refreshHint?) {
 
 
 /** Trigger editor area resize whenever the window is resized */
-function handleWindowResize() {
+function handleWindowResize(): void {
     // These are not initialized in Jasmine Spec Runner window until a test
     // is run that creates a mock document.
     if (!$windowContent || !$editorHolder) {
@@ -146,7 +146,7 @@ function handleWindowResize() {
  * Trigger editor area resize whenever the given panel is shown/hidden/resized
  * @param {!jQueryObject} $panel the jquery object in which to attach event handlers
  */
-function listenToResize($panel) {
+function listenToResize($panel: JQuery): void {
     // Update editor height when shown/hidden, & continuously as panel is resized
     $panel.on("panelCollapsed panelExpanded panelResizeUpdate", function () {
         triggerUpdateLayout();
@@ -184,14 +184,14 @@ class Panel {
      * Determines if the panel is visible
      * @return {boolean} true if visible, false if not
      */
-    public isVisible() {
+    public isVisible(): boolean {
         return this.$panel.is(":visible");
     }
 
     /**
      * Shows the panel
      */
-    public show() {
+    public show(): void {
         Resizer.show(this.$panel[0]);
         exports.trigger(EVENT_WORKSPACE_PANEL_SHOWN, this.panelID);
     }
@@ -199,7 +199,7 @@ class Panel {
     /**
      * Hides the panel
      */
-    public hide() {
+    public hide(): void {
         Resizer.hide(this.$panel[0]);
         exports.trigger(EVENT_WORKSPACE_PANEL_HIDDEN, this.panelID);
     }
@@ -208,7 +208,7 @@ class Panel {
      * Sets the panel's visibility state
      * @param {boolean} visible true to show, false to hide
      */
-    public setVisible(visible) {
+    public setVisible(visible: boolean): void {
         if (visible) {
             this.show();
         } else {
@@ -228,7 +228,7 @@ class Panel {
  * @param {number=} minSize  Minimum height of panel in px.
  * @return {!Panel}
  */
-export function createBottomPanel(id, $panel, minSize) {
+export function createBottomPanel(id: string, $panel: JQuery, minSize: number): Panel {
     $panel.insertBefore("#status-bar");
     $panel.hide();
     updateResizeLimits();  // initialize panel's max size
@@ -243,7 +243,7 @@ export function createBottomPanel(id, $panel, minSize) {
  * Returns an array of all panel ID's
  * @returns {Array} List of ID's of all bottom panels
  */
-export function getAllPanelIDs() {
+export function getAllPanelIDs(): Array<string> {
     const panelIDs: Array<string> = [];
     for (const property in panelIDMap) {
         if (panelIDMap.hasOwnProperty(property)) {
@@ -258,7 +258,7 @@ export function getAllPanelIDs() {
  * @param   {string} panelID
  * @returns {Object} Panel object for the ID or undefined
  */
-export function getPanelForID(panelID) {
+export function getPanelForID(panelID: string): Panel {
     return panelIDMap[panelID];
 }
 
@@ -267,7 +267,7 @@ export function getPanelForID(panelID) {
  *  by the mainview manager
  * @param {boolean} refreshHint true to refresh the editor, false if not
  */
-export function recomputeLayout(refreshHint?) {
+export function recomputeLayout(refreshHint?: boolean): void {
     triggerUpdateLayout(refreshHint);
     updateResizeLimits();
 }
@@ -284,7 +284,7 @@ AppInit.htmlReady(function () {
 });
 
 /* Unit test only: allow passing in mock DOM notes, e.g. for use with SpecRunnerUtils.createMockEditor() */
-export function _setMockDOM($mockWindowContent, $mockEditorHolder) {
+export function _setMockDOM($mockWindowContent: JQuery, $mockEditorHolder: JQuery): void {
     $windowContent = $mockWindowContent;
     $editorHolder = $mockEditorHolder;
 }

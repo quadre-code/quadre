@@ -21,6 +21,8 @@
  *
  */
 
+import type { Theme } from "view/ThemeManager";
+
 import * as _ from "lodash";
 import * as Mustache from "thirdparty/mustache/mustache";
 import * as Dialogs from "widgets/Dialogs";
@@ -42,7 +44,7 @@ const prefs = PreferencesManager.getExtensionPrefs("themes");
  * @type {Object}
  * Currently loaded themes that are available to choose from.
  */
-let loadedThemes = {};
+let loadedThemes: Record<string, Theme> = {};
 
 /**
  * Object with all default values that can be configure via the settings UI
@@ -64,7 +66,7 @@ const $settings = $(settingsTemplate).addClass("themeSettings");
  *
  * @return {Object} a collection with all the settings
  */
-function getValues() {
+function getValues(): ThemeSetting {
     const result: ThemeSetting = {};
 
     Object.keys(defaults).forEach(function (key) {
@@ -80,7 +82,7 @@ function getValues() {
 /**
  * Opens the settings dialog
  */
-export function showDialog() {
+export function showDialog(): void {
     const currentSettings = getValues();
     const newSettings: ThemeSetting = {};
     const themes          = _.map(loadedThemes, function (theme) { return theme; });
@@ -163,14 +165,14 @@ export function showDialog() {
  * Interface to set the themes that are available to chose from in the setting dialog
  * @param {ThemeManager.Theme} themes is a collection of themes created by the ThemeManager
  */
-export function _setThemes(themes) {
+export function _setThemes(themes: Record<string, Theme>): void {
     loadedThemes = themes;
 }
 
 /**
  * Restores themes to factory settings.
  */
-export function restore() {
+export function restore(): void {
     prefs.set("theme", defaults.theme);
     prefs.set("themeScrollbars", defaults.themeScrollbars);
 }

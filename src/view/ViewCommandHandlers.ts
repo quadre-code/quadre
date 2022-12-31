@@ -32,6 +32,8 @@
  *      is a string containing the new font size after applying the change.
  */
 
+import type { Editor } from "editor/Editor";
+
 import * as Commands from "command/Commands";
 import * as EventDispatcher from "utils/EventDispatcher";
 import * as CommandManager from "command/CommandManager";
@@ -45,7 +47,22 @@ import * as MainViewManager from "view/MainViewManager";
 import * as AppInit from "utils/AppInit";
 import * as _ from "lodash";
 import * as FontRuleTemplate from "text!view/fontrules/font-based-rules.less";
-import { Editor } from "editor/Editor";
+
+interface RuleTextConfiguration {
+    ruleText: string;
+}
+
+interface RulePropConfiguration {
+    propName: string;
+    propValue: string;
+    priorityFlag?: boolean;
+    ruleName?: string;
+}
+
+interface LinesInView {
+    first: number;
+    last: number;
+}
 
 const prefs = PreferencesManager.getExtensionPrefs("fonts");
 
@@ -118,7 +135,7 @@ const DEFAULT_FONT_FAMILY = "'SourceCodePro-Medium', ＭＳ ゴシック, 'MS Go
  * Removes style property from the DOM
  * @param {string} propertyID is the id of the property to be removed
  */
-function _removeDynamicProperty(propertyID) {
+function _removeDynamicProperty(propertyID: string): void {
     $("#" + propertyID).remove();
 }
 
@@ -133,13 +150,13 @@ function _removeDynamicProperty(propertyID) {
  * @param {string} ruleCfg.ruleName Optional Selctor name to be used for the rule
  * @param {string} ruleCfg.ruleText Optional selector definition text
  */
-function _addDynamicProperty(propertyID, ruleCfg) {
+function _addDynamicProperty(propertyID: string, ruleCfg: RuleTextConfiguration | RulePropConfiguration): void {
     const $style   = $("<style type='text/css'></style>").attr("id", propertyID);
-    if (ruleCfg.ruleText) {
+    if (isRuleTextConfiguration(ruleCfg)) {
         $style.html(ruleCfg.ruleText);
     } else {
         const cssRule = ruleCfg.ruleName || ".CodeMirror";
-        const styleStr = ruleCfg.ruleText || StringUtils.format("{0}: {1} {2}", ruleCfg.propName, ruleCfg.propValue, ruleCfg.priorityFlag ? "!important" : "");
+        const styleStr = StringUtils.format("{0}: {1} {2}", ruleCfg.propName, ruleCfg.propValue, ruleCfg.priorityFlag ? "!important" : "");
         $style.html(cssRule + "{ " + styleStr + " }");
     }
 
@@ -148,11 +165,15 @@ function _addDynamicProperty(propertyID, ruleCfg) {
     $("head").append($style);
 }
 
+function isRuleTextConfiguration(ruleCfg: RuleTextConfiguration | RulePropConfiguration): ruleCfg is RuleTextConfiguration {
+    return !!(ruleCfg as RuleTextConfiguration).ruleText;
+}
+
 /**
  * @private
  * Removes the styles used to update the font size
  */
-function _removeDynamicFontSize() {
+function _removeDynamicFontSize(): void {
     _removeDynamicProperty(DYNAMIC_FONT_STYLE_ID);
 }
 
@@ -161,7 +182,7 @@ function _removeDynamicFontSize() {
  * Add the styles used to update the font size
  * @param {string} fontSize  A string with the font size and the size unit
  */
-function _addDynamicFontSize(fontSize) {
+function _addDynamicFontSize(fontSize: string): void {
     const template = FontRuleTemplate.split("{font-size-param}").join(fontSize);
     const options: Less.Options = {
         math: "always"
@@ -182,7 +203,7 @@ function _addDynamicFontSize(fontSize) {
  * @private
  * Removes the styles used to update the font family
  */
-function _removeDynamicFontFamily() {
+function _removeDynamicFontFamily(): void {
     _removeDynamicProperty(DYNAMIC_FONT_FAMILY_ID);
 }
 
@@ -191,7 +212,7 @@ function _removeDynamicFontFamily() {
  * Add the styles used to update the font family
  * @param {string} fontFamily  A string with the font family
  */
-function _addDynamicFontFamily(fontFamily) {
+function _addDynamicFontFamily(fontFamily: string): void {
     _addDynamicProperty(DYNAMIC_FONT_FAMILY_ID, {
         propName: "font-family",
         propValue: fontFamily
@@ -204,7 +225,7 @@ function _addDynamicFontFamily(fontFamily) {
  * @param {!Editor} editor  Editor to update.
  * @param {string=} fontSize  A string with the font size and the size unit
  */
-function _updateScroll(editor: Editor, fontSize: string) {
+function _updateScroll(editor: Editor, fontSize: string): void {
     const oldWidth    = editor._codeMirror.defaultCharWidth();
     const oldFontSize = prefs.get("fontSize");
     const newFontSize = fontSize;
@@ -236,7 +257,7 @@ function _updateScroll(editor: Editor, fontSize: string) {
  * Font size setter to set the font size for the document editor
  * @param {string} fontSize The font size with size unit as 'px' or 'em'
  */
-export function setFontSize(fontSize) {
+export function setFontSize(fontSize: string): void {
     if (currFontSize === fontSize) {
         return;
     }
@@ -264,7 +285,7 @@ export function setFontSize(fontSize) {
  * Font size getter to get the current font size for the document editor
  * @return {string} Font size with size unit as 'px' or 'em'
  */
-export function getFontSize() {
+export function getFontSize(): string {
     return prefs.get("fontSize");
 }
 
@@ -273,7 +294,7 @@ export function getFontSize() {
  * Font family setter to set the font family for the document editor
  * @param {string} fontFamily The font family to be set.  It can be a string with multiple comma separated fonts
  */
-export function setFontFamily(fontFamily) {
+export function setFontFamily(fontFamily: string): void {
     const editor = EditorManager.getCurrentFullEditor();
 
     if (currFontFamily === fontFamily) {
@@ -299,7 +320,7 @@ export function setFontFamily(fontFamily) {
  * Font smoothing setter to set the anti-aliasing type for the code area on Mac.
  * @param {string} aaType The antialiasing type to be set. It can take either "subpixel-antialiased" or "antialiased"
  */
-function setMacFontSmoothingType(aaType) {
+function setMacFontSmoothingType(aaType: string): void {
     const $editorHolder  = $("#editor-holder");
 
     // Add/Remove the class based on the preference. Also
@@ -315,7 +336,7 @@ function setMacFontSmoothingType(aaType) {
  * Font family getter to get the currently configured font family for the document editor
  * @return {string} The font family for the document editor
  */
-export function getFontFamily() {
+export function getFontFamily(): string {
     return prefs.get("fontFamily");
 }
 
@@ -326,7 +347,7 @@ export function getFontFamily() {
  * @param {number} adjustment  Negative number to make the font smaller; positive number to make it bigger
  * @return {boolean} true if adjustment occurred, false if it did not occur
  */
-function _adjustFontSize(adjustment) {
+function _adjustFontSize(adjustment: number): boolean {
     const fsStyle    = prefs.get("fontSize");
     const fontSizeRegExp = new RegExp(validFontSizeRegExp);
 
@@ -355,17 +376,17 @@ function _adjustFontSize(adjustment) {
 }
 
 /** Increases the font size by 1 */
-function _handleIncreaseFontSize() {
+function _handleIncreaseFontSize(): void {
     _adjustFontSize(1);
 }
 
 /** Decreases the font size by 1 */
-function _handleDecreaseFontSize() {
+function _handleDecreaseFontSize(): void {
     _adjustFontSize(-1);
 }
 
 /** Restores the font size to the original size */
-function _handleRestoreFontSize() {
+function _handleRestoreFontSize(): void {
     setFontSize(DEFAULT_FONT_SIZE + "px");
 }
 
@@ -374,7 +395,7 @@ function _handleRestoreFontSize() {
  * Updates the user interface appropriately based on whether or not a document is
  * currently open in the editor.
  */
-function _updateUI() {
+function _updateUI(): void {
     if (DocumentManager.getCurrentDocument() !== null) {
         if (!CommandManager.get(Commands.VIEW_INCREASE_FONT_SIZE).getEnabled()) {
             // If one is disabled then they all are disabled, so enable them all
@@ -393,7 +414,7 @@ function _updateUI() {
 /**
  * Initializes the different settings that need to loaded
  */
-function init() {
+function init(): void {
     currFontFamily = prefs.get("fontFamily");
     _addDynamicFontFamily(currFontFamily);
     currFontSize = prefs.get("fontSize");
@@ -405,7 +426,7 @@ function init() {
  * Restores the font size using the saved style and migrates the old fontSizeAdjustment
  * view state to the new fontSize, when required
  */
-export function restoreFontSize() {
+export function restoreFontSize(): void {
     let fsStyle = prefs.get("fontSize");
     const fsAdjustment = PreferencesManager.getViewState("fontSizeAdjustment");
 
@@ -429,7 +450,7 @@ export function restoreFontSize() {
 /**
  * Restores the font size and font family back to factory settings.
  */
-export function restoreFonts() {
+export function restoreFonts(): void {
     setFontFamily(DEFAULT_FONT_FAMILY);
     setFontSize(DEFAULT_FONT_SIZE + "px");
 }
@@ -443,7 +464,7 @@ export function restoreFonts() {
  * @param {number} editorHeight
  * @return {{first: number, last: number}}
  */
-function _getLinesInView(textHeight, scrollTop, editorHeight) {
+function _getLinesInView(textHeight: number, scrollTop: number, editorHeight: number): LinesInView {
     const scrolledTop    = scrollTop / textHeight;
     const scrolledBottom = (scrollTop + editorHeight) / textHeight;
 
@@ -459,7 +480,7 @@ function _getLinesInView(textHeight, scrollTop, editorHeight) {
  * Scroll the viewport one line up or down.
  * @param {number} direction -1 to scroll one line up; 1 to scroll one line down.
  */
-function _scrollLine(direction) {
+function _scrollLine(direction: 1 | -1): void {
     const editor        = EditorManager.getCurrentFullEditor();
     const textHeight    = editor.getTextHeight();
     const cursorPos     = editor.getCursorPos();
@@ -511,17 +532,17 @@ function _scrollLine(direction) {
 }
 
 /** Scrolls one line up */
-function _handleScrollLineUp() {
+function _handleScrollLineUp(): void {
     _scrollLine(-1);
 }
 
 /** Scrolls one line down */
-function _handleScrollLineDown() {
+function _handleScrollLineDown(): void {
     _scrollLine(1);
 }
 
 /** Open theme settings dialog */
-function _handleThemeSettings() {
+function _handleThemeSettings(): void {
     ThemeSettings.showDialog();
 }
 

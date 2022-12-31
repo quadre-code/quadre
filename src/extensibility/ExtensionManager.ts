@@ -53,12 +53,16 @@ import * as ThemeManager from "view/ThemeManager";
 // semver.browser is an AMD-compatible module
 import * as semver from "thirdparty/semver.browser";
 
-interface Metadata {
+export interface Metadata {
     name: string;
     title: string;
     disabled?: boolean;
     version?: string;
-    theme?: string;
+    theme?: {
+        file: string;
+        dark: boolean;
+        addModeClass: boolean;
+    };
 }
 
 interface CompatibilityInfo {
@@ -68,7 +72,7 @@ interface CompatibilityInfo {
     isLatestVersion?: boolean;
 }
 
-interface InstallInfo {
+export interface InstallInfo {
     owner?: string;
     updateAvailable?: boolean;
     updateCompatible?: boolean;
