@@ -54,9 +54,10 @@ function _setMenuItemsVisible(): void {
     if (file) {
         file.exists(function (err, isPresent) {
             if (err) {
-                return err;
+                return;
             }
-            _setContextMenuItemsVisible(isPresent, [Commands.FILE_RENAME, Commands.NAVIGATE_SHOW_IN_FILE_TREE, Commands.NAVIGATE_SHOW_IN_OS]);
+
+            _setContextMenuItemsVisible(isPresent!, [Commands.FILE_RENAME, Commands.NAVIGATE_SHOW_IN_FILE_TREE, Commands.NAVIGATE_SHOW_IN_OS]);
         });
     }
 }

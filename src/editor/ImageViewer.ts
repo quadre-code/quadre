@@ -163,8 +163,8 @@ export class ImageView implements View {
                 self.$imageData.html(dimensionString);
             } else {
                 let sizeString = "";
-                if (stat.size) {
-                    sizeString = " &mdash; " + StringUtils.prettyPrintBytes(stat.size, 2);
+                if (stat!.size) {
+                    sizeString = " &mdash; " + StringUtils.prettyPrintBytes(stat!.size, 2);
                 }
                 const dimensionAndSize = dimensionString + sizeString;
                 self.$imageData.html(dimensionAndSize)
