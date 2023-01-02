@@ -26,7 +26,7 @@ import * as fspath from "path";
 import * as chokidar from "chokidar";
 import * as FileWatcherManager from "./FileWatcherManager";
 
-export function watchPath(path: string, ignored: Array<string>, _watcherMap: any) {
+export function watchPath(path: string, ignored: Array<string>, _watcherMap: any): void {
     try {
         const watcher = chokidar.watch(path, {
             persistent: true,

@@ -66,6 +66,18 @@ import WatchedRoot     = require("filesystem/WatchedRoot");
 import FileSystemStats = require("filesystem/FileSystemStats");
 import { EntryKind } from "filesystem/EntryKind";
 
+interface VisitOptions {
+    maxDepth?: number;
+    maxEntries?: number;
+    sortList?: boolean;
+}
+
+interface VisitHelperOptions extends VisitOptions {
+    maxEntriesCounter: {
+        value: number;
+    };
+}
+
 const VISIT_DEFAULT_MAX_DEPTH = 100;
 const VISIT_DEFAULT_MAX_ENTRIES = 30000;
 
@@ -89,7 +101,7 @@ class FileSystemEntry {
      * Cached stat object for this file.
      * @type {?FileSystemStats}
      */
-    protected _stat?: FileSystemStats;
+    public _stat?: FileSystemStats;
 
     /**
      * Parent file system.
@@ -152,25 +164,25 @@ class FileSystemEntry {
 
     // Add "fullPath", "name", "parent", "id", "isFile" and "isDirectory" getters
 
-    public get fullPath() { return this._path; }
-    public set fullPath(fullPath) { throw new Error("Cannot set fullPath"); }
+    public get fullPath(): string { return this._path; }
+    public set fullPath(fullPath: string) { throw new Error("Cannot set fullPath"); }
 
-    public get name() { return this._name; }
-    public set name(name) { throw new Error("Cannot set name"); }
+    public get name(): string { return this._name; }
+    public set name(name: string) { throw new Error("Cannot set name"); }
 
-    public get parentPath() { return this._parentPath; }
-    public set parentPath(parentPath) { throw new Error("Cannot set parentPath"); }
+    public get parentPath(): string { return this._parentPath; }
+    public set parentPath(parentPath: string) { throw new Error("Cannot set parentPath"); }
 
-    public get id() { return this._id; }
-    public set id(id) { throw new Error("Cannot set id"); }
+    public get id(): string { return this._id; }
+    public set id(id: string) { throw new Error("Cannot set id"); }
 
-    public get isFile() { return this._isFile; }
-    public set isFile(isFile) { throw new Error("Cannot set isFile"); }
+    public get isFile(): boolean { return this._isFile; }
+    public set isFile(isFile: boolean) { throw new Error("Cannot set isFile"); }
 
-    public get isDirectory() { return this._isDirectory; }
-    public set isDirectory(isDirectory) { throw new Error("Cannot set isDirectory"); }
+    public get isDirectory(): boolean { return this._isDirectory; }
+    public set isDirectory(isDirectory: boolean) { throw new Error("Cannot set isDirectory"); }
 
-    public get _impl() { return this._fileSystem._impl; }
+    public get _impl(): any { return this._fileSystem._impl; }
     public set _impl(_impl) { throw new Error("Cannot set _impl"); }
 
     /**
@@ -180,7 +192,7 @@ class FileSystemEntry {
      *      true if the watched root is either starting up or fully active.
      * @return {boolean}
      */
-    protected _isWatched(relaxed = false) {
+    public _isWatched(relaxed = false): boolean {
         let watchedRoot = this._watchedRoot;
         let filterResult = this._watchedRootFilterResult;
 
@@ -222,7 +234,7 @@ class FileSystemEntry {
      * @private
      * @param {String} newPath
      */
-    private _setPath(newPath) {
+    private _setPath(newPath: string): void {
         const parts = newPath.split("/");
         if (this.isDirectory) {
             parts.pop(); // Remove the empty string after last trailing "/"
@@ -256,14 +268,14 @@ class FileSystemEntry {
      * Clear any cached data for this entry
      * @private
      */
-    protected _clearCachedData() {
+    public _clearCachedData(preserveImmediateChildren = false): void {
         this._stat = undefined;
     }
 
     /**
      * Helpful toString for debugging purposes
      */
-    public toString() {
+    public toString(): string {
         return "[" + (this.isDirectory ? "Directory " : "File ") + this._path + "]";
     }
 
@@ -278,13 +290,13 @@ class FileSystemEntry {
      * @param {function (?string, boolean)} callback Callback with a FileSystemError
      *      string or a boolean indicating whether or not the file exists.
      */
-    public exists(callback) {
+    public exists(callback: (err: string | null, exists?: boolean) => void): void {
         if (this._stat) {
             callback(null, true);
             return;
         }
 
-        this._impl.exists(this._path, function (this: FileSystemEntry, err, exists) {
+        this._impl.exists(this._path, function (this: FileSystemEntry, err: string, exists: boolean): void {
             if (err) {
                 this._clearCachedData();
                 callback(err);
@@ -305,13 +317,13 @@ class FileSystemEntry {
      * @param {function (?string, FileSystemStats=)} callback Callback with a
      *      FileSystemError string or FileSystemStats object.
      */
-    public stat(callback) {
+    public stat(callback: (err: string | null, stat?: FileSystemStats) => void): void {
         if (this._stat) {
             callback(null, this._stat);
             return;
         }
 
-        this._impl.stat(this._path, function (this: FileSystemEntry, err, stat) {
+        this._impl.stat(this._path, function (this: FileSystemEntry, err: string | null, stat: FileSystemStats): void {
             if (err) {
                 this._clearCachedData();
                 callback(err);
@@ -333,13 +345,13 @@ class FileSystemEntry {
      * @param {function (?string)=} callback Callback with a single FileSystemError
      *      string parameter.
      */
-    public rename(newFullPath, callback) {
-        callback = callback || function () { /* Do nothing */ };
+    public rename(newFullPath: string, callback: (err: string | null) => void): void {
+        callback = callback || function (): void { /* Do nothing */ };
 
         // Block external change events until after the write has finished
         this._fileSystem._beginChange();
 
-        this._impl.rename(this._path, newFullPath, function (this: FileSystemEntry, err) {
+        this._impl.rename(this._path, newFullPath, function (this: FileSystemEntry, err: string | null): void {
             const oldFullPath = this._path;
 
             try {
@@ -373,18 +385,18 @@ class FileSystemEntry {
      * @param {function (?string)=} callback Callback with a single FileSystemError
      *      string parameter.
      */
-    public unlink(callback) {
-        callback = callback || function () { /* Do nothing */ };
+    public unlink(callback: (err: string | null) => void): void {
+        callback = callback || function (): void { /* Do nothing */ };
 
         // Block external change events until after the write has finished
         this._fileSystem._beginChange();
 
         this._clearCachedData();
-        this._impl.unlink(this._path, function (this: FileSystemEntry, err) {
+        this._impl.unlink(this._path, function (this: FileSystemEntry, err: string | null): void {
             const parent = this._fileSystem.getDirectoryForPath(this.parentPath);
 
             // Update internal filesystem state
-            this._fileSystem._handleDirectoryChange(parent, function (this: FileSystemEntry, added, removed) {
+            this._fileSystem._handleDirectoryChange(parent, function (this: FileSystemEntry, added: Array<FileSystemEntry>, removed: Array<FileSystemEntry>): void {
                 try {
                     // Notify the caller
                     callback(err);
@@ -408,23 +420,23 @@ class FileSystemEntry {
      * @param {function (?string)=} callback Callback with a single FileSystemError
      *      string parameter.
      */
-    public moveToTrash(callback) {
+    public moveToTrash(callback: (err: string | null) => void): void {
         if (!this._impl.moveToTrash) {
             this.unlink(callback);
             return;
         }
 
-        callback = callback || function () { /* Do nothing */ };
+        callback = callback || function (): void { /* Do nothing */ };
 
         // Block external change events until after the write has finished
         this._fileSystem._beginChange();
 
         this._clearCachedData();
-        this._impl.moveToTrash(this._path, function (this: FileSystemEntry, err) {
+        this._impl.moveToTrash(this._path, function (this: FileSystemEntry, err: string | null): void {
             const parent = this._fileSystem.getDirectoryForPath(this.parentPath);
 
             // Update internal filesystem state
-            this._fileSystem._handleDirectoryChange(parent, function (this: FileSystemEntry, added, removed) {
+            this._fileSystem._handleDirectoryChange(parent, function (this: FileSystemEntry, added: Array<FileSystemEntry>, removed: Array<FileSystemEntry>): void {
                 try {
                     // Notify the caller
                     callback(err);
@@ -441,7 +453,7 @@ class FileSystemEntry {
         }.bind(this));
     }
 
-    public getContents(callback: (err, entries, entriesStats) => void) {
+    public getContents(callback: (err: string | null, entries: Array<FileSystemEntry>, entriesStats: Array<FileSystemStats> | undefined, entriesStatsErrors: Record<string, string> | undefined) => void): void {
         throw new Error("FileSystemEntry: should never reach here!");
     }
 
@@ -457,9 +469,15 @@ class FileSystemEntry {
      * @param {{maxDepth: number, maxEntriesCounter: {value: number}, sortList: boolean}} options
      * @param {function(?string)=} callback Callback with single FileSystemError string parameter.
      */
-    private _visitHelper(stats, visitedPaths, visitor, options, callback) {
-        let maxDepth = options.maxDepth;
-        const maxEntriesCounter = options.maxEntriesCounter;
+    private _visitHelper(
+        stats: FileSystemStats,
+        visitedPaths: Record<string, boolean>,
+        visitor: (entry: FileSystemEntry) => boolean,
+        options: VisitHelperOptions,
+        callback: (err: string | null) => void
+    ): void {
+        let maxDepth = options.maxDepth!;
+        const maxEntriesCounter = options.maxEntriesCounter!;
         const sortList = options.sortList;
 
         if (maxEntriesCounter.value-- <= 0 || maxDepth-- < 0) {
@@ -486,7 +504,7 @@ class FileSystemEntry {
             return;
         }
 
-        this.getContents(function (err, entries, entriesStats) {
+        this.getContents(function (err: string | null, entries: Array<FileSystemEntry>, entriesStats: Array<FileSystemStats>): void {
             if (err) {
                 callback(err);
                 return;
@@ -498,7 +516,7 @@ class FileSystemEntry {
                 return;
             }
 
-            function helperCallback(err) {
+            function helperCallback(err: string | null): void {
                 if (--counter === 0) {
                     callback(null);
                 }
@@ -511,7 +529,7 @@ class FileSystemEntry {
             };
 
             // sort entries if required
-            function compareFilesWithIndices(index1, index2) {
+            function compareFilesWithIndices(index1: number, index2: number): number {
                 return entries[index1]._name.toLocaleLowerCase().localeCompare(entries[index2]._name.toLocaleLowerCase());
             }
             if (sortList) {
@@ -548,10 +566,9 @@ class FileSystemEntry {
      * @param {{maxDepth: number=, maxEntries: number=}=} options
      * @param {function(?string)=} callback Callback with single FileSystemError string parameter.
      */
-    public visit(visitor, callback);
-    // tslint:disable-next-line: unified-signatures
-    public visit(visitor, options, callback);
-    public visit(visitor, options, callback?) {
+    public visit(visitor: (entry: FileSystemEntry) => boolean, callback: (err: string | null) => void): void;
+    public visit(visitor: (entry: FileSystemEntry) => boolean, options: VisitOptions, callback: (err: string | null) => void): void;
+    public visit(visitor: (entry: FileSystemEntry) => boolean, options: VisitOptions | ((err: string | null) => void), callback?: (err: string | null) => void): void {
         if (typeof options === "function") {
             callback = options;
             options = {};
@@ -560,7 +577,7 @@ class FileSystemEntry {
                 options = {};
             }
 
-            callback = callback || function () { /* Do nothing */ };
+            callback = callback || function (): void { /* Do nothing */ };
         }
 
         if (options.maxDepth === undefined) {
@@ -571,22 +588,27 @@ class FileSystemEntry {
             options.maxEntries = VISIT_DEFAULT_MAX_ENTRIES;
         }
 
-        options.maxEntriesCounter = { value: options.maxEntries };
+        const optionsHelper: VisitHelperOptions = {
+            ...options,
+            maxEntriesCounter: {
+                value: options.maxEntries
+            }
+        };
 
-        this.stat(function (this: FileSystemEntry, err, stats) {
+        this.stat(function (this: FileSystemEntry, err: string | null, stats: FileSystemStats): void {
             if (err) {
-                callback(err);
+                callback!(err);
                 return;
             }
 
-            this._visitHelper(stats, {}, visitor, options, function (err) {
+            this._visitHelper(stats, {}, visitor, optionsHelper, function (err: string | null): void {
                 if (callback) {
                     if (err) {
                         callback(err);
                         return;
                     }
 
-                    if (options.maxEntriesCounter.value < 0) {
+                    if (optionsHelper.maxEntriesCounter.value < 0) {
                         callback(FileSystemError.TOO_MANY_ENTRIES);
                         return;
                     }

@@ -266,7 +266,7 @@ export function fileClosed(file: File): void {
 
     file.stat(function (err, fileStat) {
         if (!err) {
-            size = fileStat.size.valueOf() / 1024;
+            size = fileStat!.size.valueOf() / 1024;
         }
         _sendData(size);
     });

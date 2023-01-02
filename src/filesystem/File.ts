@@ -22,9 +22,10 @@
  *
  */
 
+import type FileSystemStats = require("filesystem/FileSystemStats");
+
 import FileSystemEntry = require("filesystem/FileSystemEntry");
 import { EntryKind } from "filesystem/EntryKind";
-
 
 /*
  * Model for a File.
@@ -46,7 +47,7 @@ class File extends FileSystemEntry {
      * @private
      * @type {?string}
      */
-    private _contents = null;
+    private _contents: string | null = null;
 
     /**
      * Encoding detected by brackets-shell
@@ -70,11 +71,11 @@ class File extends FileSystemEntry {
      * @private
      * @type {?object}
      */
-    private _hash = null;
+    private _hash: number | null = null;
 
     public subDirStr: string;
 
-    constructor(fullPath, fileSystem) {
+    constructor(fullPath: string, fileSystem) {
         super(fullPath, fileSystem, EntryKind.File);
         this._isFile = true;
     }
@@ -84,7 +85,7 @@ class File extends FileSystemEntry {
      * clear the file's hash.
      * @private
      */
-    protected _clearCachedData() {
+    public _clearCachedData(): void {
         super._clearCachedData();
         this._contents = null;
     }
@@ -96,7 +97,12 @@ class File extends FileSystemEntry {
      * @param {function (?string, string=, FileSystemStats=)} callback Callback that is passed the
      *              FileSystemError string or the file's contents and its stats.
      */
-    public read(options, callback?) {
+    public read(callback: (err: string | null, contents?: string, encoding?: string | null, stats?: FileSystemStats) => void): void;
+    public read(options, callback: (err: string | null, contents?: string, encoding?: string | null, stats?: FileSystemStats) => void): void;
+    public read(
+        options,
+        callback?: (err: string | null, contents?: string, encoding?: string | null, stats?: FileSystemStats) => void
+    ): void {
         if (typeof (options) === "function") {
             callback = options;
             options = {};
@@ -109,7 +115,7 @@ class File extends FileSystemEntry {
         // for a default value; otherwise it could be the empty string, which is
         // falsey.
         if (this._contents !== null && this._stat) {
-            callback(null, this._contents, this._encoding, this._stat);
+            callback!(null, this._contents, this._encoding, this._stat);
             return;
         }
 
@@ -118,10 +124,10 @@ class File extends FileSystemEntry {
             options.stat = this._stat;
         }
 
-        this._impl.readFile(this._path, options, function (this: File, err, data, encoding, preserveBOM, stat) {
+        this._impl.readFile(this._path, options, function (this: File, err: string | null, data: string, encoding: string, preserveBOM: boolean, stat: FileSystemStats): void {
             if (err) {
                 this._clearCachedData();
-                callback(err);
+                callback!(err);
                 return;
             }
 
@@ -136,7 +142,7 @@ class File extends FileSystemEntry {
                 this._contents = data;
             }
 
-            callback(err, data, encoding, stat);
+            callback!(err, data, encoding, stat);
         }.bind(this));
     }
 
@@ -148,7 +154,7 @@ class File extends FileSystemEntry {
      * @param {function (?string, FileSystemStats=)=} callback Callback that is passed the
      *              FileSystemError string or the file's new stats.
      */
-    public write(data, options, callback) {
+    public write(data: string, options, callback: (err: string | null, stats?: FileSystemStats) => void): void {
         if (typeof options === "function") {
             callback = options;
             options = {};
@@ -157,7 +163,7 @@ class File extends FileSystemEntry {
                 options = {};
             }
 
-            callback = callback || function () { /* Do nothing */ };
+            callback = callback || function (): void { /* Do nothing */ };
         }
 
         // Request a consistency check if the write is not blind
@@ -173,7 +179,7 @@ class File extends FileSystemEntry {
         // Block external change events until after the write has finished
         this._fileSystem._beginChange();
 
-        this._impl.writeFile(this._path, data, options, function (this: File, err, stat, created) {
+        this._impl.writeFile(this._path, data, options, function (this: File, err: string | null, stat: FileSystemStats, created: boolean): void {
             if (err) {
                 this._clearCachedData();
                 try {
@@ -196,7 +202,7 @@ class File extends FileSystemEntry {
 
             if (created) {
                 const parent = this._fileSystem.getDirectoryForPath(this.parentPath);
-                this._fileSystem._handleDirectoryChange(parent, function (this: File, added, removed) {
+                this._fileSystem._handleDirectoryChange(parent, function (this: File, added: Array<FileSystemEntry>, removed: Array<FileSystemEntry>): void {
                     try {
                         // Notify the caller
                         callback(null, stat);

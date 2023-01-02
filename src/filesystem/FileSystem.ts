@@ -88,6 +88,8 @@
  * worry about the underlying storage, which could be a local filesystem or a remote server.
  */
 
+import type FileSystemStats = require("filesystem/FileSystemStats");
+
 import Directory       = require("filesystem/Directory");
 import File            = require("filesystem/File");
 import FileIndex       = require("filesystem/FileIndex");
@@ -100,7 +102,7 @@ import * as _ from "lodash";
 
 
 // Collection of registered protocol adapters
-const _fileProtocolPlugins = {};
+const _fileProtocolPlugins: Record<string, Array<FileProtocolAdapter>> = {};
 
 /**
  * Typical signature of a file protocol adapter.
@@ -109,13 +111,18 @@ const _fileProtocolPlugins = {};
  * @property {Object} fileImpl - Handle for the custom file implementation prototype.
  * @property {function} canRead - To check if this impl can read a file for a given path.
  */
+interface FileProtocolAdapter {
+    priority: number;
+    fileImpl: any;
+    canRead: (filePath: string) => boolean;
+}
 
 /**
  * FileSystem hook to register file protocol adapter
  * @param {string} protocol ex: "https:"|"http:"|"ftp:"|"file:"
  * @param {...FileProtocol~Adapter} adapter wrapper over file implementation
  */
-export function registerProtocolAdapter(protocol, adapter) {
+export function registerProtocolAdapter(protocol: string, adapter: FileProtocolAdapter): void {
     let adapters;
     if (protocol) {
         adapters = _fileProtocolPlugins[protocol] || [];
@@ -136,7 +143,7 @@ export function registerProtocolAdapter(protocol, adapter) {
  * @param {string} filePath fullPath of the file
  * @return adapter adapter wrapper over file implementation
  */
-function _getProtocolAdapter(protocol, filePath) {
+function _getProtocolAdapter(protocol: string, filePath: string): FileProtocolAdapter {
     const protocolAdapters = _fileProtocolPlugins[protocol] || [];
     let selectedAdapter;
 
@@ -155,7 +162,7 @@ function _getProtocolAdapter(protocol, filePath) {
 }
 
 
-function _ensureTrailingSlash(path) {
+function _ensureTrailingSlash(path: string): string {
     if (path[path.length - 1] !== "/") {
         path += "/";
     }
@@ -178,12 +185,12 @@ class FileSystem extends EventDispatcher.EventDispatcherBase {
      * The low-level file system implementation used by this object.
      * This is set in the init() function and cannot be changed.
      */
-    private _impl;
+    public _impl;
 
     /**
      * The FileIndex used by this object. This is initialized in the constructor.
      */
-    private _index;
+    public _index: FileIndex;
 
     /**
      * Refcount of any pending filesystem mutation operations (e.g., writes,
@@ -234,12 +241,12 @@ class FileSystem extends EventDispatcher.EventDispatcherBase {
     }
 
     // For unit testing only
-    public _getActiveChangeCount() {
+    public _getActiveChangeCount(): number {
         return this._activeChangeCount;
     }
 
     /** Process all queued watcher results, by calling _handleExternalChange() on each */
-    private _triggerExternalChangesNow() {
+    private _triggerExternalChangesNow(): void {
         this._externalChanges.forEach(function (this: FileSystem, info) {
             this._handleExternalChange(info.path, info.stat);
         }, this);
@@ -253,7 +260,7 @@ class FileSystem extends EventDispatcher.EventDispatcherBase {
      * @param {?string} path The fullPath of the changed entry
      * @param {FileSystemStats=} stat An optional stat object for the changed entry
      */
-    private _enqueueExternalChange(path, stat) {
+    private _enqueueExternalChange(path: string, stat: FileSystemStats): void {
         this._externalChanges.push({path: path, stat: stat});
         if (!this._activeChangeCount) {
             this._triggerExternalChangesNow();
@@ -263,11 +270,11 @@ class FileSystem extends EventDispatcher.EventDispatcherBase {
     /**
      * Dequeue and process all pending watch/unwatch requests
      */
-    private _dequeueWatchRequest() {
+    private _dequeueWatchRequest(): void {
         if (this._watchRequests.length > 0) {
             const request = this._watchRequests[0];
 
-            request.fn.call(null, function (this: FileSystem) {
+            request.fn.call(null, function (this: FileSystem): void {
                 // Apply the given callback
                 const callbackArgs = arguments;
                 try {
@@ -288,7 +295,7 @@ class FileSystem extends EventDispatcher.EventDispatcherBase {
      * @param {callback()} cb - The callback for the provided watch/unwatch
      *      request function.
      */
-    private _enqueueWatchRequest(fn, cb) {
+    private _enqueueWatchRequest(fn: (requestCb: (err: string | null) => void) => void, cb: (err: string | null) => void): void {
         // Enqueue the given watch/unwatch request
         this._watchRequests.push({fn: fn, cb: cb});
 
@@ -306,7 +313,7 @@ class FileSystem extends EventDispatcher.EventDispatcherBase {
      * @return {?{entry: FileSystemEntry, filter: function(string) boolean}} The parent
      *      watched root, if it exists, or null.
      */
-    public _findWatchedRootForPath(fullPath): WatchedRoot | null {
+    public _findWatchedRootForPath(fullPath: string): WatchedRoot | null {
         let watchedRoot: WatchedRoot | null = null;
 
         Object.keys(this._watchedRoots).some(function (this: FileSystem, watchedPath) {
@@ -333,7 +340,7 @@ class FileSystem extends EventDispatcher.EventDispatcherBase {
      * @param {boolean} shouldWatch - Whether the entry should be watched (true)
      *      or unwatched (false).
      */
-    private _watchOrUnwatchEntry(entry, watchedRoot, callback, shouldWatch) {
+    private _watchOrUnwatchEntry(entry: FileSystemEntry, watchedRoot: WatchedRoot, callback: (err: string | null) => void, shouldWatch: boolean): void {
         const impl = this._impl;
         const recursiveWatch = impl.recursiveWatch;
         const commandName = shouldWatch ? "watchPath" : "unwatchPath";
@@ -348,18 +355,18 @@ class FileSystem extends EventDispatcher.EventDispatcherBase {
                 callback(null);
             } else {
                 // The impl will handle finding all subdirectories to watch.
-                this._enqueueWatchRequest(function (requestCb) {
+                this._enqueueWatchRequest(function (requestCb: (err: string | null) => void): void {
                     impl[commandName].call(impl, entry.fullPath, filterGlobs, requestCb);
                 }.bind(this), callback);
             }
         } else if (shouldWatch) {
             // The impl can't handle recursive watch requests, so it's up to the
             // filesystem to recursively watch all subdirectories.
-            this._enqueueWatchRequest(function (requestCb) {
+            this._enqueueWatchRequest(function (requestCb: (err: string | null) => void): void {
                 // First construct a list of entries to watch or unwatch
                 const entriesToWatch: Array<FileSystemEntry> = [];
 
-                const visitor = function (child) {
+                const visitor = function (child: FileSystemEntry): boolean {
                     if (watchedRoot.filter(child.name, child.parentPath)) {
                         if (child.isDirectory || child === watchedRoot.entry) {
                             entriesToWatch.push(child);
@@ -383,13 +390,13 @@ class FileSystem extends EventDispatcher.EventDispatcherBase {
                         return;
                     }
 
-                    const watchCallback = function () {
+                    const watchCallback = function (): void {
                         if (--count === 0) {
                             requestCb(null);
                         }
                     };
 
-                    entriesToWatch.forEach(function (entry) {
+                    entriesToWatch.forEach(function (entry: FileSystemEntry): void {
                         impl.watchPath(entry.fullPath, filterGlobs, watchCallback);
                     });
                 });
@@ -397,7 +404,7 @@ class FileSystem extends EventDispatcher.EventDispatcherBase {
         } else {
             // Unwatching never requires enumerating the subfolders (which is good, since after a
             // delete/rename we may be unable to do so anyway)
-            this._enqueueWatchRequest(function (requestCb) {
+            this._enqueueWatchRequest(function (requestCb: (err: string | null) => void): void {
                 impl.unwatchPath(entry.fullPath, requestCb);
             }, callback);
         }
@@ -413,7 +420,7 @@ class FileSystem extends EventDispatcher.EventDispatcherBase {
      * @param {function(?string)} callback - A function that is called once the
      *      watch is complete, possibly with a FileSystemError string.
      */
-    private _watchEntry(entry, watchedRoot, callback) {
+    private _watchEntry(entry: FileSystemEntry, watchedRoot: WatchedRoot, callback: (err: string | null) => void): void {
         this._watchOrUnwatchEntry(entry, watchedRoot, callback, true);
     }
 
@@ -427,11 +434,11 @@ class FileSystem extends EventDispatcher.EventDispatcherBase {
      * @param {function(?string)} callback - A function that is called once the
      *      watch is complete, possibly with a FileSystemError string.
      */
-    private _unwatchEntry(entry, watchedRoot, callback) {
-        this._watchOrUnwatchEntry(entry, watchedRoot, function (this: FileSystem, err) {
+    private _unwatchEntry(entry: FileSystemEntry, watchedRoot: WatchedRoot, callback: (err: string | null) => void): void {
+        this._watchOrUnwatchEntry(entry, watchedRoot, function (this: FileSystem, err: string | null): void {
             // Make sure to clear cached data for all unwatched entries because
             // entries always return cached data if it exists!
-            this._index.visitAll(function (this: FileSystem, child) {
+            this._index.visitAll(function (this: FileSystem, child: FileSystemEntry): void {
                 if (child.fullPath.indexOf(entry.fullPath) === 0) {
                     // 'true' so entry doesn't try to clear its immediate childrens' caches too. That would be redundant
                     // with the visitAll() here, and could be slow if we've already cleared its parent (#7150).
@@ -449,7 +456,7 @@ class FileSystem extends EventDispatcher.EventDispatcherBase {
      * @param {FileSystemImpl} impl The back-end implementation for this
      *      FileSystem instance.
      */
-    public init(impl) {
+    public init(impl): void {
         console.assert(!this._impl, "This FileSystem has already been initialized!");
 
         const changeCallback = this._enqueueExternalChange.bind(this);
@@ -462,7 +469,7 @@ class FileSystem extends EventDispatcher.EventDispatcherBase {
     /**
      * Close a file system. Clear all caches, indexes, and file watchers.
      */
-    public close() {
+    public close(): void {
         this._impl.unwatchAll();
         this._index.clear();
     }
@@ -478,7 +485,7 @@ class FileSystem extends EventDispatcher.EventDispatcherBase {
      * @param {string} path Full path
      * @param {string} name Name portion of the path
      */
-    public _indexFilter(path, name) {
+    public _indexFilter(path: string, name: string): boolean {
         const parentRoot = this._findWatchedRootForPath(path);
 
         if (parentRoot) {
@@ -505,7 +512,7 @@ class FileSystem extends EventDispatcher.EventDispatcherBase {
      * All operations that mutate the file system MUST begin with a call to
      * _beginChange and must end with a call to _endChange.
      */
-    public _beginChange() {
+    public _beginChange(): void {
         this._activeChangeCount++;
         // console.log("> beginChange  -> " + this._activeChangeCount);
     }
@@ -514,7 +521,7 @@ class FileSystem extends EventDispatcher.EventDispatcherBase {
      * Indicates that a filesystem-mutating operation has completed. See
      * FileSystem._beginChange above.
      */
-    public _endChange() {
+    public _endChange(): void {
         this._activeChangeCount--;
         // console.log("< endChange    -> " + this._activeChangeCount);
 
@@ -533,7 +540,7 @@ class FileSystem extends EventDispatcher.EventDispatcherBase {
      * @param {!string} fullPath
      * @return {boolean} True if the fullPath is absolute and false otherwise.
      */
-    public static isAbsolutePath(fullPath) {
+    public static isAbsolutePath(fullPath: string): boolean {
         return (fullPath[0] === "/" || (fullPath[1] === ":" && fullPath[2] === "/"));
     }
 
@@ -544,7 +551,7 @@ class FileSystem extends EventDispatcher.EventDispatcherBase {
      * @param {boolean=} isDirectory
      * @return {!string}
      */
-    private _normalizePath(path, isDirectory) {
+    private _normalizePath(path: string, isDirectory: boolean): string {
 
         if (!FileSystem.isAbsolutePath(path)) {
             throw new Error("Paths must be absolute: '" + path + "'");  // expect only absolute paths
@@ -591,7 +598,7 @@ class FileSystem extends EventDispatcher.EventDispatcherBase {
      * @param {File} The fileEntry which needs to be added
      * @param {String} The full path to the file
      */
-    public addEntryForPathIfRequired(fileEntry, path) {
+    public addEntryForPathIfRequired(fileEntry: FileSystemEntry, path: string): void {
         const entry = this._index.getEntry(path);
 
         if (!entry) {
@@ -611,7 +618,9 @@ class FileSystem extends EventDispatcher.EventDispatcherBase {
      * @return {File|Directory} The File or Directory object. This file may not
      *      yet exist on disk.
      */
-    private _getEntryForPath(EntryConstructor, path): File | Directory {
+    private _getEntryForPath(EntryConstructor: new (path: string, filesystem: FileSystem) => File, path: string): File;
+    private _getEntryForPath(EntryConstructor: new (path: string, filesystem: FileSystem) => Directory, path: string): Directory;
+    private _getEntryForPath(EntryConstructor: new (path: string, filesystem: FileSystem) => File | Directory, path: string): File | Directory {
         const isDirectory = EntryConstructor === Directory;
         path = this._normalizePath(path, isDirectory);
         let entry = this._index.getEntry(path);
@@ -621,7 +630,7 @@ class FileSystem extends EventDispatcher.EventDispatcherBase {
             this._index.addEntry(entry);
         }
 
-        return entry;
+        return isDirectory ? entry as Directory : entry as File;
     }
 
     /**
@@ -640,7 +649,7 @@ class FileSystem extends EventDispatcher.EventDispatcherBase {
             return new protocolAdapter.fileImpl(protocol, path, this);
         }
 
-        return this._getEntryForPath(File, path) as File;
+        return this._getEntryForPath(File, path);
     }
 
     /**
@@ -650,7 +659,7 @@ class FileSystem extends EventDispatcher.EventDispatcherBase {
      *
      * @return {Directory} The Directory object. This directory may not yet exist on disk.
      */
-    public getDirectoryForPath(path) {
+    public getDirectoryForPath(path: string): Directory {
         return this._getEntryForPath(Directory, path);
     }
 
@@ -661,7 +670,7 @@ class FileSystem extends EventDispatcher.EventDispatcherBase {
      * @param {function (?string, FileSystemEntry=, FileSystemStats=)} callback Callback resolved
      *      with a FileSystemError string or with the entry for the provided path.
      */
-    public resolve(path, callback) {
+    public resolve(path: string, callback: (err: string | null, entry?: FileSystemEntry, stats?: FileSystemStats) => void): void {
         let normalizedPath = this._normalizePath(path, false);
         let item = this._index.getEntry(normalizedPath);
 
@@ -680,7 +689,7 @@ class FileSystem extends EventDispatcher.EventDispatcherBase {
                 callback(null, item, stat);
             });
         } else {
-            this._impl.stat(path, function (this: FileSystem, err, stat) {
+            this._impl.stat(path, function (this: FileSystem, err: string | null, stat: FileSystemStats): void {
                 if (err) {
                     callback(err);
                     return;
@@ -720,13 +729,13 @@ class FileSystem extends EventDispatcher.EventDispatcherBase {
      *                          be empty.
      */
     public showOpenDialog(
-        allowMultipleSelection,
-        chooseDirectories,
-        title,
-        initialPath,
-        fileTypes,
-        callback
-    ) {
+        allowMultipleSelection: boolean,
+        chooseDirectories: boolean,
+        title: string,
+        initialPath: string,
+        fileTypes: Array<string>,
+        callback: (err: string | null, entry: FileSystemEntry) => void
+    ): void {
         this._impl.showOpenDialog(allowMultipleSelection, chooseDirectories, title, initialPath, fileTypes, callback);
     }
 
@@ -743,7 +752,7 @@ class FileSystem extends EventDispatcher.EventDispatcherBase {
      *                          string or the name of the file to save. If the user cancels the save,
      *                          the error will be falsy and the name will be empty.
      */
-    public showSaveDialog(title, initialPath, proposedNewFilename, callback) {
+    public showSaveDialog(title: string, initialPath: string, proposedNewFilename: string, callback: (err: string | null, name: string) => void): void {
         this._impl.showSaveDialog(title, initialPath, proposedNewFilename, callback);
     }
 
@@ -753,7 +762,7 @@ class FileSystem extends EventDispatcher.EventDispatcherBase {
      * @param {string} oldPath The entry's previous fullPath
      * @param {string} newPath The entry's current fullPath
      */
-    public _fireRenameEvent(oldPath, newPath) {
+    public _fireRenameEvent(oldPath: string, newPath: string): void {
         this.trigger("rename", oldPath, newPath);
     }
 
@@ -766,7 +775,7 @@ class FileSystem extends EventDispatcher.EventDispatcherBase {
      * @param {Array<File|Directory>=} removed If the entry is a directory, this
      *      is a set of removed entries from the directory.
      */
-    public _fireChangeEvent(entry, added?, removed?) {
+    public _fireChangeEvent(entry: FileSystemEntry | null, added?: Array<FileSystemEntry>, removed?: Array<FileSystemEntry>): void {
         this.trigger("change", entry, added, removed);
     }
 
@@ -778,7 +787,7 @@ class FileSystem extends EventDispatcher.EventDispatcherBase {
      * @param {string} newFullPath
      * @param {boolean} isDirectory
      */
-    public _handleRename(oldFullPath, newFullPath, isDirectory) {
+    public _handleRename(oldFullPath: string, newFullPath: string, isDirectory: boolean): void {
         // Update all affected entries in the index
         this._index.entryRenamed(oldFullPath, newFullPath, isDirectory);
     }
@@ -795,11 +804,11 @@ class FileSystem extends EventDispatcher.EventDispatcherBase {
      *      The callback that will be applied to a set of added and a set of removed
      *      FileSystemEntry objects.
      */
-    private _handleDirectoryChange(directory, callback) {
+    public _handleDirectoryChange(directory: Directory, callback: (addedEntries: Array<FileSystemEntry>, removedEntries: Array<FileSystemEntry>) => void): void {
         const oldContents = directory._contents;
 
         directory._clearCachedData();
-        directory.getContents(function (this: FileSystem, err, contents) {
+        directory.getContents(function (this: FileSystem, err: string, contents: Array<FileSystemEntry>): void {
             const addedEntries = oldContents && contents.filter(function (entry) {
                 return oldContents.indexOf(entry) === -1;
             });
@@ -811,14 +820,14 @@ class FileSystem extends EventDispatcher.EventDispatcherBase {
             // If directory is not watched, clear children's caches manually.
             const watchedRoot = this._findWatchedRootForPath(directory.fullPath);
             if (!watchedRoot || !watchedRoot.filter(directory.name, directory.parentPath)) {
-                this._index.visitAll(function (entry) {
+                this._index.visitAll(function (entry: FileSystemEntry): void {
                     if (entry.fullPath.indexOf(directory.fullPath) === 0) {
                         // Passing 'true' for a similar reason as in _unwatchEntry() - see #7150
                         entry._clearCachedData(true);
                     }
                 }.bind(this));
 
-                callback(addedEntries, removedEntries);
+                callback(addedEntries!, removedEntries!);
                 return;
             }
 
@@ -827,17 +836,17 @@ class FileSystem extends EventDispatcher.EventDispatcherBase {
             let counter = addedCounter + removedCounter;
 
             if (counter === 0) {
-                callback(addedEntries, removedEntries);
+                callback(addedEntries!, removedEntries!);
                 return;
             }
 
-            const watchOrUnwatchCallback = function (err) {
+            const watchOrUnwatchCallback = function (err: string | null): void {
                 if (err) {
                     console.error("FileSystem error in _handleDirectoryChange after watch/unwatch entries: " + err);
                 }
 
                 if (--counter === 0) {
-                    callback(addedEntries, removedEntries);
+                    callback(addedEntries!, removedEntries!);
                 }
             };
 
@@ -864,7 +873,7 @@ class FileSystem extends EventDispatcher.EventDispatcherBase {
      * @param {FileSystemStats=} stat Optional stat for the item that changed. This param is not always
      *         passed.
      */
-    private _handleExternalChange(path, stat?) {
+    private _handleExternalChange(path: string | null, stat?: FileSystemStats): void {
 
         if (!path) {
             // This is a "wholesale" change event; clear all caches
@@ -890,7 +899,7 @@ class FileSystem extends EventDispatcher.EventDispatcherBase {
                     this._fireChangeEvent(entry);
                 }
             } else {
-                this._handleDirectoryChange(entry, function (this: FileSystem, added, removed) {
+                this._handleDirectoryChange(entry as unknown as Directory, function (this: FileSystem, added: Array<FileSystemEntry>, removed: Array<FileSystemEntry>): void {
                     entry._stat = stat;
 
                     if (entry._isWatched()) {
@@ -909,7 +918,7 @@ class FileSystem extends EventDispatcher.EventDispatcherBase {
      * there is a suspicion that the file system has not been updated through the normal file watchers
      * mechanism.
      */
-    public clearAllCaches() {
+    public clearAllCaches(): void {
         this._handleExternalChange(null);
     }
 
@@ -927,16 +936,16 @@ class FileSystem extends EventDispatcher.EventDispatcherBase {
      *      completed. If the watch fails, the function will have a non-null FileSystemError
      *      string parametr.
      */
-    public watch(entry, filter, filterGlobs, callback) {
+    public watch(entry: FileSystemEntry, filter: (name: string) => void, filterGlobs: Array<string>, callback: (err: string | null) => void): void {
         // make filterGlobs an optional argument to stay backwards compatible
         if (typeof callback === "undefined" && typeof filterGlobs === "function") {
             callback = filterGlobs;
-            filterGlobs = null;
+            (filterGlobs as any) = null;
         }
 
         const fullPath = entry.fullPath;
 
-        callback = callback || function () { /* Do nothing */ };
+        callback = callback || function (): void { /* Do nothing */ };
 
         const watchingParentRoot = this._findWatchedRootForPath(fullPath);
         if (watchingParentRoot &&
@@ -973,7 +982,7 @@ class FileSystem extends EventDispatcher.EventDispatcherBase {
         // objects may cache their contents. See FileSystemEntry._isWatched.
         watchedRoot.status = WatchedRoot.STARTING;
 
-        this._watchEntry(entry, watchedRoot, function (this: FileSystem, err) {
+        this._watchEntry(entry, watchedRoot, function (this: FileSystem, err: string | null): void {
             if (err) {
                 console.warn("Failed to watch root: ", entry.fullPath, err);
                 delete this._watchedRoots[fullPath];
@@ -996,11 +1005,11 @@ class FileSystem extends EventDispatcher.EventDispatcherBase {
      *      completed. If the unwatch fails, the function will have a non-null FileSystemError
      *      string parameter.
      */
-    public unwatch(entry, callback) {
+    public unwatch(entry: FileSystemEntry, callback: (err: FileSystemError | null) => void): void {
         const fullPath = entry.fullPath;
         const watchedRoot = this._watchedRoots[fullPath];
 
-        callback = callback || function () { /* Do nothing */ };
+        callback = callback || function (): void { /* Do nothing */ };
 
         if (!watchedRoot) {
             callback(FileSystemError.ROOT_NOT_WATCHED);
@@ -1011,10 +1020,10 @@ class FileSystem extends EventDispatcher.EventDispatcherBase {
         // This is useful for making sure we don't try to concurrently watch overlapping roots.
         watchedRoot.status = WatchedRoot.INACTIVE;
 
-        this._unwatchEntry(entry, watchedRoot, function (this: FileSystem, err) {
+        this._unwatchEntry(entry, watchedRoot, function (this: FileSystem, err: FileSystemError | null): void {
             delete this._watchedRoots[fullPath];
 
-            this._index.visitAll(function (this: FileSystem, child) {
+            this._index.visitAll(function (this: FileSystem, child: FileSystemEntry): void {
                 if (child.fullPath.indexOf(entry.fullPath) === 0) {
                     this._index.removeEntry(child);
                 }
@@ -1035,7 +1044,7 @@ class FileSystem extends EventDispatcher.EventDispatcherBase {
      * watched root and ignores errors.
      * @private
      */
-    private _unwatchAll() {
+    private _unwatchAll(): void {
         console.warn("File watchers went offline!");
 
         Object.keys(this._watchedRoots).forEach(function (this: FileSystem, path) {
@@ -1055,7 +1064,7 @@ class FileSystem extends EventDispatcher.EventDispatcherBase {
 }
 
 function _wrap(func) {
-    return function (...args) {
+    return function (...args): any {
         return func.apply(_instance, arguments);
     };
 }
@@ -1087,7 +1096,7 @@ export const _getActiveChangeCount = _wrap(FileSystem.prototype._getActiveChange
  * @param {string} event The name of the event
  * @param {function} handler The handler for the event
  */
-export function on(event, handler) {
+export function on(event: string, handler): void {
     _instance.on(event, handler);
 }
 
@@ -1097,7 +1106,7 @@ export function on(event, handler) {
  * @param {string} event The name of the event
  * @param {function} handler The handler for the event
  */
-export function off(event, handler) {
+export function off(event: string, handler): void {
     _instance.off(event, handler);
 }
 

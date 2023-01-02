@@ -24,7 +24,7 @@
 
 /// <amd-dependency path="module" name="module"/>
 
-import FileSystemStatsType from "../../../types/FileSystemStats";
+import type { FileSystemStatsOptions } from "filesystem/FileSystemStatsOptions";
 
 import FileUtils       = require("file/FileUtils");
 import FileSystemStats = require("filesystem/FileSystemStats");
@@ -56,7 +56,7 @@ let _changeTimeout: number | null;
  * to _changeCallback() for this path.
  * @type {!Object.<string, boolean>}
  */
-let _pendingChanges: { [path: string]: FileSystemStatsType | null } = {};
+let _pendingChanges: { [path: string]: FileSystemStats | null } = {};
 
 const _bracketsPath = FileUtils.getNativeBracketsDirectoryPath();
 const _modulePath   = FileUtils.getNativeModuleDirectoryPath(module);
@@ -78,7 +78,7 @@ _nodeDomain.connection.on("close", (event: any, reconnectPromise?: JQueryPromise
  * @param {object} stats Stats coming from the underlying watcher, if available
  * @private
  */
-function _enqueueChange(changedPath: string, stats: FileSystemStatsType | null) {
+function _enqueueChange(changedPath: string, stats: FileSystemStats | null): void {
     _pendingChanges[changedPath] = stats;
     if (!_changeTimeout) {
         _changeTimeout = window.setTimeout(() => {
@@ -104,11 +104,11 @@ function _enqueueChange(changedPath: string, stats: FileSystemStatsType | null) 
  * @param {object} statsObj Object that can be used to construct FileSystemStats
  * @private
  */
-function _fileWatcherChange(evt: any, event: string, parentDirPath: string, entryName: string, statsObj: any) {
+function _fileWatcherChange(evt: any, event: string, parentDirPath: string, entryName: string, statsObj: FileSystemStatsOptions): void {
     switch (event) {
         case "changed": {
             // an existing file/directory was modified; stats are passed if available
-            let fsStats: FileSystemStatsType | null = null;
+            let fsStats: FileSystemStats | null = null;
             if (statsObj) {
                 fsStats = new FileSystemStats(statsObj);
             } else {
@@ -175,7 +175,7 @@ function _mapError(err: NodeJS.ErrnoException | null): string | NodeJS.ErrnoExce
  * @private
  */
 function _wrap(cb: Function) {
-    return function (err: NodeJS.ErrnoException | null, ...rest: Array<any>) {
+    return function (err: NodeJS.ErrnoException | null, ...rest: Array<any>): void {
         cb(_mapError(err), ...rest);
     };
 }
@@ -199,7 +199,7 @@ function showOpenDialog(
     initialPath: string,
     fileTypes: Array<string>,
     callback: Function
-) {
+): void {
     appshell.fs.showOpenDialog(
         allowMultipleSelection, chooseDirectories, title, initialPath, fileTypes, _wrap(callback)
     );
@@ -220,8 +220,18 @@ function showSaveDialog(
     initialPath: string,
     proposedNewFilename: string,
     callback: Function
-) {
+): void {
     appshell.fs.showSaveDialog(title, initialPath, proposedNewFilename, _wrap(callback));
+}
+
+function _convertNodeStats(stats: any): FileSystemStats {
+    return new FileSystemStats({
+        isFile: stats.isFile(),
+        mtime: stats.mtime,
+        size: stats.size,
+        realPath: stats.realPath,
+        hash: stats.mtime.getTime()
+    });
 }
 
 /**
@@ -232,16 +242,7 @@ function showSaveDialog(
  * @param {string} path
  * @param {function(?string, FileSystemStats=)} callback
  */
-function _convertNodeStats(stats: any): FileSystemStatsType {
-    return new FileSystemStats({
-        isFile: stats.isFile(),
-        mtime: stats.mtime,
-        size: stats.size,
-        realPath: stats.realPath,
-        hash: stats.mtime.getTime()
-    });
-}
-function stat(path: string, callback: Function) {
+function stat(path: string, callback: Function): void {
     appshell.fs.lstat(path, function (err: NodeJS.ErrnoException, stats: any) {
         if (err) {
             return callback(_mapError(err));
@@ -254,7 +255,7 @@ function stat(path: string, callback: Function) {
         callback(null, _convertNodeStats(stats));
     });
 }
-function statSync(path: string): FileSystemStatsType {
+function statSync(path: string): FileSystemStats {
     let stats: any;
     try {
         stats = appshell.fs.lstatSync(path);
@@ -279,7 +280,7 @@ function statSync(path: string): FileSystemStatsType {
  * @param {string} path
  * @param {function(?string, boolean)} callback
  */
-function exists(path: string, callback: Function) {
+function exists(path: string, callback: Function): void {
     stat(path, function (err: NodeJS.ErrnoException | FileSystemError) {
         if (err) {
             if (err === FileSystemError.NOT_FOUND) {
@@ -305,7 +306,7 @@ function exists(path: string, callback: Function) {
  * @param {string} path
  * @param {function(?string, Array.<FileSystemEntry>=, Array.<string|FileSystemStats>=)} callback
  */
-function readdir(path: string, callback: Function) {
+function readdir(path: string, callback: Function): void {
     appshell.fs.readdir(path, function (err: NodeJS.ErrnoException, contents: Array<string>) {
         if (err) {
             callback(_mapError(err));
@@ -341,7 +342,7 @@ function readdir(path: string, callback: Function) {
  * @param {number=} mode The base-eight mode of the newly created directory.
  * @param {function(?string, FileSystemStats=)=} callback
  */
-function mkdir(path: string, mode: number, callback: Function) {
+function mkdir(path: string, mode: number, callback: Function): void {
     if (typeof mode === "function") {
         callback = mode;
         mode = parseInt("0755", 8);
@@ -365,7 +366,7 @@ function mkdir(path: string, mode: number, callback: Function) {
  * @param {string} newPath
  * @param {function(?string)=} callback
  */
-function rename(oldPath: string, newPath: string, callback: Function) {
+function rename(oldPath: string, newPath: string, callback: Function): void {
     appshell.fs.rename(oldPath, newPath, _wrap(callback));
 }
 
@@ -385,13 +386,13 @@ function rename(oldPath: string, newPath: string, callback: Function) {
  * @param {{encoding: string=, stat: FileSystemStats=}} options
  * @param {function(?string, string=, FileSystemStats=)} callback
  */
-function readFile(path: string, options: { encoding: string, stat: any }, callback: Function) {
+function readFile(path: string, options: { encoding: string, stat: any }, callback: Function): void {
     // const encoding = options.encoding || "utf8";
     const encoding = "utf8";
 
     // callback to be executed when the call to stat completes
     //  or immediately if a stat object was passed as an argument
-    function doReadFile(stat: any) {
+    function doReadFile(stat: any): void {
         if (stat.size > (FileUtils.MAX_FILE_SIZE)) {
             callback(FileSystemError.EXCEEDS_MAX_FILE_SIZE);
         } else {
@@ -439,12 +440,12 @@ function writeFile(
     data: string,
     options: { encoding: string, preserveBOM: boolean, mode: number, expectedHash: string, expectedContents: string },
     callback: Function
-) {
+): void {
     // const encoding = options.encoding || "utf8";
     const encoding = "utf8";
     // const preserveBOM = options.preserveBOM;
 
-    function _finishWrite(created: boolean) {
+    function _finishWrite(created: boolean): void {
         if (typeof data !== "string") {
             return callback(new Error(`Can't write file, data has to be of type string: ${path}`));
         }
@@ -515,7 +516,7 @@ function writeFile(
  * @param {string} path
  * @param {function(string)=} callback
  */
-function unlink(path: string, callback: Function) {
+function unlink(path: string, callback: Function): void {
     appshell.fs.remove(path, function (err: NodeJS.ErrnoException) {
         callback(_mapError(err));
     });
@@ -529,7 +530,7 @@ function unlink(path: string, callback: Function) {
  * @param {string} path
  * @param {function(string)=} callback
  */
-function moveToTrash(path: string, callback: Function) {
+function moveToTrash(path: string, callback: Function): void {
     appshell.fs.moveToTrash(path, function (err: NodeJS.ErrnoException) {
         callback(_mapError(err));
     });
@@ -551,7 +552,7 @@ function moveToTrash(path: string, callback: Function) {
  * @param {function(?string, FileSystemStats=)} changeCallback
  * @param {function()=} offlineCallback
  */
-function initWatchers(changeCallback: Function, offlineCallback: Function) {
+function initWatchers(changeCallback: Function, offlineCallback: Function): void {
     _changeCallback = changeCallback;
     _offlineCallback = offlineCallback;
 }
@@ -572,7 +573,7 @@ function watchPath(
     path: string,
     ignored: Array<string>,
     callback: (err: any, ...args) => void
-) {
+): void {
     appshell.fs.isNetworkDrive(path, function (err: NodeJS.ErrnoException, isNetworkDrive: boolean) {
         if (err || isNetworkDrive) {
             if (isNetworkDrive) {
@@ -601,7 +602,7 @@ function unwatchPath(
     path: string,
     ignored: Array<string>,
     callback: (err: any, ...args) => void
-) {
+): void {
     _nodeDomain.exec("unwatchPath", path)
         .then(callback, callback);
 }
@@ -613,7 +614,7 @@ function unwatchPath(
  *
  * @param {function(?string)=} callback
  */
-function unwatchAll(callback: (err: any, ...args) => void) {
+function unwatchAll(callback: (err: any, ...args) => void): void {
     _nodeDomain.exec("unwatchAll")
         .then(callback, callback);
 }

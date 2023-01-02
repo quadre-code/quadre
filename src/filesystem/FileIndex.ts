@@ -28,6 +28,8 @@
  * This module is *only* used by FileSystem, and should not be called directly.
  */
 
+import type FileSystemEntry = require("filesystem/FileSystemEntry");
+
 import * as FileUtils from "file/FileUtils";
 
 /**
@@ -48,7 +50,7 @@ class FileIndex {
     /**
      * Clear the file index cache.
      */
-    public clear() {
+    public clear(): void {
         this._index = {};
     }
 
@@ -56,7 +58,7 @@ class FileIndex {
      * Visits every entry in the entire index; no stopping condition.
      * @param {!function(FileSystemEntry, string):void} Called with an entry and its fullPath
      */
-    public visitAll(visitor) {
+    public visitAll(visitor: (entry: FileSystemEntry, path: string) => void): void {
         for (const path in this._index) {
             if (this._index.hasOwnProperty(path)) {
                 visitor(this._index[path], path);
@@ -69,7 +71,7 @@ class FileIndex {
      *
      * @param {FileSystemEntry} entry The entry to add.
      */
-    public addEntry(entry) {
+    public addEntry(entry: FileSystemEntry): void {
         this._index[entry.fullPath] = entry;
     }
 
@@ -78,13 +80,13 @@ class FileIndex {
      *
      * @param {FileSystemEntry} entry The entry to remove.
      */
-    public removeEntry(entry) {
+    public removeEntry(entry: FileSystemEntry): void {
         const path = entry.fullPath;
 
-        function replaceMember(property) {
+        function replaceMember(property: string): void {
             const member = entry[property];
             if (typeof member === "function") {
-                entry[property] = function () {
+                entry[property] = function (): void {
                     console.warn("FileSystemEntry used after being removed from index: ", path);
                     return member.apply(entry, arguments);
                 };
@@ -108,7 +110,7 @@ class FileIndex {
      * @param {string} newPath
      * @param {boolean} isDirectory
      */
-    public entryRenamed(oldPath, newPath, isDirectory) {
+    public entryRenamed(oldPath: string, newPath: string, isDirectory: boolean): void {
         const renameMap = {};
         const oldParentPath = FileUtils.getParentPath(oldPath);
         const newParentPath = FileUtils.getParentPath(newPath);
@@ -173,7 +175,7 @@ class FileIndex {
      * @return {File|Directory} The entry for the path, or undefined if it hasn't
      *              been cached yet.
      */
-    public getEntry(path) {
+    public getEntry(path: string): FileSystemEntry {
         return this._index[path];
     }
 }

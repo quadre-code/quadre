@@ -33,6 +33,11 @@ import * as cp from "child_process";
 import * as anymatch from "anymatch";
 import * as FileWatcherManager from "./FileWatcherManager";
 
+interface Watcher {
+    close: () => void;
+}
+
+// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 function buildMatcher(ignored: Array<string>) {
     // in case of a glob like **/.git we want also to ignore its contents **/.git/**
     return anymatch(ignored.concat(ignored.map(function (glob) {
@@ -40,11 +45,11 @@ function buildMatcher(ignored: Array<string>) {
     })));
 }
 
-export function watchPath(path: string, ignored: Array<string>, _watcherMap: any) {
+export function watchPath(path: string, ignored: Array<string>, _watcherMap: Record<string, Watcher>): void {
     const ignoreMatcher = buildMatcher(ignored);
     let closing = false;
 
-    function processLine(line: string) {
+    function processLine(line: string): void {
         if (line === "") {
             return;
         }
@@ -97,12 +102,12 @@ export function watchPath(path: string, ignored: Array<string>, _watcherMap: any
         }
     }
 
-    function onError(err: Error) {
+    function onError(err: Error): void {
         console.warn("CSharpWatcher process error: " + err.toString());
         FileWatcherManager.unwatchPath(path);
     }
 
-    function onExit(code: string, signal: string) {
+    function onExit(code: string, signal: string): void {
         if (!closing || signal !== "SIGTERM") {
             console.warn("CSharpWatcher terminated unexpectedly with code: " + code + ", signal: " + signal);
         }
@@ -134,7 +139,7 @@ export function watchPath(path: string, ignored: Array<string>, _watcherMap: any
 
         // Add handler for closing to the _watcherMap
         _watcherMap[path] = {
-            close: function () {
+            close: function (): void {
                 closing = true;
                 handle.kill();
             }

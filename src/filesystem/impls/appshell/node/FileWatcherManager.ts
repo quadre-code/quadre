@@ -24,6 +24,15 @@
 
 import * as fs from "fs";
 
+interface FileSystemStats {
+    isFile: boolean;
+    isDirectory: boolean;
+    mtime: number;
+    size: number;
+    realPath: string | null;
+    hash: number;
+}
+
 interface WatcherMap {
     [path: string]: {
         close(): void;
@@ -43,11 +52,11 @@ const _watcherMap: Record<string, any> = {};
 let _domainManager!: DomainManager;
 let _watcherImpl!: WatcherImpl;
 
-export function setDomainManager(dm: DomainManager) {
+export function setDomainManager(dm: DomainManager): void {
     _domainManager = dm;
 }
 
-export function setWatcherImpl(impl: WatcherImpl) {
+export function setWatcherImpl(impl: WatcherImpl): void {
     _watcherImpl = impl;
 }
 
@@ -56,7 +65,7 @@ export function setWatcherImpl(impl: WatcherImpl) {
  * @param {stats} nodeFsStats Node's fs.stats result
  * @return {object} Can be consumed by new FileSystemStats(object); in Brackets
  */
-function normalizeStats(nodeFsStats: fs.Stats) {
+function normalizeStats(nodeFsStats: fs.Stats): FileSystemStats {
     // from shell: If "filename" is a symlink,
     // realPath should be the actual path to the linked object
     // not implemented in shell yet
@@ -76,7 +85,7 @@ function normalizeStats(nodeFsStats: fs.Stats) {
  * @private
  * @param {string} path File or directory to unwatch.
  */
-function _unwatchPath(path: string) {
+function _unwatchPath(path: string): void {
     const watcher = _watcherMap[path];
 
     if (watcher) {
@@ -94,7 +103,7 @@ function _unwatchPath(path: string) {
  * Un-watch a file or directory. For directories, unwatch all descendants.
  * @param {string} path File or directory to unwatch.
  */
-export function unwatchPath(path: string) {
+export function unwatchPath(path: string): void {
     Object.keys(_watcherMap).forEach(function (keyPath) {
         if (keyPath.indexOf(path) === 0) {
             _unwatchPath(keyPath);
@@ -107,7 +116,7 @@ export function unwatchPath(path: string) {
  * @param {string} path File or directory to watch.
  * @param {Array<string>} ignored List of entries to ignore during watching.
  */
-export function watchPath(path: string, ignored: Array<string>) {
+export function watchPath(path: string, ignored: Array<string>): void {
     if (_watcherMap.hasOwnProperty(path)) {
         return;
     }
@@ -117,7 +126,7 @@ export function watchPath(path: string, ignored: Array<string>) {
 /**
  * Un-watch all files and directories.
  */
-export function unwatchAll() {
+export function unwatchAll(): void {
     for (const path in _watcherMap) {
         if (_watcherMap.hasOwnProperty(path)) {
             unwatchPath(path);
@@ -125,7 +134,7 @@ export function unwatchAll() {
     }
 }
 
-export function emitChange(event: string, parentDirPath: string, entryName: string, nodeFsStats?: fs.Stats | null) {
+export function emitChange(event: string, parentDirPath: string, entryName: string, nodeFsStats?: fs.Stats | null): void {
     // make sure stats are normalized for domain transfer
     const statsObj = nodeFsStats ? normalizeStats(nodeFsStats) : null;
     _domainManager!.emitEvent("fileWatcher", "change", [event, parentDirPath, entryName, statsObj]);

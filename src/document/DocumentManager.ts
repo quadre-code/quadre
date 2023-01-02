@@ -430,8 +430,8 @@ export function getDocumentText(file: File, checkLineEndings?: boolean): JQueryP
                 // Normalize line endings the same way Document would, but don't actually
                 // new up a Document (which entails a bunch of object churn).
                 const originalLineEndings = checkLineEndings ? FileUtils.sniffLineEndings(contents) : null;
-                contents = DocumentModule.Document.normalizeText(contents);
-                result.resolve(contents, stat.mtime, originalLineEndings);
+                contents = DocumentModule.Document.normalizeText(contents!);
+                result.resolve(contents, stat!.mtime, originalLineEndings);
             }
         });
     }

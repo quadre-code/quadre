@@ -35,14 +35,15 @@
  * return someInMemFile).
  */
 
+import type FileSystemStats = require("filesystem/FileSystemStats");
+
 import File = require("filesystem/File");
 import FileSystemError = require("filesystem/FileSystemError");
-import FileSystem = require("filesystem/FileSystem");
 
 class InMemoryFile extends File {
     public parentClass = File.prototype;
 
-    constructor(fullPath: string, fileSystem: typeof FileSystem) {
+    constructor(fullPath: string, fileSystem) {
         super(fullPath, fileSystem);
     }
 
@@ -56,11 +57,14 @@ class InMemoryFile extends File {
      * @param {Object=} options Currently unused.
      * @param {function (number, string, object)} callback
      */
-    public read(options, callback: (err: FileSystemError, string?: string, object?: any) => void): void {
+    public override read(
+        options,
+        callback?: (err: string | null, contents?: string, encoding?: string | null, stats?: FileSystemStats) => void
+    ): void {
         if (typeof (options) === "function") {
             callback = options;
         }
-        callback(FileSystemError.NOT_FOUND);
+        callback!(FileSystemError.NOT_FOUND);
     }
 
     /**

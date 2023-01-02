@@ -22,14 +22,12 @@
  *
  */
 
+import type { FileSystemStatsOptions } from "filesystem/FileSystemStatsOptions";
+
 /**
  * The FileSystemStats represents a particular FileSystemEntry's stats.
  */
 
-/**
- * @constructor
- * @param {{isFile: boolean, mtime: Date, size: Number, realPath: ?string, hash: object}} options
- */
 class FileSystemStats {
 
     /**
@@ -48,19 +46,19 @@ class FileSystemStats {
      * Modification time for a file
      * @type {Date}
      */
-    private _mtime;
+    private _mtime: Date;
 
     /**
      * Size in bytes of a file
      * @type {Number}
      */
-    private _size = null;
+    private _size: number;
 
     /**
      * Consistency hash for a file
      * @type {object}
      */
-    public _hash = null;
+    public _hash: number | null = null;
 
     /**
      * The canonical path of this file or directory ONLY if it is a symbolic link,
@@ -68,9 +66,13 @@ class FileSystemStats {
      *
      * @type {?string}
      */
-    private _realPath = null;
+    private _realPath: string | null = null;
 
-    constructor(options) {
+    /**
+     * @constructor
+     * @param {{isFile: boolean, mtime: Date, size: Number, realPath: ?string, hash: object}} options
+     */
+    constructor(options: FileSystemStatsOptions) {
         const isFile = options.isFile;
 
         this._isFile = isFile;
@@ -95,21 +97,20 @@ class FileSystemStats {
 
     // Add "isFile", "isDirectory", "mtime" and "size" getters
 
-    public get isFile() { return this._isFile; }
-    public set isFile(file) { throw new Error("Cannot set isFile"); }
+    public get isFile(): boolean { return this._isFile; }
+    public set isFile(isFile: boolean) { throw new Error("Cannot set isFile"); }
 
-    public get isDirectory() { return this._isDirectory; }
-    public set isDirectory(directory) { throw new Error("Cannot set isDirectory"); }
+    public get isDirectory(): boolean { return this._isDirectory; }
+    public set isDirectory(isDirectory: boolean) { throw new Error("Cannot set isDirectory"); }
 
-    public get mtime() { return this._mtime; }
-    public set mtime(mtime) { throw new Error("Cannot set mtime"); }
+    public get mtime(): Date { return this._mtime; }
+    public set mtime(mtime: Date) { throw new Error("Cannot set mtime"); }
 
-    public get size() { return this._size; }
-    public set size(size) { throw new Error("Cannot set size"); }
+    public get size(): number { return this._size; }
+    public set size(size: number) { throw new Error("Cannot set size"); }
 
-    public get realPath() { return this._realPath; }
-    public set realPath(realPath) { throw new Error("Cannot set realPath"); }
-
+    public get realPath(): string | null { return this._realPath; }
+    public set realPath(realPath: string | null) { throw new Error("Cannot set realPath"); }
 }
 
 export = FileSystemStats;

@@ -34,7 +34,7 @@ if (process.platform === "win32") {
  * Initialize the "fileWatcher" domain.
  * The fileWatcher domain handles watching and un-watching directories.
  */
-export function init(domainManager: any) {
+export function init(domainManager: any): void {
     if (!domainManager.hasDomain("fileWatcher")) {
         domainManager.registerDomain("fileWatcher", {major: 0, minor: 1});
     }
@@ -87,5 +87,4 @@ export function init(domainManager: any) {
 
     watcherManager.setDomainManager(domainManager);
     watcherManager.setWatcherImpl(watcherImpl);
-
 }

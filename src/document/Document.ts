@@ -571,7 +571,7 @@ export class Document extends EventDispatcher.EventDispatcherBase {
         const self = this;
         this.file.stat(function (err, stat) {
             if (!err) {
-                self._updateTimestamp(stat.mtime);
+                self._updateTimestamp(stat!.mtime);
             } else {
                 console.log("Error updating timestamp after saving file: " + self.file.fullPath);
             }

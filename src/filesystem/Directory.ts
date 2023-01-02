@@ -34,9 +34,9 @@ import { EntryKind } from "filesystem/EntryKind";
  * @param {Array.<function>} callbacks The callbacks to apply
  * @param {Array} args The arguments to which each callback is applied
  */
-function _applyAllCallbacks(callbacks, args) {
+function _applyAllCallbacks(callbacks: Array<(...args: Array<any>) => void>, args: Array<any>): void {
     if (callbacks.length > 0) {
-        const callback = callbacks.pop();
+        const callback = callbacks.pop()!;
         try {
             callback.apply(undefined, args);
         } finally {
@@ -68,20 +68,20 @@ class Directory extends FileSystemEntry {
      * The contents of this directory. This "private" property is used by FileSystem.
      * @type {Array<FileSystemEntry>}
      */
-    private _contents;
+    public _contents: Array<FileSystemEntry> | undefined;
 
     /**
      * The stats for the contents of this directory, such that this._contentsStats[i]
      * corresponds to this._contents[i].
      * @type {Array.<FileSystemStats>}
      */
-    private _contentsStats;
+    private _contentsStats: Array<FileSystemStats> | undefined;
 
     /**
      * The stats errors for the contents of this directory.
      * @type {object.<string: string>} fullPaths are mapped to FileSystemError strings
      */
-    private _contentsStatsErrors;
+    private _contentsStatsErrors: Record<string, string> | undefined;
 
     constructor(fullPath, fileSystem) {
         super(fullPath, fileSystem, EntryKind.Directory);
@@ -98,7 +98,7 @@ class Directory extends FileSystemEntry {
      * @private
      * @param {boolean=} preserveImmediateChildren
      */
-    protected _clearCachedData(preserveImmediateChildren = false) {
+    public _clearCachedData(preserveImmediateChildren = false): void {
         super._clearCachedData();
 
         if (!preserveImmediateChildren) {
@@ -136,7 +136,7 @@ class Directory extends FileSystemEntry {
      *          and their stat errors. If there are no stat errors then the last
      *          parameter shall remain undefined.
      */
-    public getContents(callback) {
+    public override getContents(callback: (err: string | null, contents: Array<FileSystemEntry>, contentsStats: Array<FileSystemStats> | undefined, contentsStatsErrors: Record<string, string> | undefined) => void): void {
         if (this._contentsCallbacks) {
             // There is already a pending call for this directory's contents.
             // Push the new callback onto the stack and return.
@@ -152,7 +152,7 @@ class Directory extends FileSystemEntry {
 
         this._contentsCallbacks = [callback];
 
-        this._impl.readdir(this.fullPath, function (this: Directory, err, names, stats) {
+        this._impl.readdir(this.fullPath, function (this: Directory, err: string | null, names: Array<string>, stats: FileSystemStats): void {
             const contents: Array<FileSystemEntry> = [];
             const contentsStats: Array<FileSystemStats> = [];
             let contentsStatsErrors;
@@ -168,7 +168,7 @@ class Directory extends FileSystemEntry {
                     const entryPath = this.fullPath + name;
 
                     const entryStats = stats[index];
-                    if (this._fileSystem._indexFilter(entryPath, name, entryStats)) {
+                    if (this._fileSystem._indexFilter(entryPath, name/*, entryStats*/)) {
                         let entry;
 
                         // Note: not all entries necessarily have associated stats.
@@ -221,13 +221,13 @@ class Directory extends FileSystemEntry {
      * @param {function (?string, FileSystemStats=)=} callback Callback resolved with a
      *      FileSystemError string or the stat object for the created directory.
      */
-    public create(callback) {
-        callback = callback || function () { /* Do nothing */ };
+    public create(callback: (err: string | null, stats?: FileSystemStats) => void): void {
+        callback = callback || function (): void { /* Do nothing */ };
 
         // Block external change events until after the write has finished
         this._fileSystem._beginChange();
 
-        this._impl.mkdir(this._path, function (this: Directory, err, stat) {
+        this._impl.mkdir(this._path, function (this: Directory, err: string, stat: FileSystemStats): void {
             if (err) {
                 this._clearCachedData();
                 try {
@@ -246,7 +246,7 @@ class Directory extends FileSystemEntry {
                 this._stat = stat;
             }
 
-            this._fileSystem._handleDirectoryChange(parent, function (this: Directory, added, removed) {
+            this._fileSystem._handleDirectoryChange(parent, function (this: Directory, added: Array<FileSystemEntry>, removed: Array<FileSystemEntry>): void {
                 try {
                     callback(null, stat);
                 } finally {

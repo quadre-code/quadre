@@ -153,7 +153,6 @@ module.exports = {
             "files": [
                 "src/extensibility/**/*.ts",
                 "src/extensions/default/**/*.ts",
-                "src/filesystem/**/*.ts",
                 "src/JSUtils/**/*.ts",
                 "src/languageTools/**/*.ts",
                 "src/preferences/**/*.ts",
