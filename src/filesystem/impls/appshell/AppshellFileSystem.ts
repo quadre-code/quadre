@@ -25,6 +25,7 @@
 /// <amd-dependency path="module" name="module"/>
 
 import type { FileSystemStatsOptions } from "filesystem/FileSystemStatsOptions";
+import type { FileSystemImpl } from "filesystem/FileSystemImpl";
 
 import FileUtils       = require("file/FileUtils");
 import FileSystemStats = require("filesystem/FileSystemStats");
@@ -180,50 +181,6 @@ function _wrap(cb: Function) {
     };
 }
 
-/**
- * Display an open-files dialog to the user and call back asynchronously with
- * either a FileSystmError string or an array of path strings, which indicate
- * the entry or entries selected.
- *
- * @param {boolean} allowMultipleSelection
- * @param {boolean} chooseDirectories
- * @param {string} title
- * @param {string} initialPath
- * @param {Array.<string>=} fileTypes
- * @param {function(?string, Array.<string>=)} callback
- */
-function showOpenDialog(
-    allowMultipleSelection: boolean,
-    chooseDirectories: boolean,
-    title: string,
-    initialPath: string,
-    fileTypes: Array<string>,
-    callback: Function
-): void {
-    appshell.fs.showOpenDialog(
-        allowMultipleSelection, chooseDirectories, title, initialPath, fileTypes, _wrap(callback)
-    );
-}
-
-/**
- * Display a save-file dialog and call back asynchronously with either a
- * FileSystemError string or the path to which the user has chosen to save
- * the file. If the dialog is cancelled, the path string will be empty.
- *
- * @param {string} title
- * @param {string} initialPath
- * @param {string} proposedNewFilename
- * @param {function(?string, string=)} callback
- */
-function showSaveDialog(
-    title: string,
-    initialPath: string,
-    proposedNewFilename: string,
-    callback: Function
-): void {
-    appshell.fs.showSaveDialog(title, initialPath, proposedNewFilename, _wrap(callback));
-}
-
 function _convertNodeStats(stats: any): FileSystemStats {
     return new FileSystemStats({
         isFile: stats.isFile(),
@@ -234,27 +191,6 @@ function _convertNodeStats(stats: any): FileSystemStats {
     });
 }
 
-/**
- * Stat the file or directory at the given path, calling back
- * asynchronously with either a FileSystemError string or the entry's
- * associated FileSystemStats object.
- *
- * @param {string} path
- * @param {function(?string, FileSystemStats=)} callback
- */
-function stat(path: string, callback: Function): void {
-    appshell.fs.lstat(path, function (err: NodeJS.ErrnoException, stats: any) {
-        if (err) {
-            return callback(_mapError(err));
-        }
-        if (stats.isSymbolicLink()) {
-            // TODO: Implement realPath. If "filename" is a symlink,
-            // realPath should be the actual path to the linked object.
-            return callback(new Error("realPath for symbolic link is not implemented in appshell.fs.stat"));
-        }
-        callback(null, _convertNodeStats(stats));
-    });
-}
 function statSync(path: string): FileSystemStats {
     let stats: any;
     try {
@@ -270,386 +206,449 @@ function statSync(path: string): FileSystemStats {
     return _convertNodeStats(stats);
 }
 
-/**
- * Determine whether a file or directory exists at the given path by calling
- * back asynchronously with either a FileSystemError string or a boolean,
- * which is true if the file exists and false otherwise. The error will never
- * be FileSystemError.NOT_FOUND; in that case, there will be no error and the
- * boolean parameter will be false.
- *
- * @param {string} path
- * @param {function(?string, boolean)} callback
- */
-function exists(path: string, callback: Function): void {
-    stat(path, function (err: NodeJS.ErrnoException | FileSystemError) {
-        if (err) {
-            if (err === FileSystemError.NOT_FOUND) {
-                callback(null, false);
-            } else {
-                callback(err);
-            }
-            return;
-        }
-
-        callback(null, true);
-    });
-}
-
-/**
- * Read the contents of the directory at the given path, calling back
- * asynchronously either with a FileSystemError string or an array of
- * FileSystemEntry objects along with another consistent array, each index
- * of which either contains a FileSystemStats object for the corresponding
- * FileSystemEntry object in the second parameter or a FileSystemError
- * string describing a stat error.
- *
- * @param {string} path
- * @param {function(?string, Array.<FileSystemEntry>=, Array.<string|FileSystemStats>=)} callback
- */
-function readdir(path: string, callback: Function): void {
-    appshell.fs.readdir(path, function (err: NodeJS.ErrnoException, contents: Array<string>) {
-        if (err) {
-            callback(_mapError(err));
-            return;
-        }
-
-        let count = contents.length;
-        if (!count) {
-            callback(null, [], []);
-            return;
-        }
-
-        const stats: Array<any> = [];
-        contents.forEach(function (val, idx) {
-            stat(path + "/" + val, function (err2: NodeJS.ErrnoException, stat: any) {
-                stats[idx] = err2 || stat;
-                count--;
-                if (count <= 0) {
-                    callback(null, contents, stats);
-                }
-            });
-        });
-    });
-}
-
-/**
- * Create a directory at the given path, and call back asynchronously with
- * either a FileSystemError string or a stats object for the newly created
- * directory. The octal mode parameter is optional; if unspecified, the mode
- * of the created directory is implementation dependent.
- *
- * @param {string} path
- * @param {number=} mode The base-eight mode of the newly created directory.
- * @param {function(?string, FileSystemStats=)=} callback
- */
-function mkdir(path: string, mode: number, callback: Function): void {
-    if (typeof mode === "function") {
-        callback = mode;
-        mode = parseInt("0755", 8);
-    }
-    appshell.fs.mkdir(path, mode, function (err: NodeJS.ErrnoException) {
-        if (err) {
-            callback(_mapError(err));
-        } else {
-            stat(path, function (err2: NodeJS.ErrnoException, stat: any) {
-                callback(err2, stat);
-            });
-        }
-    });
-}
-
-/**
- * Rename the file or directory at oldPath to newPath, and call back
- * asynchronously with a possibly null FileSystemError string.
- *
- * @param {string} oldPath
- * @param {string} newPath
- * @param {function(?string)=} callback
- */
-function rename(oldPath: string, newPath: string, callback: Function): void {
-    appshell.fs.rename(oldPath, newPath, _wrap(callback));
-}
-
-/**
- * Read the contents of the file at the given path, calling back
- * asynchronously with either a FileSystemError string, or with the data and
- * the FileSystemStats object associated with the read file. The options
- * parameter can be used to specify an encoding (default "utf8"), and also
- * a cached stats object that the implementation is free to use in order
- * to avoid an additional stat call.
- *
- * Note: if either the read or the stat call fails then neither the read data
- * nor stat will be passed back, and the call should be considered to have failed.
- * If both calls fail, the error from the read call is passed back.
- *
- * @param {string} path
- * @param {{encoding: string=, stat: FileSystemStats=}} options
- * @param {function(?string, string=, FileSystemStats=)} callback
- */
-function readFile(path: string, options: { encoding: string, stat: any }, callback: Function): void {
-    // const encoding = options.encoding || "utf8";
-    const encoding = "utf8";
-
-    // callback to be executed when the call to stat completes
-    //  or immediately if a stat object was passed as an argument
-    function doReadFile(stat: any): void {
-        if (stat.size > (FileUtils.MAX_FILE_SIZE)) {
-            callback(FileSystemError.EXCEEDS_MAX_FILE_SIZE);
-        } else {
-            appshell.fs.readTextFile(path, encoding, function (_err: NodeJS.ErrnoException, _data: string/*, encoding2, preserveBOM2*/) {
-                if (_err) {
-                    callback(_mapError(_err));
-                } else {
-                    callback(null, _data, encoding, /* preserveBOM */ false, stat);
-                }
-            });
-        }
+class AppshellFileSystem implements FileSystemImpl {
+    /**
+     * Display an open-files dialog to the user and call back asynchronously with
+     * either a FileSystmError string or an array of path strings, which indicate
+     * the entry or entries selected.
+     *
+     * @param {boolean} allowMultipleSelection
+     * @param {boolean} chooseDirectories
+     * @param {string} title
+     * @param {string} initialPath
+     * @param {Array.<string>=} fileTypes
+     * @param {function(?string, Array.<string>=)} callback
+     */
+    public showOpenDialog(
+        allowMultipleSelection: boolean,
+        chooseDirectories: boolean,
+        title: string,
+        initialPath: string,
+        fileTypes: Array<string>,
+        callback: Function
+    ): void {
+        appshell.fs.showOpenDialog(
+            allowMultipleSelection, chooseDirectories, title, initialPath, fileTypes, _wrap(callback)
+        );
     }
 
-    if (options.stat) {
-        doReadFile(options.stat);
-    } else {
-        exports.stat(path, function (_err: NodeJS.ErrnoException, _stat: any) {
-            if (_err) {
-                callback(_err);
-            } else {
-                doReadFile(_stat);
-            }
-        });
+    /**
+     * Display a save-file dialog and call back asynchronously with either a
+     * FileSystemError string or the path to which the user has chosen to save
+     * the file. If the dialog is cancelled, the path string will be empty.
+     *
+     * @param {string} title
+     * @param {string} initialPath
+     * @param {string} proposedNewFilename
+     * @param {function(?string, string=)} callback
+     */
+    public showSaveDialog(
+        title: string,
+        initialPath: string,
+        proposedNewFilename: string,
+        callback: Function
+    ): void {
+        appshell.fs.showSaveDialog(title, initialPath, proposedNewFilename, _wrap(callback));
     }
-}
-/**
- * Write data to the file at the given path, calling back asynchronously with
- * either a FileSystemError string or the FileSystemStats object associated
- * with the written file and a boolean that indicates whether the file was
- * created by the write (true) or not (false). If no file exists at the
- * given path, a new file will be created. The options parameter can be used
- * to specify an encoding (default "utf8"), an octal mode (default
- * unspecified and implementation dependent), and a consistency hash, which
- * is used to the current state of the file before overwriting it. If a
- * consistency hash is provided but does not match the hash of the file on
- * disk, a FileSystemError.CONTENTS_MODIFIED error is passed to the callback.
- *
- * @param {string} path
- * @param {string} data
- * @param {{encoding : string=, mode : number=, expectedHash : object=, expectedContents : string=}} options
- * @param {function(?string, FileSystemStats=, boolean)} callback
- */
-function writeFile(
-    path: string,
-    data: string,
-    options: { encoding: string, preserveBOM: boolean, mode: number, expectedHash: string, expectedContents: string },
-    callback: Function
-): void {
-    // const encoding = options.encoding || "utf8";
-    const encoding = "utf8";
-    // const preserveBOM = options.preserveBOM;
 
-    function _finishWrite(created: boolean): void {
-        if (typeof data !== "string") {
-            return callback(new Error(`Can't write file, data has to be of type string: ${path}`));
-        }
-        if (/\0/.test(data)) {
-            return callback(new Error(`Can't write file, data contains null bytes: ${path}`));
-        }
-        // window is going to close, we need to use sync writes to avoid unfinished writes
-        if (appshell.windowGoingAway) {
-            try {
-                appshell.fs.writeFileSync(path, data, encoding/*, preserveBOM*/);
-                return callback(null, statSync(path), created);
-            } catch (err) {
+    /**
+     * Stat the file or directory at the given path, calling back
+     * asynchronously with either a FileSystemError string or the entry's
+     * associated FileSystemStats object.
+     *
+     * @param {string} path
+     * @param {function(?string, FileSystemStats=)} callback
+     */
+    public stat(path: string, callback: Function): void {
+        appshell.fs.lstat(path, function (err: NodeJS.ErrnoException, stats: any) {
+            if (err) {
                 return callback(_mapError(err));
             }
-        } else {
-            appshell.fs.writeFile(path, data, encoding/*, preserveBOM*/, function (err: NodeJS.ErrnoException) {
-                if (err) {
-                    callback(_mapError(err));
-                } else {
-                    stat(path, function (err2: NodeJS.ErrnoException, stat: any) {
-                        callback(err2, stat, created);
-                    });
-                }
-            });
-        }
+            if (stats.isSymbolicLink()) {
+                // TODO: Implement realPath. If "filename" is a symlink,
+                // realPath should be the actual path to the linked object.
+                return callback(new Error("realPath for symbolic link is not implemented in appshell.fs.stat"));
+            }
+            callback(null, _convertNodeStats(stats));
+        });
     }
 
-    stat(path, function (err: NodeJS.ErrnoException | FileSystemError, stats: any) {
-        if (err) {
-            switch (err) {
-                case FileSystemError.NOT_FOUND:
-                    _finishWrite(true);
-                    break;
-                default:
+    /**
+     * Determine whether a file or directory exists at the given path by calling
+     * back asynchronously with either a FileSystemError string or a boolean,
+     * which is true if the file exists and false otherwise. The error will never
+     * be FileSystemError.NOT_FOUND; in that case, there will be no error and the
+     * boolean parameter will be false.
+     *
+     * @param {string} path
+     * @param {function(?string, boolean)} callback
+     */
+    public exists(path: string, callback: Function): void {
+        this.stat(path, function (err: NodeJS.ErrnoException | FileSystemError) {
+            if (err) {
+                if (err === FileSystemError.NOT_FOUND) {
+                    callback(null, false);
+                } else {
                     callback(err);
-            }
-            return;
-        }
-
-        if (options.hasOwnProperty("expectedHash") && options.expectedHash !== stats._hash) {
-            console.error("Blind write attempted: ", path, stats._hash, options.expectedHash);
-
-            if (options.hasOwnProperty("expectedContents")) {
-                appshell.fs.readTextFile(path, encoding, function (_err: NodeJS.ErrnoException, _data: string) {
-                    if (_err || _data !== options.expectedContents) {
-                        callback(FileSystemError.CONTENTS_MODIFIED);
-                        return;
-                    }
-
-                    _finishWrite(false);
-                });
+                }
                 return;
             }
 
-            callback(FileSystemError.CONTENTS_MODIFIED);
-            return;
-        }
+            callback(null, true);
+        });
+    }
 
-        _finishWrite(false);
-    });
-}
+    /**
+     * Read the contents of the directory at the given path, calling back
+     * asynchronously either with a FileSystemError string or an array of
+     * FileSystemEntry objects along with another consistent array, each index
+     * of which either contains a FileSystemStats object for the corresponding
+     * FileSystemEntry object in the second parameter or a FileSystemError
+     * string describing a stat error.
+     *
+     * @param {string} path
+     * @param {function(?string, Array.<FileSystemEntry>=, Array.<string|FileSystemStats>=)} callback
+     */
+    public readdir(path: string, callback: Function): void {
+        const self = this;
 
-/**
- * Unlink (i.e., permanently delete) the file or directory at the given path,
- * calling back asynchronously with a possibly null FileSystemError string.
- * Directories will be unlinked even when non-empty.
- *
- * @param {string} path
- * @param {function(string)=} callback
- */
-function unlink(path: string, callback: Function): void {
-    appshell.fs.remove(path, function (err: NodeJS.ErrnoException) {
-        callback(_mapError(err));
-    });
-}
-
-/**
- * Move the file or directory at the given path to a system dependent trash
- * location, calling back asynchronously with a possibly null FileSystemError
- * string. Directories will be moved even when non-empty.
- *
- * @param {string} path
- * @param {function(string)=} callback
- */
-function moveToTrash(path: string, callback: Function): void {
-    appshell.fs.moveToTrash(path, function (err: NodeJS.ErrnoException) {
-        callback(_mapError(err));
-    });
-}
-
-/**
- * Initialize file watching for this filesystem, using the supplied
- * changeCallback to provide change notifications. The first parameter of
- * changeCallback specifies the changed path (either a file or a directory);
- * if this parameter is null, it indicates that the implementation cannot
- * specify a particular changed path, and so the callers should consider all
- * paths to have changed and to update their state accordingly. The second
- * parameter to changeCallback is an optional FileSystemStats object that
- * may be provided in case the changed path already exists and stats are
- * readily available. The offlineCallback will be called in case watchers
- * are no longer expected to function properly. All watched paths are
- * cleared when the offlineCallback is called.
- *
- * @param {function(?string, FileSystemStats=)} changeCallback
- * @param {function()=} offlineCallback
- */
-function initWatchers(changeCallback: Function, offlineCallback: Function): void {
-    _changeCallback = changeCallback;
-    _offlineCallback = offlineCallback;
-}
-
-/**
- * Start providing change notifications for the file or directory at the
- * given path, calling back asynchronously with a possibly null FileSystemError
- * string when the initialization is complete. Notifications are provided
- * using the changeCallback function provided by the initWatchers method.
- * Note that change notifications are only provided recursively for directories
- * when the recursiveWatch property of this module is true.
- *
- * @param {string} path
- * @param {Array<string>} ignored
- * @param {function(?string)=} callback
- */
-function watchPath(
-    path: string,
-    ignored: Array<string>,
-    callback: (err: any, ...args) => void
-): void {
-    appshell.fs.isNetworkDrive(path, function (err: NodeJS.ErrnoException, isNetworkDrive: boolean) {
-        if (err || isNetworkDrive) {
-            if (isNetworkDrive) {
-                callback(FileSystemError.NETWORK_DRIVE_NOT_SUPPORTED);
-            } else {
-                callback(FileSystemError.UNKNOWN);
+        appshell.fs.readdir(path, function (err: NodeJS.ErrnoException, contents: Array<string>) {
+            if (err) {
+                callback(_mapError(err));
+                return;
             }
-            return;
+
+            let count = contents.length;
+            if (!count) {
+                callback(null, [], []);
+                return;
+            }
+
+            const stats: Array<any> = [];
+            contents.forEach(function (val, idx) {
+                self.stat(path + "/" + val, function (err2: NodeJS.ErrnoException, stat: any) {
+                    stats[idx] = err2 || stat;
+                    count--;
+                    if (count <= 0) {
+                        callback(null, contents, stats);
+                    }
+                });
+            });
+        });
+    }
+
+    /**
+     * Create a directory at the given path, and call back asynchronously with
+     * either a FileSystemError string or a stats object for the newly created
+     * directory. The octal mode parameter is optional; if unspecified, the mode
+     * of the created directory is implementation dependent.
+     *
+     * @param {string} path
+     * @param {number=} mode The base-eight mode of the newly created directory.
+     * @param {function(?string, FileSystemStats=)=} callback
+     */
+    public mkdir(path: string, mode: number, callback: Function): void {
+        const self = this;
+
+        if (typeof mode === "function") {
+            callback = mode;
+            mode = parseInt("0755", 8);
         }
-        _nodeDomain.exec("watchPath", path, ignored)
+        appshell.fs.mkdir(path, mode, function (err: NodeJS.ErrnoException) {
+            if (err) {
+                callback(_mapError(err));
+            } else {
+                self.stat(path, function (err2: NodeJS.ErrnoException, stat: any) {
+                    callback(err2, stat);
+                });
+            }
+        });
+    }
+
+    /**
+     * Rename the file or directory at oldPath to newPath, and call back
+     * asynchronously with a possibly null FileSystemError string.
+     *
+     * @param {string} oldPath
+     * @param {string} newPath
+     * @param {function(?string)=} callback
+     */
+    public rename(oldPath: string, newPath: string, callback: Function): void {
+        appshell.fs.rename(oldPath, newPath, _wrap(callback));
+    }
+
+    /**
+     * Read the contents of the file at the given path, calling back
+     * asynchronously with either a FileSystemError string, or with the data and
+     * the FileSystemStats object associated with the read file. The options
+     * parameter can be used to specify an encoding (default "utf8"), and also
+     * a cached stats object that the implementation is free to use in order
+     * to avoid an additional stat call.
+     *
+     * Note: if either the read or the stat call fails then neither the read data
+     * nor stat will be passed back, and the call should be considered to have failed.
+     * If both calls fail, the error from the read call is passed back.
+     *
+     * @param {string} path
+     * @param {{encoding: string=, stat: FileSystemStats=}} options
+     * @param {function(?string, string=, FileSystemStats=)} callback
+     */
+    public readFile(path: string, options: { encoding: string, stat: any }, callback: Function): void {
+        const self = this;
+
+        // const encoding = options.encoding || "utf8";
+        const encoding = "utf8";
+
+        // callback to be executed when the call to stat completes
+        //  or immediately if a stat object was passed as an argument
+        function doReadFile(stat: any): void {
+            if (stat.size > (FileUtils.MAX_FILE_SIZE)) {
+                callback(FileSystemError.EXCEEDS_MAX_FILE_SIZE);
+            } else {
+                appshell.fs.readTextFile(path, encoding, function (_err: NodeJS.ErrnoException, _data: string/*, encoding2, preserveBOM2*/) {
+                    if (_err) {
+                        callback(_mapError(_err));
+                    } else {
+                        callback(null, _data, encoding, /* preserveBOM */ false, stat);
+                    }
+                });
+            }
+        }
+
+        if (options.stat) {
+            doReadFile(options.stat);
+        } else {
+            self.stat(path, function (_err: NodeJS.ErrnoException, _stat: any) {
+                if (_err) {
+                    callback(_err);
+                } else {
+                    doReadFile(_stat);
+                }
+            });
+        }
+    }
+
+    /**
+     * Write data to the file at the given path, calling back asynchronously with
+     * either a FileSystemError string or the FileSystemStats object associated
+     * with the written file and a boolean that indicates whether the file was
+     * created by the write (true) or not (false). If no file exists at the
+     * given path, a new file will be created. The options parameter can be used
+     * to specify an encoding (default "utf8"), an octal mode (default
+     * unspecified and implementation dependent), and a consistency hash, which
+     * is used to the current state of the file before overwriting it. If a
+     * consistency hash is provided but does not match the hash of the file on
+     * disk, a FileSystemError.CONTENTS_MODIFIED error is passed to the callback.
+     *
+     * @param {string} path
+     * @param {string} data
+     * @param {{encoding : string=, mode : number=, expectedHash : object=, expectedContents : string=}} options
+     * @param {function(?string, FileSystemStats=, boolean)} callback
+     */
+    public writeFile(
+        path: string,
+        data: string,
+        options: { encoding: string, preserveBOM: boolean, mode: number, expectedHash: string, expectedContents: string },
+        callback: Function
+    ): void {
+        const self = this;
+
+        // const encoding = options.encoding || "utf8";
+        const encoding = "utf8";
+        // const preserveBOM = options.preserveBOM;
+
+        function _finishWrite(created: boolean): void {
+            if (typeof data !== "string") {
+                return callback(new Error(`Can't write file, data has to be of type string: ${path}`));
+            }
+            if (/\0/.test(data)) {
+                return callback(new Error(`Can't write file, data contains null bytes: ${path}`));
+            }
+            // window is going to close, we need to use sync writes to avoid unfinished writes
+            if (appshell.windowGoingAway) {
+                try {
+                    appshell.fs.writeFileSync(path, data, encoding/*, preserveBOM*/);
+                    return callback(null, statSync(path), created);
+                } catch (err) {
+                    return callback(_mapError(err));
+                }
+            } else {
+                appshell.fs.writeFile(path, data, encoding/*, preserveBOM*/, function (err: NodeJS.ErrnoException) {
+                    if (err) {
+                        callback(_mapError(err));
+                    } else {
+                        self.stat(path, function (err2: NodeJS.ErrnoException, stat: any) {
+                            callback(err2, stat, created);
+                        });
+                    }
+                });
+            }
+        }
+
+        this.stat(path, function (err: NodeJS.ErrnoException | FileSystemError, stats: any) {
+            if (err) {
+                switch (err) {
+                    case FileSystemError.NOT_FOUND:
+                        _finishWrite(true);
+                        break;
+                    default:
+                        callback(err);
+                }
+                return;
+            }
+
+            if (options.hasOwnProperty("expectedHash") && options.expectedHash !== stats._hash) {
+                console.error("Blind write attempted: ", path, stats._hash, options.expectedHash);
+
+                if (options.hasOwnProperty("expectedContents")) {
+                    appshell.fs.readTextFile(path, encoding, function (_err: NodeJS.ErrnoException, _data: string) {
+                        if (_err || _data !== options.expectedContents) {
+                            callback(FileSystemError.CONTENTS_MODIFIED);
+                            return;
+                        }
+
+                        _finishWrite(false);
+                    });
+                    return;
+                }
+
+                callback(FileSystemError.CONTENTS_MODIFIED);
+                return;
+            }
+
+            _finishWrite(false);
+        });
+    }
+
+    /**
+     * Unlink (i.e., permanently delete) the file or directory at the given path,
+     * calling back asynchronously with a possibly null FileSystemError string.
+     * Directories will be unlinked even when non-empty.
+     *
+     * @param {string} path
+     * @param {function(string)=} callback
+     */
+    public unlink(path: string, callback: Function): void {
+        appshell.fs.remove(path, function (err: NodeJS.ErrnoException) {
+            callback(_mapError(err));
+        });
+    }
+
+    /**
+     * Move the file or directory at the given path to a system dependent trash
+     * location, calling back asynchronously with a possibly null FileSystemError
+     * string. Directories will be moved even when non-empty.
+     *
+     * @param {string} path
+     * @param {function(string)=} callback
+     */
+    public moveToTrash(path: string, callback: Function): void {
+        appshell.fs.moveToTrash(path, function (err: NodeJS.ErrnoException) {
+            callback(_mapError(err));
+        });
+    }
+
+    /**
+     * Initialize file watching for this filesystem, using the supplied
+     * changeCallback to provide change notifications. The first parameter of
+     * changeCallback specifies the changed path (either a file or a directory);
+     * if this parameter is null, it indicates that the implementation cannot
+     * specify a particular changed path, and so the callers should consider all
+     * paths to have changed and to update their state accordingly. The second
+     * parameter to changeCallback is an optional FileSystemStats object that
+     * may be provided in case the changed path already exists and stats are
+     * readily available. The offlineCallback will be called in case watchers
+     * are no longer expected to function properly. All watched paths are
+     * cleared when the offlineCallback is called.
+     *
+     * @param {function(?string, FileSystemStats=)} changeCallback
+     * @param {function()=} offlineCallback
+     */
+    public initWatchers(changeCallback: Function, offlineCallback: Function): void {
+        _changeCallback = changeCallback;
+        _offlineCallback = offlineCallback;
+    }
+
+    /**
+     * Start providing change notifications for the file or directory at the
+     * given path, calling back asynchronously with a possibly null FileSystemError
+     * string when the initialization is complete. Notifications are provided
+     * using the changeCallback function provided by the initWatchers method.
+     * Note that change notifications are only provided recursively for directories
+     * when the recursiveWatch property of this module is true.
+     *
+     * @param {string} path
+     * @param {Array<string>} ignored
+     * @param {function(?string)=} callback
+     */
+    public watchPath(
+        path: string,
+        ignored: Array<string>,
+        callback: (err: any, ...args) => void
+    ): void {
+        appshell.fs.isNetworkDrive(path, function (err: NodeJS.ErrnoException, isNetworkDrive: boolean) {
+            if (err || isNetworkDrive) {
+                if (isNetworkDrive) {
+                    callback(FileSystemError.NETWORK_DRIVE_NOT_SUPPORTED);
+                } else {
+                    callback(FileSystemError.UNKNOWN);
+                }
+                return;
+            }
+            _nodeDomain.exec("watchPath", path, ignored)
+                .then(callback, callback);
+        });
+    }
+
+    /**
+     * Stop providing change notifications for the file or directory at the
+     * given path, calling back asynchronously with a possibly null FileSystemError
+     * string when the operation is complete.
+     * This function needs to mirror the signature of watchPath
+     * because of FileSystem.prototype._watchOrUnwatchEntry implementation.
+     *
+     * @param {string} path
+     * @param {Array<string>} ignored
+     * @param {function(?string)=} callback
+     */
+    public unwatchPath(
+        path: string,
+        ignored: Array<string>,
+        callback: (err: any, ...args) => void
+    ): void {
+        _nodeDomain.exec("unwatchPath", path)
             .then(callback, callback);
-    });
+    }
+
+    /**
+     * Stop providing change notifications for all previously watched files and
+     * directories, optionally calling back asynchronously with a possibly null
+     * FileSystemError string when the operation is complete.
+     *
+     * @param {function(?string)=} callback
+     */
+    public unwatchAll(callback: (err: any, ...args) => void): void {
+        _nodeDomain.exec("unwatchAll")
+            .then(callback, callback);
+    }
+
+    /**
+     * Indicates whether or not recursive watching notifications are supported
+     * by the watchPath call.
+     *
+     * @type {boolean}
+     */
+    public recursiveWatch = true;
+
+    /**
+     * Indicates whether or not the filesystem should expect and normalize UNC
+     * paths. If set, then //server/directory/ is a normalized path; otherwise the
+     * filesystem will normalize it to /server/directory. Currently, UNC path
+     * normalization only occurs on Windows.
+     *
+     * @type {boolean}
+     */
+    public normalizeUNCPaths = appshell.platform === "win";
 }
-/**
- * Stop providing change notifications for the file or directory at the
- * given path, calling back asynchronously with a possibly null FileSystemError
- * string when the operation is complete.
- * This function needs to mirror the signature of watchPath
- * because of FileSystem.prototype._watchOrUnwatchEntry implementation.
- *
- * @param {string} path
- * @param {Array<string>} ignored
- * @param {function(?string)=} callback
- */
-function unwatchPath(
-    path: string,
-    ignored: Array<string>,
-    callback: (err: any, ...args) => void
-): void {
-    _nodeDomain.exec("unwatchPath", path)
-        .then(callback, callback);
-}
 
-/**
- * Stop providing change notifications for all previously watched files and
- * directories, optionally calling back asynchronously with a possibly null
- * FileSystemError string when the operation is complete.
- *
- * @param {function(?string)=} callback
- */
-function unwatchAll(callback: (err: any, ...args) => void): void {
-    _nodeDomain.exec("unwatchAll")
-        .then(callback, callback);
-}
-
-// Export public API
-exports.showOpenDialog  = showOpenDialog;
-exports.showSaveDialog  = showSaveDialog;
-exports.exists          = exists;
-exports.readdir         = readdir;
-exports.mkdir           = mkdir;
-exports.rename          = rename;
-exports.stat            = stat;
-exports.readFile        = readFile;
-exports.writeFile       = writeFile;
-exports.unlink          = unlink;
-exports.moveToTrash     = moveToTrash;
-exports.initWatchers    = initWatchers;
-exports.watchPath       = watchPath;
-exports.unwatchPath     = unwatchPath;
-exports.unwatchAll      = unwatchAll;
-
-/**
- * Indicates whether or not recursive watching notifications are supported
- * by the watchPath call.
- *
- * @type {boolean}
- */
-exports.recursiveWatch = true;
-
-/**
- * Indicates whether or not the filesystem should expect and normalize UNC
- * paths. If set, then //server/directory/ is a normalized path; otherwise the
- * filesystem will normalize it to /server/directory. Currently, UNC path
- * normalization only occurs on Windows.
- *
- * @type {boolean}
- */
-exports.normalizeUNCPaths = appshell.platform === "win";
+export = new AppshellFileSystem();

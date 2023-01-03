@@ -89,6 +89,7 @@
  */
 
 import type FileSystemStats = require("filesystem/FileSystemStats");
+import type { FileSystemImpl as TFileSystemImpl } from "filesystem/FileSystemImpl";
 
 import Directory       = require("filesystem/Directory");
 import File            = require("filesystem/File");
@@ -185,7 +186,7 @@ class FileSystem extends EventDispatcher.EventDispatcherBase {
      * The low-level file system implementation used by this object.
      * This is set in the init() function and cannot be changed.
      */
-    public _impl;
+    public _impl: TFileSystemImpl;
 
     /**
      * The FileIndex used by this object. This is initialized in the constructor.
@@ -405,7 +406,7 @@ class FileSystem extends EventDispatcher.EventDispatcherBase {
             // Unwatching never requires enumerating the subfolders (which is good, since after a
             // delete/rename we may be unable to do so anyway)
             this._enqueueWatchRequest(function (requestCb: (err: string | null) => void): void {
-                impl.unwatchPath(entry.fullPath, requestCb);
+                impl.unwatchPath(entry.fullPath, [], requestCb);
             }, callback);
         }
     }
@@ -456,7 +457,7 @@ class FileSystem extends EventDispatcher.EventDispatcherBase {
      * @param {FileSystemImpl} impl The back-end implementation for this
      *      FileSystem instance.
      */
-    public init(impl): void {
+    public init(impl: TFileSystemImpl): void {
         console.assert(!this._impl, "This FileSystem has already been initialized!");
 
         const changeCallback = this._enqueueExternalChange.bind(this);
