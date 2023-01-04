@@ -24,6 +24,25 @@
 
 import * as Acorn from "acorn";
 
+interface HintToken {
+    value: string;
+    positions: Array<number>;
+}
+
+type LiteralKind = "string";
+
+interface LiteralToken extends HintToken {
+    literal: true;
+    kind: LiteralKind | undefined;
+    origin: "ecmascript";
+    delimiter: "'" | "\"";
+}
+
+interface KeywordToken extends HintToken {
+    keyword: true;
+    origin: "ecmascript";
+}
+
 export const LANGUAGE_ID                 = "javascript";
 const JSX_LANGUAGE_ID             = "jsx";
 const HTML_LANGUAGE_ID            = "html";
@@ -41,7 +60,7 @@ export const DOUBLE_QUOTE                = "\"";
  *      the token occurs
  * @return {Object} - a new hint token
  */
-export function makeToken(value, positions) {
+export function makeToken(value: string, positions: Array<number>): HintToken {
     positions = positions || [];
 
     return {
@@ -56,7 +75,7 @@ export function makeToken(value, positions) {
  * @param {string} key - string to test.
  * @return {boolean} - could key be a valid identifier?
  */
-export function maybeIdentifier(key) {
+export function maybeIdentifier(key: string): boolean {
     let result = false;
 
     for (let i = 0; i < key.length; i++) {
@@ -75,9 +94,9 @@ export function maybeIdentifier(key) {
  * @param {Object} token - the token to test for hintability
  * @return {boolean} - could the token be hintable?
  */
-export function hintable(token) {
+export function hintable(token: CodeMirror.Token): boolean {
 
-    function _isInsideRegExp(token) {
+    function _isInsideRegExp(token: CodeMirror.Token): boolean {
         return token.state && (token.state.lastType === "regexp" ||
                 (token.state.localState && token.state.localState.lastType === "regexp"));
     }
@@ -105,7 +124,7 @@ export function hintable(token) {
  * @return {boolean} true if the hints should be shown for the key,
  * false otherwise.
  */
-export function hintableKey(key, showOnDot) {
+export function hintableKey(key: string, showOnDot: boolean): boolean {
     return (key === null || (showOnDot && key === ".") || maybeIdentifier(key));
 }
 
@@ -116,7 +135,7 @@ export function hintableKey(key, showOnDot) {
     * @param {string} name - the unqualified event name
     * @return {string} - the qualified event name
     */
-export function eventName(name) {
+export function eventName(name: string): string {
     const EVENT_TAG = "brackets-js-hints";
     return name + "." + EVENT_TAG;
 }
@@ -134,8 +153,8 @@ export function eventName(name) {
     *      added to indicate what the default delimiter should be (viz. a
     *      single or double quotation mark).
     */
-export function annotateLiterals(literals, kind?) {
-    return literals.map(function (t) {
+export function annotateLiterals(literals: Array<HintToken>, kind?: LiteralKind): Array<LiteralToken> {
+    return literals.map(function (t: LiteralToken) {
         t.literal = true;
         t.kind = kind;
         t.origin = "ecmascript";
@@ -158,15 +177,15 @@ export function annotateLiterals(literals, kind?) {
     *      new keyword {boolean} property has been added to indicate that the
     *      hint is a keyword.
     */
-function annotateKeywords(keywords) {
-    return keywords.map(function (t) {
+function annotateKeywords(keywords: Array<HintToken>): Array<KeywordToken> {
+    return keywords.map(function (t: KeywordToken) {
         t.keyword = true;
         t.origin = "ecmascript";
         return t;
     });
 }
 
-export function isSupportedLanguage(languageId) {
+export function isSupportedLanguage(languageId: string): boolean {
     return SUPPORTED_LANGUAGES.indexOf(languageId) !== -1;
 }
 

@@ -31,6 +31,12 @@
 
 /// <amd-dependency path="module" name="module"/>
 
+import type { EditorChange } from "codemirror";
+import type { Document } from "document/Document";
+import type Directory = require("filesystem/Directory");
+import type File = require("filesystem/File");
+import type FileSystemEntry = require("filesystem/FileSystemEntry");
+
 import * as _ from "lodash";
 
 import * as CodeMirror from "thirdparty/CodeMirror/lib/codemirror";
@@ -64,16 +70,23 @@ interface Config {
     noReset: boolean;
 }
 
+interface FileInfo {
+    type: typeof MessageIds[keyof typeof MessageIds];
+    name: string;
+    offsetLines: number;
+    text: string;
+}
+
 const ternEnvironment: Array<any> = [];
 const pendingTernRequests = {};
 const builtinFiles        = ["ecmascript.json", "browser.json", "jquery.json"];
 const builtinLibraryNames: Array<string> = [];
 let isDocumentDirty     = false;
 let _hintCount          = 0;
-let currentModule;
+let currentModule: TernModule;
 let documentChanges: DocumentChange | null = null;     // bounds of document changes
 let preferences: Preferences;
-let deferredPreferences: any = null;
+let deferredPreferences: JQueryDeferred<void> | null = null;
 
 const _bracketsPath       = FileUtils.getNativeBracketsDirectoryPath();
 const _modulePath         = FileUtils.getNativeModuleDirectoryPath(module);
@@ -93,14 +106,14 @@ let config = {} as unknown as Config;
  *
  * @return {Array.<string>} - array of library  names.
  */
-export function getBuiltins() {
+export function getBuiltins(): Array<string> {
     return builtinLibraryNames;
 }
 
 /**
  * Read in the json files that have type information for the builtins, dom,etc
  */
-function initTernEnv() {
+function initTernEnv(): void {
     const initialPath = _bracketsPath.substr(0, _bracketsPath.lastIndexOf("/"));
     const path = [initialPath, "node_modules/tern/defs/"].join("/");
     const files = builtinFiles;
@@ -131,7 +144,7 @@ initTernEnv();
  *  @param {string=} projectRootPath - new project root path. Only needed
  *  for unit tests.
  */
-function initPreferences(projectRootPath?) {
+function initPreferences(projectRootPath?: string): void {
 
     // Reject the old preferences if they have not completed.
     if (deferredPreferences && deferredPreferences.state() === "pending") {
@@ -167,14 +180,14 @@ function initPreferences(projectRootPath?) {
                     }
                 }
                 preferences = new Preferences(configObj);
-                deferredPreferences.resolve();
+                deferredPreferences!.resolve();
             }).fail(function (error) {
                 preferences = new Preferences();
-                deferredPreferences.resolve();
+                deferredPreferences!.resolve();
             });
         } else {
             preferences = new Preferences();
-            deferredPreferences.resolve();
+            deferredPreferences!.resolve();
         }
     });
 }
@@ -183,7 +196,7 @@ function initPreferences(projectRootPath?) {
  * Will initialize preferences only if they do not exist.
  *
  */
-function ensurePreferences() {
+function ensurePreferences(): void {
     if (!deferredPreferences) {
         initPreferences();
     }
@@ -193,7 +206,7 @@ function ensurePreferences() {
  * Send a message to the tern module - if the module is being initialized,
  * the message will not be posted until initialization is complete
  */
-export function postMessage(msg) {
+export function postMessage(msg: Record<string, any>): void {
     if (currentModule) {
         currentModule.postMessage(msg);
     }
@@ -205,7 +218,7 @@ export function postMessage(msg) {
  * @param {!string} path - full directory path.
  * @return {boolean} true if excluded, false otherwise.
  */
-function isDirectoryExcluded(path) {
+function isDirectoryExcluded(path: string): boolean {
     const excludes = preferences.getExcludedDirectories();
 
     if (!excludes) {
@@ -224,7 +237,7 @@ function isDirectoryExcluded(path) {
  * @param {string} filePath file path to test for exclusion.
  * @return {boolean} true if in editor, false otherwise.
  */
-function isFileBeingEdited(filePath) {
+function isFileBeingEdited(filePath: string): boolean | null {
     const currentEditor   = EditorManager.getActiveEditor();
     const currentDoc      = currentEditor && currentEditor.document;
 
@@ -237,7 +250,7 @@ function isFileBeingEdited(filePath) {
  * @param {string} path file path to test for exclusion.
  * @return {boolean} true if excluded, false otherwise.
  */
-function isFileExcludedInternal(path) {
+function isFileExcludedInternal(path: string): boolean {
     // The detectedExclusions are files detected to be troublesome with current versions of Tern.
     // detectedExclusions is an array of full paths.
     const detectedExclusions = PreferencesManager.get("jscodehints.detectedExclusions") || [];
@@ -254,7 +267,7 @@ function isFileExcludedInternal(path) {
  * @param {!File} file - file to test for exclusion.
  * @return {boolean} true if excluded, false otherwise.
  */
-function isFileExcluded(file) {
+function isFileExcluded(file: File): boolean {
     if (file.name[0] === ".") {
         return true;
     }
@@ -285,7 +298,7 @@ function isFileExcluded(file) {
  * @param {string} type - the type of request
  * @return {jQuery.Promise} - the promise for the request
  */
-export function addPendingRequest(file, offset, type) {
+export function addPendingRequest(file: string, offset: CodeMirror.Position, type: string): JQueryPromise<any> {
     let requests;
     const key = file + "@" + offset.line + "@" + offset.ch;
     let $deferredRequest;
@@ -317,7 +330,7 @@ export function addPendingRequest(file, offset, type) {
  * @param {string} type - the type of request
  * @return {jQuery.Deferred} - the $.Deferred for the request
  */
-function getPendingRequest(file, offset, type) {
+function getPendingRequest(file: string, offset: CodeMirror.Position, type: string): JQueryDeferred<any> | undefined {
     const key = file + "@" + offset.line + "@" + offset.ch;
     if (_.has(pendingTernRequests, key)) {
         const requests = pendingTernRequests[key];
@@ -331,13 +344,15 @@ function getPendingRequest(file, offset, type) {
 
         return requestType;
     }
+
+    return undefined;
 }
 
 /**
  * @param {string} file a relative path
  * @return {string} returns the path we resolved when we tried to parse the file, or undefined
  */
-export function getResolvedPath(file) {
+export function getResolvedPath(file: string): string {
     return currentModule.getResolvedPath(file);
 }
 
@@ -352,7 +367,7 @@ export function getResolvedPath(file) {
  * @return {jQuery.Promise} - a promise that will resolve to definition when
  *      it is done
  */
-function getJumptoDef(fileInfo, offset) {
+function getJumptoDef(fileInfo: FileInfo, offset: CodeMirror.Positioin): JQueryPromise<any> {
     postMessage({
         type: MessageIds.TERN_JUMPTODEF_MSG,
         fileInfo: fileInfo,
@@ -367,7 +382,7 @@ function getJumptoDef(fileInfo, offset) {
  * @param {string} the text to check
  * @return {string} the text, or the empty text if the original was too long
  */
-export function filterText(text) {
+export function filterText(text: string): string {
     let newText = text;
     if (text.length > preferences.getMaxFileSize()) {
         newText = "";
@@ -381,8 +396,8 @@ export function filterText(text) {
  * @param {Document} document - the document to get the text from
  * @return {string} the text, or the empty text if the original was too long
  */
-function getTextFromDocument(document) {
-    let text = document.getText();
+function getTextFromDocument(document: Document): string {
+    let text = document.getText()!;
     text = filterText(text);
     return text;
 }
@@ -393,7 +408,7 @@ function getTextFromDocument(document) {
  *
  * @param response - the response from the node domain
  */
-function handleRename(response) {
+function handleRename(response): void {
 
     if (response.error) {
         EditorManager.getActiveEditor()!.displayErrorMessageAtCursor(response.error);
@@ -419,9 +434,9 @@ function handleRename(response) {
  * @return {jQuery.Promise} - The promise will not complete until tern
  *      has completed.
  */
-export function requestJumptoDef(session: Session, document, offset) {
+export function requestJumptoDef(session: Session, document: Document, offset: CodeMirror.Position): { promise: JQueryPromise<any> } {
     const path    = document.file.fullPath;
-    const fileInfo = {
+    const fileInfo: FileInfo = {
         type: MessageIds.TERN_FILE_INFO_TYPE_FULL,
         name: path,
         offsetLines: 0,
@@ -439,7 +454,7 @@ export function requestJumptoDef(session: Session, document, offset) {
  *
  * @param response - the response from the node domain
  */
-function handleJumptoDef(response) {
+function handleJumptoDef(response): void {
 
     const file = response.file;
     const offset = response.offset;
@@ -458,7 +473,7 @@ function handleJumptoDef(response) {
  *
  * @param response - the response from the node domain
  */
-function handleScopeData(response) {
+function handleScopeData(response): void {
     const file = response.file;
     const offset = response.offset;
 
@@ -483,7 +498,7 @@ function handleScopeData(response) {
  * @return {jQuery.Promise} - a promise that will resolve to an array of completions when
  *      it is done
  */
-export function getTernHints(fileInfo, offset, isProperty) {
+export function getTernHints(fileInfo: FileInfo, offset: CodeMirror.Position, isProperty: boolean): JQueryPromise<any> {
 
     /**
      *  If the document is large and we have modified a small portions of it that
@@ -509,7 +524,7 @@ export function getTernHints(fileInfo, offset, isProperty) {
  * @param {{line:number, ch:number}} offset - the line, column info for what we want the function type of.
  * @return {jQuery.Promise} - a promise that will resolve to the function type of the function being called.
  */
-function getTernFunctionType(fileInfo, offset) {
+function getTernFunctionType(fileInfo: FileInfo, offset: CodeMirror.Position): JQueryPromise<any> {
     postMessage({
         type: MessageIds.TERN_CALLED_FUNC_TYPE_MSG,
         fileInfo: fileInfo,
@@ -528,15 +543,15 @@ function getTernFunctionType(fileInfo, offset) {
  * @param {{line: number, ch: number}} start - the starting position of the changes
  * @return {{type: string, name: string, offsetLines: number, text: string}}
  */
-function getFragmentAround(session: Session, start) {
+function getFragmentAround(session: Session, start: CodeMirror.Position): FileInfo {
     let minIndent: number | null = null;
-    let minLine   = null;
+    let minLine: number | null = null;
     let endLine;
     const cm        = session.editor._codeMirror;
     const tabSize   = cm.getOption("tabSize");
     const document  = session.editor.document;
     let p;
-    let min;
+    let min: number;
 
     // expand range backwards
     // tslint:disable-next-line:ban-comma-operator
@@ -598,7 +613,7 @@ function getFragmentAround(session: Session, start) {
  * Optional, defaults to false.
  * @return {{type: string, name: string, offsetLines: number, text: string}}
  */
-function getFileInfo(session: Session, preventPartialUpdates = false) {
+function getFileInfo(session: Session, preventPartialUpdates = false): FileInfo {
     const start = session.getCursor();
     const end = start;
     const document = session.editor.document;
@@ -642,7 +657,7 @@ function getFileInfo(session: Session, preventPartialUpdates = false) {
  * use the cursor if not provided.
  * @return {{line: number, ch: number}}
  */
-function getOffset(session: Session, fileInfo, offset?) {
+function getOffset(session: Session, fileInfo: FileInfo, offset?: CodeMirror.Position): CodeMirror.Position {
     let newOffset;
 
     if (offset) {
@@ -667,8 +682,8 @@ function getOffset(session: Session, fileInfo, offset?) {
  * @return {jQuery.Promise} - The promise will not complete until the tern
  *      request has completed.
  */
-export function requestGuesses(session: Session, document) {
-    const $deferred = $.Deferred();
+export function requestGuesses(session: Session, document: Document): JQueryPromise<void> {
+    const $deferred = $.Deferred<void>();
     const fileInfo = getFileInfo(session);
     const offset = getOffset(session, fileInfo);
 
@@ -696,7 +711,7 @@ export function requestGuesses(session: Session, document) {
  * @param {{file: string, offset: {line: number, ch: number}, completions:Array.<string>,
  *          properties:Array.<string>}} response - the response from node domain
  */
-function handleTernCompletions(response) {
+function handleTernCompletions(response): void {
 
     const file = response.file;
     const offset = response.offset;
@@ -729,7 +744,7 @@ function handleTernCompletions(response) {
  *      the response from node domain contains the guesses for a
  *      property lookup.
  */
-function handleGetGuesses(response) {
+function handleGetGuesses(response): void {
     const path = response.file;
     const type = response.type;
     const offset = response.offset;
@@ -746,7 +761,7 @@ function handleGetGuesses(response) {
  *
  * @param {{path: string, type: string}} response - the response from node domain
  */
-function handleUpdateFile(response) {
+function handleUpdateFile(response): void {
 
     const path = response.path;
     const type = response.type;
@@ -762,7 +777,7 @@ function handleUpdateFile(response) {
  *
  * @param {{path: string, type: string}} response - the response from node domain
  */
-function handleTimedOut(response) {
+function handleTimedOut(response): void {
 
     const detectedExclusions  = PreferencesManager.get("jscodehints.detectedExclusions") || [];
     const filePath            = response.file;
@@ -824,16 +839,13 @@ function handleTimedOut(response) {
  *
  */
 class TernModule {
-    // @ts-ignore
-    private resetModule;
-    // @ts-ignore
-    private handleEditorChange;
-    // @ts-ignore
-    private postMessage;
-    // @ts-ignore
-    private getResolvedPath;
-    // @ts-ignore
-    private whenReady;
+    public resetModule;
+    public handleEditorChange;
+    public postMessage;
+    public getResolvedPath;
+    public whenReady;
+
+    public resetForced: boolean;
 
     constructor() {
         let ternPromise;
@@ -845,13 +857,13 @@ class TernModule {
         let numInitialFiles     = 0;
         let numResolvedFiles    = 0;
         let numAddedFiles       = 0;
-        let _ternNodeDomain;
+        let _ternNodeDomain: NodeDomain;
 
         /**
          * @param {string} file a relative path
          * @return {string} returns the path we resolved when we tried to parse the file, or undefined
          */
-        function getResolvedPath(file) {
+        function getResolvedPath(file: string): string {
             return resolvedFiles[file];
         }
 
@@ -862,7 +874,7 @@ class TernModule {
          * @return {boolean} - true if more files than the current directory have
          * been read in.
          */
-        function usingModules() {
+        function usingModules(): boolean {
             return numInitialFiles !== numResolvedFiles;
         }
 
@@ -870,7 +882,7 @@ class TernModule {
          * Send a message to the tern node domain - if the module is being initialized,
          * the message will not be posted until initialization is complete
          */
-        function postMessage(msg) {
+        function postMessage(msg): void {
             addFilesPromise!.done(function (ternModule) {
                 // If an error came up during file handling, bail out now
                 if (!_ternNodeDomain) {
@@ -888,7 +900,7 @@ class TernModule {
          * Send a message to the tern node domain - this is only for messages that
          * need to be sent before and while the addFilesPromise is being resolved.
          */
-        function _postMessageByPass(msg) {
+        function _postMessageByPass(msg): void {
             ternPromise.done(function (ternModule) {
                 if (config.debug) {
                     console.debug("Sending message", msg);
@@ -903,7 +915,7 @@ class TernModule {
          * @param {Document} document - the document to update
          * @return {jQuery.Promise} - the promise for the request
          */
-        function updateTernFile(document) {
+        function updateTernFile(document: Document): JQueryPromise<any> {
             const path  = document.file.fullPath;
 
             _postMessageByPass({
@@ -921,9 +933,9 @@ class TernModule {
          * @param {{file:string}} request - the request from the tern node domain.  Should be an Object containing the name
          *      of the file tern wants the contents of
          */
-        function handleTernGetFile(request) {
+        function handleTernGetFile(request): void {
 
-            function replyWith(name, txt) {
+            function replyWith(name: string, txt: string): void {
                 _postMessageByPass({
                     type: MessageIds.TERN_GET_FILE_MSG,
                     file: name,
@@ -941,10 +953,10 @@ class TernModule {
              * @param {string} filePath - the path of the file to get the text of
              * @return {jQuery.Promise} - the Promise returned from DocumentMangaer.getDocumentText()
              */
-            function getDocText(filePath) {
+            function getDocText(filePath: string): JQueryPromise<string | null> {
                 if (!FileSystem.isAbsolutePath(filePath) || // don't handle URLs
                         filePath.slice(0, 2) === "//") { // don't handle protocol-relative URLs like //example.com/main.js (see #10566)
-                    return ($.Deferred()).reject().promise();
+                    return ($.Deferred<string>()).reject().promise();
                 }
 
                 const file = FileSystem.getFileForPath(filePath);
@@ -953,7 +965,7 @@ class TernModule {
                 promise.done(function (docText) {
                     resolvedFiles[name] = filePath;
                     numResolvedFiles++;
-                    replyWith(name, filterText(docText));
+                    replyWith(name, filterText(docText!));
                 });
                 return promise;
             }
@@ -964,11 +976,11 @@ class TernModule {
              * when the baseUrl is unknown, or when the project root is not the same
              * as the script root (e.g. if you open the 'brackets' dir instead of 'brackets/src' dir).
              */
-            function findNameInProject() {
+            function findNameInProject(): void {
                 // check for any files in project that end with the right path.
                 const fileName = name.substring(name.lastIndexOf("/") + 1);
 
-                function _fileFilter(entry) {
+                function _fileFilter(entry: File): boolean {
                     return entry.name === fileName;
                 }
 
@@ -1011,7 +1023,7 @@ class TernModule {
          * @param {string} path - full path of file
          * @return {jQuery.Promise} - the promise for the request
          */
-        function primePump(path, isUntitledDoc) {
+        function primePump(path: string, isUntitledDoc: boolean): JQueryPromise<any> {
             _postMessageByPass({
                 type            : MessageIds.TERN_PRIME_PUMP_MSG,
                 path            : path,
@@ -1027,7 +1039,7 @@ class TernModule {
          *
          * @param {{path: string, type: string}} response - the response from node domain
          */
-        function handlePrimePumpCompletion(response) {
+        function handlePrimePumpCompletion(response): void {
 
             const path = response.path;
             const type = response.type;
@@ -1046,7 +1058,7 @@ class TernModule {
          * @param {Array.<string>} files - array of file to add to tern.
          * @return {boolean} - true if more files may be added, false if maximum has been reached.
          */
-        function addFilesToTern(files) {
+        function addFilesToTern(files: Array<string>): boolean {
             // limit the number of files added to tern.
             const maxFileCount = preferences.getMaxFileCount();
             if (numResolvedFiles + numAddedFiles < maxFileCount) {
@@ -1084,19 +1096,20 @@ class TernModule {
          * @param {function ()} doneCallback - called when all files have been
          * added to tern.
          */
-        function addAllFilesAndSubdirectories(dir, doneCallback) {
-            FileSystem.resolve(dir, function (err, directory) {
-                // @ts-ignore
-                function visitor(entry) {
+        function addAllFilesAndSubdirectories(dir: string, doneCallback: () => void): void {
+            FileSystem.resolve(dir, function (err, directory: Directory) {
+                function visitor(entry: FileSystemEntry): boolean {
                     if (entry.isFile) {
-                        if (!isFileExcluded(entry)) { // ignore .dotfiles and non-.js files
+                        // TODO: this branch should return true or false based on the conditions below?
+                        if (!isFileExcluded(entry as File)) { // ignore .dotfiles and non-.js files
                             addFilesToTern([entry.fullPath]);
                         }
-                    } else {
-                        return !isDirectoryExcluded(entry.fullPath) &&
-                            entry.name.indexOf(".") !== 0 &&
-                            !stopAddingFiles;
+                        return false;
                     }
+
+                    return !isDirectoryExcluded(entry.fullPath) &&
+                        entry.name.indexOf(".") !== 0 &&
+                        !stopAddingFiles;
                 }
 
                 if (err) {
@@ -1115,11 +1128,11 @@ class TernModule {
         /**
          * Init the Tern module that does all the code hinting work.
          */
-        function initTernModule() {
+        function initTernModule(): void {
             const moduleDeferred = $.Deferred();
             ternPromise = moduleDeferred.promise();
 
-            function prepareTern() {
+            function prepareTern(): void {
                 _ternNodeDomain.exec("setInterface", {
                     messageIds : MessageIds
                 });
@@ -1187,7 +1200,7 @@ class TernModule {
         /**
          * Create a new tern server.
          */
-        function initTernServer(dir, files) {
+        function initTernServer(dir: string, files: Array<string>): void {
             initTernModule();
             numResolvedFiles = 0;
             numAddedFiles = 0;
@@ -1215,7 +1228,7 @@ class TernModule {
          * @return {boolean} - true if tern initialization should be skipped,
          * false otherwise.
          */
-        function canSkipTernInitialization(newFile) {
+        function canSkipTernInitialization(newFile: string): boolean {
             return resolvedFiles[newFile] !== undefined;
         }
 
@@ -1227,7 +1240,7 @@ class TernModule {
          * @param {!Document} document - the document the editor has changed to
          * @param {?Document} previousDocument - the document the editor has changed from
          */
-        function doEditorChange(session: Session, document, previousDocument) {
+        function doEditorChange(session: Session, document: Document, previousDocument: Document): void {
             const file        = document.file;
             const path        = file.fullPath;
             const dir         = file.parentPath;
@@ -1265,9 +1278,9 @@ class TernModule {
             projectRoot = pr;
 
             ensurePreferences();
-            deferredPreferences.done(function () {
+            deferredPreferences!.done(function () {
                 if (file instanceof InMemoryFile) {
-                    initTernServer(pr, []);
+                    initTernServer(pr!, []);
                     const hintsPromise = primePump(path, true);
                     hintsPromise.done(function () {
                         addFilesDeferred.resolveWith(null, [_ternNodeDomain]);
@@ -1337,7 +1350,7 @@ class TernModule {
          * @param {!Document} document - the document of the editor that has changed
          * @param {?Document} previousDocument - the document of the editor is changing from
          */
-        function handleEditorChange(session: Session, document, previousDocument) {
+        function handleEditorChange(session: Session, document: Document, previousDocument: Document): void {
             if (addFilesPromise === null) {
                 doEditorChange(session, document, previousDocument);
             } else {
@@ -1353,8 +1366,8 @@ class TernModule {
          * We can clean up the node tern server we use to calculate hints now, since
          * we know we will need to re-init it in any new project that is opened.
          */
-        function resetModule() {
-            function resetTernServer() {
+        function resetModule(): void {
+            function resetTernServer(): void {
                 if (_ternNodeDomain.ready()) {
                     _ternNodeDomain.exec("resetTernServer");
                 }
@@ -1371,7 +1384,7 @@ class TernModule {
             }
         }
 
-        function whenReady(func) {
+        function whenReady(func): void {
             addFilesPromise!.done(func);
         }
 
@@ -1403,8 +1416,8 @@ let resettingDeferred;
  * @return {Promise} Promise resolved when the module is ready.
  *                   The new (or current, if there was no reset) module is passed to the callback.
  */
-export function _maybeReset(session: Session, document, force = false) {
-    let newTernModule;
+export function _maybeReset(session: Session, document: Document, force = false): JQueryPromise<TernModule> {
+    let newTernModule: TernModule;
     // if we're in the middle of a reset, don't have to check
     // the new module will be online soon
     if (!resettingDeferred) {
@@ -1430,7 +1443,7 @@ export function _maybeReset(session: Session, document, force = false) {
             });
             _hintCount = 0;
         } else {
-            const d = $.Deferred();
+            const d = $.Deferred<TernModule>();
             d.resolve(currentModule);
             return d.promise();
         }
@@ -1447,7 +1460,7 @@ export function _maybeReset(session: Session, document, force = false) {
  * @return {jQuery.Promise} - The promise will not complete until the
  *      hint has completed.
  */
-export function requestParameterHint(session: Session, functionOffset) {
+export function requestParameterHint(session: Session, functionOffset: CodeMirror.Position): JQueryPromise<any> {
     const $deferredHints = $.Deferred();
     const fileInfo = getFileInfo(session, true);
     const offset = getOffset(session, fileInfo, functionOffset);
@@ -1480,8 +1493,8 @@ export function requestParameterHint(session: Session, functionOffset) {
  * @return {jQuery.Promise} - The promise will not complete until the tern
  *      hints have completed.
  */
-export function requestHints(session: Session, document) {
-    const $deferredHints = $.Deferred();
+export function requestHints(session: Session, document: Document): JQueryPromise<void> {
+    const $deferredHints = $.Deferred<void>();
     const sessionType = session.getType();
     const fileInfo = getFileInfo(session);
     const offset = getOffset(session, fileInfo, null);
@@ -1516,7 +1529,7 @@ export function requestHints(session: Session, document) {
  * @param {Array.<{from: {line:number, ch: number}, to: {line:number, ch: number},
  *     text: Array<string>}>} changeList - the document changes from the current change event
  */
-function trackChange(changeList) {
+function trackChange(changeList: Array<EditorChange>): void {
     let changed = documentChanges;
 
     if (changed === null) {
@@ -1548,7 +1561,7 @@ function trackChange(changeList) {
     *
     * @param {from: {line:number, ch: number}, to: {line:number, ch: number}}
     */
-export function handleFileChange(changeList) {
+export function handleFileChange(changeList: Array<EditorChange>): void {
     isDocumentDirty = true;
     trackChange(changeList);
 }
@@ -1560,7 +1573,7 @@ export function handleFileChange(changeList) {
  * @param {Document} document - the document of the editor that has changed
  * @param {?Document} previousDocument - the document of the editor is changing from
  */
-export function handleEditorChange(session: Session, document, previousDocument) {
+export function handleEditorChange(session: Session, document: Document, previousDocument: Document): void {
 
     if (!currentModule) {
         currentModule = new TernModule();
@@ -1573,7 +1586,7 @@ export function handleEditorChange(session: Session, document, previousDocument)
  * Do some cleanup when a project is closed.
  * Clean up previous analysis data from the module
  */
-export function handleProjectClose() {
+export function handleProjectClose(): void {
     if (currentModule) {
         currentModule.resetModule();
     }
@@ -1586,12 +1599,12 @@ export function handleProjectClose() {
  *  @param {string=} projectRootPath - new project root path(optional).
  *  Only needed for unit tests.
  */
-export function handleProjectOpen(projectRootPath?) {
+export function handleProjectOpen(projectRootPath?: string): void {
     initPreferences(projectRootPath);
 }
 
 /** Used to avoid timing bugs in unit tests */
-export function _readyPromise() {
+export function _readyPromise(): JQueryDeferred<void> | null {
     return deferredPreferences;
 }
 
@@ -1600,7 +1613,7 @@ export function _readyPromise() {
  *
  * Update the configuration in the tern node domain.
  */
-export function _setConfig(configUpdate) {
+export function _setConfig(configUpdate): void {
     config = brackets._configureJSCodeHints.config;
     postMessage({
         type: MessageIds.SET_CONFIG,

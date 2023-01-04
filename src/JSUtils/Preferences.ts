@@ -71,7 +71,7 @@ import * as StringUtils from "utils/StringUtils";
  * @return {RegExp} Regular expression that captures the array of string
  * with optional wildcards.
  */
-function settingsToRegExp(settings, baseRegExp, defaultRegExp?) {
+function settingsToRegExp(settings: Array<string | RegExp>, baseRegExp: RegExp | null, defaultRegExp?: RegExp): RegExp | null {
     let regExpString = "";
 
     if (settings instanceof Array && settings.length > 0) {
@@ -186,7 +186,7 @@ class Preferences {
      * @return {?RegExp} Regular expression matching the directories that should
      * be excluded. Returns null if no directories are excluded.
      */
-    public getExcludedDirectories() {
+    public getExcludedDirectories(): RegExp {
         return this._excludedDirectories;
     }
 
@@ -196,7 +196,7 @@ class Preferences {
      * @return {?RegExp} Regular expression matching the files that should
      * be excluded. Returns null if no files are excluded.
      */
-    public getExcludedFiles() {
+    public getExcludedFiles(): RegExp {
         return this._excludedFiles;
     }
 
@@ -205,7 +205,7 @@ class Preferences {
      *
      * @return {number}
      */
-    public getMaxFileCount() {
+    public getMaxFileCount(): number {
         return this._maxFileCount;
     }
 
@@ -215,7 +215,7 @@ class Preferences {
      *
      * @return {number}
      */
-    public getMaxFileSize() {
+    public getMaxFileSize(): number {
         return this._maxFileSize;
     }
 }
