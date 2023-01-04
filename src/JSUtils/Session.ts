@@ -22,6 +22,8 @@
  *
  */
 
+import type { Editor } from "editor/Editor";
+
 import * as StringMatch from "utils/StringMatch";
 import * as TokenUtils from "utils/TokenUtils";
 import * as LanguageManager from "language/LanguageManager";
@@ -38,12 +40,39 @@ interface SessionType {
     showFunctionType?: boolean;
 }
 
+interface MatchingHint extends StringMatch.SearchResult {
+    value?: any;
+    guess?: any;
+    type?: any;
+    keyword?: any;
+    literal?: any;
+    depth?: any;
+    doc?: any;
+    url?: any;
+    builtin?: any;
+}
+
+interface FunctionInfo {
+    inFunctionCall: boolean;
+    functionCallPos: CodeMirror.Position;
+}
+
+interface Hints {
+    hints: Array<any>;
+    needGuesses: boolean;
+}
+
+interface ParameterHint {
+    parameters: Array<{name: string, type: string, isOptional: boolean}>;
+    currentIndex: number;
+}
+
 /**
  *
  * @param {Object} token - a CodeMirror token
  * @return {*} - the lexical state of the token
  */
-function getLexicalState(token) {
+function getLexicalState(token: CodeMirror.Token): any {
     if (token.state.lexical) {
         // in a javascript file this is just in the state field
         return token.state.lexical;
@@ -60,7 +89,7 @@ function getLexicalState(token) {
 // comparison on the "value" field of both objects. Unlike a normal string
 // comparison, however, this sorts leading "_" to the bottom, given that a
 // leading "_" usually denotes a private value.
-function penalizeUnderscoreValueCompare(a, b) {
+function penalizeUnderscoreValueCompare(a, b): number {
     const aName = a.value.toLowerCase();
     const bName = b.value.toLowerCase();
 
@@ -93,12 +122,12 @@ function penalizeUnderscoreValueCompare(a, b) {
  * @param {Editor} editor - the editor context for the session
  */
 class Session {
-    public editor;
+    public editor: Editor;
     private path: string;
     private ternHints: Array<any>;
     private ternGuesses;
     private fnType;
-    private builtins: Array<any> | null;
+    private builtins: Array<string> | null;
     private functionCallPos;
 
     constructor(editor) {
@@ -116,7 +145,7 @@ class Session {
      * @return {Array.<string>} - array of library names.
      * @private
      */
-    private _getBuiltins() {
+    private _getBuiltins(): Array<string> {
         if (!this.builtins) {
             this.builtins = ScopeManager.getBuiltins();
             this.builtins.push("requirejs.js");     // consider these globals as well.
@@ -131,7 +160,7 @@ class Session {
      * @return {string} - the full pathname of the file associated with the
      *      current session
      */
-    public getPath() {
+    public getPath(): string {
         return this.path;
     }
 
@@ -140,7 +169,7 @@ class Session {
      *
      * @return {{line: number, ch: number}} - the current cursor position
      */
-    public getCursor() {
+    public getCursor(): CodeMirror.Position {
         return this.editor.getCursorPos();
     }
 
@@ -150,7 +179,7 @@ class Session {
      * @param {number} line - the line number
      * @return {string} - the text of the line
      */
-    public getLine(line) {
+    public getLine(line: number): string {
         const doc = this.editor.document;
         return doc.getLine(line);
     }
@@ -161,7 +190,7 @@ class Session {
      * @return {number} - the offset into the current document of the current
      *      cursor
      */
-    public getOffset() {
+    public getOffset(): number {
         const cursor = this.getCursor();
 
         return this.getOffsetFromCursor(cursor);
@@ -173,7 +202,7 @@ class Session {
      * @param {{line: number, ch: number}} the line/col info
      * @return {number} - the offset into the current document of the cursor
      */
-    public getOffsetFromCursor(cursor) {
+    public getOffsetFromCursor(cursor: CodeMirror.Position): number {
         return this.editor.indexFromPos(cursor);
     }
 
@@ -185,7 +214,7 @@ class Session {
      *      at which to retrieve a token
      * @return {Object} - the CodeMirror token at the given cursor position
      */
-    public getToken(cursor) {
+    public getToken(cursor: CodeMirror.Position): CodeMirror.Token {
         const cm = this.editor._codeMirror;
 
         if (cursor) {
@@ -203,10 +232,10 @@ class Session {
      * @return {Object} - the CodeMirror token after the one at the given
      *      cursor position
      */
-    public getNextTokenOnLine(cursor) {
-        cursor = this.getNextCursorOnLine(cursor);
-        if (cursor) {
-            return this.getToken(cursor);
+    public getNextTokenOnLine(cursor: CodeMirror.Position): CodeMirror.Token | null {
+        const nextCursorOnLine = this.getNextCursorOnLine(cursor);
+        if (nextCursorOnLine) {
+            return this.getToken(nextCursorOnLine);
         }
 
         return null;
@@ -219,7 +248,7 @@ class Session {
      *      immediately following the current cursor position, or null if
      *      none exists.
      */
-    private getNextCursorOnLine(cursor) {
+    private getNextCursorOnLine(cursor: CodeMirror.Position): CodeMirror.Position | null {
         const doc     = this.editor.document;
         const line    = doc.getLine(cursor.line);
 
@@ -241,7 +270,7 @@ class Session {
      * @return {Object} - the CodeMirror token before the one at the given
      *      cursor position
      */
-    public _getPreviousToken(cursor) {
+    public _getPreviousToken(cursor: CodeMirror.Position): CodeMirror.Token {
         const token   = this.getToken(cursor);
         let prev    = token;
         const doc     = this.editor.document;
@@ -272,7 +301,7 @@ class Session {
      * @return {Object} - the CodeMirror token after the one at the given
      *      cursor position
      */
-    public getNextToken(cursor, skipWhitespace) {
+    public getNextToken(cursor: CodeMirror.Position, skipWhitespace: boolean): CodeMirror.Token | null {
         const token   = this.getToken(cursor);
         let next: CodeMirror.Token | null = token;
         const doc     = this.editor.document;
@@ -302,7 +331,7 @@ class Session {
      *
      * @return {string} - the query string for the current cursor position
      */
-    public getQuery() {
+    public getQuery(): string {
         const cursor  = this.getCursor();
         const token   = this.getToken(cursor);
         let query   = "";
@@ -335,7 +364,7 @@ class Session {
      *      undefined if the depth is 0.
      * @return {string} - the context for the property that was looked up
      */
-    private getContext(cursor, depth?) {
+    private getContext(cursor: CodeMirror.Position, depth?: number): string {
         const token = this.getToken(cursor);
 
         if (depth === undefined) {
@@ -364,7 +393,7 @@ class Session {
      * @return {{line:number, ch:number}} - the line, col info for where the previous "."
      *      in a property lookup occurred, or undefined if no previous "." was found.
      */
-    public findPreviousDot() {
+    public findPreviousDot(): CodeMirror.Position | undefined {
         const cursor = this.getCursor();
         let token = this.getToken(cursor);
 
@@ -392,7 +421,7 @@ class Session {
      * functionCallPos - the offset of the '(' character of the function call if inFunctionCall
      * is true, otherwise undefined.
      */
-    public getFunctionInfo() {
+    public getFunctionInfo(): FunctionInfo {
         let inFunctionCall   = false;
         const cursor           = this.getCursor();
         let functionCallPos;
@@ -404,7 +433,7 @@ class Session {
          *
          * @return {Object} - lexical state if on a function identifier, null otherwise.
          */
-        function isOnFunctionIdentifier() {
+        function isOnFunctionIdentifier(): any | null {
 
             // Check if we might be on function identifier of the function call.
             const type = token.type;
@@ -428,7 +457,7 @@ class Session {
          * @return {Object | boolean}
          *
          */
-        function isInFunctionalCall(lex) {
+        function isInFunctionalCall(lex: any): boolean {
             // in a call, or inside array or object brackets that are inside a function.
             return (lex && (lex.info === "call" ||
                 (lex.info === undefined && (lex.type === "]" || lex.type === "}") &&
@@ -501,10 +530,10 @@ class Session {
      *      the property lookup, or null if there is none. The context is
      *      always null for non-property lookups.
      */
-    public getType() {
+    public getType(): SessionType {
         let propertyLookup   = false;
         let context: string | null = null;
-        let cursor           = this.getCursor();
+        let cursor: CodeMirror.Position | undefined = this.getCursor();
         const token            = this.getToken(cursor);
 
         if (token) {
@@ -535,7 +564,7 @@ class Session {
      * matching hints. If needGuesses is true, then the caller needs to
      * request guesses and call getHints again.
      */
-    public getHints(query, matcher) {
+    public getHints(query: string, matcher: StringMatch.StringMatcher): Hints {
 
         if (query === undefined) {
             query = "";
@@ -552,7 +581,7 @@ class Session {
          *
          * @param {string} origin
          */
-        function isBuiltin(origin) {
+        function isBuiltin(origin: string): boolean {
             return builtins.indexOf(origin) !== -1;
         }
 
@@ -566,9 +595,9 @@ class Session {
          * @param {StringMatcher} matcher
          * @return {Array} - array of matching hints.
          */
-        function filterWithQueryAndMatcher(hints, matcher) {
+        function filterWithQueryAndMatcher(hints, matcher: StringMatch.StringMatcher): Array<MatchingHint> {
             const matchResults = $.map(hints, function (hint) {
-                const searchResult = matcher.match(hint.value, query);
+                const searchResult: MatchingHint | undefined = matcher.match(hint.value, query);
                 if (searchResult) {
                     searchResult.value = hint.value;
                     searchResult.guess = hint.guess;
@@ -637,11 +666,11 @@ class Session {
         return {hints: hints, needGuesses: needGuesses};
     }
 
-    public setTernHints(newHints) {
+    public setTernHints(newHints): void {
         this.ternHints = newHints;
     }
 
-    public setGuesses(newGuesses) {
+    public setGuesses(newGuesses): void {
         this.ternGuesses = newGuesses;
     }
 
@@ -651,7 +680,7 @@ class Session {
      * @param {Array<{name: string, type: string, isOptional: boolean}>} newFnType -
      * Array of function hints.
      */
-    public setFnType(newFnType) {
+    public setFnType(newFnType): void {
         this.fnType = newFnType;
     }
 
@@ -660,7 +689,7 @@ class Session {
      *
      * @param {{line:number, ch:number}} functionCallPos - the offset of the function call.
      */
-    public setFunctionCallPos(functionCallPos) {
+    public setFunctionCallPos(functionCallPos: CodeMirror.Position): void {
         this.functionCallPos = functionCallPos;
     }
 
@@ -674,7 +703,7 @@ class Session {
      * the "currentIndex" property index of the hint the cursor is on, may be
      * -1 if the cursor is on the function identifier.
      */
-    public getParameterHint() {
+    public getParameterHint(): ParameterHint {
         const fnHint = this.fnType;
         const cursor = this.getCursor();
         const token = this.getToken(this.functionCallPos);
@@ -771,7 +800,7 @@ class Session {
      * only knows how to parse javascript.
      * @return {string} - the "javascript" text that can be sent to Tern.
      */
-    public getJavascriptText() {
+    public getJavascriptText(): string {
         if (LanguageManager.getLanguageForPath(this.editor.document.file.fullPath).getId() === "html") {
             // HTML file - need to send back only the bodies of the
             // <script> tags
@@ -803,7 +832,7 @@ class Session {
         }
 
         // Javascript file, just return the text
-        return this.editor.document.getText();
+        return this.editor.document.getText()!;
     }
 
     /**
@@ -815,7 +844,7 @@ class Session {
      * @return {boolean} - true if the current cursor position is in the name of a function
      * declaration.
      */
-    public isFunctionName() {
+    public isFunctionName(): boolean {
         const cursor = this.getCursor();
         const prevToken = this._getPreviousToken(cursor);
 

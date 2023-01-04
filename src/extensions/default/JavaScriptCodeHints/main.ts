@@ -54,10 +54,6 @@ interface Config {
     debug?: boolean;
 }
 
-interface Cursor {
-    line: number;
-}
-
 interface Type {
     property: boolean;
     showFunctionType: boolean;
@@ -69,7 +65,7 @@ interface Type {
 }
 
 let session = null as unknown as TSession;  // object that encapsulates the current session state
-let cachedCursor: Cursor | null = null;  // last cursor of the current hinting session
+let cachedCursor: CodeMirror.Position | null = null;  // last cursor of the current hinting session
 let cachedHints        = null;  // sorted hints for the current hinting session
 let cachedType: Type | null = null;  // describes the lookup type and the object context
 let cachedToken: Token | null = null;  // the token used in the current hinting session
@@ -325,7 +321,7 @@ function getHintResponse(hints, query, type) {
  *  type information about the hints
  *  @param {Object} token - CodeMirror token
  */
-function setCachedHintContext(hints, cursor, type, token) {
+function setCachedHintContext(hints, cursor: CodeMirror.Position, type, token) {
     cachedHints = hints;
     cachedCursor = cursor;
     cachedType = type;
