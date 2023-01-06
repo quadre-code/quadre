@@ -838,565 +838,572 @@ function handleTimedOut(response): void {
  * to the tern node domain, without worrying about initialization, priming the pump, etc.
  *
  */
+// tslint:disable member-access
 class TernModule {
-    public resetModule;
-    public handleEditorChange;
-    public postMessage;
-    public getResolvedPath;
-    public whenReady;
-
     public resetForced: boolean;
 
+    #addFilesPromise: JQueryPromise<unknown> | null = null;
+    #ternPromise;
+    #rootTernDir;
+    #projectRoot;
+    #stopAddingFiles     = false;
+    #resolvedFiles       = {};       // file -> resolved file
+    #numInitialFiles     = 0;
+    #numResolvedFiles    = 0;
+    #numAddedFiles       = 0;
+    #_ternNodeDomain: NodeDomain;
+
     constructor() {
-        let ternPromise;
-        let addFilesPromise: JQueryPromise<unknown> | null = null;
-        let rootTernDir;
-        let projectRoot;
-        let stopAddingFiles     = false;
-        let resolvedFiles       = {};       // file -> resolved file
-        let numInitialFiles     = 0;
-        let numResolvedFiles    = 0;
-        let numAddedFiles       = 0;
-        let _ternNodeDomain: NodeDomain;
+        // Do nothing.
+    }
 
-        /**
-         * @param {string} file a relative path
-         * @return {string} returns the path we resolved when we tried to parse the file, or undefined
-         */
-        function getResolvedPath(file: string): string {
-            return resolvedFiles[file];
-        }
+    /**
+     * @param {string} file a relative path
+     * @return {string} returns the path we resolved when we tried to parse the file, or undefined
+     */
+    public getResolvedPath(file: string): string {
+        return this.#resolvedFiles[file];
+    }
 
-        /**
-         *  Determine whether the current set of files are using modules to pull in
-         *  additional files.
-         *
-         * @return {boolean} - true if more files than the current directory have
-         * been read in.
-         */
-        function usingModules(): boolean {
-            return numInitialFiles !== numResolvedFiles;
-        }
+    /**
+     *  Determine whether the current set of files are using modules to pull in
+     *  additional files.
+     *
+     * @return {boolean} - true if more files than the current directory have
+     * been read in.
+     */
+    #usingModules(): boolean {
+        return this.#numInitialFiles !== this.#numResolvedFiles;
+    }
 
-        /**
-         * Send a message to the tern node domain - if the module is being initialized,
-         * the message will not be posted until initialization is complete
-         */
-        function postMessage(msg): void {
-            addFilesPromise!.done(function (ternModule) {
-                // If an error came up during file handling, bail out now
-                if (!_ternNodeDomain) {
-                    return;
-                }
+    /**
+     * Send a message to the tern node domain - if the module is being initialized,
+     * the message will not be posted until initialization is complete
+     */
+    public postMessage(msg): void {
+        const self = this;
 
-                if (config.debug) {
-                    console.debug("Sending message", msg);
-                }
-                _ternNodeDomain.exec("invokeTernCommand", msg);
-            });
-        }
-
-        /**
-         * Send a message to the tern node domain - this is only for messages that
-         * need to be sent before and while the addFilesPromise is being resolved.
-         */
-        function _postMessageByPass(msg): void {
-            ternPromise.done(function (ternModule) {
-                if (config.debug) {
-                    console.debug("Sending message", msg);
-                }
-                _ternNodeDomain.exec("invokeTernCommand", msg);
-            });
-        }
-
-        /**
-         *  Update tern with the new contents of a given file.
-         *
-         * @param {Document} document - the document to update
-         * @return {jQuery.Promise} - the promise for the request
-         */
-        function updateTernFile(document: Document): JQueryPromise<any> {
-            const path  = document.file.fullPath;
-
-            _postMessageByPass({
-                type       : MessageIds.TERN_UPDATE_FILE_MSG,
-                path       : path,
-                text       : getTextFromDocument(document)
-            });
-
-            return addPendingRequest(path, OFFSET_ZERO, MessageIds.TERN_UPDATE_FILE_MSG);
-        }
-
-        /**
-         * Handle a request from the tern node domain for text of a file
-         *
-         * @param {{file:string}} request - the request from the tern node domain.  Should be an Object containing the name
-         *      of the file tern wants the contents of
-         */
-        function handleTernGetFile(request): void {
-
-            function replyWith(name: string, txt: string): void {
-                _postMessageByPass({
-                    type: MessageIds.TERN_GET_FILE_MSG,
-                    file: name,
-                    text: txt
-                });
-            }
-
-            const name = request.file;
-
-            /**
-             * Helper function to get the text of a given document and send it to tern.
-             * If DocumentManager successfully gets the file's text then we'll send it to the tern node domain.
-             * The Promise for getDocumentText() is returned so that custom fail functions can be used.
-             *
-             * @param {string} filePath - the path of the file to get the text of
-             * @return {jQuery.Promise} - the Promise returned from DocumentMangaer.getDocumentText()
-             */
-            function getDocText(filePath: string): JQueryPromise<string | null> {
-                if (!FileSystem.isAbsolutePath(filePath) || // don't handle URLs
-                        filePath.slice(0, 2) === "//") { // don't handle protocol-relative URLs like //example.com/main.js (see #10566)
-                    return ($.Deferred<string>()).reject().promise();
-                }
-
-                const file = FileSystem.getFileForPath(filePath);
-                const promise = DocumentManager.getDocumentText(file);
-
-                promise.done(function (docText) {
-                    resolvedFiles[name] = filePath;
-                    numResolvedFiles++;
-                    replyWith(name, filterText(docText!));
-                });
-                return promise;
-            }
-
-            /**
-             * Helper function to find any files in the project that end with the
-             * name we are looking for.  This is so we can find requirejs modules
-             * when the baseUrl is unknown, or when the project root is not the same
-             * as the script root (e.g. if you open the 'brackets' dir instead of 'brackets/src' dir).
-             */
-            function findNameInProject(): void {
-                // check for any files in project that end with the right path.
-                const fileName = name.substring(name.lastIndexOf("/") + 1);
-
-                function _fileFilter(entry: File): boolean {
-                    return entry.name === fileName;
-                }
-
-                ProjectManager.getAllFiles(_fileFilter).done(function (files) {
-                    let file;
-                    files = files!.filter(function (file) {
-                        const pos = file.fullPath.length - name.length;
-                        return pos === file.fullPath.lastIndexOf(name);
-                    });
-
-                    if (files.length === 1) {
-                        file = files[0];
-                    }
-                    if (file) {
-                        getDocText(file.fullPath).fail(function () {
-                            replyWith(name, "");
-                        });
-                    } else {
-                        replyWith(name, "");
-                    }
-                });
-            }
-
-            if (!isFileExcludedInternal(name)) {
-                getDocText(name).fail(function () {
-                    getDocText(rootTernDir + name).fail(function () {
-                        // check relative to project root
-                        getDocText(projectRoot + name)
-                            // last look for any files that end with the right path
-                            // in the project
-                            .fail(findNameInProject);
-                    });
-                });
-            }
-        }
-
-        /**
-         *  Prime the pump for a fast first lookup.
-         *
-         * @param {string} path - full path of file
-         * @return {jQuery.Promise} - the promise for the request
-         */
-        function primePump(path: string, isUntitledDoc: boolean): JQueryPromise<any> {
-            _postMessageByPass({
-                type            : MessageIds.TERN_PRIME_PUMP_MSG,
-                path            : path,
-                isUntitledDoc   : isUntitledDoc
-            });
-
-            return addPendingRequest(path, OFFSET_ZERO, MessageIds.TERN_PRIME_PUMP_MSG);
-        }
-
-        /**
-         * Handle the response from the tern node domain when
-         * it responds to the prime pump message.
-         *
-         * @param {{path: string, type: string}} response - the response from node domain
-         */
-        function handlePrimePumpCompletion(response): void {
-
-            const path = response.path;
-            const type = response.type;
-            const $deferredHints = getPendingRequest(path, OFFSET_ZERO, type);
-
-            if ($deferredHints) {
-                $deferredHints.resolve();
-            }
-        }
-
-        /**
-         *  Add new files to tern, keeping any previous files.
-         *  The tern server must be initialized before making
-         *  this call.
-         *
-         * @param {Array.<string>} files - array of file to add to tern.
-         * @return {boolean} - true if more files may be added, false if maximum has been reached.
-         */
-        function addFilesToTern(files: Array<string>): boolean {
-            // limit the number of files added to tern.
-            const maxFileCount = preferences.getMaxFileCount();
-            if (numResolvedFiles + numAddedFiles < maxFileCount) {
-                const available = maxFileCount - numResolvedFiles - numAddedFiles;
-
-                if (available < files.length) {
-                    files = files.slice(0, available);
-                }
-
-                numAddedFiles += files.length;
-                ternPromise.done(function (ternModule) {
-                    const msg = {
-                        type        : MessageIds.TERN_ADD_FILES_MSG,
-                        files       : files
-                    };
-
-                    if (config.debug) {
-                        console.debug("Sending message", msg);
-                    }
-                    _ternNodeDomain.exec("invokeTernCommand", msg);
-                });
-
-            } else {
-                stopAddingFiles = true;
-            }
-
-            return stopAddingFiles;
-        }
-
-        /**
-         *  Add the files in the directory and subdirectories of a given directory
-         *  to tern.
-         *
-         * @param {string} dir - the root directory to add.
-         * @param {function ()} doneCallback - called when all files have been
-         * added to tern.
-         */
-        function addAllFilesAndSubdirectories(dir: string, doneCallback: () => void): void {
-            FileSystem.resolve(dir, function (err, directory: Directory) {
-                function visitor(entry: FileSystemEntry): boolean {
-                    if (entry.isFile) {
-                        // TODO: this branch should return true or false based on the conditions below?
-                        if (!isFileExcluded(entry as File)) { // ignore .dotfiles and non-.js files
-                            addFilesToTern([entry.fullPath]);
-                        }
-                        return false;
-                    }
-
-                    return !isDirectoryExcluded(entry.fullPath) &&
-                        entry.name.indexOf(".") !== 0 &&
-                        !stopAddingFiles;
-                }
-
-                if (err) {
-                    return;
-                }
-
-                if (dir === FileSystem.getDirectoryForPath(rootTernDir)) {
-                    doneCallback();
-                    return;
-                }
-
-                directory.visit(visitor, doneCallback);
-            });
-        }
-
-        /**
-         * Init the Tern module that does all the code hinting work.
-         */
-        function initTernModule(): void {
-            const moduleDeferred = $.Deferred();
-            ternPromise = moduleDeferred.promise();
-
-            function prepareTern(): void {
-                _ternNodeDomain.exec("setInterface", {
-                    messageIds : MessageIds
-                });
-
-                _ternNodeDomain.exec("invokeTernCommand", {
-                    type: MessageIds.SET_CONFIG,
-                    config: config
-                });
-                moduleDeferred.resolveWith(null, [_ternNodeDomain]);
-            }
-
-            if (_ternNodeDomain) {
-                _ternNodeDomain.exec("resetTernServer");
-                moduleDeferred.resolveWith(null, [_ternNodeDomain]);
-            } else {
-                _ternNodeDomain     = new NodeDomain("TernNodeDomain", _domainPath);
-                _ternNodeDomain.on("data", function (evt, data) {
-                    if (config.debug) {
-                        console.log("Message received", data.type);
-                    }
-
-                    const response = data;
-                    const type = response.type;
-
-                    if (type === MessageIds.TERN_COMPLETIONS_MSG ||
-                            type === MessageIds.TERN_CALLED_FUNC_TYPE_MSG) {
-                        // handle any completions the tern server calculated
-                        handleTernCompletions(response);
-                    } else if (type === MessageIds.TERN_GET_FILE_MSG) {
-                        // handle a request for the contents of a file
-                        handleTernGetFile(response);
-                    } else if (type === MessageIds.TERN_JUMPTODEF_MSG) {
-                        handleJumptoDef(response);
-                    } else if (type === MessageIds.TERN_SCOPEDATA_MSG) {
-                        handleScopeData(response);
-                    } else if (type === MessageIds.TERN_REFS) {
-                        handleRename(response);
-                    } else if (type === MessageIds.TERN_PRIME_PUMP_MSG) {
-                        handlePrimePumpCompletion(response);
-                    } else if (type === MessageIds.TERN_GET_GUESSES_MSG) {
-                        handleGetGuesses(response);
-                    } else if (type === MessageIds.TERN_UPDATE_FILE_MSG) {
-                        handleUpdateFile(response);
-                    } else if (type === MessageIds.TERN_INFERENCE_TIMEDOUT) {
-                        handleTimedOut(response);
-                    } else if (type === MessageIds.TERN_WORKER_READY) {
-                        moduleDeferred.resolveWith(null, [_ternNodeDomain]);
-                    } else if (type === "RE_INIT_TERN") {
-                        // Ensure the request is because of a node restart
-                        if (currentModule) {
-                            prepareTern();
-                            // Mark the module with resetForced, then creation of TernModule will
-                            // happen again as part of '_maybeReset' call
-                            currentModule.resetForced = true;
-                        }
-                    } else {
-                        console.log("Tern Module: " + (response.log || response));
-                    }
-                });
-
-                _ternNodeDomain.promise().done(prepareTern);
-            }
-        }
-
-        /**
-         * Create a new tern server.
-         */
-        function initTernServer(dir: string, files: Array<string>): void {
-            initTernModule();
-            numResolvedFiles = 0;
-            numAddedFiles = 0;
-            stopAddingFiles = false;
-            numInitialFiles = files.length;
-
-            ternPromise.done(function (ternModule) {
-                const msg = {
-                    type        : MessageIds.TERN_INIT_MSG,
-                    dir         : dir,
-                    files       : files,
-                    env         : ternEnvironment,
-                    timeout     : PreferencesManager.get("jscodehints.inferenceTimeout")
-                };
-                _ternNodeDomain.exec("invokeTernCommand", msg);
-            });
-            rootTernDir = dir + "/";
-        }
-
-        /**
-         *  We can skip tern initialization if we are opening a file that has
-         *  already been added to tern.
-         *
-         * @param {string} newFile - full path of new file being opened in the editor.
-         * @return {boolean} - true if tern initialization should be skipped,
-         * false otherwise.
-         */
-        function canSkipTernInitialization(newFile: string): boolean {
-            return resolvedFiles[newFile] !== undefined;
-        }
-
-
-        /**
-         *  Do the work to initialize a code hinting session.
-         *
-         * @param {Session} session - the active hinting session (TODO: currently unused)
-         * @param {!Document} document - the document the editor has changed to
-         * @param {?Document} previousDocument - the document the editor has changed from
-         */
-        function doEditorChange(session: Session, document: Document, previousDocument: Document): void {
-            const file        = document.file;
-            const path        = file.fullPath;
-            const dir         = file.parentPath;
-
-            const addFilesDeferred = $.Deferred();
-
-            documentChanges = null;
-            addFilesPromise = addFilesDeferred.promise();
-            const pr = ProjectManager.getProjectRoot() ? ProjectManager.getProjectRoot()!.fullPath : null;
-
-            // avoid re-initializing tern if possible.
-            if (canSkipTernInitialization(path)) {
-
-                // update the previous document in tern to prevent stale files.
-                if (isDocumentDirty && previousDocument) {
-                    const updateFilePromise = updateTernFile(previousDocument);
-                    updateFilePromise.done(function () {
-                        primePump(path, document.isUntitled());
-                        addFilesDeferred.resolveWith(null, [_ternNodeDomain]);
-                    });
-                } else {
-                    addFilesDeferred.resolveWith(null, [_ternNodeDomain]);
-                }
-
-                isDocumentDirty = false;
+        this.#addFilesPromise!.done(function (ternModule) {
+            // If an error came up during file handling, bail out now
+            if (!self.#_ternNodeDomain) {
                 return;
             }
 
-            if (previousDocument && previousDocument.isDirty) {
-                updateTernFile(previousDocument);
+            if (config.debug) {
+                console.debug("Sending message", msg);
+            }
+            self.#_ternNodeDomain.exec("invokeTernCommand", msg);
+        });
+    }
+
+    /**
+     * Send a message to the tern node domain - this is only for messages that
+     * need to be sent before and while the addFilesPromise is being resolved.
+     */
+    #_postMessageByPass(msg): void {
+        const self = this;
+        this.#ternPromise.done(function (ternModule) {
+            if (config.debug) {
+                console.debug("Sending message", msg);
+            }
+            self.#_ternNodeDomain.exec("invokeTernCommand", msg);
+        });
+    }
+
+    /**
+     *  Update tern with the new contents of a given file.
+     *
+     * @param {Document} document - the document to update
+     * @return {jQuery.Promise} - the promise for the request
+     */
+    #updateTernFile(document: Document): JQueryPromise<any> {
+        const path  = document.file.fullPath;
+
+        this.#_postMessageByPass({
+            type       : MessageIds.TERN_UPDATE_FILE_MSG,
+            path       : path,
+            text       : getTextFromDocument(document)
+        });
+
+        return addPendingRequest(path, OFFSET_ZERO, MessageIds.TERN_UPDATE_FILE_MSG);
+    }
+
+    /**
+     * Handle a request from the tern node domain for text of a file
+     *
+     * @param {{file:string}} request - the request from the tern node domain.  Should be an Object containing the name
+     *      of the file tern wants the contents of
+     */
+    #handleTernGetFile(request): void {
+        const self = this;
+
+        function replyWith(name: string, txt: string): void {
+            self.#_postMessageByPass({
+                type: MessageIds.TERN_GET_FILE_MSG,
+                file: name,
+                text: txt
+            });
+        }
+
+        const name = request.file;
+
+        /**
+         * Helper function to get the text of a given document and send it to tern.
+         * If DocumentManager successfully gets the file's text then we'll send it to the tern node domain.
+         * The Promise for getDocumentText() is returned so that custom fail functions can be used.
+         *
+         * @param {string} filePath - the path of the file to get the text of
+         * @return {jQuery.Promise} - the Promise returned from DocumentMangaer.getDocumentText()
+         */
+        function getDocText(filePath: string): JQueryPromise<string | null> {
+            if (!FileSystem.isAbsolutePath(filePath) || // don't handle URLs
+                    filePath.slice(0, 2) === "//") { // don't handle protocol-relative URLs like //example.com/main.js (see #10566)
+                return ($.Deferred<string>()).reject().promise();
+            }
+
+            const file = FileSystem.getFileForPath(filePath);
+            const promise = DocumentManager.getDocumentText(file);
+
+            promise.done(function (docText) {
+                self.#resolvedFiles[name] = filePath;
+                self.#numResolvedFiles++;
+                replyWith(name, filterText(docText!));
+            });
+            return promise;
+        }
+
+        /**
+         * Helper function to find any files in the project that end with the
+         * name we are looking for.  This is so we can find requirejs modules
+         * when the baseUrl is unknown, or when the project root is not the same
+         * as the script root (e.g. if you open the 'brackets' dir instead of 'brackets/src' dir).
+         */
+        function findNameInProject(): void {
+            // check for any files in project that end with the right path.
+            const fileName = name.substring(name.lastIndexOf("/") + 1);
+
+            function _fileFilter(entry: File): boolean {
+                return entry.name === fileName;
+            }
+
+            ProjectManager.getAllFiles(_fileFilter).done(function (files) {
+                let file;
+                files = files!.filter(function (file) {
+                    const pos = file.fullPath.length - name.length;
+                    return pos === file.fullPath.lastIndexOf(name);
+                });
+
+                if (files.length === 1) {
+                    file = files[0];
+                }
+                if (file) {
+                    getDocText(file.fullPath).fail(function () {
+                        replyWith(name, "");
+                    });
+                } else {
+                    replyWith(name, "");
+                }
+            });
+        }
+
+        if (!isFileExcludedInternal(name)) {
+            getDocText(name).fail(function () {
+                getDocText(self.#rootTernDir + name).fail(function () {
+                    // check relative to project root
+                    getDocText(self.#projectRoot + name)
+                        // last look for any files that end with the right path
+                        // in the project
+                        .fail(findNameInProject);
+                });
+            });
+        }
+    }
+
+    /**
+     *  Prime the pump for a fast first lookup.
+     *
+     * @param {string} path - full path of file
+     * @return {jQuery.Promise} - the promise for the request
+     */
+    #primePump(path: string, isUntitledDoc: boolean): JQueryPromise<any> {
+        this.#_postMessageByPass({
+            type            : MessageIds.TERN_PRIME_PUMP_MSG,
+            path            : path,
+            isUntitledDoc   : isUntitledDoc
+        });
+
+        return addPendingRequest(path, OFFSET_ZERO, MessageIds.TERN_PRIME_PUMP_MSG);
+    }
+
+    /**
+     * Handle the response from the tern node domain when
+     * it responds to the prime pump message.
+     *
+     * @param {{path: string, type: string}} response - the response from node domain
+     */
+    #handlePrimePumpCompletion(response): void {
+
+        const path = response.path;
+        const type = response.type;
+        const $deferredHints = getPendingRequest(path, OFFSET_ZERO, type);
+
+        if ($deferredHints) {
+            $deferredHints.resolve();
+        }
+    }
+
+    /**
+     *  Add new files to tern, keeping any previous files.
+     *  The tern server must be initialized before making
+     *  this call.
+     *
+     * @param {Array.<string>} files - array of file to add to tern.
+     * @return {boolean} - true if more files may be added, false if maximum has been reached.
+     */
+    #addFilesToTern(files: Array<string>): boolean {
+        const self = this;
+
+        // limit the number of files added to tern.
+        const maxFileCount = preferences.getMaxFileCount();
+        if (this.#numResolvedFiles + this.#numAddedFiles < maxFileCount) {
+            const available = maxFileCount - this.#numResolvedFiles - this.#numAddedFiles;
+
+            if (available < files.length) {
+                files = files.slice(0, available);
+            }
+
+            this.#numAddedFiles += files.length;
+            this.#ternPromise.done(function (ternModule) {
+                const msg = {
+                    type        : MessageIds.TERN_ADD_FILES_MSG,
+                    files       : files
+                };
+
+                if (config.debug) {
+                    console.debug("Sending message", msg);
+                }
+                self.#_ternNodeDomain.exec("invokeTernCommand", msg);
+            });
+
+        } else {
+            this.#stopAddingFiles = true;
+        }
+
+        return this.#stopAddingFiles;
+    }
+
+    /**
+     *  Add the files in the directory and subdirectories of a given directory
+     *  to tern.
+     *
+     * @param {string} dir - the root directory to add.
+     * @param {function ()} doneCallback - called when all files have been
+     * added to tern.
+     */
+    #addAllFilesAndSubdirectories(dir: string, doneCallback: () => void): void {
+        const self = this;
+
+        FileSystem.resolve(dir, function (err, directory: Directory) {
+            function visitor(entry: FileSystemEntry): boolean {
+                if (entry.isFile) {
+                    // TODO: this branch should return true or false based on the conditions below?
+                    if (!isFileExcluded(entry as File)) { // ignore .dotfiles and non-.js files
+                        self.#addFilesToTern([entry.fullPath]);
+                    }
+                    return false;
+                }
+
+                return !isDirectoryExcluded(entry.fullPath) &&
+                    entry.name.indexOf(".") !== 0 &&
+                    !self.#stopAddingFiles;
+            }
+
+            if (err) {
+                return;
+            }
+
+            if (dir === FileSystem.getDirectoryForPath(self.#rootTernDir)) {
+                doneCallback();
+                return;
+            }
+
+            directory.visit(visitor, doneCallback);
+        });
+    }
+
+    /**
+     * Init the Tern module that does all the code hinting work.
+     */
+    #initTernModule(): void {
+        const self = this;
+
+        const moduleDeferred = $.Deferred();
+        this.#ternPromise = moduleDeferred.promise();
+
+        function prepareTern(): void {
+            self.#_ternNodeDomain.exec("setInterface", {
+                messageIds : MessageIds
+            });
+
+            self.#_ternNodeDomain.exec("invokeTernCommand", {
+                type: MessageIds.SET_CONFIG,
+                config: config
+            });
+            moduleDeferred.resolveWith(null, [self.#_ternNodeDomain]);
+        }
+
+        if (this.#_ternNodeDomain) {
+            this.#_ternNodeDomain.exec("resetTernServer");
+            moduleDeferred.resolveWith(null, [this.#_ternNodeDomain]);
+        } else {
+            this.#_ternNodeDomain     = new NodeDomain("TernNodeDomain", _domainPath);
+            this.#_ternNodeDomain.on("data", function (evt, data) {
+                if (config.debug) {
+                    console.log("Message received", data.type);
+                }
+
+                const response = data;
+                const type = response.type;
+
+                if (type === MessageIds.TERN_COMPLETIONS_MSG ||
+                        type === MessageIds.TERN_CALLED_FUNC_TYPE_MSG) {
+                    // handle any completions the tern server calculated
+                    handleTernCompletions(response);
+                } else if (type === MessageIds.TERN_GET_FILE_MSG) {
+                    // handle a request for the contents of a file
+                    self.#handleTernGetFile(response);
+                } else if (type === MessageIds.TERN_JUMPTODEF_MSG) {
+                    handleJumptoDef(response);
+                } else if (type === MessageIds.TERN_SCOPEDATA_MSG) {
+                    handleScopeData(response);
+                } else if (type === MessageIds.TERN_REFS) {
+                    handleRename(response);
+                } else if (type === MessageIds.TERN_PRIME_PUMP_MSG) {
+                    self.#handlePrimePumpCompletion(response);
+                } else if (type === MessageIds.TERN_GET_GUESSES_MSG) {
+                    handleGetGuesses(response);
+                } else if (type === MessageIds.TERN_UPDATE_FILE_MSG) {
+                    handleUpdateFile(response);
+                } else if (type === MessageIds.TERN_INFERENCE_TIMEDOUT) {
+                    handleTimedOut(response);
+                } else if (type === MessageIds.TERN_WORKER_READY) {
+                    moduleDeferred.resolveWith(null, [self.#_ternNodeDomain]);
+                } else if (type === "RE_INIT_TERN") {
+                    // Ensure the request is because of a node restart
+                    if (currentModule) {
+                        prepareTern();
+                        // Mark the module with resetForced, then creation of TernModule will
+                        // happen again as part of '_maybeReset' call
+                        currentModule.resetForced = true;
+                    }
+                } else {
+                    console.log("Tern Module: " + (response.log || response));
+                }
+            });
+
+            self.#_ternNodeDomain.promise().done(prepareTern);
+        }
+    }
+
+    /**
+     * Create a new tern server.
+     */
+    #initTernServer(dir: string, files: Array<string>): void {
+        const self = this;
+
+        this.#initTernModule();
+        this.#numResolvedFiles = 0;
+        this.#numAddedFiles = 0;
+        this.#stopAddingFiles = false;
+        this.#numInitialFiles = files.length;
+
+        this.#ternPromise.done(function (ternModule) {
+            const msg = {
+                type        : MessageIds.TERN_INIT_MSG,
+                dir         : dir,
+                files       : files,
+                env         : ternEnvironment,
+                timeout     : PreferencesManager.get("jscodehints.inferenceTimeout")
+            };
+            self.#_ternNodeDomain.exec("invokeTernCommand", msg);
+        });
+        this.#rootTernDir = dir + "/";
+    }
+
+    /**
+     *  We can skip tern initialization if we are opening a file that has
+     *  already been added to tern.
+     *
+     * @param {string} newFile - full path of new file being opened in the editor.
+     * @return {boolean} - true if tern initialization should be skipped,
+     * false otherwise.
+     */
+    #canSkipTernInitialization(newFile: string): boolean {
+        return this.#resolvedFiles[newFile] !== undefined;
+    }
+
+
+    /**
+     *  Do the work to initialize a code hinting session.
+     *
+     * @param {Session} session - the active hinting session (TODO: currently unused)
+     * @param {!Document} document - the document the editor has changed to
+     * @param {?Document} previousDocument - the document the editor has changed from
+     */
+    #doEditorChange(session: Session, document: Document, previousDocument: Document | null): void {
+        const self = this;
+        const file        = document.file;
+        const path        = file.fullPath;
+        const dir         = file.parentPath;
+
+        const addFilesDeferred = $.Deferred();
+
+        documentChanges = null;
+        this.#addFilesPromise = addFilesDeferred.promise();
+        const pr = ProjectManager.getProjectRoot() ? ProjectManager.getProjectRoot()!.fullPath : null;
+
+        // avoid re-initializing tern if possible.
+        if (this.#canSkipTernInitialization(path)) {
+
+            // update the previous document in tern to prevent stale files.
+            if (isDocumentDirty && previousDocument) {
+                const updateFilePromise = this.#updateTernFile(previousDocument);
+                updateFilePromise.done(function () {
+                    self.#primePump(path, document.isUntitled());
+                    addFilesDeferred.resolveWith(null, [self.#_ternNodeDomain]);
+                });
+            } else {
+                addFilesDeferred.resolveWith(null, [this.#_ternNodeDomain]);
             }
 
             isDocumentDirty = false;
-            resolvedFiles = {};
-            projectRoot = pr;
+            return;
+        }
 
-            ensurePreferences();
-            deferredPreferences!.done(function () {
-                if (file instanceof InMemoryFile) {
-                    initTernServer(pr!, []);
-                    const hintsPromise = primePump(path, true);
-                    hintsPromise.done(function () {
-                        addFilesDeferred.resolveWith(null, [_ternNodeDomain]);
-                    });
+        if (previousDocument && previousDocument.isDirty) {
+            this.#updateTernFile(previousDocument);
+        }
+
+        isDocumentDirty = false;
+        this.#resolvedFiles = {};
+        this.#projectRoot = pr;
+
+        ensurePreferences();
+        deferredPreferences!.done(function () {
+            if (file instanceof InMemoryFile) {
+                self.#initTernServer(pr!, []);
+                const hintsPromise = self.#primePump(path, true);
+                hintsPromise.done(function () {
+                    addFilesDeferred.resolveWith(null, [self.#_ternNodeDomain]);
+                });
+                return;
+            }
+
+            FileSystem.resolve(dir, function (err, directory) {
+                if (err) {
+                    console.error("Error resolving", dir);
+                    addFilesDeferred.resolveWith(null);
                     return;
                 }
 
-                FileSystem.resolve(dir, function (err, directory) {
+                directory.getContents(function (err, contents) {
                     if (err) {
-                        console.error("Error resolving", dir);
+                        console.error("Error getting contents for", directory);
                         addFilesDeferred.resolveWith(null);
                         return;
                     }
 
-                    directory.getContents(function (err, contents) {
-                        if (err) {
-                            console.error("Error getting contents for", directory);
-                            addFilesDeferred.resolveWith(null);
-                            return;
-                        }
-
-                        const files = contents
-                            .filter(function (entry) {
-                                return entry.isFile && !isFileExcluded(entry);
-                            })
-                            .map(function (entry) {
-                                return entry.fullPath;
-                            });
-
-                        initTernServer(dir, files);
-
-                        const hintsPromise = primePump(path, false);
-                        hintsPromise.done(function () {
-                            if (!usingModules()) {
-                                // Read the subdirectories of the new file's directory.
-                                // Read them first in case there are too many files to
-                                // read in the project.
-                                addAllFilesAndSubdirectories(dir, function () {
-                                    // If the file is in the project root, then read
-                                    // all the files under the project root.
-                                    const currentDir = (dir + "/");
-                                    if (projectRoot && currentDir !== projectRoot &&
-                                            currentDir.indexOf(projectRoot) === 0) {
-                                        addAllFilesAndSubdirectories(projectRoot, function () {
-                                            // prime the pump again but this time don't wait
-                                            // for completion.
-                                            primePump(path, false);
-                                            addFilesDeferred.resolveWith(null, [_ternNodeDomain]);
-                                        });
-                                    } else {
-                                        addFilesDeferred.resolveWith(null, [_ternNodeDomain]);
-                                    }
-                                });
-                            } else {
-                                addFilesDeferred.resolveWith(null, [_ternNodeDomain]);
-                            }
+                    const files = contents
+                        .filter(function (entry) {
+                            return entry.isFile && !isFileExcluded(entry);
+                        })
+                        .map(function (entry) {
+                            return entry.fullPath;
                         });
+
+                    self.#initTernServer(dir, files);
+
+                    const hintsPromise = self.#primePump(path, false);
+                    hintsPromise.done(function () {
+                        if (!self.#usingModules()) {
+                            // Read the subdirectories of the new file's directory.
+                            // Read them first in case there are too many files to
+                            // read in the project.
+                            self.#addAllFilesAndSubdirectories(dir, function () {
+                                // If the file is in the project root, then read
+                                // all the files under the project root.
+                                const currentDir = (dir + "/");
+                                if (self.#projectRoot && currentDir !== self.#projectRoot &&
+                                        currentDir.indexOf(self.#projectRoot) === 0) {
+                                    self.#addAllFilesAndSubdirectories(self.#projectRoot, function () {
+                                        // prime the pump again but this time don't wait
+                                        // for completion.
+                                        self.#primePump(path, false);
+                                        addFilesDeferred.resolveWith(null, [self.#_ternNodeDomain]);
+                                    });
+                                } else {
+                                    addFilesDeferred.resolveWith(null, [self.#_ternNodeDomain]);
+                                }
+                            });
+                        } else {
+                            addFilesDeferred.resolveWith(null, [self.#_ternNodeDomain]);
+                        }
                     });
                 });
             });
+        });
+    }
+
+    /**
+     * Called each time a new editor becomes active.
+     *
+     * @param {Session} session - the active hinting session (TODO: currently unused by doEditorChange())
+     * @param {!Document} document - the document of the editor that has changed
+     * @param {?Document} previousDocument - the document of the editor is changing from
+     */
+    public handleEditorChange(session: Session, document: Document, previousDocument: Document | null): void {
+        const self = this;
+
+        if (this.#addFilesPromise === null) {
+            this.#doEditorChange(session, document, previousDocument);
+        } else {
+            this.#addFilesPromise.done(function () {
+                self.#doEditorChange(session, document, previousDocument);
+            });
+        }
+    }
+
+    /**
+     * Do some cleanup when a project is closed.
+     *
+     * We can clean up the node tern server we use to calculate hints now, since
+     * we know we will need to re-init it in any new project that is opened.
+     */
+    public resetModule(): void {
+        const self = this;
+
+        function resetTernServer(): void {
+            if (self.#_ternNodeDomain.ready()) {
+                self.#_ternNodeDomain.exec("resetTernServer");
+            }
         }
 
-        /**
-         * Called each time a new editor becomes active.
-         *
-         * @param {Session} session - the active hinting session (TODO: currently unused by doEditorChange())
-         * @param {!Document} document - the document of the editor that has changed
-         * @param {?Document} previousDocument - the document of the editor is changing from
-         */
-        function handleEditorChange(session: Session, document: Document, previousDocument: Document): void {
-            if (addFilesPromise === null) {
-                doEditorChange(session, document, previousDocument);
+        if (this.#_ternNodeDomain) {
+            if (this.#addFilesPromise) {
+                // If we're in the middle of added files, don't reset
+                // until we're done
+                this.#addFilesPromise.done(resetTernServer).fail(resetTernServer);
             } else {
-                addFilesPromise.done(function () {
-                    doEditorChange(session, document, previousDocument);
-                });
+                resetTernServer();
             }
         }
+    }
 
-        /**
-         * Do some cleanup when a project is closed.
-         *
-         * We can clean up the node tern server we use to calculate hints now, since
-         * we know we will need to re-init it in any new project that is opened.
-         */
-        function resetModule(): void {
-            function resetTernServer(): void {
-                if (_ternNodeDomain.ready()) {
-                    _ternNodeDomain.exec("resetTernServer");
-                }
-            }
-
-            if (_ternNodeDomain) {
-                if (addFilesPromise) {
-                    // If we're in the middle of added files, don't reset
-                    // until we're done
-                    addFilesPromise.done(resetTernServer).fail(resetTernServer);
-                } else {
-                    resetTernServer();
-                }
-            }
-        }
-
-        function whenReady(func): void {
-            addFilesPromise!.done(func);
-        }
-
-        this.resetModule = resetModule;
-        this.handleEditorChange = handleEditorChange;
-        this.postMessage = postMessage;
-        this.getResolvedPath = getResolvedPath;
-        this.whenReady = whenReady;
-
-        return this;
+    public whenReady(func): void {
+        this.#addFilesPromise!.done(func);
     }
 }
+// tslint:enable member-access
 
 let resettingDeferred;
 
