@@ -279,7 +279,7 @@ class NavigationFrame {
         }
 
         CommandManager.execute(Commands.FILE_OPEN, {fullPath: this.filePath, paneId: this.paneId}).done(function () {
-            EditorManager.getCurrentFullEditor().setSelections(self.selections, true);
+            EditorManager.getCurrentFullEditor()!.setSelections(self.selections, true);
             _validateNavigationCmds();
         }).always(function () {
             jumpInProgress = false;
@@ -338,7 +338,7 @@ function _navigateBack() {
         if (activePosNotSynced) {
             currentEditPos = new NavigationFrame(
                 EditorManager.getCurrentFullEditor(),
-                {ranges: EditorManager.getCurrentFullEditor()._codeMirror.listSelections()}
+                {ranges: EditorManager.getCurrentFullEditor()!._codeMirror.listSelections()}
             );
             jumpForwardStack.push(currentEditPos);
         }

@@ -21,6 +21,8 @@ declare module "codemirror" {
 
     // Verify to upstream.
     interface Editor {
-        moveV(direction: number, unit: "line" | "page");
+        moveV(direction: number, unit: "line" | "page"): void;
+
+        indentLine(line: number, how: string, aggressive?: boolean): void;
     }
 }

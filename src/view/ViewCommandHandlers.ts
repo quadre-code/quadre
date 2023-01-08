@@ -481,7 +481,7 @@ function _getLinesInView(textHeight: number, scrollTop: number, editorHeight: nu
  * @param {number} direction -1 to scroll one line up; 1 to scroll one line down.
  */
 function _scrollLine(direction: 1 | -1): void {
-    const editor        = EditorManager.getCurrentFullEditor();
+    const editor        = EditorManager.getCurrentFullEditor()!;
     const textHeight    = editor.getTextHeight();
     const cursorPos     = editor.getCursorPos();
     const hasSelecction = editor.hasSelection();

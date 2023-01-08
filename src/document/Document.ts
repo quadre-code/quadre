@@ -111,7 +111,7 @@ function oneOrEach(itemOrArr: Array<any> | any, cb: (itemOrArr: Array<any> | any
  * 3rd argument is the new value.
  */
 export class Document extends EventDispatcher.EventDispatcherBase {
-    private _associatedFullEditors;
+    private _associatedFullEditors: Array<Editor>;
 
     /**
      * Number of clients who want this Document to stay alive. The Document is listed in
@@ -182,7 +182,7 @@ export class Document extends EventDispatcher.EventDispatcherBase {
      * string _text.
      * @type {?Editor}
      */
-    public _masterEditor?;
+    public _masterEditor: Editor | null;
 
     /**
      * The content's line-endings style. If a Document is created on empty text, or text with
@@ -377,7 +377,7 @@ export class Document extends EventDispatcher.EventDispatcherBase {
      */
     public setText(text: string): void {
         this._ensureMasterEditor();
-        this._masterEditor._codeMirror.setValue(text);
+        this._masterEditor!._codeMirror.setValue(text);
         // _handleEditorChange() triggers "change" event
     }
 
@@ -470,7 +470,7 @@ export class Document extends EventDispatcher.EventDispatcherBase {
      */
     public replaceRange(text: string, start: CodeMirror.Position, end?: CodeMirror.Position, origin?: string | null): void {
         this._ensureMasterEditor();
-        this._masterEditor._codeMirror.replaceRange(text, start, end, origin);
+        this._masterEditor!._codeMirror.replaceRange(text, start, end, origin === null ? undefined : origin);
         // _handleEditorChange() triggers "change" event
     }
 
@@ -482,7 +482,7 @@ export class Document extends EventDispatcher.EventDispatcherBase {
      */
     public getRange(start: CodeMirror.Position, end: CodeMirror.Position): string {
         this._ensureMasterEditor();
-        return this._masterEditor._codeMirror.getRange(start, end);
+        return this._masterEditor!._codeMirror.getRange(start, end);
     }
 
     /**
@@ -492,7 +492,7 @@ export class Document extends EventDispatcher.EventDispatcherBase {
      */
     public getLine(lineNum: number): string {
         this._ensureMasterEditor();
-        return this._masterEditor._codeMirror.getLine(lineNum);
+        return this._masterEditor!._codeMirror.getLine(lineNum);
     }
 
     /**
@@ -504,7 +504,7 @@ export class Document extends EventDispatcher.EventDispatcherBase {
         this._ensureMasterEditor();
 
         const self = this;
-        self._masterEditor._codeMirror.operation(doOperation);
+        self._masterEditor!._codeMirror.operation(doOperation);
     }
 
     /**

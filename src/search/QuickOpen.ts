@@ -519,7 +519,7 @@ class QuickNavigateDialog {
                 CommandManager.execute(Commands.CMD_ADD_TO_WORKINGSET_AND_OPEN, {fullPath: fullPath})
                     .done(function () {
                         if (cursorPos) {
-                            const editor = EditorManager.getCurrentFullEditor();
+                            const editor = EditorManager.getCurrentFullEditor()!;
                             editor.setCursorPos(cursorPos.line, cursorPos.ch, true);
                         }
                     })
@@ -529,7 +529,7 @@ class QuickNavigateDialog {
                         self.close();
                     });
             } else if (cursorPos) {
-                EditorManager.getCurrentFullEditor().setCursorPos(cursorPos.line, cursorPos.ch, true);
+                EditorManager.getCurrentFullEditor()!.setCursorPos(cursorPos.line, cursorPos.ch, true);
             }
         }
 
@@ -615,7 +615,7 @@ class QuickNavigateDialog {
             if (cursorPos && editor && cursorPos.line >= editor.getFirstVisibleLine() && cursorPos.line <= editor.getLastVisibleLine()) {
                 const from = {line: cursorPos.line, ch: cursorPos.ch};
                 const to   = {line: cursorPos.line} as unknown as CodeMirror.Position;
-                EditorManager.getCurrentFullEditor().setSelection(from, to, true);
+                EditorManager.getCurrentFullEditor()!.setSelection(from, to, true);
 
                 return { error: null };  // no error even though no results listed
             }
@@ -732,8 +732,8 @@ class QuickNavigateDialog {
         const curDoc = DocumentManager.getCurrentDocument();
         this._origDocPath = curDoc ? curDoc.file.fullPath : null;
         if (curDoc) {
-            this._origSelections = EditorManager.getCurrentFullEditor().getSelections();
-            this._origScrollPos = EditorManager.getCurrentFullEditor().getScrollPos();
+            this._origSelections = EditorManager.getCurrentFullEditor()!.getSelections();
+            this._origScrollPos = EditorManager.getCurrentFullEditor()!.getScrollPos();
         } else {
             this._origSelections = null;
             this._origScrollPos = null;

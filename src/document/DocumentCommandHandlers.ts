@@ -537,7 +537,7 @@ function handleFileOpen(commandData): JQueryPromise<File> {
 
                 // setCursorPos expects line/column numbers as 0-origin, so we subtract 1
                 EditorManager
-                    .getCurrentFullEditor()
+                    .getCurrentFullEditor()!
                     .setCursorPos(
                         fileInfo.line - 1,
                         fileInfo.column - 1,

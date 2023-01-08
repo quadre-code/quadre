@@ -256,7 +256,7 @@ export class InlineTextEditor extends InlineWidget {
         this.$filename.on("click.InlineTextEditor", function () {
             CommandManager.execute(Commands.FILE_OPEN, { fullPath: doc.file.fullPath })
                 .done(function () {
-                    EditorManager.getCurrentFullEditor().setCursorPos(startLine!, 0, true);
+                    EditorManager.getCurrentFullEditor()!.setCursorPos(startLine!, 0, true);
                 });
         });
 

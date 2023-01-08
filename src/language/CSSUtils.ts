@@ -1594,7 +1594,7 @@ function _findMatchingRulesInCSSFiles(selector, resultSelectors: Array<Rule>): J
 /** Finds matching selectors in the <style> block of a single HTML file; adds them to 'resultSelectors' */
 function _findMatchingRulesInStyleBlocks(htmlDocument: DocumentManager.Document, selector: string, resultSelectors: Array<Rule>): void {
     // HTMLUtils requires a real CodeMirror instance; make sure we can give it the right Editor
-    const htmlEditor = EditorManager.getCurrentFullEditor();
+    const htmlEditor = EditorManager.getCurrentFullEditor()!;
     if (htmlEditor.document !== htmlDocument) {
         console.error("Cannot search for <style> blocks in HTML file other than current editor");
         return;

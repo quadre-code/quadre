@@ -272,7 +272,7 @@ export class SearchResultsView extends EventDispatcher.EventDispatcherBase {
                         CommandManager.execute(Commands.FILE_OPEN, {fullPath: fullPath})
                             .done(function (doc) {
                                 // Opened document is now the current main editor
-                                EditorManager.getCurrentFullEditor().setSelection(item.start, item.end, true);
+                                EditorManager.getCurrentFullEditor()!.setSelection(item.start, item.end, true);
                             });
                     }
                 }

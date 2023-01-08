@@ -374,17 +374,6 @@ const _instances: Array<Editor> = [];
  * Document modifiable.
  *
  * ALWAYS call destroy() when you are done with an Editor - otherwise it will leak a Document ref.
- *
- * @constructor
- *
- * @param {!Document} document
- * @param {!boolean} makeMasterEditor  If true, this Editor will set itself as the (secret) "master"
- *          Editor for the Document. If false, this Editor will attach to the Document as a "slave"/
- *          secondary editor.
- * @param {!jQueryObject|DomNode} container  Container to add the editor to.
- * @param {{startLine: number, endLine: number}=} range If specified, range of lines within the document
- *          to display in this editor. Inclusive.
- * @param {!Object} options If specified, contains editor options that can be passed to CodeMirror
  */
 export class Editor extends EventDispatcher.EventDispatcherBase {
     /**
@@ -444,13 +433,25 @@ export class Editor extends EventDispatcher.EventDispatcherBase {
     private _hideMarks;
 
     private _$messagePopover: JQuery | null;
-    private _paneId: string | null;
+    public _paneId: string | null;
     public _hostEditor;
     private _currentOptions;
     private _focused: boolean;
     public $el: JQuery;
 
-    constructor(document, makeMasterEditor, container, range?, options?) {
+    /**
+     * @constructor
+     *
+     * @param {!Document} document
+     * @param {!boolean} makeMasterEditor  If true, this Editor will set itself as the (secret) "master"
+     *          Editor for the Document. If false, this Editor will attach to the Document as a "slave"/
+     *          secondary editor.
+     * @param {!jQueryObject|DomNode} container  Container to add the editor to.
+     * @param {{startLine: number, endLine: number}=} range If specified, range of lines within the document
+     *          to display in this editor. Inclusive.
+     * @param {!Object} options If specified, contains editor options that can be passed to CodeMirror
+     */
+    constructor(document: Document, makeMasterEditor: boolean, container: JQuery | HTMLElement, range?, options?) {
         super();
 
         const self = this;
@@ -463,9 +464,10 @@ export class Editor extends EventDispatcher.EventDispatcherBase {
         this.document = document;
         document.addRef();
 
-        if (container.jquery) {
+        let domContainer: HTMLElement = container as HTMLElement;
+        if ((container as JQuery).jquery) {
             // CodeMirror wants a DOM element, not a jQuery wrapper
-            container = container.get(0);
+            domContainer = (container as JQuery).get(0);
         }
 
         const $container = $(container);
@@ -554,7 +556,7 @@ export class Editor extends EventDispatcher.EventDispatcherBase {
 
         // Create the CodeMirror instance
         // (note: CodeMirror doesn't actually require using 'new', but jslint complains without it)
-        (this._codeMirror as any) = CodeMirror(container, {
+        this._codeMirror = CodeMirror(domContainer, {
             autoCloseBrackets           : currentOptions[EditorOptions.CLOSE_BRACKETS],
             autoCloseTags               : currentOptions[EditorOptions.CLOSE_TAGS],
             coverGutterNextToScrollbar  : true,
@@ -613,7 +615,7 @@ export class Editor extends EventDispatcher.EventDispatcherBase {
         // Initially populate with text. This will send a spurious change event, so need to make
         // sure this is understood as a 'sync from document' case, not a genuine edit
         this._duringSync = true;
-        this._resetText(document.getText());
+        this._resetText(document.getText()!);
         this._duringSync = false;
 
         if (range) {
@@ -1067,7 +1069,7 @@ export class Editor extends EventDispatcher.EventDispatcherBase {
             // that instead of talking to its master editor directly. It's not clear yet exactly
             // what the right Document API would be, though.
             this._duringSync = true;
-            this.document._masterEditor._applyChanges(changeList);
+            this.document._masterEditor!._applyChanges(changeList);
             this._duringSync = false;
 
             // Update which lines are hidden inside our editor, since we're not going to go through
@@ -1216,7 +1218,7 @@ export class Editor extends EventDispatcher.EventDispatcherBase {
      * Semi-private: only Document should call this.
      * @param {!string} text
      */
-    private _resetText(text: string): void {
+    public _resetText(text: string): void {
         const currentText = this._codeMirror.getValue();
 
         // compare with ignoring line-endings, issue #11826

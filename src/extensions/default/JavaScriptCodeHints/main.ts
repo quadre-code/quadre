@@ -749,7 +749,7 @@ AppInit.appReady(function () {
 
     // @ts-ignore
     function setJumpPosition(curPos) { // eslint-disable-line @typescript-eslint/no-unused-vars
-        EditorManager.getCurrentFullEditor().setCursorPos(curPos.line, curPos.ch, true);
+        EditorManager.getCurrentFullEditor()!.setCursorPos(curPos.line, curPos.ch, true);
     }
 
     class JSJumpToDefProvider {

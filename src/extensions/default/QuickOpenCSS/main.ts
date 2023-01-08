@@ -88,7 +88,7 @@ function itemFocus(selectedItem, query, explicit) {
 
     const from = {line: selectorInfo.selectorStartLine, ch: selectorInfo.selectorStartChar};
     const to = {line: selectorInfo.selectorStartLine, ch: selectorInfo.selectorEndChar};
-    EditorManager.getCurrentFullEditor().setSelection(from, to, true);
+    EditorManager.getCurrentFullEditor()!.setSelection(from, to, true);
 }
 
 function itemSelect(selectedItem, query) {
