@@ -175,7 +175,7 @@ export class DocumentSymbolsProvider extends BaseProvider {
         }
 
         const range = selectedItem.symbolInfo.selectionRange;
-        EditorManager.getCurrentFullEditor().setSelection(range.from, range.to, true);
+        EditorManager.getCurrentFullEditor()!.setSelection(range.from, range.to, true);
     }
 
     public itemSelect(selectedItem, query): void {
@@ -244,7 +244,7 @@ export class ProjectSymbolsProvider extends BaseProvider {
             })
                 .done(function () {
                     if (range.from) {
-                        const editor = EditorManager.getCurrentFullEditor();
+                        const editor = EditorManager.getCurrentFullEditor()!;
                         editor.setCursorPos(range.from.line, range.from.ch, true);
                     }
                 });

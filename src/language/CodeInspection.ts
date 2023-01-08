@@ -722,7 +722,7 @@ AppInit.htmlReady(function () {
                 if (!isNaN(line)) {
                     const character = lineTd.data("character");
 
-                    const editor = EditorManager.getCurrentFullEditor();
+                    const editor = EditorManager.getCurrentFullEditor()!;
                     editor.setCursorPos(line, character, true);
                     MainViewManager.focusActivePane();
                 }

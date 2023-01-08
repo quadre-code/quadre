@@ -124,9 +124,9 @@ let _$hiddenEditorsContainer;
  * Retrieves the visible full-size Editor for the currently opened file in the ACTIVE_PANE
  * @return {?Editor} editor of the current view or null
  */
-export function getCurrentFullEditor(): Editor {
+export function getCurrentFullEditor(): Editor | null {
     const currentPath = MainViewManager.getCurrentlyViewedPath(MainViewManager.ACTIVE_PANE);
-    const doc = currentPath && DocumentManager.getOpenDocumentForPath(currentPath);
+    const doc = currentPath ? DocumentManager.getOpenDocumentForPath(currentPath) : null;
     return doc && doc._masterEditor;
 }
 
@@ -159,7 +159,7 @@ function _restoreEditorViewState(editor: Editor): void {
  * @private
  * @param {?Editor} current - the editor that will be the active editor
  */
-export function _notifyActiveEditorChanged(current: Editor): void {
+export function _notifyActiveEditorChanged(current: Editor | null): void {
     // Skip if the Editor that gained focus was already the most recently focused editor.
     // This may happen e.g. if the window loses then regains focus.
     if (_lastFocusedEditor === current) {

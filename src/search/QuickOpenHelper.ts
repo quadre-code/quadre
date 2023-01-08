@@ -49,7 +49,7 @@ export function itemFocus(selectedItem: SearchResult, query: string, explicit: b
 
     const from = {line: fileLocation.line, ch: fileLocation.chFrom};
     const to = {line: fileLocation.line, ch: fileLocation.chTo};
-    EditorManager.getCurrentFullEditor().setSelection(from, to, true);
+    EditorManager.getCurrentFullEditor()!.setSelection(from, to, true);
 }
 
 /**

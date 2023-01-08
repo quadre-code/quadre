@@ -394,7 +394,7 @@ function openLine(editor: Editor, direction: 1 | -1): void {
             // to use CodeMirror's "smart indent" operation. So we need to use the document's own backing editor's
             // CodeMirror to do the indentation. A better way to fix this would be to expose this
             // operation on Document, but I'm not sure we want to sign up for that as a public API.
-            doc._masterEditor._codeMirror.indentLine(sel.start.line, "smart", true);
+            doc._masterEditor!._codeMirror.indentLine(sel.start.line, "smart", true);
             sel.start.ch = null; // last character on line
             sel.end = sel.start;
         });

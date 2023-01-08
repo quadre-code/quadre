@@ -1445,7 +1445,7 @@ export function _closeAll(paneId: string): void {
  */
 function _findPaneForDocument(document: Document): Pane {
     // First check for an editor view of the document
-    let pane = _getPaneFromElement($(document._masterEditor.$el.parent().parent()));
+    let pane = _getPaneFromElement($(document._masterEditor!.$el.parent().parent()));
 
     if (!pane) {
         // No view of the document, it may be in a working set and not yet opened

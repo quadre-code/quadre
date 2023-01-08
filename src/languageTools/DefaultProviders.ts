@@ -285,7 +285,7 @@ export class ParameterHintsProvider extends BaseProvider {
  * @param   {Object} curPos - target postion for the cursor after the jump
  */
 function setJumpPosition(curPos) {
-    EditorManager.getCurrentFullEditor().setCursorPos(curPos.line, curPos.ch, true);
+    EditorManager.getCurrentFullEditor()!.setCursorPos(curPos.line, curPos.ch, true);
 }
 
 export class JumpToDefProvider extends BaseProvider {
