@@ -75,11 +75,11 @@ class InMemoryFile extends File {
      * @param {!function (err, object)} callback Callback that is passed the
      *              error code and the file's new stats if the write is successful.
      */
-    public write(data: string, encoding: string, callback: (err: FileSystemError, object?: any) => void): void {
-        if (typeof (encoding) === "function") {
-            callback = encoding;
+    public override write(data: string, options: Record<string, any> | ((err: string | null, stats?: FileSystemStats) => void), callback?: (err: string | null, stats?: FileSystemStats) => void): void {
+        if (typeof (options) === "function") {
+            callback = options as ((err: string | null, stats?: FileSystemStats) => void);
         }
-        callback(FileSystemError.NOT_FOUND);
+        callback!(FileSystemError.NOT_FOUND);
     }
 
 

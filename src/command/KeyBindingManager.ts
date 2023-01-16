@@ -29,6 +29,8 @@
  * Manages the mapping of keyboard inputs to commands.
  */
 
+import type { Document } from "document/Document";
+
 import "utils/Global";
 
 import * as AppInit from "utils/AppInit";
@@ -63,7 +65,13 @@ interface UserKeyBinding {
 let _customKeyMap: UserKeyBinding = {};
 let _customKeyMapCache = {};
 
-export interface KeyBinding {
+interface KeyBinding {
+    key: string;
+    displayKey?: string | null;
+    platform?: string;
+}
+
+export interface ExplicitKeyBinding {
     key: string;
     displayKey?: string | null;
     explicitPlatform?: string;
@@ -77,7 +85,7 @@ interface NormalizedKeyBinding {
 }
 
 interface CommandMap {
-    [key: string]: Array<KeyBinding>;
+    [key: string]: Array<ExplicitKeyBinding>;
 }
 
 /**
@@ -87,7 +95,7 @@ interface CommandMap {
  */
 let _keyMap: Record<string, NormalizedKeyBinding> = {};    // For the actual key bindings including user specified ones
 // For the default factory key bindings, cloned from _keyMap after all extensions are loaded.
-let _defaultKeyMap     = {};
+let _defaultKeyMap: Record<string, NormalizedKeyBinding> = {};
 
 /**
  * @private
@@ -109,7 +117,7 @@ let _allCommands: Array<string> = [];
  * Maps key names to the corresponding unicode symols
  * @type {{key: string, displayKey: string}}
  */
-const _displayKeyMap = {
+const _displayKeyMap: Record<string, string> = {
     "up":    "\u2191",
     "down":  "\u2193",
     "left":  "\u2190",
@@ -182,14 +190,14 @@ let _altGrDown = false;
  * Used to record the timeStamp property of the last keydown event.
  * @type {number}
  */
-let _lastTimeStamp;
+let _lastTimeStamp: number | null;
 
 /**
  * @private
  * Used to record the key property of the last keydown event.
  * @type {string}
  */
-let _lastKeyIdentifier;
+let _lastKeyIdentifier: string | null;
 
 /*
  * @private
@@ -222,7 +230,7 @@ function _quitAltGrMode(): void {
  *
  * @param {!KeyboardEvent} e keyboard event object
  */
-export const _onCtrlUp = function (e): void {
+export const _onCtrlUp = function (e: JQueryKeyEventObject): void {
     const key = e.keyCode || e.which;
     if (_altGrDown && key === KeyEvent.DOM_VK_CONTROL) {
         _quitAltGrMode();
@@ -247,7 +255,7 @@ export const _onCtrlUp = function (e): void {
  *
  * @param {!KeyboardEvent} e keyboard event object
  */
-function _detectAltGrKeyDown(e): void {
+function _detectAltGrKeyDown(e: KeyboardEvent): void {
     if (brackets.platform !== "win") {
         return;
     }
@@ -260,7 +268,7 @@ function _detectAltGrKeyDown(e): void {
             // so that we don't misidentify the combination of Ctrl and Alt keys as AltGr key.
             _ctrlDown = CtrlDownStates.DETECTED_AND_IGNORED;
         } else if (_ctrlDown === CtrlDownStates.DETECTED && e.altKey && e.ctrlKey && e.key === "Alt" &&
-                    (e.timeStamp - _lastTimeStamp) < MAX_INTERVAL_FOR_CTRL_ALT_KEYS) {
+                    (e.timeStamp - _lastTimeStamp!) < MAX_INTERVAL_FOR_CTRL_ALT_KEYS) {
             _altGrDown = true;
             _lastKeyIdentifier = "Alt";
             _enabled = false;
@@ -489,7 +497,7 @@ function _mapKeycodeToKey(keycode: number, key: string): string {
 /**
  * Takes a keyboard event and translates it into a key in a key map
  */
-function _translateKeyboardEvent(event): string {
+function _translateKeyboardEvent(event: KeyboardEvent): string {
     const hasMacCtrl = (brackets.platform === "mac") ? (event.ctrlKey) : false;
     const hasCtrl = (brackets.platform !== "mac") ? (event.ctrlKey) : (event.metaKey);
     const hasAlt = (event.altKey);
@@ -643,12 +651,12 @@ function _updateCommandAndKeyMaps(newBinding: NormalizedKeyBinding): void {
  *     Returns null when key binding platform does not match, binding does not normalize,
  *     or is already assigned.
  */
-function _addBinding(commandID: string, keyBinding, platform?: string, userBindings?: boolean): KeyBinding | null {
-    let key;
-    let result: KeyBinding | null = null;
-    const explicitPlatform = keyBinding.platform || platform;
+function _addBinding(commandID: string, keyBinding: string | KeyBinding, platform?: string, userBindings?: boolean): ExplicitKeyBinding | null {
+    let key: string;
+    let result: ExplicitKeyBinding | null = null;
+    const explicitPlatform = (keyBinding as KeyBinding).platform || platform;
     let targetPlatform;
-    const bindingsToDelete: Array<KeyBinding> = [];
+    const bindingsToDelete: Array<ExplicitKeyBinding> = [];
     let existing;
 
     // For platform: "all", use explicit current platform
@@ -666,11 +674,11 @@ function _addBinding(commandID: string, keyBinding, platform?: string, userBindi
 
     // if the request does not specify an explicit platform, and we're
     // currently on a mac, then replace Ctrl with Cmd.
-    key = (keyBinding.key) || keyBinding;
+    key = ((keyBinding as KeyBinding).key) || (keyBinding as string);
     if (brackets.platform === "mac" && (explicitPlatform === undefined || explicitPlatform === "all")) {
         key = key.replace("Ctrl", "Cmd");
-        if (keyBinding.displayKey !== undefined) {
-            keyBinding.displayKey = keyBinding.displayKey.replace("Ctrl", "Cmd");
+        if ((keyBinding as KeyBinding).displayKey !== undefined) {
+            (keyBinding as KeyBinding).displayKey = (keyBinding as KeyBinding).displayKey!.replace("Ctrl", "Cmd");
         }
     }
 
@@ -761,7 +769,7 @@ function _addBinding(commandID: string, keyBinding, platform?: string, userBindi
     });
 
     // optional display-friendly string (e.g. CMD-+ instead of CMD-=)
-    const normalizedDisplay = (keyBinding.displayKey) ? normalizeKeyDescriptorString(keyBinding.displayKey) : normalized;
+    const normalizedDisplay = ((keyBinding as KeyBinding).displayKey) ? normalizeKeyDescriptorString((keyBinding as KeyBinding).displayKey!) : normalized;
 
     // 1-to-many commandID mapping to key binding
     if (!_commandMap[commandID]) {
@@ -781,7 +789,7 @@ function _addBinding(commandID: string, keyBinding, platform?: string, userBindi
         commandID           : commandID,
         key                 : normalized,
         displayKey          : normalizedDisplay!,
-        explicitPlatform    : explicitPlatform
+        explicitPlatform    : explicitPlatform!
     };
 
     if (!userBindings) {
@@ -815,7 +823,7 @@ export function getKeymap(defaults: boolean): Record<string, NormalizedKeyBindin
  * @param {string} A key-description string.
  * @return {boolean} true if the key was processed, false otherwise
  */
-export function _handleKey(key): boolean {
+export function _handleKey(key: string): boolean {
     if (_enabled && _keyMap[key]) {
         // The execute() function returns a promise because some commands are async.
         // Generally, commands decide whether they can run or not synchronously,
@@ -832,7 +840,7 @@ export function _handleKey(key): boolean {
  * Sort objects by platform property. Objects with a platform property come
  * before objects without a platform property.
  */
-function _sortByPlatform(a, b): number {
+function _sortByPlatform(a: KeyBinding, b: KeyBinding): number {
     const a1 = (a.platform) ? 1 : 0;
     const b1 = (b.platform) ? 1 : 0;
     return b1 - a1;
@@ -854,9 +862,8 @@ function _sortByPlatform(a, b): number {
  * @return {{key: string, displayKey:String}|Array.<{key: string, displayKey:String}>}
  *     Returns record(s) for valid key binding(s)
  */
-export function addBinding(command: CommandManager.Command | string, keyBindings, platform?: string): void {
+export function addBinding(command: CommandManager.Command | string, keyBindings: string | KeyBinding | Array<KeyBinding>, platform?: string): ExplicitKeyBinding | Array<ExplicitKeyBinding> | null | void {
     let commandID = "";
-    let results;
 
     if (!command) {
         console.error("addBinding(): missing required parameter: command");
@@ -873,7 +880,7 @@ export function addBinding(command: CommandManager.Command | string, keyBindings
 
     if (Array.isArray(keyBindings)) {
         let keyBinding;
-        results = [];
+        const results: Array<ExplicitKeyBinding> = [];
 
         // process platform-specific bindings first
         keyBindings.sort(_sortByPlatform);
@@ -886,10 +893,11 @@ export function addBinding(command: CommandManager.Command | string, keyBindings
                 results.push(keyBinding);
             }
         });
-    } else {
-        results = _addBinding(commandID, keyBindings, platform);
+
+        return results;
     }
 
+    const results = _addBinding(commandID, keyBindings, platform);
     return results;
 }
 
@@ -899,8 +907,8 @@ export function addBinding(command: CommandManager.Command | string, keyBindings
  * @param {!string | Command} command - A command ID or command object
  * @return {!Array.<{{key: string, displayKey: string}}>} An array of associated key bindings.
  */
-export function getKeyBindings(command: CommandManager.Command | string): Array<KeyBinding> {
-    let bindings: Array<KeyBinding> = [];
+export function getKeyBindings(command: CommandManager.Command | string): Array<ExplicitKeyBinding> {
+    let bindings: Array<ExplicitKeyBinding> = [];
     let commandID   = "";
 
     if (!command) {
@@ -923,7 +931,7 @@ export function getKeyBindings(command: CommandManager.Command | string): Array<
  * @param {$.Event} event jQuery event
  * @param {Command} command Newly registered command
  */
-function _handleCommandRegistered(event, command: CommandManager.Command): void {
+function _handleCommandRegistered(event: JQueryEventObject, command: CommandManager.Command): void {
     const commandId   = command.getID();
     const defaults    = KeyboardPrefs[commandId];
 
@@ -958,7 +966,7 @@ function _handleCommandRegistered(event, command: CommandManager.Command): void 
  *
  * @param {function(Event): boolean} hook The global hook to add.
  */
-export function addGlobalKeydownHook(hook): void {
+export function addGlobalKeydownHook(hook: (event: Event, ...args: Array<any>) => boolean): void {
     _globalKeydownHooks.push(hook);
 }
 
@@ -968,7 +976,7 @@ export function addGlobalKeydownHook(hook): void {
  *
  * @param {function(Event): boolean} hook The global hook to remove.
  */
-export function removeGlobalKeydownHook(hook): void {
+export function removeGlobalKeydownHook(hook: (event: Event, ...args: Array<any>) => boolean): void {
     const index = _globalKeydownHooks.indexOf(hook);
     if (index !== -1) {
         _globalKeydownHooks.splice(index, 1);
@@ -980,7 +988,7 @@ export function removeGlobalKeydownHook(hook): void {
  * deciding to handle it ourselves.
  * @param {Event} The keydown event to handle.
  */
-export function _handleKeyEvent(event): void {
+export function _handleKeyEvent(event: KeyboardEvent): void {
     let handled = false;
     for (let i = _globalKeydownHooks.length - 1; i >= 0; i--) {
         if (_globalKeydownHooks[i](event)) {
@@ -1017,7 +1025,7 @@ AppInit.htmlReady(function (): void {
  */
 function _showErrorsAndOpenKeyMap(err: FileSystemError | string, message?: string): void {
     // Asynchronously loading Dialogs module to avoid the circular dependency
-    (require as unknown as Require)(["widgets/Dialogs"], function (Dialogs) {
+    (require as unknown as Require)(["widgets/Dialogs"], function (Dialogs: typeof import("widgets/Dialogs")) {
         let errorMessage = Strings.ERROR_KEYMAP_CORRUPT;
 
         if (err === FileSystemError.UNSUPPORTED_ENCODING) {
@@ -1197,7 +1205,7 @@ function _applyUserKeyBindings(): void {
         if (commandID) {
             if (_allCommands.indexOf(commandID) !== -1) {
                 if (remappedCommands.indexOf(commandID) === -1) {
-                    const keybinding: KeyBinding = { key: normalizedKey };
+                    const keybinding: ExplicitKeyBinding = { key: normalizedKey };
 
                     keybinding.displayKey = _getDisplayKey(normalizedKey);
                     _addBinding(commandID, keybinding.displayKey ? keybinding : normalizedKey, brackets.platform, true);
@@ -1259,7 +1267,7 @@ function _undoPriorUserKeyBindings(): void {
         }
 
         if (_isKeyAssigned(normalizedKey!) &&
-                _customKeyMap[key] !== commandID && _customKeyMap[normalizedKey!] !== commandID) {
+                _customKeyMap[key as keyof UserKeyBinding] !== commandID && _customKeyMap[normalizedKey as keyof UserKeyBinding] !== commandID) {
             // Unassign the key from any command. e.g. "Cmd-W": "file.open" in _customKeyMapCache
             // will require us to remove Cmd-W shortcut from file.open command.
             removeBinding(normalizedKey!);
@@ -1403,8 +1411,8 @@ EventDispatcher.on_duringInit(CommandManager, "commandRegistered", _handleComman
 CommandManager.register(Strings.CMD_OPEN_KEYMAP, Commands.FILE_OPEN_KEYMAP, _openUserKeyMap);
 
 // Asynchronously loading DocumentManager to avoid the circular dependency
-(require as unknown as Require)(["document/DocumentManager"], function (DocumentManager) {
-    DocumentManager.on("documentSaved", function checkKeyMapUpdates(e, doc) {
+(require as unknown as Require)(["document/DocumentManager"], function (DocumentManager: typeof import("document/DocumentManager")) {
+    (DocumentManager as unknown as EventDispatcher.DispatcherEvents).on("documentSaved", function checkKeyMapUpdates(e: JQueryEventObject, doc: Document) {
         if (doc && doc.file.fullPath === _userKeyMapFilePath) {
             _loadUserKeyMap();
         }

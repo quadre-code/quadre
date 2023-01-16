@@ -251,11 +251,11 @@ export class FileStorage extends EventDispatcher.EventDispatcherBase {
                 self._lineEndings = FileUtils.sniffLineEndings(text);
 
                 // If the file is empty, turn it into an empty object
-                if (/^\s*$/.test(text)) {
+                if (/^\s*$/.test(text!)) {
                     result.resolve({});
                 } else {
                     try {
-                        result.resolve(JSON.parse(text));
+                        result.resolve(JSON.parse(text!));
                     } catch (e) {
                         if (recreateIfInvalid) {
                             // JSON parsing error -- recreate the preferences file

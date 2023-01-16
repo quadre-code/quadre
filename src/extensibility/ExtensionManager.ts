@@ -844,7 +844,7 @@ export function _getAutoInstallFiles(dirPath, autoExtensions): JQueryPromise<Ext
         if (!err) {
             zipFiles = contents.filter(function (dirItem) {
                 return (dirItem.isFile && FileUtils.getFileExtension(dirItem.fullPath) === "zip");
-            });
+            }) as unknown as Array<File>;
         }
 
         // Parse zip files and separate new installs vs. updates

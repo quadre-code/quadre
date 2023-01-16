@@ -31,6 +31,8 @@
  *    - beforeExecuteCommand -- before dispatching a command
  */
 
+type CommandFn = (...args: Array<any>) => any;
+
 import * as EventDispatcher from "utils/EventDispatcher";
 
 
@@ -66,10 +68,10 @@ export class Command extends EventDispatcher.EventDispatcherBase {
     private _name;
     private _id;
     private _commandFn;
-    private _checked;
+    private _checked: boolean | undefined;
     private _enabled;
 
-    constructor(name, id, commandFn) {
+    constructor(name: string | null, id: string, commandFn: CommandFn) {
         super();
 
         this._name = name;
@@ -147,7 +149,7 @@ export class Command extends EventDispatcher.EventDispatcherBase {
      * Is command checked?
      * @return {boolean}
      */
-    public getChecked(): boolean {
+    public getChecked(): boolean | undefined {
         return this._checked;
     }
 
@@ -174,7 +176,7 @@ export class Command extends EventDispatcher.EventDispatcherBase {
      * Get command name
      * @return {string}
      */
-    public getName(): string {
+    public getName(): string | null {
         return this._name;
     }
 }
@@ -192,7 +194,7 @@ export class Command extends EventDispatcher.EventDispatcherBase {
  *     CommandManager will assume it is synchronous, and return a promise that is already resolved.
  * @return {?Command}
  */
-export function register(name: string, id: string, commandFn): Command | null {
+export function register(name: string, id: string, commandFn: CommandFn): Command | null {
     if (_commands[id]) {
         console.log("Attempting to register an already-registered command: " + id);
         return null;
@@ -222,7 +224,7 @@ export function register(name: string, id: string, commandFn): Command | null {
  *     CommandManager will assume it is synchronous, and return a promise that is already resolved.
  * @return {?Command}
  */
-export function registerInternal(id: string, commandFn): Command | null {
+export function registerInternal(id: string, commandFn: CommandFn): Command | null {
     if (_commands[id]) {
         console.log("Attempting to register an already-registered command: " + id);
         return null;

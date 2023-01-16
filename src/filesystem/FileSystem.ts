@@ -1064,8 +1064,8 @@ class FileSystem extends EventDispatcher.EventDispatcherBase {
     }
 }
 
-function _wrap(func) {
-    return function (...args): any {
+function _wrap<T>(func: (...argsFunc: Array<any>) => T) {
+    return function (...args: Array<any>): T {
         return func.apply(_instance, arguments);
     };
 }

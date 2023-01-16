@@ -385,7 +385,7 @@ class FileSystemEntry {
      * @param {function (?string)=} callback Callback with a single FileSystemError
      *      string parameter.
      */
-    public unlink(callback: (err: string | null) => void): void {
+    public unlink(callback?: (err: string | null) => void): void {
         callback = callback || function (): void { /* Do nothing */ };
 
         // Block external change events until after the write has finished
@@ -399,7 +399,7 @@ class FileSystemEntry {
             this._fileSystem._handleDirectoryChange(parent, function (this: FileSystemEntry, added: Array<FileSystemEntry>, removed: Array<FileSystemEntry>): void {
                 try {
                     // Notify the caller
-                    callback(err);
+                    callback!(err);
                 } finally {
                     if (parent._isWatched()) {
                         // Notify change listeners

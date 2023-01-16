@@ -42,9 +42,14 @@ interface MenuItemMap {
 }
 
 export interface ContextMenuAdapter {
-    open: (mouseOrLocation?) => void;
+    open: (mouseOrLocation?: JQueryMouseEventObject | MenuLocation) => void;
     close: () => void;
     isOpen: () => boolean;
+}
+
+interface MenuLocation {
+    pageX: number;
+    pageY: number;
 }
 
 /**
@@ -255,9 +260,9 @@ function _addKeyBindingToMenuItem($menuItem: JQuery, key: string, displayKey: st
     $shortcut.text(KeyBindingManager.formatKeyDescriptor(displayKey));
 }
 
-function _addExistingKeyBinding(menuItem: MenuItem): KeyBindingManager.KeyBinding | null {
+function _addExistingKeyBinding(menuItem: MenuItem): KeyBindingManager.ExplicitKeyBinding | null {
     const bindings = KeyBindingManager.getKeyBindings(menuItem.getCommand().getID());
-    let binding: KeyBindingManager.KeyBinding | null = null;
+    let binding: KeyBindingManager.ExplicitKeyBinding | null = null;
 
     if (bindings.length > 0) {
         // add the latest key binding
@@ -358,7 +363,7 @@ export class Menu {
      * @return {?HTMLLIElement} menu item list element
      */
     private _getRelativeMenuItem(relativeID?: RelativeID | string, position?: Position): JQuery | null {
-        let $relativeElement;
+        let $relativeElement: JQuery | null;
 
         if (relativeID) {
             if (position === FIRST_IN_SECTION || position === LAST_IN_SECTION) {
@@ -404,6 +409,7 @@ export class Menu {
                     // Find MenuItem that has this command
                     $relativeElement = this._getMenuItemForCommand(command);
                 }
+                // @ts-expect-error
                 if (!$relativeElement) {
                     console.error("_getRelativeMenuItem(): MenuItem with Command id " + relativeID +
                                   " not found in Menu " + this.id);
@@ -420,6 +426,7 @@ export class Menu {
             return null;
         }
 
+        // @ts-expect-error
         return $relativeElement;
     }
 
@@ -430,7 +437,7 @@ export class Menu {
      * @param {!string | Command} command - command the menu would execute if we weren't deleting it.
      */
     public removeMenuItem(command: CommandManager.Command | string): void {
-        let commandID;
+        let commandID: string;
 
         if (!command) {
             console.error("removeMenuItem(): missing required parameters: command");
@@ -549,7 +556,7 @@ export class Menu {
         const menuID = this.id;
         let $menuItem;
         let name;
-        let commandID;
+        let commandID: string;
 
         if (!command) {
             console.error("addMenuItem(): missing required parameters: command");
@@ -897,9 +904,9 @@ export class MenuItem {
     public dividerId: string;
     public isDivider: boolean;
     public isNative: boolean;
-    public _command;
+    public _command: CommandManager.Command;
 
-    constructor(id, command) {
+    constructor(id: string, command: typeof DIVIDER | typeof SUBMENU | CommandManager.Command) {
         this.id = id;
         this.isDivider = (command === DIVIDER);
         this.isNative = false;
@@ -912,7 +919,7 @@ export class MenuItem {
             this._keyBindingAdded = this._keyBindingAdded.bind(this);
             this._keyBindingRemoved = this._keyBindingRemoved.bind(this);
 
-            this._command = command;
+            this._command = (command  as CommandManager.Command);
             this._command
                 .on("enabledStateChange", this._enabledChanged)
                 .on("checkedStateChange", this._checkedChanged)
@@ -1016,7 +1023,7 @@ export class MenuItem {
                 }
             });
         } else {
-            $(_getHTMLMenuItem(this.id)).find(".menu-name").text(this._command.getName());
+            $(_getHTMLMenuItem(this.id)).find(".menu-name").text(this._command.getName()!);
         }
     }
 
@@ -1024,7 +1031,7 @@ export class MenuItem {
      * @private
      * Updates MenuItem DOM with a keyboard shortcut label
      */
-    public _keyBindingAdded(event, keyBinding): void {
+    public _keyBindingAdded(event: JQueryEventObject, keyBinding: KeyBindingManager.ExplicitKeyBinding): void {
         if (this.isNative) {
             const winId = electronRemote.getCurrentWindow().id;
             const shortcutKey = keyBinding.displayKey || keyBinding.key;
@@ -1034,7 +1041,7 @@ export class MenuItem {
                 }
             });
         } else {
-            _addKeyBindingToMenuItem($(_getHTMLMenuItem(this.id)), keyBinding.key, keyBinding.displayKey);
+            _addKeyBindingToMenuItem($(_getHTMLMenuItem(this.id)), keyBinding.key, keyBinding.displayKey!);
         }
     }
 
@@ -1042,7 +1049,7 @@ export class MenuItem {
      * @private
      * Updates MenuItem DOM to remove keyboard shortcut label
      */
-    public _keyBindingRemoved(event, keyBinding): void {
+    public _keyBindingRemoved(event: JQueryEventObject, keyBinding: KeyBindingManager.ExplicitKeyBinding): void {
         if (this.isNative) {
             const winId = electronRemote.getCurrentWindow().id;
             brackets.app.setMenuItemShortcut(winId, this._command.getID(), "", "", function (err) {
@@ -1216,7 +1223,7 @@ export class ContextMenu extends EventDispatcher.withEventDispatcher(Menu) imple
     public parentClass = Menu.prototype;
     public parentMenuItem: MenuItem;
 
-    constructor(id) {
+    constructor(id: string) {
         super(id);
 
         const $newMenu = $("<li class='dropdown context-menu' id='" + StringUtils.jQueryIdEscape(id) + "'></li>");
@@ -1256,7 +1263,7 @@ export class ContextMenu extends EventDispatcher.withEventDispatcher(Menu) imple
      *      for a specific location.This paramter is not used for submenus. Submenus are always
      *      displayed at a position relative to the parent menu.
      */
-    public open(mouseOrLocation?): void {
+    public open(mouseOrLocation?: JQueryMouseEventObject | MenuLocation): void {
 
         if (!this.parentMenuItem &&
             (!mouseOrLocation || !mouseOrLocation.hasOwnProperty("pageX") || !mouseOrLocation.hasOwnProperty("pageY"))) {
@@ -1313,8 +1320,8 @@ export class ContextMenu extends EventDispatcher.withEventDispatcher(Menu) imple
             // close all other dropdowns
             closeAll();
 
-            posTop  = mouseOrLocation.pageY;
-            posLeft = mouseOrLocation.pageX;
+            posTop  = mouseOrLocation!.pageY;
+            posLeft = mouseOrLocation!.pageX;
 
             elementRect = {
                 top:    posTop,
@@ -1414,7 +1421,7 @@ export class ContextMenu extends EventDispatcher.withEventDispatcher(Menu) imple
  *      Extensions should use the following format: "author.myextension.mycontextmenu name"
  * @return {?ContextMenu} the newly created context menu
  */
-export function registerContextMenu(id): ContextMenu {
+export function registerContextMenu(id: string): ContextMenu {
     if (!id) {
         console.error("call to registerContextMenu() is missing required parameters");
         return (null as unknown as ContextMenu);

@@ -71,7 +71,7 @@ class File extends FileSystemEntry {
      * @private
      * @type {?object}
      */
-    private _hash: number | null = null;
+    public _hash: number | null = null;
 
     public subDirStr: string;
 
@@ -154,9 +154,9 @@ class File extends FileSystemEntry {
      * @param {function (?string, FileSystemStats=)=} callback Callback that is passed the
      *              FileSystemError string or the file's new stats.
      */
-    public write(data: string, options, callback: (err: string | null, stats?: FileSystemStats) => void): void {
+    public write(data: string, options: Record<string, any> | ((err: string | null, stats?: FileSystemStats) => void), callback?: (err: string | null, stats?: FileSystemStats) => void): void {
         if (typeof options === "function") {
-            callback = options;
+            callback = options as ((err: string | null, stats?: FileSystemStats) => void);
             options = {};
         } else {
             if (options === undefined) {
@@ -183,7 +183,7 @@ class File extends FileSystemEntry {
             if (err) {
                 this._clearCachedData();
                 try {
-                    callback(err);
+                    callback!(err);
                     return;
                 } finally {
                     // Always unblock external change events
@@ -205,7 +205,7 @@ class File extends FileSystemEntry {
                 this._fileSystem._handleDirectoryChange(parent, function (this: File, added: Array<FileSystemEntry>, removed: Array<FileSystemEntry>): void {
                     try {
                         // Notify the caller
-                        callback(null, stat);
+                        callback!(null, stat);
                     } finally {
                         if (parent._isWatched()) {
                             // If the write succeeded and the parent directory is watched,
@@ -220,7 +220,7 @@ class File extends FileSystemEntry {
             } else {
                 try {
                     // Notify the caller
-                    callback(null, stat);
+                    callback!(null, stat);
                 } finally {
                     // existing file modified
                     this._fileSystem._fireChangeEvent(this);
