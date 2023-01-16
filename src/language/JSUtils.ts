@@ -385,7 +385,7 @@ function _shouldGetFromCache(fileInfo: FileInfo): JQueryPromise<boolean> {
 
             file.stat(function (err, stat) {
                 if (!err) {
-                    result.resolve(fileInfo.JSUtils!.timestamp.getTime() === stat.mtime.getTime());
+                    result.resolve(fileInfo.JSUtils!.timestamp.getTime() === stat!.mtime.getTime());
                 } else {
                     result.reject(err);
                 }

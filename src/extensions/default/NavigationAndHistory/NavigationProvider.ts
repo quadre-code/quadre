@@ -133,7 +133,7 @@ class NavigationFrame {
     public filePath: string;
     public inMem: boolean;
     public paneId;
-    public _hash: string;
+    public _hash: number;
     private uId = (new Date()).getTime();
     private selections: Array<{start: any, end: any}> = [];
     private bookMarkIds: Array<string> | null = [];

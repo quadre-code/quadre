@@ -143,7 +143,7 @@ const on = function<T> (this: T & Listener, events: string, fn): T {
  * @param {string} events
  * @param {?function(!{type:string, target:!Object}, ...)} fn
  */
-const off = function (this: any, events: string, fn?): void {
+const off = function<T> (this: T & Listener, events: string, fn?): T {
     if (!this._eventHandlers) {
         return this;
     }

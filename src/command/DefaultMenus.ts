@@ -68,7 +68,7 @@ AppInit.htmlReady(function (): void {
     // prepare the OSX app menu
     // App title needs to be changed in Info.plist
     if (brackets.platform === "mac") {
-        menu = Menus.addMenu(Strings.APP_NAME, Menus.AppMenuBar.APP_MENU);
+        menu = Menus.addMenu(Strings.APP_NAME, Menus.AppMenuBar.APP_MENU)!;
         menu.addMenuItem(Commands.HELP_ABOUT);
         menu.addMenuDivider();
         // menu.addMenuItem(Commands.Services);
@@ -83,7 +83,7 @@ AppInit.htmlReady(function (): void {
     /*
      * File menu
      */
-    menu = Menus.addMenu(Strings.FILE_MENU, Menus.AppMenuBar.FILE_MENU);
+    menu = Menus.addMenu(Strings.FILE_MENU, Menus.AppMenuBar.FILE_MENU)!;
     menu.addMenuItem(Commands.FILE_NEW_UNTITLED);
     menu.addMenuItem(Commands.FILE_OPEN);
     menu.addMenuItem(Commands.FILE_OPEN_FOLDER);
@@ -109,7 +109,7 @@ AppInit.htmlReady(function (): void {
     /*
      * Edit  menu
      */
-    menu = Menus.addMenu(Strings.EDIT_MENU, Menus.AppMenuBar.EDIT_MENU);
+    menu = Menus.addMenu(Strings.EDIT_MENU, Menus.AppMenuBar.EDIT_MENU)!;
     menu.addMenuItem(Commands.EDIT_UNDO);
     menu.addMenuItem(Commands.EDIT_REDO);
     menu.addMenuDivider();
@@ -143,7 +143,7 @@ AppInit.htmlReady(function (): void {
     /*
      * Find menu
      */
-    menu = Menus.addMenu(Strings.FIND_MENU, Menus.AppMenuBar.FIND_MENU);
+    menu = Menus.addMenu(Strings.FIND_MENU, Menus.AppMenuBar.FIND_MENU)!;
     menu.addMenuItem(Commands.CMD_FIND);
     menu.addMenuItem(Commands.CMD_FIND_NEXT);
     menu.addMenuItem(Commands.CMD_FIND_PREVIOUS);
@@ -160,7 +160,7 @@ AppInit.htmlReady(function (): void {
     /*
      * View menu
      */
-    menu = Menus.addMenu(Strings.VIEW_MENU, Menus.AppMenuBar.VIEW_MENU);
+    menu = Menus.addMenu(Strings.VIEW_MENU, Menus.AppMenuBar.VIEW_MENU)!;
     menu.addMenuItem(Commands.CMD_THEMES_OPEN_SETTINGS);
     menu.addMenuDivider();
     menu.addMenuItem(Commands.CMD_SPLITVIEW_NONE);
@@ -185,7 +185,7 @@ AppInit.htmlReady(function (): void {
     /*
      * Navigate menu
      */
-    menu = Menus.addMenu(Strings.NAVIGATE_MENU, Menus.AppMenuBar.NAVIGATE_MENU);
+    menu = Menus.addMenu(Strings.NAVIGATE_MENU, Menus.AppMenuBar.NAVIGATE_MENU)!;
     menu.addMenuItem(Commands.NAVIGATE_QUICK_OPEN);
     menu.addMenuItem(Commands.NAVIGATE_GOTO_LINE);
     menu.addMenuItem(Commands.NAVIGATE_GOTO_DEFINITION);
@@ -210,7 +210,7 @@ AppInit.htmlReady(function (): void {
     /*
      * Help menu
      */
-    menu = Menus.addMenu(Strings.HELP_MENU, Menus.AppMenuBar.HELP_MENU);
+    menu = Menus.addMenu(Strings.HELP_MENU, Menus.AppMenuBar.HELP_MENU)!;
     // menu.addMenuItem(Commands.HELP_CHECK_FOR_UPDATE);
 
     // menu.addMenuDivider();
@@ -322,7 +322,7 @@ AppInit.htmlReady(function (): void {
      * an existing selection
      */
     $("#editor-holder").on("contextmenu", function (e) {
-        (require as unknown as Require)(["editor/EditorManager"], function (EditorManager) {
+        (require as unknown as Require)(["editor/EditorManager"], function (EditorManager: typeof import("editor/EditorManager")) {
             if ($(e.target).parents(".CodeMirror-gutter").length !== 0) {
                 return;
             }

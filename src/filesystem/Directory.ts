@@ -221,7 +221,7 @@ class Directory extends FileSystemEntry {
      * @param {function (?string, FileSystemStats=)=} callback Callback resolved with a
      *      FileSystemError string or the stat object for the created directory.
      */
-    public create(callback: (err: string | null, stats?: FileSystemStats) => void): void {
+    public create(callback?: (err: string | null, stats?: FileSystemStats) => void): void {
         callback = callback || function (): void { /* Do nothing */ };
 
         // Block external change events until after the write has finished
@@ -231,7 +231,7 @@ class Directory extends FileSystemEntry {
             if (err) {
                 this._clearCachedData();
                 try {
-                    callback(err);
+                    callback!(err);
                     return;
                 } finally {
                     // Unblock external change events
@@ -248,7 +248,7 @@ class Directory extends FileSystemEntry {
 
             this._fileSystem._handleDirectoryChange(parent, function (this: Directory, added: Array<FileSystemEntry>, removed: Array<FileSystemEntry>): void {
                 try {
-                    callback(null, stat);
+                    callback!(null, stat);
                 } finally {
                     if (parent._isWatched()) {
                         this._fileSystem._fireChangeEvent(parent, added, removed);

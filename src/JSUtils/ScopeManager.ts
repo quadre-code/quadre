@@ -1122,6 +1122,8 @@ class TernModule {
                 return;
             }
 
+            // TODO: "This comparison appears to be unintentional because the types 'string' and 'Directory' have no overlap.ts(2367)"
+            // @ts-expect-error
             if (dir === FileSystem.getDirectoryForPath(self.#rootTernDir)) {
                 doneCallback();
                 return;
