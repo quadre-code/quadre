@@ -95,7 +95,7 @@ let nextId = 0;
  * @param {FileSystem} fileSystem The file system associated with this entry.
  */
 class FileSystemEntry {
-    private _id;
+    private _id: number;
 
     /**
      * Cached stat object for this file.
@@ -125,7 +125,7 @@ class FileSystemEntry {
      * The parent of this entry.
      * @type {string}
      */
-    private _parentPath;
+    private _parentPath: string | null;
 
     /**
      * Whether or not the entry is a file
@@ -143,15 +143,15 @@ class FileSystemEntry {
      * Cached copy of this entry's watched root
      * @type {entry: File|Directory, filter: function(FileSystemEntry):boolean, active: boolean}
      */
-    private _watchedRoot;
+    private _watchedRoot: WatchedRoot | null | undefined;
 
     /**
      * Cached result of _watchedRoot.filter(this.name, this.parentPath).
      * @type {boolean}
      */
-    private _watchedRootFilterResult;
+    private _watchedRootFilterResult: boolean;
 
-    constructor(path, fileSystem, entryKind: EntryKind) {
+    constructor(path: string, fileSystem, entryKind: EntryKind) {
         if (entryKind === EntryKind.Directory) {
             this._isDirectory = true;
         } else if (entryKind === EntryKind.File) {
@@ -170,11 +170,11 @@ class FileSystemEntry {
     public get name(): string { return this._name; }
     public set name(name: string) { throw new Error("Cannot set name"); }
 
-    public get parentPath(): string { return this._parentPath; }
-    public set parentPath(parentPath: string) { throw new Error("Cannot set parentPath"); }
+    public get parentPath(): string | null { return this._parentPath; }
+    public set parentPath(parentPath: string | null) { throw new Error("Cannot set parentPath"); }
 
-    public get id(): string { return this._id; }
-    public set id(id: string) { throw new Error("Cannot set id"); }
+    public get id(): number { return this._id; }
+    public set id(id: number) { throw new Error("Cannot set id"); }
 
     public get isFile(): boolean { return this._isFile; }
     public set isFile(isFile: boolean) { throw new Error("Cannot set isFile"); }
@@ -234,7 +234,7 @@ class FileSystemEntry {
      * @private
      * @param {String} newPath
      */
-    private _setPath(newPath: string): void {
+    public _setPath(newPath: string): void {
         const parts = newPath.split("/");
         if (this.isDirectory) {
             parts.pop(); // Remove the empty string after last trailing "/"

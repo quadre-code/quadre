@@ -410,17 +410,17 @@ function _doOpenWithOptionalPath(fullPath: string, silent: boolean, paneId: stri
         // Prompt the user with a dialog
         FileSystem.showOpenDialog(true, false, Strings.OPEN_FILE, _defaultOpenDialogFullPath, null, function (err, paths) {
             if (!err) {
-                if (paths.length > 0) {
+                if (paths!.length > 0) {
                     // Add all files to the workingset without verifying that
                     // they still exist on disk (for faster opening)
                     const filesToOpen: Array<File> = [];
 
-                    paths.forEach(function (path) {
+                    paths!.forEach(function (path) {
                         filesToOpen.push(FileSystem.getFileForPath(path));
                     });
                     MainViewManager.addListToWorkingSet(paneId, filesToOpen);
 
-                    _doOpen(paths[paths.length - 1], silent, paneId, options)
+                    _doOpen(paths![paths!.length - 1], silent, paneId, options)
                         .done(function (file) {
                             _defaultOpenDialogFullPath =
                                 FileUtils.getDirectoryPath(

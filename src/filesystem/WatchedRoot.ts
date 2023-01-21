@@ -22,6 +22,8 @@
  *
  */
 
+import type FileSystemEntry = require("filesystem/FileSystemEntry");
+
 /*
  * Represents file or directory structure watched by the FileSystem. If the
  * entry is a directory, all children (that pass the supplied filter function)
@@ -63,7 +65,7 @@ class WatchedRoot {
      */
     public status = WatchedRoot.INACTIVE;
 
-    constructor(entry, filter, filterGlobs) {
+    constructor(entry: FileSystemEntry, filter: (name: string, parentPath: string | null) => boolean, filterGlobs: Array<string>) {
         this.entry = entry;
         this.filter = filter;
         this.filterGlobs = filterGlobs;

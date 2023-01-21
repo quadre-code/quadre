@@ -248,7 +248,7 @@ export class FileStorage extends EventDispatcher.EventDispatcherBase {
                     return;
                 }
 
-                self._lineEndings = FileUtils.sniffLineEndings(text);
+                self._lineEndings = FileUtils.sniffLineEndings(text!);
 
                 // If the file is empty, turn it into an empty object
                 if (/^\s*$/.test(text!)) {

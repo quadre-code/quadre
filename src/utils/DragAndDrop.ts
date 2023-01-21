@@ -103,7 +103,7 @@ export function openDroppedFiles(paths: Array<string>): JQueryPromise<void> {
 
         // Only open files.
         FileSystem.resolve(path, function (err, item) {
-            if (!err && item.isFile) {
+            if (!err && item!.isFile) {
                 // If the file is already open, and this isn't the last
                 // file in the list, return. If this *is* the last file,
                 // always open it so it gets selected.
@@ -123,7 +123,7 @@ export function openDroppedFiles(paths: Array<string>): JQueryPromise<void> {
                         errorFiles.push({path: path, error: openErr});
                         result.reject();
                     });
-            } else if (!err && item.isDirectory && paths.length === 1) {
+            } else if (!err && item!.isDirectory && paths.length === 1) {
                 // One folder was dropped, open it.
                 ProjectManager.openProject(path)
                     .done(function () {
@@ -134,7 +134,7 @@ export function openDroppedFiles(paths: Array<string>): JQueryPromise<void> {
                         result.reject();
                     });
             } else {
-                errorFiles.push({path: path, error: err || ERR_MULTIPLE_ITEMS_WITH_DIR});
+                errorFiles.push({path: path, error: err || (ERR_MULTIPLE_ITEMS_WITH_DIR as string)});
                 result.reject();
             }
         });

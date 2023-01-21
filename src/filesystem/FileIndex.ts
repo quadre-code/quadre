@@ -29,6 +29,7 @@
  */
 
 import type FileSystemEntry = require("filesystem/FileSystemEntry");
+import type Directory = require("filesystem/Directory");
 
 import * as FileUtils from "file/FileUtils";
 
@@ -41,7 +42,7 @@ class FileIndex {
      *
      * @type {Object.<string, File|Directory>} Maps a fullPath to a File or Directory object
      */
-    private _index;
+    private _index: Record<string, FileSystemEntry>;
 
     constructor() {
         this._index = {};
@@ -111,7 +112,7 @@ class FileIndex {
      * @param {boolean} isDirectory
      */
     public entryRenamed(oldPath: string, newPath: string, isDirectory: boolean): void {
-        const renameMap = {};
+        const renameMap: Record<string, string> = {};
         const oldParentPath = FileUtils.getParentPath(oldPath);
         const newParentPath = FileUtils.getParentPath(newPath);
 
@@ -146,8 +147,8 @@ class FileIndex {
         // If file path is changed, i.e the file is moved
         // Remove the moved entry from old Directory and add it to new Directory
         if (oldParentPath !== newParentPath) {
-            const oldDirectory = this._index[oldParentPath];
-            const newDirectory = this._index[newParentPath];
+            const oldDirectory = this._index[oldParentPath] as Directory;
+            const newDirectory = this._index[newParentPath] as Directory;
             let renamedEntry;
 
             if (oldDirectory && oldDirectory._contents) {

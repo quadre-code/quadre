@@ -291,7 +291,7 @@ export function testExtension(name: string, config, entryPoint): JQueryPromise<v
     const extensionPath = config.baseUrl + "/" + entryPoint + ".js";
 
     FileSystem.resolve(extensionPath, function (err, entry) {
-        if (!err && entry.isFile) {
+        if (!err && entry!.isFile) {
             // unit test file exists
             const extensionRequire = brackets.libRequire.config({
                 context: name,
