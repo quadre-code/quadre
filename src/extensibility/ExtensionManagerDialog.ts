@@ -234,9 +234,9 @@ function _installUsingDragAndDrop() {
         const validatePromise = Async.doInParallel_aggregateErrors(paths, function (path) {
             const result = $.Deferred();
 
-            FileSystem.resolve(path, function (err, file) {
+            FileSystem.resolve<File>(path, function (err, file) {
                 const extension = FileUtils.getFileExtension(path);
-                const isZip = file.isFile && (extension === "zip");
+                const isZip = file!.isFile && (extension === "zip");
                 let errStr;
 
                 if (err) {
@@ -264,9 +264,9 @@ function _installUsingDragAndDrop() {
                     const isUpdate = extensionInfo && !!extensionInfo.installInfo;
 
                     if (isUpdate) {
-                        updateZips.push(file);
+                        updateZips.push(file!);
                     } else {
-                        installZips.push(file);
+                        installZips.push(file!);
                     }
 
                     result.resolve();

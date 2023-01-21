@@ -83,7 +83,7 @@ class Directory extends FileSystemEntry {
      */
     private _contentsStatsErrors: Record<string, string> | undefined;
 
-    constructor(fullPath, fileSystem) {
+    constructor(fullPath: string, fileSystem) {
         super(fullPath, fileSystem, EntryKind.Directory);
         this._isDirectory = true;
     }

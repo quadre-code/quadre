@@ -73,7 +73,7 @@ let extListToBeOpenedInExtApp: Array<string> = [];
  *  file's text content plus its timestamp, or rejected with a FileSystemError string
  *  constant if the file can not be read.
  */
-export function readAsText(file): JQueryPromise<string> {
+export function readAsText(file: File): JQueryPromise<string> {
     const result = $.Deferred<string>();
 
     // Measure performance
@@ -85,7 +85,7 @@ export function readAsText(file): JQueryPromise<string> {
     // Read file
     file.read(function (err, data, encoding, stat) {
         if (!err) {
-            result.resolve(data, stat.mtime);
+            result.resolve(data, stat!.mtime);
         } else {
             result.reject(err);
         }
@@ -145,7 +145,7 @@ export function getPlatformLineEndings(): LineEndings {
  * @param {!string} text
  * @return {null|LINE_ENDINGS_CRLF|LINE_ENDINGS_LF}
  */
-export function sniffLineEndings(text): LineEndings | null {
+export function sniffLineEndings(text: string): LineEndings | null {
     const subset = text.substr(0, 1000);  // (length is clipped to text.length)
     const hasCRLF = /\r\n/.test(subset);
     const hasLF = /[^\r]\n/.test(subset);
@@ -216,7 +216,7 @@ export function getFileErrorString(name: FileSystemError | string): string {
  * @param {!FileSystemError} name
  * @return {!Dialog}
  */
-export function showFileOpenError(name: FileSystemError, path): Dialog {
+export function showFileOpenError(name: FileSystemError, path: string): Dialog {
     DeprecationWarning.deprecationWarning("FileUtils.showFileOpenError() has been deprecated. " +
                                           "Please use DocumentCommandHandlers.showFileOpenError() instead.");
     return DocumentCommandHandlers.showFileOpenError(name, path);
@@ -278,7 +278,7 @@ export function convertWindowsPathToUnixPath(path: string): string {
  * @param {string} path
  * @return {string}
  */
-export function stripTrailingSlash(path): string {
+export function stripTrailingSlash(path: string): string {
     if (path && path[path.length - 1] === "/") {
         return path.slice(0, -1);
     }
@@ -344,7 +344,7 @@ export function getNativeModuleDirectoryPath(module): string {
  * @return {string} Returns the extension of a filename or empty string if
  * the argument is a directory or a filename with no extension
  */
-export function getFileExtension(fullPath): string {
+export function getFileExtension(fullPath: string): string {
     const baseName = getBaseName(fullPath);
     const idx      = baseName.lastIndexOf(".");
 
@@ -443,7 +443,7 @@ export function getFilenameWithoutExtension(filename: string): string {
  * OS-specific helper for `compareFilenames()`
  * @return {Function} The OS-specific compare function
  */
-const _cmpNames = (function (): (filename1, filename2, lang) => number {
+const _cmpNames = (function (): (filename1: string, filename2: string, lang: string) => number {
     if (brackets.platform === "win") {
         // Use this function on Windows
         return function (filename1, filename2, lang): number {
@@ -467,7 +467,7 @@ const _cmpNames = (function (): (filename1, filename2, lang) => number {
  * @param {boolean} extFirst If true it compares the extensions first and then the file names.
  * @return {number} The result of the compare function
  */
-export function compareFilenames(filename1, filename2, extFirst = false): number {
+export function compareFilenames(filename1: string, filename2: string, extFirst = false): number {
     const lang = brackets.getLocale();
 
     filename1 = filename1.toLocaleLowerCase();
@@ -562,7 +562,7 @@ export function addExtensionToExternalAppList(ext: Array<string> | string): void
 // Asynchronously load DocumentCommandHandlers
 // This avoids a temporary circular dependency created
 // by relocating showFileOpenError() until deprecation is over
-(require as unknown as Require)(["document/DocumentCommandHandlers"], function (dchModule) {
+(require as unknown as Require)(["document/DocumentCommandHandlers"], function (dchModule: typeof import("document/DocumentCommandHandlers")) {
     DocumentCommandHandlers = dchModule;
 });
 

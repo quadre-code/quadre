@@ -4,7 +4,7 @@ export interface FileSystemImpl {
         chooseDirectories: boolean,
         title: string,
         initialPath: string,
-        fileTypes: Array<string>,
+        fileTypes: Array<string> | null,
         callback: Function
     ): void;
 
@@ -13,7 +13,7 @@ export interface FileSystemImpl {
         initialPath: string,
         proposedNewFilename: string,
         callback: Function
-    );
+    ): void;
 
     stat(path: string, callback: Function): void;
 

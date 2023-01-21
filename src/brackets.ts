@@ -349,7 +349,7 @@ function _onReady() {
                     if (ProjectManager.isWelcomeProjectPath(initialProjectPath)) {
                         FileSystem.resolve(initialProjectPath + "index.html", function (err, file) {
                             if (!err) {
-                                const promise = CommandManager.execute(Commands.CMD_ADD_TO_WORKINGSET_AND_OPEN, { fullPath: file.fullPath });
+                                const promise = CommandManager.execute(Commands.CMD_ADD_TO_WORKINGSET_AND_OPEN, { fullPath: file!.fullPath });
                                 promise.then(deferred.resolve, deferred.reject);
                             } else {
                                 deferred.reject();

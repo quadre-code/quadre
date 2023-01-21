@@ -85,7 +85,7 @@ class InMemoryFile extends File {
 
     // Stub out invalid calls inherited from FileSystemEntry
 
-    public exists(callback: (err: FileSystemError | null, boolean) => void): void {
+    public exists(callback: (err: FileSystemError | null, exists: boolean) => void): void {
         callback(null, false);
     }
 

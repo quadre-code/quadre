@@ -1092,9 +1092,9 @@ export function openProject(path) {
                 FileSystem.showOpenDialog(false, true, Strings.CHOOSE_FOLDER, model.projectRoot!.fullPath, null, function (err, files) {
                     if (!err) {
                         // If length == 0, user canceled the dialog; length should never be > 1
-                        if (files.length > 0) {
+                        if (files!.length > 0) {
                             // Load the new project into the folder tree
-                            _loadProject(files[0]).then(result.resolve, result.reject);
+                            _loadProject(files![0]).then(result.resolve, result.reject);
                         } else {
                             result.reject();
                         }

@@ -225,7 +225,7 @@ class AppshellFileSystem implements FileSystemImpl {
         title: string,
         initialPath: string,
         fileTypes: Array<string>,
-        callback: Function
+        callback: (err: Error | null, filePaths?: Array<string>) => void
     ): void {
         appshell.fs.showOpenDialog(
             allowMultipleSelection, chooseDirectories, title, initialPath, fileTypes, _wrap(callback)

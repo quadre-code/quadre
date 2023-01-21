@@ -119,9 +119,9 @@ function initTernEnv(): void {
     const files = builtinFiles;
 
     files.forEach(function (i) {
-        FileSystem.resolve(path + i, function (err, file) {
+        FileSystem.resolve<File>(path + i, function (err, file) {
             if (!err) {
-                FileUtils.readAsText(file).done(function (text) {
+                FileUtils.readAsText(file!).done(function (text) {
                     const library = JSON.parse(text!);
                     builtinLibraryNames.push(library["!name"]);
                     ternEnvironment.push(library);
@@ -165,9 +165,9 @@ function initPreferences(projectRootPath?: string): void {
 
     const path = projectRootPath + Preferences.FILE_NAME;
 
-    FileSystem.resolve(path, function (err, file) {
+    FileSystem.resolve<File>(path, function (err, file) {
         if (!err) {
-            FileUtils.readAsText(file).done(function (text) {
+            FileUtils.readAsText(file!).done(function (text) {
                 let configObj = null;
                 try {
                     configObj = JSON.parse(text!);
@@ -1301,14 +1301,14 @@ class TernModule {
                 return;
             }
 
-            FileSystem.resolve(dir, function (err, directory) {
+            FileSystem.resolve<Directory>(dir!, function (err, directory) {
                 if (err) {
                     console.error("Error resolving", dir);
                     addFilesDeferred.resolveWith(null);
                     return;
                 }
 
-                directory.getContents(function (err, contents) {
+                directory!.getContents(function (err, contents) {
                     if (err) {
                         console.error("Error getting contents for", directory);
                         addFilesDeferred.resolveWith(null);
@@ -1317,13 +1317,13 @@ class TernModule {
 
                     const files = contents
                         .filter(function (entry) {
-                            return entry.isFile && !isFileExcluded(entry);
+                            return entry.isFile && !isFileExcluded((entry as File));
                         })
                         .map(function (entry) {
                             return entry.fullPath;
                         });
 
-                    self.#initTernServer(dir, files);
+                    self.#initTernServer(dir!, files);
 
                     const hintsPromise = self.#primePump(path, false);
                     hintsPromise.done(function () {
@@ -1331,7 +1331,7 @@ class TernModule {
                             // Read the subdirectories of the new file's directory.
                             // Read them first in case there are too many files to
                             // read in the project.
-                            self.#addAllFilesAndSubdirectories(dir, function () {
+                            self.#addAllFilesAndSubdirectories(dir!, function () {
                                 // If the file is in the project root, then read
                                 // all the files under the project root.
                                 const currentDir = (dir + "/");

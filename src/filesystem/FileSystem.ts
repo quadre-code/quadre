@@ -101,6 +101,15 @@ import * as EventDispatcher from "utils/EventDispatcher";
 import * as PathUtils from "thirdparty/path-utils/path-utils";
 import * as _ from "lodash";
 
+interface ExternalChange {
+    path: string;
+    stat: FileSystemStats;
+}
+
+interface WatchRequest {
+    fn: (requestCb: (err: string | null) => void) => void;
+    cb: (err: string | null) => void;
+}
 
 // Collection of registered protocol adapters
 const _fileProtocolPlugins: Record<string, Array<FileProtocolAdapter>> = {};
@@ -208,13 +217,13 @@ class FileSystem extends EventDispatcher.EventDispatcherBase {
      * once _activeChangeCount drops to zero.
      * @type {!Array.<{path:?string, stat:FileSystemStats=}>}
      */
-    private _externalChanges;
+    private _externalChanges: Array<ExternalChange>;
 
     /**
      * The queue of pending watch/unwatch requests.
      * @type {Array.<{fn: function(), cb: function()}>}
      */
-    private _watchRequests;
+    private _watchRequests: Array<WatchRequest>;
 
     /**
      * The set of watched roots, encoded as a mapping from full paths to WatchedRoot
@@ -641,7 +650,7 @@ class FileSystem extends EventDispatcher.EventDispatcherBase {
      *
      * @return {File} The File object. This file may not yet exist on disk.
      */
-    public getFileForPath(path): File {
+    public getFileForPath(path: string): File {
         const protocol = PathUtils.parseUrl(path).protocol;
         const protocolAdapter = _getProtocolAdapter(protocol, path);
 
@@ -671,7 +680,7 @@ class FileSystem extends EventDispatcher.EventDispatcherBase {
      * @param {function (?string, FileSystemEntry=, FileSystemStats=)} callback Callback resolved
      *      with a FileSystemError string or with the entry for the provided path.
      */
-    public resolve(path: string, callback: (err: string | null, entry?: FileSystemEntry, stats?: FileSystemStats) => void): void {
+    public resolve<T extends FileSystemEntry>(path: string, callback: (err: string | null, entry?: T, stats?: FileSystemStats) => void): void {
         let normalizedPath = this._normalizePath(path, false);
         let item = this._index.getEntry(normalizedPath);
 
@@ -687,7 +696,7 @@ class FileSystem extends EventDispatcher.EventDispatcherBase {
                     return;
                 }
 
-                callback(null, item, stat);
+                callback(null, item as T, stat);
             });
         } else {
             this._impl.stat(path, function (this: FileSystem, err: string | null, stat: FileSystemStats): void {
@@ -706,7 +715,7 @@ class FileSystem extends EventDispatcher.EventDispatcherBase {
                     item._stat = stat;
                 }
 
-                callback(null, item, stat);
+                callback(null, item as T, stat);
             }.bind(this));
         }
     }
@@ -734,8 +743,8 @@ class FileSystem extends EventDispatcher.EventDispatcherBase {
         chooseDirectories: boolean,
         title: string,
         initialPath: string,
-        fileTypes: Array<string>,
-        callback: (err: string | null, entry: FileSystemEntry) => void
+        fileTypes: Array<string> | null,
+        callback: (err: string | null, filePaths?: Array<string>) => void
     ): void {
         this._impl.showOpenDialog(allowMultipleSelection, chooseDirectories, title, initialPath, fileTypes, callback);
     }
@@ -937,7 +946,7 @@ class FileSystem extends EventDispatcher.EventDispatcherBase {
      *      completed. If the watch fails, the function will have a non-null FileSystemError
      *      string parametr.
      */
-    public watch(entry: FileSystemEntry, filter: (name: string) => void, filterGlobs: Array<string>, callback: (err: string | null) => void): void {
+    public watch(entry: FileSystemEntry, filter: (name: string) => boolean, filterGlobs: Array<string>, callback: (err: string | null) => void): void {
         // make filterGlobs an optional argument to stay backwards compatible
         if (typeof callback === "undefined" && typeof filterGlobs === "function") {
             callback = filterGlobs;
@@ -1064,10 +1073,12 @@ class FileSystem extends EventDispatcher.EventDispatcherBase {
     }
 }
 
-function _wrap<T>(func: (...argsFunc: Array<any>) => T) {
-    return function (...args: Array<any>): T {
-        return func.apply(_instance, arguments);
-    };
+type AnyFunction = (...args: Array<any>) => any;
+
+function _wrap<T extends AnyFunction>(func: T): T {
+    return ((...args: Array<any>) => {
+        return func.apply(_instance, args);
+    }) as T;
 }
 
 // Export public methods as proxies to the singleton instance
