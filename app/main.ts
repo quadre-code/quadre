@@ -1,4 +1,4 @@
-import { app, BrowserWindow, BrowserWindowConstructorOptions, ipcMain } from "electron";
+import { app, BrowserWindow, BrowserWindowConstructorOptions, ipcMain, type IpcMainEvent } from "electron";
 // tslint:disable-next-line:no-submodule-imports
 import * as electronRemote from "@electron/remote/main";
 import AutoUpdater from "./auto-updater";
@@ -23,7 +23,7 @@ process.on("uncaughtException", (err: Error) => {
 });
 
 const ipclog = getLogger("ipc-log");
-ipcMain.on("log", function (event: Event, ...args: Array<any>) {
+ipcMain.on("log", function (event: IpcMainEvent, ...args: Array<any>) {
     ipclog.info(...args);
 });
 
@@ -221,7 +221,8 @@ export function openMainBracketsWindow(query: {} | string = {}): BrowserWindow {
             nodeIntegration: false,
             nodeIntegrationInSubFrames: true,
             preload: pathLib.resolve(__dirname, "preload.js"),
-            contextIsolation: false
+            contextIsolation: false,
+            sandbox: false,
         }
     };
 
@@ -296,7 +297,8 @@ export function openMainBracketsWindow(query: {} | string = {}): BrowserWindow {
                     nodeIntegration: false,
                     nodeIntegrationInSubFrames: true,
                     preload: pathLib.resolve(__dirname, "preload.js"),
-                    contextIsolation: false
+                    contextIsolation: false,
+                    sandbox: false,
                 }
             }
         };
