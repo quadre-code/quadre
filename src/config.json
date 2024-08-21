@@ -164,7 +164,7 @@
         "npm": "^10.8.2",
         "portscanner": "^2.2.0",
         "request": "^2.88.0",
-        "requirejs": "^2.3.6",
+        "requirejs": "^2.3.7",
         "semver": "^7.3.8",
         "strip-bom": "^4.0.0",
         "temp": "0.9.4",
