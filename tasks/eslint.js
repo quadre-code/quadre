@@ -44,7 +44,6 @@ const meta = {
         "test/spec/LanguageTools-test-files/**/*.ts"
     ],
     build: [
-        "Gruntfile.js",
         "gulpfile.js",
         "tasks/**/*.js",
         "tasks/**/*.ts"

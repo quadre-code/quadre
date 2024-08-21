@@ -25,7 +25,7 @@ Remove https://github.com/yaddran/brackets-occurrences-marker and instead rely o
 
 More conversion of the code base to TypeScript
 
-Convert all scripts to grunt
+Convert all build scripts to gulp
 
 
 ## v2.0.0-alpha.4 (2019-02-25)

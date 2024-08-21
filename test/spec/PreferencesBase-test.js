@@ -1282,14 +1282,14 @@ define(function (require, exports, module) {
                 });
 
                 expect(pm.getPreferenceLocation("spaceUnits", {
-                    path: "/Gruntfile.js"
+                    path: "/gulpfile.js"
                 })).toEqual({
                     scope: "project",
                     layer: "path",
                     layerID: "**.js"
                 });
                 expect(pm.get("spaceUnits", {
-                    path: "/Gruntfile.js"
+                    path: "/gulpfile.js"
                 })).toBe(13);
             });
 

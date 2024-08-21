@@ -98,7 +98,6 @@ module.exports = {
         // Build files
         {
             "files": [
-                "Gruntfile.js",
                 "gulpfile.js",
                 "tasks/**/*.js"
             ],

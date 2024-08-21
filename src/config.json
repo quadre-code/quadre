@@ -48,6 +48,7 @@
     },
     "build": {
         "appId": "com.squirrel.quadre.Quadre",
+        "generateUpdatesFilesForAllChannels": true,
         "asar": false,
         "files": [
             "**/*",
@@ -103,8 +104,7 @@
         },
         "win": {
             "target": [
-                "nsis",
-                "msi"
+                "nsis"
             ]
         },
         "msi": {
@@ -117,7 +117,8 @@
             "category": "Utility;TextEditor;Development;IDE;",
             "target": [
                 "AppImage",
-                "deb"
+                "deb",
+                "rpm"
             ]
         }
     },
@@ -196,19 +197,6 @@
         "fancy-log": "^2.0.0",
         "get-port": "^4.2.0",
         "glob": "^7.1.4",
-        "grunt": "0.4.5",
-        "grunt-cleanempty": "1.0.3",
-        "grunt-cli": "0.1.9",
-        "grunt-contrib-clean": "0.4.1",
-        "grunt-contrib-concat": "0.3.0",
-        "grunt-contrib-copy": "0.4.1",
-        "grunt-contrib-cssmin": "0.6.0",
-        "grunt-contrib-htmlmin": "0.1.3",
-        "grunt-contrib-requirejs": "0.4.1",
-        "grunt-contrib-uglify": "0.2.0",
-        "grunt-jasmine-node": "0.1.0",
-        "grunt-targethtml": "0.2.6",
-        "grunt-usemin": "0.1.11",
         "gulp": "^4.0.2",
         "gulp-clean-css": "^4.3.0",
         "gulp-eslint-new": "^1.7.1",
@@ -219,7 +207,6 @@
         "iconv-lite": "^0.6.3",
         "jasmine-node": "1.11.0",
         "less": "^4.1.3",
-        "load-grunt-tasks": "3.5.2",
         "node-abi": "^3.66.0",
         "plugin-error": "^2.0.0",
         "rewire": "^6.0.0",
