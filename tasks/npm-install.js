@@ -35,7 +35,18 @@ const _spawn  = require("child_process").spawn;
 const glob    = require("glob");
 const path    = require("path");
 
+const isWindows = process.platform.startsWith("win");
+
 function spawn(what, args, options, callback) {
+    let opts = options;
+    if (isWindows) {
+        if (opts === null || opts === undefined) {
+            opts = {};
+        }
+
+        opts.shell = true;
+    }
+
     const child = _spawn(what, args, options);
     child.on("error", function (err) {
         return callback(err, null, err.toString());
