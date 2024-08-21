@@ -6,7 +6,7 @@ Thumbs.db
 # package-lock.json
 package-lock.json
 
-# ignore node_modules created by grunt, but not more deeply-nested node_modules
+# ignore node_modules and npm-debug.log, but not if they are more deeply-nested
 /node_modules
 /npm-debug.log
 
@@ -48,7 +48,7 @@ package-lock.json
 # ignore .disabled file for default extensions
 /src/extensions/default/*/.disabled
 
-# generate through grunt
+# generate through gulp
 /src/config.json
 
 #OSX .DS_Store files
