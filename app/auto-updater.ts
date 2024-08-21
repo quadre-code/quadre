@@ -46,6 +46,8 @@ export default class AppUpdater {
         //     log.info("update-not-available");
         // });
         ipcMain.on("brackets-app-ready", () => {
+            // TODO: create a setting for this.
+            autoUpdater.channel = "alpha";
             autoUpdater.checkForUpdatesAndNotify();
         });
     }
