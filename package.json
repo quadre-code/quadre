@@ -20,6 +20,7 @@
   },
   "build": {
     "appId": "com.squirrel.quadre.Quadre",
+    "generateUpdatesFilesForAllChannels": true,
     "asar": false,
     "files": [
       "**/*",
@@ -75,8 +76,7 @@
     },
     "win": {
       "target": [
-        "nsis",
-        "msi"
+        "nsis"
       ]
     },
     "msi": {
@@ -89,7 +89,8 @@
       "category": "Utility;TextEditor;Development;IDE;",
       "target": [
         "AppImage",
-        "deb"
+        "deb",
+        "rpm"
       ]
     }
   },
