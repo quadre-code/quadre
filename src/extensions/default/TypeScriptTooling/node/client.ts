@@ -22,7 +22,7 @@
  *
  */
 
-const LanguageClient = require((global as any).LanguageClientInfo.languageClientPath).LanguageClient;
+const LanguageClient = require(/* webpackIgnore: true*/`${(global as any).LanguageClientInfo.languageClientPath}`).LanguageClient;
 // import * as net from "net";
 import * as cp from "child_process";
 // import * as execa from "execa";
@@ -34,6 +34,8 @@ const clientName = "TypeScriptClient";
 const executablePath = __dirname + "/node_modules/.bin/typescript-language-server" +
     (process.platform === "win32" ? ".cmd" : "");
 // let memoryLimit = "";
+
+const isWindows = process.platform.startsWith("win");
 
 function validateTypeScriptExecutable(confParams: any): Promise<void> {
     // TODO: find a way to check the --tsserver-path param?
@@ -111,11 +113,16 @@ const serverOptions = function (): Promise<any> {
         //     return childProcess;
         // });
 
+        const options: cp.SpawnOptions = {
+            cwd: __dirname + "/node_modules/.bin/"
+        };
+        if (isWindows) {
+            options.shell = true;
+        }
+
         const serverProcess = cp.spawn(executablePath, [
             "--stdio"
-        ], {
-            cwd: __dirname + "/node_modules/.bin/"
-        });
+        ], options);
 
         if (serverProcess && serverProcess.pid) {
             resolve({

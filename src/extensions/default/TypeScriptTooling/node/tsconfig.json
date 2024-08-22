@@ -2,7 +2,8 @@
     "extends": "../../../../../tsconfig.node.json",
     "compilerOptions": {
         "outDir": "../../../../../dist/www",
-        "rootDir": "../../../../../src"
+        "rootDir": "../../../../../src",
+        "removeComments": false
     },
     "include": [
         "./**/*"

@@ -20,13 +20,17 @@ interface BracketsWindowGlobal {
     };
 }
 
+function nodeRequire(name: string): NodeRequire {
+    return require(/* webpackIgnore: true */ name);
+}
+
 process.once("loaded", function () {
     try {
         t = {
             electron,
             electronRemote,
             process,
-            require,
+            require: nodeRequire,
             module,
             __filename,
             __dirname,

@@ -15,7 +15,7 @@ import * as SocketServer from "./socket-server"; // Implementation of Brackets' 
 
 electronRemote.initialize();
 
-const appInfo = require("./package.json");
+const appInfo = require(/* webpackIgnore: true */"./package.json");
 
 const log = getLogger("main");
 process.on("uncaughtException", (err: Error) => {

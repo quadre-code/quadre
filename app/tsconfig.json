@@ -14,7 +14,7 @@
         "noImplicitReturns": true,
         "noImplicitThis": true,
         "noUnusedLocals": true,
-        "removeComments": true,
+        "removeComments": false,
         "strictNullChecks": true
     },
     "include": [
