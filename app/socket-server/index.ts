@@ -1,6 +1,5 @@
 import * as http from "http";
-import * as ConnectionManager from "./connection-manager";
-import DomainManager from "./domain-manager";
+import { DomainManager, ConnectionManager } from "./domain-manager";
 import { getLogger } from "../utils";
 import * as WebSocket from "ws";
 const Server = WebSocket.Server;

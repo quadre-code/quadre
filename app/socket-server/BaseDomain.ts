@@ -1,4 +1,4 @@
-import DomainManager from "./domain-manager";
+import type { DomainManager } from "./domain-manager";
 
 /**
  * @private
