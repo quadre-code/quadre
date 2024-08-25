@@ -7,7 +7,6 @@ const gulp = require("gulp");
     "./tasks/download-default-extensions",
     "./tasks/nls-check",
     "./tasks/eslint",
-    "./tasks/less",
     "./tasks/npm-install",
     "./tasks/test",
     "./tasks/watch",
@@ -27,15 +26,13 @@ gulp.task("install", gulp.series(
 
 gulp.task("build", gulp.series(
     "npm-install-dist",
-    "npm-install-extensions-dist",
-    "less"
+    "npm-install-extensions-dist"
 ));
 
 // task: optimize - optimize contents of dist folder
 gulp.task("optimize-common", gulp.series(
     // "eslint:src",
     // "clean",
-    // "less",
     // "targethtml",
     // "useminPrepare",
     // "htmlmin",
