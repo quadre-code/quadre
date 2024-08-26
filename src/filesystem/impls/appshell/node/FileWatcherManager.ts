@@ -43,7 +43,6 @@ interface WatcherImpl {
     watchPath(path: string, ignored: Array<string>, _watcherMap: WatcherMap, domainManager: DomainManager): void;
 }
 
-// tslint:disable-next-line:no-empty-interface
 interface DomainManager {
     emitEvent(domainName: string, eventName: string, parameters?: Array<any>): void;
 }

@@ -5,7 +5,6 @@ import { menuTemplates } from "../shared";
 
 export const ERR_NOT_FOUND = "NOTFOUND";
 
-// tslint:disable-next-line:no-empty-interface
 interface MenuItemOptions extends MenuItemConstructorOptions {}
 
 function _getOrCreateMenuTemplate(winId: number): Array<MenuItemOptions> {

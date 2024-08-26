@@ -498,7 +498,6 @@ class Session {
                 let line;
                 let e;
                 let found;
-                // tslint:disable-next-line:ban-comma-operator
                 for (line = this.getCursor().line, e = Math.max(0, line - 9), found = false; line >= e; --line) {
                     if (this.getLine(line).charAt(col) === "(") {
                         found = true;
@@ -738,7 +737,6 @@ class Session {
                 }
             }
             if (node.type === "CallExpression") {
-                // tslint:disable-next-line:no-string-literal
                 const args = node["arguments"];
                 let i;
                 const n = args.length;

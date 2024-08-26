@@ -463,7 +463,6 @@ export function _findAllAndSelect(editor: Editor.Editor): void {
         let nextMatch: Selection | null;
         setQueryInfo(state, { query: editor.document.getRange(sel.start, sel.end), isCaseSensitive: false, isRegexp: false, isWholeWord: false });
 
-        // tslint:disable-next-line:no-conditional-assignment
         while ((nextMatch = _getNextMatch(editor, false, searchStart, false)) !== null) {
             if (_selEq(sel, nextMatch)) {
                 nextMatch.primary = true;

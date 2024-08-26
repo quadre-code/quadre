@@ -554,7 +554,6 @@ function getFragmentAround(session: Session, start: CodeMirror.Position): FileIn
     let min: number;
 
     // expand range backwards
-    // tslint:disable-next-line:ban-comma-operator
     for (p = start.line - 1, min = Math.max(0, p - 100); p >= min; --p) {
         const line = session.getLine(p);
         const fn = line.search(/\bfunction\b/);
@@ -838,7 +837,6 @@ function handleTimedOut(response): void {
  * to the tern node domain, without worrying about initialization, priming the pump, etc.
  *
  */
-// tslint:disable member-access
 class TernModule {
     public resetForced: boolean;
 
@@ -1405,7 +1403,6 @@ class TernModule {
         this.#addFilesPromise!.done(func);
     }
 }
-// tslint:enable member-access
 
 let resettingDeferred;
 

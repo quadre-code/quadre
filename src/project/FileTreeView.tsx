@@ -1200,7 +1200,6 @@ class DirectoryContents extends React.Component<IDirectoryContentsProps, {}> {
         const contents = this.props.contents;
         const namesInOrder = _sortDirectoryContents(contents, this.props.sortDirectoriesFirst);
         const self: DirectoryContents = this;
-        // tslint:disable-next-line:unnecessary-bind
         const children = namesInOrder.map(function (name) {
             const entry = contents.get(name);
 

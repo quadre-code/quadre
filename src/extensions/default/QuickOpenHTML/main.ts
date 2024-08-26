@@ -73,7 +73,6 @@ function createIDList() {
     for (let i = 0; i < lines.length; i++) {
         const line = lines[i];
         let info;
-        // tslint:disable-next-line:no-conditional-assignment
         while ((info = regex.exec(line)) !== null) {
             const id = info[1];
             // TODO: this doesn't handle id's that share the

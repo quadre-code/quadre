@@ -1,5 +1,4 @@
 import { app, BrowserWindow, BrowserWindowConstructorOptions, ipcMain, type IpcMainEvent } from "electron";
-// tslint:disable-next-line:no-submodule-imports
 import * as electronRemote from "@electron/remote/main";
 import AutoUpdater from "./auto-updater";
 import * as _ from "lodash";
@@ -140,7 +139,7 @@ app.on("child-process-gone", function (event: Electron.Event, details: Electron.
 
 export function restart(query: {} | string = {}): void {
     while (wins.length > 0) {
-        const win = wins.shift(); // tslint:disable-line
+        const win = wins.shift();
         if (win) {
             unsetLoggerWindow(win);
             win.close();

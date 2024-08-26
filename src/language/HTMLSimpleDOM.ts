@@ -351,7 +351,6 @@ export class Builder {
             lastClosedTag.endPos = _addPos(self.startOffsetPos, endPos);
         }
 
-        // tslint:disable-next-line:no-conditional-assignment
         while ((token = this.t.nextToken()) !== null) {
             // lastTextNode is used to glue text nodes together
             // If the last node we saw was text but this one is not, then we're done gluing.

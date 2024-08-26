@@ -2,7 +2,7 @@ const CodeMirror = brackets.getModule("thirdparty/CodeMirror/lib/codemirror");
 
 CodeMirror.defineOption("showNoBreakSpace", false, function (cm, val, prev) {
     // eslint-disable-next-line eqeqeq
-    if (prev == (CodeMirror as any).Init) { // tslint:disable-line:triple-equals
+    if (prev == (CodeMirror as any).Init) {
         prev = false;
     }
     if (prev && !val) {

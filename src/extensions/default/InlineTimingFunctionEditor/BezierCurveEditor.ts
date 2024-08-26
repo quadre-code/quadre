@@ -292,7 +292,6 @@ function _curveClick(e) {
  */
 function handlePointMove(e, x, y) {
     const self = e.target;
-    // tslint:disable-next-line:prefer-const
     let bezierEditor: BezierCurveEditor = self.bezierEditor;
 
     // Helper function to redraw curve

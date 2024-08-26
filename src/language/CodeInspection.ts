@@ -438,7 +438,6 @@ export function requestRun(): void {
                         // some inspectors don't always provide a line number or report a negative line number
                         if (!isNaN(error.pos.line) &&
                                 (error.pos.line + 1) > 0 &&
-                                // tslint:disable-next-line:no-conditional-assignment
                                 (error.codeSnippet = currentDoc.getLine(error.pos.line)) !== undefined) {
                             error.friendlyLine = error.pos.line + 1;
                             error.codeSnippet = error.codeSnippet.substr(0, 175);  // limit snippet width
