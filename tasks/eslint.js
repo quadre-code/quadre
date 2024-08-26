@@ -49,6 +49,7 @@ const meta = {
         "tasks/**/*.ts"
     ]
 };
+exports.meta = meta;
 
 function eslintTask(files) {
     // To automatically fix issues add `fix: true` to the eslint options and

@@ -19,6 +19,12 @@ module.exports = {
         "no-console": "off",
         "no-invalid-this": "off",
         "no-shadow": "warn",
+        "brace-style": "off",
+        "wrap-iife": "off",
+        "space-before-function-paren": "off",
+        "indent": "off",
+        "@typescript-eslint/indent": "off",
+        "@typescript-eslint/member-delimiter-style": "off",
     },
     "globals": {
         "$": false,

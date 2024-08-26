@@ -18,6 +18,7 @@
     "variable-name": false,
     "no-implicit-dependencies": [true, "dev"],
     "no-console": false,
-    "max-classes-per-file": false
+    "max-classes-per-file": false,
+    "one-line": false
   }
 }
