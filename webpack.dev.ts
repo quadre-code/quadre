@@ -1,3 +1,9 @@
+/*
+ * Copyright (c) 2024 - present The quadre code authors. All rights reserved.
+ * @license MIT
+ *
+ */
+
 import path from "node:path";
 import { Configuration } from "webpack";
 import TranspilePlugin from "transpile-webpack-plugin";

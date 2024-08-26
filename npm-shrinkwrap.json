@@ -63,6 +63,7 @@
         "glob": "^7.1.4",
         "gulp": "^4.0.2",
         "gulp-eslint-new": "^2.3.0",
+        "gulp-prettier": "^5.0.0",
         "gulp-rename": "^2.0.0",
         "gulp-watch": "^5.0.1",
         "iconv-lite": "^0.6.3",
@@ -9774,6 +9775,46 @@
         "node": "^12.20 || ^14.13 || >=16"
       }
     },
+    "node_modules/gulp-prettier": {
+      "version": "5.0.0",
+      "resolved": "https://registry.npmjs.org/gulp-prettier/-/gulp-prettier-5.0.0.tgz",
+      "integrity": "sha512-2TbsdXnO/zMLYwD5In8w1CwMn0fw2HOfCnD55+D+0AUczqvP8vEgwS82tEIqj4EsWnOS9+kLPclsGYkkpxxtcg==",
+      "dev": true,
+      "license": "MIT",
+      "dependencies": {
+        "plugin-error": "^2.0.0",
+        "prettier": "^3.0.0",
+        "through2": "^4.0.2"
+      },
+      "engines": {
+        "node": ">=16"
+      }
+    },
+    "node_modules/gulp-prettier/node_modules/readable-stream": {
+      "version": "3.6.2",
+      "resolved": "https://registry.npmjs.org/readable-stream/-/readable-stream-3.6.2.tgz",
+      "integrity": "sha512-9u/sniCrY3D5WdsERHzHE4G2YCXqoG5FTHUiCC4SIbr6XcLZBY05ya9EKjYek9O5xOAwjGq+1JdGBAS7Q9ScoA==",
+      "dev": true,
+      "license": "MIT",
+      "dependencies": {
+        "inherits": "^2.0.3",
+        "string_decoder": "^1.1.1",
+        "util-deprecate": "^1.0.1"
+      },
+      "engines": {
+        "node": ">= 6"
+      }
+    },
+    "node_modules/gulp-prettier/node_modules/through2": {
+      "version": "4.0.2",
+      "resolved": "https://registry.npmjs.org/through2/-/through2-4.0.2.tgz",
+      "integrity": "sha512-iOqSav00cVxEEICeD7TjLB1sueEL+81Wpzp2bY17uZjZN0pWZPuo4suZ/61VujxmqSGFfgOcNuTZ85QJwNZQpw==",
+      "dev": true,
+      "license": "MIT",
+      "dependencies": {
+        "readable-stream": "3"
+      }
+    },
     "node_modules/gulp-rename": {
       "version": "2.0.0",
       "resolved": "https://registry.npmjs.org/gulp-rename/-/gulp-rename-2.0.0.tgz",
@@ -17038,6 +17079,22 @@
       "integrity": "sha1-gV7R9uvGWSb4ZbMQwHE7yzMVzks=",
       "engines": {
         "node": ">=0.10.0"
+      }
+    },
+    "node_modules/prettier": {
+      "version": "3.3.3",
+      "resolved": "https://registry.npmjs.org/prettier/-/prettier-3.3.3.tgz",
+      "integrity": "sha512-i2tDNA0O5IrMO757lfrdQZCc2jPNDVntV0m/+4whiDfWaTKfMNgR7Qz0NAeGz/nRqF4m5/6CLzbP4/liHt12Ew==",
+      "dev": true,
+      "license": "MIT",
+      "bin": {
+        "prettier": "bin/prettier.cjs"
+      },
+      "engines": {
+        "node": ">=14"
+      },
+      "funding": {
+        "url": "https://github.com/prettier/prettier?sponsor=1"
       }
     },
     "node_modules/pretty-hrtime": {
@@ -28842,6 +28899,39 @@
         "vinyl-fs": "^4.0.0"
       }
     },
+    "gulp-prettier": {
+      "version": "5.0.0",
+      "resolved": "https://registry.npmjs.org/gulp-prettier/-/gulp-prettier-5.0.0.tgz",
+      "integrity": "sha512-2TbsdXnO/zMLYwD5In8w1CwMn0fw2HOfCnD55+D+0AUczqvP8vEgwS82tEIqj4EsWnOS9+kLPclsGYkkpxxtcg==",
+      "dev": true,
+      "requires": {
+        "plugin-error": "^2.0.0",
+        "prettier": "^3.0.0",
+        "through2": "^4.0.2"
+      },
+      "dependencies": {
+        "readable-stream": {
+          "version": "3.6.2",
+          "resolved": "https://registry.npmjs.org/readable-stream/-/readable-stream-3.6.2.tgz",
+          "integrity": "sha512-9u/sniCrY3D5WdsERHzHE4G2YCXqoG5FTHUiCC4SIbr6XcLZBY05ya9EKjYek9O5xOAwjGq+1JdGBAS7Q9ScoA==",
+          "dev": true,
+          "requires": {
+            "inherits": "^2.0.3",
+            "string_decoder": "^1.1.1",
+            "util-deprecate": "^1.0.1"
+          }
+        },
+        "through2": {
+          "version": "4.0.2",
+          "resolved": "https://registry.npmjs.org/through2/-/through2-4.0.2.tgz",
+          "integrity": "sha512-iOqSav00cVxEEICeD7TjLB1sueEL+81Wpzp2bY17uZjZN0pWZPuo4suZ/61VujxmqSGFfgOcNuTZ85QJwNZQpw==",
+          "dev": true,
+          "requires": {
+            "readable-stream": "3"
+          }
+        }
+      }
+    },
     "gulp-rename": {
       "version": "2.0.0",
       "resolved": "https://registry.npmjs.org/gulp-rename/-/gulp-rename-2.0.0.tgz",
@@ -33804,6 +33894,12 @@
       "version": "0.2.0",
       "resolved": "https://registry.npmjs.org/preserve/-/preserve-0.2.0.tgz",
       "integrity": "sha1-gV7R9uvGWSb4ZbMQwHE7yzMVzks="
+    },
+    "prettier": {
+      "version": "3.3.3",
+      "resolved": "https://registry.npmjs.org/prettier/-/prettier-3.3.3.tgz",
+      "integrity": "sha512-i2tDNA0O5IrMO757lfrdQZCc2jPNDVntV0m/+4whiDfWaTKfMNgR7Qz0NAeGz/nRqF4m5/6CLzbP4/liHt12Ew==",
+      "dev": true
     },
     "pretty-hrtime": {
       "version": "1.0.3",
