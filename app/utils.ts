@@ -50,8 +50,8 @@ if (app) {
 
 export function getLogger(name: string): Logger {
     return {
-        log: (...msgs: Array<string>) => console.log(`[${name}]`, ...msgs), // tslint:disable-line
-        info: (...msgs: Array<string>) => console.info(`[${name}]`, ...msgs), // tslint:disable-line
+        log: (...msgs: Array<string>) => console.log(`[${name}]`, ...msgs),
+        info: (...msgs: Array<string>) => console.info(`[${name}]`, ...msgs),
         warn: (...msgs: Array<string>) => console.warn(`[${name}]`, ...msgs),
         error: (...msgs: Array<string>) => console.error(`[${name}]`, ...msgs)
     };

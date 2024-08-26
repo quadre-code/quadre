@@ -38,7 +38,6 @@ const $scrollbars = $("<style id='scrollbars'>").appendTo("head");
  *   to be updated
  */
 export function updateScrollbars(theme: Theme | null): void {
-    // tslint:disable-next-line: no-object-literal-type-assertion
     const themeToUpdate = theme || {} as Theme;
     if (prefs.get("themeScrollbars")) {
         const scrollbar = (themeToUpdate.scrollbar || []).join(" ");

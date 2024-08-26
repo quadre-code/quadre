@@ -1,7 +1,6 @@
 import { BrowserWindow, MenuItemConstructorOptions } from "electron";
 
 export type BrowserWindows = Array<BrowserWindow>;
-// tslint:disable-next-line:no-empty-interface
 export interface MenuItemOptions extends MenuItemConstructorOptions {}
 export interface MenuTemplates {
     [winId: number]: Array<MenuItemOptions>;

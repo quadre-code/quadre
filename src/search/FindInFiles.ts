@@ -186,7 +186,6 @@ function _getSearchMatches(contents: string, queryExpr: RegExp): Array<SearchMat
     const lines = StringUtils.getLines(contents);
     const matches: Array<SearchMatch> = [];
 
-    // tslint:disable-next-line:no-conditional-assignment
     while ((match = queryExpr.exec(contents)) !== null) {
         lineNum          = StringUtils.offsetToLineNum(lines, match.index);
         line             = lines[lineNum];

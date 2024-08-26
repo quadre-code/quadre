@@ -27,7 +27,6 @@
 */
 
 /*eslint no-bitwise: off */
-/*tslint:disable no-bitwise */
 /*jslint bitwise: true */
 
 /**
