@@ -23,7 +23,6 @@ module.exports = {
         "wrap-iife": "off",
         "space-before-function-paren": "off",
         "indent": "off",
-        "@typescript-eslint/indent": "off",
         "@typescript-eslint/member-delimiter-style": "off",
     },
     "globals": {

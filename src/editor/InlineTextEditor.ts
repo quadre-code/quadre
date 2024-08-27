@@ -80,7 +80,7 @@ function _syncGutterWidths(hostEditor: Editor): void {
         const $gutter = $(editor._codeMirror.getGutterElement()).find(".CodeMirror-linenumbers");
         $gutter.css("min-width", "");
         const curWidth = $gutter.width();
-        if (curWidth > maxWidth) {
+        if (curWidth > (maxWidth as number)) {
             maxWidth = curWidth;
         }
     });
