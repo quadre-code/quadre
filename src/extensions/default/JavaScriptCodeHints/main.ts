@@ -149,7 +149,7 @@ function setConfig(configUpdate) {
 }
 
 /** @type Config */
-setConfig.config = {};
+setConfig.config = {} as Config;
 
 /**
  *  Get the value of current session.

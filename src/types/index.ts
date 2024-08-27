@@ -90,7 +90,6 @@ declare global {
         libRequire: any;
         _jsCodeHintsHelper: any;
 
-        /* eslint-disable @typescript-eslint/indent */
         getModule<T extends string>(modulePath: T)
             : T extends "command/CommandManager" ? typeof CommandManager
             : T extends "command/Commands" ? typeof Commands
@@ -165,7 +164,6 @@ declare global {
             : T extends "thirdparty/mustache/mustache" ? typeof Mustache
             : T extends "thirdparty/path-utils/path-utils" ? typeof PathUtils
             : unknown;
-        /* eslint-enable @typescript-eslint/indent */
 
         getModule(modulePaths: Array<string>, callback?: () => void): void;
 
