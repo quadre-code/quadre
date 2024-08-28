@@ -40,12 +40,19 @@ var Errors = {
  * @param {function} callback NodeJS style callback to call after finish
  */
 function _performNpmInstall(installDirectory, npmOptions, callback) {
-    var npmPath = path.resolve(path.dirname(require.resolve("npm")), "..", "bin", "npm-cli.js");
-    var args = [npmPath, "install"].concat(npmOptions);
+    var npmPath = path.resolve(
+        path.dirname(require.resolve("npm")),
+        "..", ".bin", process.platform === "win32" ? "npm.cmd" : "npm");
+    var args = ["install"].concat(npmOptions);
 
-    console.log("running npm " + args.slice(1).join(" ") + " in " + installDirectory);
+    console.log("running npm " + args.join(" ") + " in " + installDirectory);
 
-    var child = spawn(process.execPath, args, { cwd: installDirectory });
+    const spawnOptions = { cwd: installDirectory };
+    if (process.platform === "win32") {
+        spawnOptions.shell = true;
+    }
+
+    var child = spawn(npmPath, args, spawnOptions);
 
     child.on("error", function (err) {
         return callback(err);

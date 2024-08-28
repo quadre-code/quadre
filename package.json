@@ -7,6 +7,7 @@
   "homepage": "https://github.com/quadre-code/quadre",
   "version": "2.0.0-alpha.7",
   "apiVersion": "1.15.0",
+  "electronVersion": "31.4.0",
   "issues": {
     "url": "https://github.com/quadre-code/quadre/issues"
   },
@@ -110,6 +111,7 @@
     "publish-mac": "npm run build-optimized && electron-builder -m --publish onTagOrDraft",
     "publish-linux": "npm run build-optimized && electron-builder -l --publish onTagOrDraft",
     "test:prepare:ci": "gulp test && gulp copy-test-dist",
+    "test:node": "jasmine dist/www/extensibility/node/spec/*.spec.js",
     "test:unit": "gulp test-integration --suite=unit --spec=all --results=TEST-unit",
     "test:integration": "gulp test-integration --suite=integration --spec=all --results=TEST-integration",
     "test:mainview": "gulp test-integration --suite=mainview --spec=all --results=TEST-mainview",
@@ -177,7 +179,7 @@
     "gulp-rename": "^2.0.0",
     "gulp-watch": "^5.0.1",
     "iconv-lite": "^0.6.3",
-    "jasmine-node": "1.11.0",
+    "jasmine": "^5.2.0",
     "less": "^4.2.0",
     "less-loader": "^12.2.0",
     "mini-css-extract-plugin": "^2.9.1",
