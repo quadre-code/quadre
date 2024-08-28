@@ -22,8 +22,6 @@
  *
  */
 
-/*jslint node: true */
-
 "use strict";
 
 var ExtensionsDomain = require("../ExtensionManagerDomain"),

@@ -22,8 +22,6 @@
  *
  */
 
-/*jslint node: true, regexp: true */
-
 "use strict";
 
 var DecompressZip               = require("decompress-zip"),
@@ -31,7 +29,8 @@ var DecompressZip               = require("decompress-zip"),
     path                        = require("path"),
     temp                        = require("temp"),
     fs                          = require("fs-extra"),
-    performNpmInstallIfRequired = require("./npm-installer").performNpmInstallIfRequired;
+    performNpmInstallIfRequired = require("./npm-installer").performNpmInstallIfRequired,
+    quadrePackageJSON           = require("../../../package.json");
 
 // Track and cleanup files at exit
 temp.track();
@@ -301,9 +300,9 @@ function extractAndValidateFiles(zipPath, extractDir, options, callback) {
                     npmOptions.push("--proxy " + options.proxy);
                 }
 
-                npmOptions.push("--disturl=https://atom.io/download/electron");
+                npmOptions.push("--disturl=https://electronjs.org/headers");
                 npmOptions.push("--runtime=electron");
-                npmOptions.push("--target=" + options.electronVersion);
+                npmOptions.push("--target=" + quadrePackageJSON.electronVersion);
 
                 if (process.platform === "darwin") {
                     npmOptions.push("--arch=x64");

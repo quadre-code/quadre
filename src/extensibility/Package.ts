@@ -46,8 +46,6 @@ interface InstallResult {
     keepFile: boolean;
 }
 
-const electronVersion = brackets.metadata.devDependencies.electron;
-
 PreferencesManager.definePreference("proxy", "string", undefined, {
     description: Strings.DESCRIPTION_PROXY
 });
@@ -124,7 +122,6 @@ export function validate(path, options) {
         // so npm can use it in the domain
         options = options || {};
         options.proxy = PreferencesManager.get("proxy");
-        options.electronVersion = electronVersion;
 
         extensionManager.validate(path, options)
             .done(function (result) {
@@ -179,7 +176,6 @@ export function install(path, nameHint?, _doUpdate?) {
             apiVersion: brackets.metadata.apiVersion,
             nameHint: nameHint,
             proxy: PreferencesManager.get("proxy"),
-            electronVersion: electronVersion
         })
             .done(function (result) {
                 result.keepFile = false;
