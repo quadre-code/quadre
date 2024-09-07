@@ -1,4 +1,4 @@
-import { app, BrowserWindow, BrowserWindowConstructorOptions, ipcMain, type IpcMainEvent } from "electron";
+import { app, BrowserWindow, BrowserWindowConstructorOptions, ipcMain, type WebPreferences, type IpcMainEvent } from "electron";
 import * as electronRemote from "@electron/remote/main";
 import AutoUpdater from "./auto-updater";
 import * as _ from "lodash";
@@ -174,6 +174,14 @@ function formatUrl(filePath: string, options: FormatOptions = {}): string {
     return url;
 }
 
+function setWebPreferences(
+    winOptions: BrowserWindowConstructorOptions,
+    name: keyof WebPreferences,
+    value: any
+): void {
+    _.set(winOptions, "webPreferences." + name, value);
+}
+
 export function openMainBracketsWindow(query: {} | string = {}): BrowserWindow {
     const argv = yargs
         .option("startup-path", { describe: "A file path to startup instead of default one.", type: "string" })
@@ -229,12 +237,12 @@ export function openMainBracketsWindow(query: {} | string = {}): BrowserWindow {
 
     const blinkFeatures = _.get(bracketsPreferences, "shell.blinkFeatures");
     if (typeof blinkFeatures === "string" && blinkFeatures.length > 0) {
-        _.set(winOptions, "webPreferences.blinkFeatures", blinkFeatures);
+        setWebPreferences(winOptions, "enableBlinkFeatures", blinkFeatures);
     }
 
     const disableBlinkFeatures = _.get(bracketsPreferences, "shell.disableBlinkFeatures");
     if (typeof disableBlinkFeatures === "string" && disableBlinkFeatures.length > 0) {
-        _.set(winOptions, "webPreferences.disableBlinkFeatures", disableBlinkFeatures);
+        setWebPreferences(winOptions, "disableBlinkFeatures", disableBlinkFeatures);
     }
 
     const smoothScrolling = _.get(bracketsPreferences, "shell.smoothScrolling", true);
