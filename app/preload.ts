@@ -14,6 +14,7 @@ interface BracketsWindowGlobal {
     node: {
         process: NodeJS.Process;
         require: NodeRequire;
+        requireResolve: RequireResolve,
         module: NodeModule;
         __filename: string;
         __dirname: string;
@@ -23,6 +24,10 @@ interface BracketsWindowGlobal {
 function nodeRequire(name: string): NodeRequire {
     return require(/* webpackIgnore: true */ name);
 }
+function nodeRequireResolve(name: string): string {
+    // @ts-expect-error
+    return __non_webpack_require__.resolve(name);
+}
 
 process.once("loaded", function () {
     try {
@@ -31,6 +36,7 @@ process.once("loaded", function () {
             electronRemote,
             process,
             require: nodeRequire,
+            requireResolve: nodeRequireResolve,
             module,
             __filename,
             __dirname,
@@ -50,6 +56,7 @@ process.once("loaded", function () {
     g.node = {
         process: t.process,
         require: t.require,
+        requireResolve: t.requireResolve,
         module: t.module,
         __filename: t.__filename,
         __dirname: t.__dirname
