@@ -178,6 +178,7 @@ declare global {
     const node: {
         process: NodeJS.Process;
         require: NodeRequire;
+        requireResolve: RequireResolve;
         module: NodeModule;
         __filename: string;
         __dirname: string;

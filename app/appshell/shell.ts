@@ -1,4 +1,9 @@
 import { BrowserWindow } from "electron";
+import _ = require("lodash");
+import { readBracketsPreferences } from "../brackets-config";
+
+const bracketsPreferences = readBracketsPreferences();
+const shellType = _.get(bracketsPreferences, "shell.type");
 
 export function getMainWindow(): BrowserWindow {
     const wins = BrowserWindow.getAllWindows();
@@ -11,3 +16,5 @@ export function getMainWindow(): BrowserWindow {
 export function getProcessArgv(): Array<string> {
     return process.argv;
 }
+
+export const type = shellType;

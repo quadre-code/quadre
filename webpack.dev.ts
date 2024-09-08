@@ -24,8 +24,12 @@ const configs: Array<Configuration> = [
             // Used by `app/appshell/index.ts` through `electronRemote.require`.
             "./app/appshell/app-menu.ts",
             "./app/appshell/shell.ts",
-            // Used by `app\socket-server\index.ts` through DomainManager.loadDomainModulesFromPaths.
+            // Used by `app/socket-server/index.ts` through DomainManager.loadDomainModulesFromPaths.
             "./app/socket-server/BaseDomain.ts",
+            // Used by `src/utils/NodeConnection.ts`
+            "./app/node-process/base.ts",
+            // Used by `app/node-process/base.ts` through DomainManager.loadDomainModulesFromPaths.
+            "./app/node-process/BaseDomain.ts",
         ],
         output: {
             path: path.resolve(__dirname, "dist"),

@@ -51,19 +51,6 @@ const saveWindowPosition = _.debounce(_.partial(_saveWindowPosition, false), 100
 // Quit when all windows are closed.
 let windowAllClosed = false;
 
-// Start the socket server used by Brackets'
-const socketServerLog = getLogger("socket-server");
-SocketServer.start(function (err: Error, port: number) {
-    if (err) {
-        shellState.set("socketServer.state", "ERR_NODE_FAILED");
-        socketServerLog.error("failed to start: " + errToString(err));
-    } else {
-        shellState.set("socketServer.state", "NO_ERROR");
-        shellState.set("socketServer.port", port);
-        socketServerLog.info("started on port " + port);
-    }
-});
-
 app.on("window-all-closed", function () {
     windowAllClosed = true;
     setTimeout(app.quit, 500);
@@ -248,6 +235,22 @@ export function openMainBracketsWindow(query: {} | string = {}): BrowserWindow {
     const smoothScrolling = _.get(bracketsPreferences, "shell.smoothScrolling", true);
     if (!smoothScrolling) {
         app.commandLine.appendSwitch("disable-smooth-scrolling");
+    }
+
+    // Start the socket server used by Brackets is shell.type is not `process`.
+    const shellType = _.get(bracketsPreferences, "shell.type");
+    if (shellType !== "process") {
+        const socketServerLog = getLogger("socket-server");
+        SocketServer.start(function (err: Error, port: number) {
+            if (err) {
+                shellState.set("socketServer.state", "ERR_NODE_FAILED");
+                socketServerLog.error("failed to start: " + errToString(err));
+            } else {
+                shellState.set("socketServer.state", "NO_ERROR");
+                shellState.set("socketServer.port", port);
+                socketServerLog.info("started on port " + port);
+            }
+        });
     }
 
     // create the browser window
