@@ -38,7 +38,7 @@ function initHttp(): Promise<http.Server> {
             }
             log.info("received unhandled http request for " + req.url);
             res.writeHead(404, {
-                "Content-Type": "text/plain"
+                "Content-Type": "text/plain",
             });
             res.end("Brackets-Shell Server");
         });
@@ -54,7 +54,7 @@ function initHttp(): Promise<http.Server> {
 
 function initWebsockets(_httpServer: http.Server): void {
     wsServer = new Server({
-        server: _httpServer
+        server: _httpServer,
     });
     wsServer.on("error", function (err) {
         log.error("wsServer error: " + err);

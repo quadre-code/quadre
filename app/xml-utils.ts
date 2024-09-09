@@ -3,7 +3,7 @@ import xml2js = require("xml2js");
 const xmlParser = new xml2js.Parser({
     trim: true,
     emptyTag: undefined,
-    explicitArray: false
+    explicitArray: false,
 });
 
 export function parseXml(xmlString: string): Promise<any> {

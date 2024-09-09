@@ -14,7 +14,7 @@ interface BracketsWindowGlobal {
     node: {
         process: NodeJS.Process;
         require: NodeRequire;
-        requireResolve: RequireResolve,
+        requireResolve: RequireResolve;
         module: NodeModule;
         __filename: string;
         __dirname: string;
@@ -40,7 +40,7 @@ process.once("loaded", function () {
             module,
             __filename,
             __dirname,
-            appshell
+            appshell,
         };
         electron.ipcRenderer.send("log", "preload-fine");
     } catch (err) {
@@ -59,7 +59,7 @@ process.once("loaded", function () {
         requireResolve: t.requireResolve,
         module: t.module,
         __filename: t.__filename,
-        __dirname: t.__dirname
+        __dirname: t.__dirname,
     };
     // this is to fix requirejs text plugin
     g.process = t.process;

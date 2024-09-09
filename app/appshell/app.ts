@@ -59,7 +59,9 @@ export function getExtensionsFolder(): string {
 export function showExtensionsFolder(appURL: any, callback: (err?: Error) => void): void {
     process.nextTick(function () {
         shell.showItemInFolder(utils.convertBracketsPathToWindowsPath(getExtensionsFolder()));
-        if (callback) { callback(); }
+        if (callback) {
+            callback();
+        }
     });
 }
 
@@ -77,7 +79,9 @@ export function getElapsedMilliseconds(): number {
     return diff[0] * 1000 + diff[1] / 1000000;
 }
 
-export function getPendingFilesToOpen(callback: (err?: Error, filePaths?: Array<string>) => void): void {
+export function getPendingFilesToOpen(
+    callback: (err?: Error, filePaths?: Array<string>) => void
+): void {
     process.nextTick(function () {
         // TODO: implement
         callback(new Error("app.getPendingFilesToOpen not implemented"), []);
@@ -114,10 +118,7 @@ export function openLiveBrowser(
     });
 }
 
-export function openURLInDefaultBrowser(
-    url: string,
-    callback: (err?: Error) => void
-): void {
+export function openURLInDefaultBrowser(url: string, callback: (err?: Error) => void): void {
     assert(url && typeof url === "string", "url must be a string");
     process.nextTick(function () {
         shell.openExternal(url);
@@ -138,13 +139,12 @@ export function showDeveloperTools(): void {
 }
 
 // TODO: get rid of callback? This call is not throwing any error.
-export function showOSFolder(
-    path: string,
-    callback: () => void
-): void {
+export function showOSFolder(path: string, callback: () => void): void {
     process.nextTick(function () {
         shell.showItemInFolder(utils.convertBracketsPathToWindowsPath(path));
-        if (callback) { callback(); }
+        if (callback) {
+            callback();
+        }
     });
 }
 
