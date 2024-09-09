@@ -42,7 +42,9 @@ function callMainWindowConsole(method: string, ...args: Array<string>): void {
 if (app) {
     const c: any = console;
     Object.keys(c).forEach((key: string) => {
-        if (typeof c[key] !== "function") { return; }
+        if (typeof c[key] !== "function") {
+            return;
+        }
         _console[key] = c[key];
         c[key] = (...args: Array<any>): void => callMainWindowConsole(key, ...args);
     });
@@ -53,7 +55,7 @@ export function getLogger(name: string): Logger {
         log: (...msgs: Array<string>) => console.log(`[${name}]`, ...msgs),
         info: (...msgs: Array<string>) => console.info(`[${name}]`, ...msgs),
         warn: (...msgs: Array<string>) => console.warn(`[${name}]`, ...msgs),
-        error: (...msgs: Array<string>) => console.error(`[${name}]`, ...msgs)
+        error: (...msgs: Array<string>) => console.error(`[${name}]`, ...msgs),
     };
 }
 

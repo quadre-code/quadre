@@ -7,7 +7,7 @@ export const log = {
     },
     error: (msg: string): void => {
         process.send && process.send({ type: "log", level: "error", msg });
-    }
+    },
 };
 console.log = (...args: Array<any>): void => log.info(args.join(" "));
 console.info = (...args: Array<any>): void => log.info(args.join(" "));

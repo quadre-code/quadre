@@ -7,7 +7,6 @@ const log = getLogger("squirrel-event-handler");
 
 function spawnUpdate(args: Array<string>): Promise<void> {
     return new Promise<void>((resolve) => {
-
         const appFolder = path.resolve(process.execPath, "..");
         const rootAtomFolder = path.resolve(appFolder, "..");
         const updateDotExe = path.resolve(path.join(rootAtomFolder, "Update.exe"));
@@ -16,9 +15,7 @@ function spawnUpdate(args: Array<string>): Promise<void> {
         args.push(exeName);
 
         log.info(`Spawning '${updateDotExe}' with args '${args}'`);
-        spawn(updateDotExe, args, { detached: true })
-            .on("close", resolve);
-
+        spawn(updateDotExe, args, { detached: true }).on("close", resolve);
     }).catch((err) => log.error(err));
 }
 
@@ -30,7 +27,7 @@ function handleInstall(squirrelCommand: string): boolean {
 
     // Install desktop and start menu shortcuts
     spawnUpdate(["--createShortcut"])
-    // Quit after shortcut has been created
+        // Quit after shortcut has been created
         .then(app.quit);
 
     return true;
@@ -42,7 +39,7 @@ function handleUninstall(squirrelCommand: string): boolean {
 
     // Remove desktop and start menu shortcuts
     spawnUpdate(["--removeShortcut"])
-    // Quit after shortcut has been removed
+        // Quit after shortcut has been removed
         .then(app.quit);
 
     return true;

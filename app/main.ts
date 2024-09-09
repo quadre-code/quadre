@@ -1,8 +1,21 @@
-import { app, BrowserWindow, BrowserWindowConstructorOptions, ipcMain, type WebPreferences, type IpcMainEvent } from "electron";
+import {
+    app,
+    BrowserWindow,
+    BrowserWindowConstructorOptions,
+    ipcMain,
+    type WebPreferences,
+    type IpcMainEvent,
+} from "electron";
 import * as electronRemote from "@electron/remote/main";
 import AutoUpdater from "./auto-updater";
 import * as _ from "lodash";
-import { getLogger, setLoggerWindow, unsetLoggerWindow, convertWindowsPathToUnixPath, errToString } from "./utils";
+import {
+    getLogger,
+    setLoggerWindow,
+    unsetLoggerWindow,
+    convertWindowsPathToUnixPath,
+    errToString,
+} from "./utils";
 import * as pathLib from "path";
 import * as urlLib from "url";
 import * as yargs from "yargs";
@@ -14,7 +27,7 @@ import * as SocketServer from "./socket-server"; // Implementation of Brackets' 
 
 electronRemote.initialize();
 
-const appInfo = require(/* webpackIgnore: true */"./package.json");
+const appInfo = require(/* webpackIgnore: true */ "./package.json");
 
 const log = getLogger("main");
 process.on("uncaughtException", (err: Error) => {
@@ -109,9 +122,9 @@ app.on("browser-window-created", (event, window) => {
                     nodeIntegration: false,
                     nodeIntegrationInSubFrames: true,
                     preload: pathLib.resolve(__dirname, "preload.js"),
-                    contextIsolation: false
-                }
-            }
+                    contextIsolation: false,
+                },
+            },
         };
     });
 
@@ -154,7 +167,7 @@ function formatUrl(filePath: string, options: FormatOptions = {}): string {
         url = urlLib.format({
             protocol: "file",
             slashes: true,
-            pathname: pathLib.resolve(__dirname, filePath)
+            pathname: pathLib.resolve(__dirname, filePath),
         });
     }
     console.log(url);
@@ -171,7 +184,10 @@ function setWebPreferences(
 
 export function openMainBracketsWindow(query: {} | string = {}): BrowserWindow {
     const argv = yargs
-        .option("startup-path", { describe: "A file path to startup instead of default one.", type: "string" })
+        .option("startup-path", {
+            describe: "A file path to startup instead of default one.",
+            type: "string",
+        })
         .option("devtools", { describe: "Open the devtools window at startup.", type: "boolean" })
         .parseSync();
 
@@ -187,9 +203,11 @@ export function openMainBracketsWindow(query: {} | string = {}): BrowserWindow {
     let queryString = "";
     if (_.isObject(query) && !_.isEmpty(query)) {
         const queryObj = query as _.Dictionary<string>;
-        queryString = "?" + _.map(queryObj, function (value, key) {
-            return key + "=" + encodeURIComponent(value);
-        }).join("&");
+        queryString =
+            "?" +
+            _.map(queryObj, function (value, key) {
+                return key + "=" + encodeURIComponent(value);
+            }).join("&");
     } else if (_.isString(query)) {
         const queryStr = query as string;
         const io1 = queryStr.indexOf("?");
@@ -217,7 +235,7 @@ export function openMainBracketsWindow(query: {} | string = {}): BrowserWindow {
             preload: pathLib.resolve(__dirname, "preload.js"),
             contextIsolation: false,
             sandbox: false,
-        }
+        },
     };
 
     const bracketsPreferences = readBracketsPreferences();
@@ -309,8 +327,8 @@ export function openMainBracketsWindow(query: {} | string = {}): BrowserWindow {
                     preload: pathLib.resolve(__dirname, "preload.js"),
                     contextIsolation: false,
                     sandbox: false,
-                }
-            }
+                },
+            },
         };
     });
 

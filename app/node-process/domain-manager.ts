@@ -1,6 +1,6 @@
 export interface DomainDescription {
     domain: string;
-    version: { major: number, minor: number };
+    version: { major: number; minor: number };
     commands: { [commandName: string]: DomainCommand };
     events: { [eventName: string]: DomainEvent };
 }
@@ -100,7 +100,6 @@ let _eventCount = 1;
  * to a domain in its init() method.
  */
 export class DomainManager {
-
     /**
      * Returns whether a domain with the specified name exists or not.
      * @param {string} domainName The domain name.
@@ -118,18 +117,19 @@ export class DomainManager {
      *   in the API spec, but serves no other purpose on the server. The client
      *   can make use of this.
      */
-    public registerDomain(domainName: string, version: { major: number, minor: number }): void {
+    public registerDomain(domainName: string, version: { major: number; minor: number }): void {
         if (!this.hasDomain(domainName)) {
             _domains[domainName] = {
                 domain: domainName,
                 version,
                 commands: {},
-                events: {}
+                events: {},
             };
-            process.send && process.send({
-                type: "refreshInterface",
-                spec: this.getDomainDescriptions()
-            });
+            process.send &&
+                process.send({
+                    type: "refreshInterface",
+                    spec: this.getDomainDescriptions(),
+                });
         } else {
             console.error("[DomainManager] Domain " + domainName + " already registered");
         }
@@ -171,12 +171,13 @@ export class DomainManager {
                 isAsync,
                 description,
                 parameters,
-                returns
+                returns,
             };
-            process.send && process.send({
-                type: "refreshInterface",
-                spec: this.getDomainDescriptions()
-            });
+            process.send &&
+                process.send({
+                    type: "refreshInterface",
+                    spec: this.getDomainDescriptions(),
+                });
         } else {
             throw new Error("Command " + domainName + "." + commandName + " already registered");
         }
@@ -216,7 +217,8 @@ export class DomainManager {
                 };
                 parameters.push(callback, progressCallback);
                 command.commandFunction(...parameters);
-            } else { // synchronous command
+            } else {
+                // synchronous command
                 try {
                     this.sendCommandResponse(id, command.commandFunction(...parameters));
                 } catch (err) {
@@ -235,20 +237,27 @@ export class DomainManager {
      * @param {?Array.<{name: string, type: string, description:string}>} parameters
      *    Used in the API documentation.
      */
-    public registerEvent(domainName: string, eventName: string, parameters: Array<DomainCommandArgument>): void {
+    public registerEvent(
+        domainName: string,
+        eventName: string,
+        parameters: Array<DomainCommandArgument>
+    ): void {
         if (!this.hasDomain(domainName)) {
             throw new Error(`Domain ${domainName} doesn't exist. Call .registerDomain first!`);
         }
         if (!_domains[domainName].events[eventName]) {
             _domains[domainName].events[eventName] = {
-                parameters
+                parameters,
             };
-            process.send && process.send({
-                type: "refreshInterface",
-                spec: this.getDomainDescriptions()
-            });
+            process.send &&
+                process.send({
+                    type: "refreshInterface",
+                    spec: this.getDomainDescriptions(),
+                });
         } else {
-            throw new Error("[DomainManager] Event " + domainName + "." + eventName + " already registered");
+            throw new Error(
+                "[DomainManager] Event " + domainName + "." + eventName + " already registered"
+            );
         }
     }
 
@@ -266,12 +275,7 @@ export class DomainManager {
      */
     public emitEvent(domainName: string, eventName: string, parameters?: Array<any>): void {
         if (_domains[domainName] && _domains[domainName].events[eventName]) {
-            this.sendEventMessage(
-                _eventCount++,
-                domainName,
-                eventName,
-                parameters
-            );
+            this.sendEventMessage(_eventCount++, domainName, eventName, parameters);
         } else {
             console.error("[DomainManager] No such event: " + domainName + "." + eventName);
         }
@@ -289,7 +293,7 @@ export class DomainManager {
      */
     public loadDomainModulesFromPaths(paths: Array<string>, notify: boolean = true): boolean {
         paths.forEach((path) => {
-            const m = require(/* webpackIgnore: true */path);
+            const m = require(/* webpackIgnore: true */ path);
             if (m && m.init) {
                 if (_initializedDomainModules.indexOf(m) < 0) {
                     m.init(this);
@@ -331,14 +335,19 @@ export class DomainManager {
     }
 
     public sendCommandProgress(id: number, message: any): void {
-        this._send("commandProgress", {id, message });
+        this._send("commandProgress", { id, message });
     }
 
     public sendCommandError(id: number, message: string, stack?: string): void {
         this._send("commandError", { id, message, stack });
     }
 
-    public sendEventMessage(id: number, domain: string, event: string, parameters?: Array<any>): void {
+    public sendEventMessage(
+        id: number,
+        domain: string,
+        event: string,
+        parameters?: Array<any>
+    ): void {
         this._send("event", { id, domain, event, parameters });
     }
 
@@ -347,7 +356,9 @@ export class DomainManager {
         try {
             m = JSON.parse(message);
         } catch (err) {
-            console.error(`[DomainManager] Error parsing message json -> ${err.name}: ${err.message}`);
+            console.error(
+                `[DomainManager] Error parsing message json -> ${err.name}: ${err.message}`
+            );
             this.sendError(`Unable to parse message: ${message}`);
             return;
         }
@@ -359,17 +370,18 @@ export class DomainManager {
         if (validId && hasDomain && hasCommand) {
             // okay if m.parameters is null/undefined
             try {
-                this.executeCommand(
-                    m.id,
-                    m.domain,
-                    m.command as string,
-                    m.parameters
-                );
+                this.executeCommand(m.id, m.domain, m.command as string, m.parameters);
             } catch (executionError) {
-                this.sendCommandError(m.id, errToMessage(executionError), errToString(executionError));
+                this.sendCommandError(
+                    m.id,
+                    errToMessage(executionError),
+                    errToString(executionError)
+                );
             }
         } else {
-            this.sendError(`Malformed message (${validId}, ${hasDomain}, ${hasCommand}): ${message}`);
+            this.sendError(
+                `Malformed message (${validId}, ${hasDomain}, ${hasCommand}): ${message}`
+            );
         }
     }
 
@@ -378,23 +390,24 @@ export class DomainManager {
         message: ConnectionMessage | ConnectionErrorMessage | CommandResponse | CommandError
     ): void {
         try {
-            process.send && process.send({
-                type: "receive",
-                msg: JSON.stringify({ type, message })
-            });
+            process.send &&
+                process.send({
+                    type: "receive",
+                    msg: JSON.stringify({ type, message }),
+                });
         } catch (e) {
             console.error(`[DomainManager] Unable to stringify message: ${e.message}`);
         }
     }
 
     public _sendBinary(message: Buffer): void {
-        process.send && process.send({
-            type: "receive",
-            msg: message,
-            options: { binary: true, mask: false }
-        });
+        process.send &&
+            process.send({
+                type: "receive",
+                msg: message,
+                options: { binary: true, mask: false },
+            });
     }
-
 }
 
 const dm = new DomainManager();

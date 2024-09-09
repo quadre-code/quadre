@@ -3,7 +3,7 @@ import { errToMessage, errToString, getLogger } from "../utils";
 
 export interface DomainDescription {
     domain: string;
-    version: { major: number, minor: number } | null;
+    version: { major: number; minor: number } | null;
     commands: { [commandName: string]: DomainCommand };
     events: { [eventName: string]: DomainEvent };
 }
@@ -58,7 +58,6 @@ let _eventCount = 1;
  * to a domain in its init() method.
  */
 export const DomainManager = {
-
     /**
      * Returns whether a domain with the specified name exists or not.
      * @param {string} domainName The domain name.
@@ -76,13 +75,16 @@ export const DomainManager = {
      *   in the API spec, but serves no other purpose on the server. The client
      *   can make use of this.
      */
-    registerDomain: function registerDomain(domainName: string, version: { major: number, minor: number } | null): void {
+    registerDomain: function registerDomain(
+        domainName: string,
+        version: { major: number; minor: number } | null
+    ): void {
         if (!this.hasDomain(domainName)) {
             _domains[domainName] = {
                 domain: domainName,
                 version,
                 commands: {},
-                events: {}
+                events: {},
             };
         } else {
             console.error("[DomainManager] Domain " + domainName + " already registered");
@@ -126,11 +128,10 @@ export const DomainManager = {
                 isAsync,
                 description,
                 parameters,
-                returns
+                returns,
             };
         } else {
-            throw new Error("Command " + domainName + "." +
-                commandName + " already registered");
+            throw new Error("Command " + domainName + "." + commandName + " already registered");
         }
     },
 
@@ -153,8 +154,7 @@ export const DomainManager = {
         commandName: string,
         parameters: Array<any> = []
     ): void {
-        if (_domains[domainName] &&
-                _domains[domainName].commands[commandName]) {
+        if (_domains[domainName] && _domains[domainName].commands[commandName]) {
             const command = _domains[domainName].commands[commandName];
             if (command.isAsync) {
                 const callback = function (err: Error, result: any): void {
@@ -166,7 +166,8 @@ export const DomainManager = {
                 };
                 parameters.push(callback);
                 command.commandFunction.apply(connection, parameters);
-            } else { // synchronous command
+            } else {
+                // synchronous command
                 try {
                     connection.sendCommandResponse(
                         id,
@@ -199,11 +200,12 @@ export const DomainManager = {
 
         if (!_domains[domainName].events[eventName]) {
             _domains[domainName].events[eventName] = {
-                parameters
+                parameters,
             };
         } else {
-            console.error("[DomainManager] Event " + domainName + "." +
-                eventName + " already registered");
+            console.error(
+                "[DomainManager] Event " + domainName + "." + eventName + " already registered"
+            );
         }
     },
 
@@ -219,7 +221,11 @@ export const DomainManager = {
      * @param {string} eventName The event name.
      * @param {?Array} parameters The parameters. Must be JSON.stringify-able
      */
-    emitEvent: function emitEvent(domainName: string, eventName: string, parameters?: Array<any>): void {
+    emitEvent: function emitEvent(
+        domainName: string,
+        eventName: string,
+        parameters?: Array<any>
+    ): void {
         if (_domains[domainName] && _domains[domainName].events[eventName]) {
             ConnectionManager.sendEventToAllConnections(
                 _eventCount++,
@@ -228,8 +234,7 @@ export const DomainManager = {
                 parameters
             );
         } else {
-            console.error("[DomainManager] No such event: " + domainName +
-                "." + eventName);
+            console.error("[DomainManager] No such event: " + domainName + "." + eventName);
         }
     },
 
@@ -245,7 +250,7 @@ export const DomainManager = {
      */
     loadDomainModulesFromPaths: function loadDomainModulesFromPaths(paths: Array<string>): boolean {
         paths.forEach((path) => {
-            const m = require(/* webpackIgnore: true */path);
+            const m = require(/* webpackIgnore: true */ path);
             if (m && m.init) {
                 if (_initializedDomainModules.indexOf(m) < 0) {
                     m.init(this);
@@ -266,8 +271,7 @@ export const DomainManager = {
      */
     getDomainDescriptions: function getDomainDescriptions(): void {
         return JSON.parse(JSON.stringify(_domains));
-    }
-
+    },
 };
 
 // Connection manager.
@@ -306,7 +310,6 @@ const log = getLogger("connection-manager");
 const _connections: Array<Connection> = [];
 
 class Connection {
-
     /**
      * @private
      * @type {WebSocket}
@@ -343,7 +346,10 @@ class Connection {
      *                 "event", "commandResponse", "commandError", "error"
      * @param {object} message Message body, must be JSON.stringify-able
      */
-    private _send(type: string, message: ConnectionMessage | ConnectionErrorMessage | CommandResponse | CommandError): void {
+    private _send(
+        type: string,
+        message: ConnectionMessage | ConnectionErrorMessage | CommandResponse | CommandError
+    ): void {
         if (this._ws && this._connected) {
             try {
                 this._ws.send(JSON.stringify({ type, message }));
@@ -361,7 +367,7 @@ class Connection {
      */
     private _sendBinary(message: Buffer): void {
         if (this._ws && this._connected) {
-            this._ws.send(message, {binary: true, mask: false});
+            this._ws.send(message, { binary: true, mask: false });
         }
     }
 
@@ -401,10 +407,16 @@ class Connection {
                     m.parameters
                 );
             } catch (executionError) {
-                this.sendCommandError(m.id, errToMessage(executionError), errToString(executionError));
+                this.sendCommandError(
+                    m.id,
+                    errToMessage(executionError),
+                    errToString(executionError)
+                );
             }
         } else {
-            this.sendError(`Malformed message (${validId}, ${hasDomain}, ${hasCommand}): ${message}`);
+            this.sendError(
+                `Malformed message (${validId}, ${hasDomain}, ${hasCommand}): ${message}`
+            );
         }
     }
 
@@ -476,10 +488,14 @@ class Connection {
      * @param {string} event Name of the event
      * @param {object} parameters Event parameters. Must be JSON.stringify-able.
      */
-    public sendEventMessage(id: number, domain: string, event: string, parameters?: Array<any>): void {
+    public sendEventMessage(
+        id: number,
+        domain: string,
+        event: string,
+        parameters?: Array<any>
+    ): void {
         this._send("event", { id, domain, event, parameters });
     }
-
 }
 
 export const ConnectionManager = {
@@ -514,9 +530,14 @@ export const ConnectionManager = {
      * @param {string} event Name of the event
      * @param {object} parameters Event parameters. Must be JSON.stringify-able.
      */
-    sendEventToAllConnections: function sendEventToAllConnections(id: number, domain: string, event: string, parameters?: Array<any>): void {
+    sendEventToAllConnections: function sendEventToAllConnections(
+        id: number,
+        domain: string,
+        event: string,
+        parameters?: Array<any>
+    ): void {
         _connections.forEach(function (c) {
             c.sendEventMessage(id, domain, event, parameters);
         });
-    }
+    },
 };

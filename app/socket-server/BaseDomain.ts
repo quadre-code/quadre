@@ -54,7 +54,7 @@ function cmdLoadDomainModulesFromPaths(paths: Array<string>): boolean {
 function init(domainManager: typeof DomainManager): void {
     _domainManager = domainManager;
 
-    _domainManager.registerDomain("base", {major: 0, minor: 1});
+    _domainManager.registerDomain("base", { major: 0, minor: 1 });
     _domainManager.registerCommand(
         "base",
         "enableDebugger",
@@ -62,7 +62,7 @@ function init(domainManager: typeof DomainManager): void {
         false,
         "Attempt to enable the debugger",
         [], // no parameters
-        []  // no return type
+        [] // no return type
     );
     _domainManager.registerCommand(
         "base",
@@ -71,26 +71,23 @@ function init(domainManager: typeof DomainManager): void {
         false,
         "Attempt to restart the Node server",
         [], // no parameters
-        []  // no return type
+        [] // no return type
     );
     _domainManager.registerCommand(
         "base",
         "loadDomainModulesFromPaths",
         cmdLoadDomainModulesFromPaths,
         false,
-        "Attempt to load command modules from the given paths. " +
-            "The paths should be absolute.",
-        [{name: "paths", type: "array<string>"}],
-        [{name: "success", type: "boolean"}]
+        "Attempt to load command modules from the given paths. " + "The paths should be absolute.",
+        [{ name: "paths", type: "array<string>" }],
+        [{ name: "success", type: "boolean" }]
     );
 
-    _domainManager.registerEvent(
-        "base",
-        "log",
-        [{name: "level", type: "string"},
-            {name: "timestamp", type: "Date"},
-            {name: "message", type: "string"}]
-    );
+    _domainManager.registerEvent("base", "log", [
+        { name: "level", type: "string" },
+        { name: "timestamp", type: "Date" },
+        { name: "message", type: "string" },
+    ]);
 
     _domainManager.registerEvent("base", "newDomains", []);
 }

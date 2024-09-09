@@ -6,7 +6,10 @@ import * as utils from "./utils";
 import { app } from "electron";
 const log = utils.getLogger("shell-config");
 
-const CONFIG_PATH = path.resolve(utils.convertWindowsPathToUnixPath(app.getPath("userData")), "shell-config.json");
+const CONFIG_PATH = path.resolve(
+    utils.convertWindowsPathToUnixPath(app.getPath("userData")),
+    "shell-config.json"
+);
 let config: {};
 
 if (!process.env.TMPDIR && !process.env.TMP && !process.env.TEMP) {
