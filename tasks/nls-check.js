@@ -65,7 +65,10 @@ function nlsCheck(cb) {
         });
 
         if (unknownKeys.length) {
-            log.error("There are unknown keys included in " + PATH + "/" + subdir + "/" + filename + ":", unknownKeys);
+            log.error(
+                "There are unknown keys included in " + PATH + "/" + subdir + "/" + filename + ":",
+                unknownKeys
+            );
             encounteredErrors = true;
         }
     });

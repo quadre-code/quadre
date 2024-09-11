@@ -25,9 +25,9 @@
 "use strict";
 
 const childProcess = require("child_process");
-const util         = require("util");
-const build        = {};
-const pexec        = util.promisify(childProcess.exec);
+const util = require("util");
+const build = {};
+const pexec = util.promisify(childProcess.exec);
 
 function getGitInfo(cwd) {
     const opts = { cwd: cwd, maxBuffer: 1024 * 1024 };
@@ -35,40 +35,43 @@ function getGitInfo(cwd) {
 
     // count the number of commits for our version number
     //     <major>.<minor>.<patch>-<number of commits>
-    return pexec("git log --format=%h", opts).then(function ({ stdout }) {
-        json.commits = stdout.toString().match(/[0-9a-f]\n/g).length;
+    return pexec("git log --format=%h", opts)
+        .then(function ({ stdout }) {
+            json.commits = stdout.toString().match(/[0-9a-f]\n/g).length;
 
-        // get the hash for the current commit (HEAD)
-        return pexec("git rev-parse HEAD", opts);
-    }).then(function ({ stdout }) {
-        json.sha = /([a-f0-9]+)/.exec(stdout.toString())[1];
+            // get the hash for the current commit (HEAD)
+            return pexec("git rev-parse HEAD", opts);
+        })
+        .then(function ({ stdout }) {
+            json.sha = /([a-f0-9]+)/.exec(stdout.toString())[1];
 
-        // compare HEAD to the HEADs on the remote
-        return pexec("git ls-remote --heads origin", opts);
-    }).then(function ({ stdout }) {
-        const log = stdout.toString();
-        const re = new RegExp(json.sha + "\\srefs/heads/(\\S+)\\s");
-        const match = re.exec(log);
+            // compare HEAD to the HEADs on the remote
+            return pexec("git ls-remote --heads origin", opts);
+        })
+        .then(function ({ stdout }) {
+            const log = stdout.toString();
+            const re = new RegExp(json.sha + "\\srefs/heads/(\\S+)\\s");
+            const match = re.exec(log);
 
-        // if HEAD matches to a remote branch HEAD, grab the branch name
-        if (match) {
-            json.branch = match[1];
-            return json;
-        }
+            // if HEAD matches to a remote branch HEAD, grab the branch name
+            if (match) {
+                json.branch = match[1];
+                return json;
+            }
 
-        // else, try match HEAD using reflog
-        const reflog = pexec("git reflog show --no-abbrev-commit --all", opts);
+            // else, try match HEAD using reflog
+            const reflog = pexec("git reflog show --no-abbrev-commit --all", opts);
 
-        return reflog.then(function (result) {
-            const logReflog = result.stdout;
-            const reReflog = new RegExp(json.sha + "\\srefs/(remotes/origin|heads)/(\\S+)@");
-            const matchReflog = reReflog.exec(logReflog);
+            return reflog.then(function (result) {
+                const logReflog = result.stdout;
+                const reReflog = new RegExp(json.sha + "\\srefs/(remotes/origin|heads)/(\\S+)@");
+                const matchReflog = reReflog.exec(logReflog);
 
-            json.branch = (matchReflog && matchReflog[2]) || "(no branch)";
+                json.branch = (matchReflog && matchReflog[2]) || "(no branch)";
 
-            return json;
+                return json;
+            });
         });
-    });
 }
 
 build.getGitInfo = getGitInfo;

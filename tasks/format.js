@@ -16,7 +16,7 @@ function getGlobs() {
         ...meta.app,
         // ...meta.src,
         // ...meta.test,
-        // ...meta.build,
+        ...meta.build,
     ];
     return globs;
 }

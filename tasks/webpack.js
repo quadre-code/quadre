@@ -2,9 +2,9 @@
 
 const gulp = require("gulp");
 const PluginError = require("plugin-error");
-const _       = require("lodash");
-const path    = require("path");
-const spawn   = require("cross-spawn");
+const _ = require("lodash");
+const path = require("path");
+const spawn = require("cross-spawn");
 
 function browserDependencies(cb) {
     const webpackPath = path.resolve(
@@ -20,13 +20,13 @@ function browserDependencies(cb) {
             "--output-path=./src/thirdparty",
             "--output-filename=semver.browser.js",
             "--output-library-type=amd",
-            "--mode=development"
-        ]
+            "--mode=development",
+        ],
     ];
     const doneWithWebpackTask = _.after(webpackTasks.length, cb);
-    webpackTasks.forEach(args => {
+    webpackTasks.forEach((args) => {
         const wp = spawn(webpackPath, args, {
-            cwd: path.resolve(__dirname, "..")
+            cwd: path.resolve(__dirname, ".."),
         });
         wp.stdout.on("data", (data) => {
             console.log(`webpack-stdout: ${data}`);
@@ -41,7 +41,10 @@ function browserDependencies(cb) {
                 return;
             }
 
-            const err = new PluginError("webpack-browser-dependencies", `Something went wrong: code ${ code }`);
+            const err = new PluginError(
+                "webpack-browser-dependencies",
+                `Something went wrong: code ${code}`
+            );
             return cb(err);
         });
     });
