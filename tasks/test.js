@@ -24,16 +24,16 @@
 
 "use strict";
 
-const common       = require("./lib/common");
-const file         = require("./lib/file");
+const common = require("./lib/common");
+const file = require("./lib/file");
 const childProcess = require("child_process");
-const path         = require("path");
-const fs           = require("fs-extra");
-const XmlDocument  = require("xmldoc").XmlDocument;
-const gulp         = require("gulp");
-const log          = require("fancy-log");
-const PluginError  = require("plugin-error");
-const { argv }     = require("yargs");
+const path = require("path");
+const fs = require("fs-extra");
+const XmlDocument = require("xmldoc").XmlDocument;
+const gulp = require("gulp");
+const log = require("fancy-log");
+const PluginError = require("plugin-error");
+const { argv } = require("yargs");
 const electronPath = require("electron");
 
 const taskName = "test-integration";
@@ -63,16 +63,28 @@ function checkForTestFailures(pathToResult) {
 }
 
 function testIntegration(cb) {
-    const stdio           = ["inherit", "inherit", "inherit", "ipc"];
-    const opts            = { cwd: process.cwd(), stdio };
-    const spec            = argv["spec"] || "all";
-    const suite           = argv["suite"] || "all";
-    const resultsDir      = process.env.TEST_JUNIT_XML_ROOT || path.join(process.cwd(), "dist", "test", "results");
-    const results         = resultsDir + "/" + (argv["results"] || "TEST-results") + ".xml";
-    const resultsPath     = common.resolve(results).replace(/\\/g, "/");
-    const specRunnerPath  = common.resolve("dist/test/SpecRunner.html");
-    const isCI            = /true/i.test(process.env.CI);
-    const args            = " --startup-path=\"" + specRunnerPath + "?suite=" + encodeURIComponent(suite) + "&spec=" + encodeURIComponent(spec) + "&resultsPath=" + encodeURIComponent(resultsPath) + "&isCI=" + isCI + "\"";
+    const stdio = ["inherit", "inherit", "inherit", "ipc"];
+    const opts = { cwd: process.cwd(), stdio };
+    const spec = argv["spec"] || "all";
+    const suite = argv["suite"] || "all";
+    const resultsDir =
+        process.env.TEST_JUNIT_XML_ROOT || path.join(process.cwd(), "dist", "test", "results");
+    const results = resultsDir + "/" + (argv["results"] || "TEST-results") + ".xml";
+    const resultsPath = common.resolve(results).replace(/\\/g, "/");
+    const specRunnerPath = common.resolve("dist/test/SpecRunner.html");
+    const isCI = /true/i.test(process.env.CI);
+    const args =
+        ' --startup-path="' +
+        specRunnerPath +
+        "?suite=" +
+        encodeURIComponent(suite) +
+        "&spec=" +
+        encodeURIComponent(spec) +
+        "&resultsPath=" +
+        encodeURIComponent(resultsPath) +
+        "&isCI=" +
+        isCI +
+        '"';
     const cmd = electronPath + " . " + args;
 
     log.info(cmd);
@@ -102,7 +114,10 @@ function testIntegration(cb) {
 
                 const failures = checkForTestFailures(resultsPath);
                 if (failures) {
-                    const errPlugin = new PluginError(taskName, failures + " test failure(s). Results are available from " + resultsPath);
+                    const errPlugin = new PluginError(
+                        taskName,
+                        failures + " test failure(s). Results are available from " + resultsPath
+                    );
                     cb(errPlugin);
                 } else {
                     cb();

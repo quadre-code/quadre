@@ -14,8 +14,7 @@ const DIST_TESTS_DIRS = ["dist/test"];
 function copyJs(filePath, srcDir, distDir) {
     const relative = path.relative(path.join(__dirname, srcDir), filePath);
     const to = path.dirname(path.join(distDir, relative));
-    return gulp.src(filePath, { cwd: __dirname })
-        .pipe(gulp.dest(to));
+    return gulp.src(filePath, { cwd: __dirname }).pipe(gulp.dest(to));
 }
 
 gulp.task("copy-src-dist", (_cb) => {
@@ -40,7 +39,7 @@ gulp.task("watch-dev", () => {
     const BASE_WATCH_DIRS = BASE_DIRS.concat(BASE_TESTS_DIRS);
     const DIST_WATCH_DIRS = DIST_DIRS.concat(DIST_TESTS_DIRS);
     BASE_WATCH_DIRS.forEach((srcDir, idx) => {
-        watch(`${srcDir}/**/!(*.ts|*.tsx)`, file => {
+        watch(`${srcDir}/**/!(*.ts|*.tsx)`, (file) => {
             copyJs(file.path, srcDir, DIST_WATCH_DIRS[idx]);
             console.log(`copied modified ${file.path} from ${srcDir} to ${DIST_WATCH_DIRS[idx]}`);
         });

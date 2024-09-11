@@ -39,5 +39,5 @@ function writeJSON(pathJson, obj) {
     file.write(pathJson, content);
 }
 
-exports.writeJSON    = writeJSON;
-exports.resolve      = resolve;
+exports.writeJSON = writeJSON;
+exports.resolve = resolve;

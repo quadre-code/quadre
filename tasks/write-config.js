@@ -58,41 +58,43 @@ writeConfig.displayName = "write-config";
 
 gulp.task(writeConfig);
 
-
 function writeConfigDist(cb) {
     doWriteConfig("dist", cb);
 }
-writeConfigDist.description = "Merge package.json and src/brackets.config.json into src/config.json";
+writeConfigDist.description =
+    "Merge package.json and src/brackets.config.json into src/config.json";
 writeConfigDist.displayName = "write-config:dist";
 
 gulp.task(writeConfigDist);
 
-
 function writeConfigPrerelease(cb) {
     doWriteConfig("prerelease", cb);
 }
-writeConfigPrerelease.description = "Merge package.json and src/brackets.config.json into src/config.json";
+writeConfigPrerelease.description =
+    "Merge package.json and src/brackets.config.json into src/config.json";
 writeConfigPrerelease.displayName = "write-config:prerelease";
 
 gulp.task(writeConfigPrerelease);
 
-
 function buildConfig(cb) {
     const distConfig = file.readJSON("src/config.json");
 
-    gitInfo.getGitInfo(process.cwd()).then(function (info) {
-        distConfig.buildnumber = info.commits;
-        // distConfig.version = distConfig.version.substr(0, distConfig.version.lastIndexOf("-") + 1) + info.commits;
-        distConfig.repository.SHA = info.sha;
-        distConfig.repository.branch = info.branch;
-        distConfig.config.build_timestamp = new Date().toString().split("(")[0].trim();
-        common.writeJSON("dist/www/config.json", distConfig);
-        cb();
-    }, function (err) {
-        log.error(err);
-        const errPlugin = new PluginError("build-config", err, { showStack: true });
-        cb(errPlugin);
-    });
+    gitInfo.getGitInfo(process.cwd()).then(
+        function (info) {
+            distConfig.buildnumber = info.commits;
+            // distConfig.version = distConfig.version.substr(0, distConfig.version.lastIndexOf("-") + 1) + info.commits;
+            distConfig.repository.SHA = info.sha;
+            distConfig.repository.branch = info.branch;
+            distConfig.config.build_timestamp = new Date().toString().split("(")[0].trim();
+            common.writeJSON("dist/www/config.json", distConfig);
+            cb();
+        },
+        function (err) {
+            log.error(err);
+            const errPlugin = new PluginError("build-config", err, { showStack: true });
+            cb(errPlugin);
+        }
+    );
 }
 buildConfig.description = "Update config.json with the build timestamp, branch and SHA being built";
 

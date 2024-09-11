@@ -10,10 +10,7 @@ const gulp = require("gulp");
 const eslint = require("gulp-eslint-new");
 
 const meta = {
-    app: [
-        "app/**/*.js",
-        "app/**/*.ts"
-    ],
+    app: ["app/**/*.js", "app/**/*.ts"],
     src: [
         "src/**/*.js",
         "src/**/*.ts",
@@ -27,7 +24,7 @@ const meta = {
         "!src/extensions/disabled/**",
         "!**/node_modules/**",
         "!src/**/*-min.js",
-        "!src/**/*.min.js"
+        "!src/**/*.min.js",
     ],
     test: [
         "test/**/*.js",
@@ -41,23 +38,22 @@ const meta = {
         "!test/thirdparty/**",
         "!test/**/node_modules/**/*.js",
         "test/spec/LanguageTools-test-files/**/*.js",
-        "test/spec/LanguageTools-test-files/**/*.ts"
+        "test/spec/LanguageTools-test-files/**/*.ts",
     ],
-    build: [
-        "gulpfile.js",
-        "tasks/**/*.js",
-        "tasks/**/*.ts"
-    ]
+    build: ["gulpfile.js", "tasks/**/*.js", "tasks/**/*.ts"],
 };
 exports.meta = meta;
 
 function eslintTask(files) {
     // To automatically fix issues add `fix: true` to the eslint options and
     // `.pipe(gulp.dest("./"));` at the end of the pipe.
-    return gulp.src(files, { base: "." })
-        .pipe(eslint({
-            quiet: true
-        }))
+    return gulp
+        .src(files, { base: "." })
+        .pipe(
+            eslint({
+                quiet: true,
+            })
+        )
         .pipe(eslint.format())
         .pipe(eslint.failAfterError());
 }
@@ -78,9 +74,4 @@ gulp.task("eslint:build", () => {
     return eslintTask(meta.build);
 });
 
-gulp.task("eslint", gulp.parallel(
-    "eslint:build",
-    "eslint:app",
-    "eslint:src",
-    "eslint:test"
-));
+gulp.task("eslint", gulp.parallel("eslint:build", "eslint:app", "eslint:src", "eslint:test"));

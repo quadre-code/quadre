@@ -24,16 +24,16 @@
 
 "use strict";
 
-const gulp    = require("gulp");
-const log     = require("fancy-log");
+const gulp = require("gulp");
+const log = require("fancy-log");
 const PluginError = require("plugin-error");
-const _       = require("lodash");
-const common  = require("./lib/common");
-const file    = require("./lib/file");
-const exec    = require("child_process").exec;
-const _spawn  = require("child_process").spawn;
-const glob    = require("glob");
-const path    = require("path");
+const _ = require("lodash");
+const common = require("./lib/common");
+const file = require("./lib/file");
+const exec = require("child_process").exec;
+const _spawn = require("child_process").spawn;
+const glob = require("glob");
+const path = require("path");
 
 const isWindows = process.platform.startsWith("win");
 
@@ -107,31 +107,35 @@ function runNpmInstall(where, productionMode, callback) {
             ".bin",
             process.platform === "win32" ? "electron-rebuild.cmd" : "electron-rebuild"
         );
-        const args = [
-            "-m=" + path.resolve(__dirname, "..", where)
-        ];
+        const args = ["-m=" + path.resolve(__dirname, "..", where)];
         log.info("running electron-rebuild " + args.join(" "));
-        spawn(npmRebuildPath, args, { cwd: "./" + where }, function (errSpawn, stdoutSpawn, stderrSpawn) {
-            if (errSpawn) {
-                if (stderrSpawn) {
-                    log.error(stderrSpawn);
-                } else {
-                    log.error(errSpawn);
+        spawn(
+            npmRebuildPath,
+            args,
+            { cwd: "./" + where },
+            function (errSpawn, stdoutSpawn, stderrSpawn) {
+                if (errSpawn) {
+                    if (stderrSpawn) {
+                        log.error(stderrSpawn);
+                    } else {
+                        log.error(errSpawn);
+                    }
+                    log.error("failed electron-rebuild in " + where);
+                    const errPlugin = new PluginError("runNpmInstall", errSpawn, {
+                        showStack: true,
+                    });
+                    return callback(errPlugin);
                 }
-                log.error("failed electron-rebuild in " + where);
-                const errPlugin = new PluginError("runNpmInstall", errSpawn, { showStack: true });
-                return callback(errPlugin);
-            }
 
-            if (stdoutSpawn) {
-                log.info(stdoutSpawn);
+                if (stdoutSpawn) {
+                    log.info(stdoutSpawn);
+                }
+                log.info("finished electron-rebuild in " + where);
+                callback();
             }
-            log.info("finished electron-rebuild in " + where);
-            callback();
-        });
+        );
     });
 }
-
 
 function npmInstallDist(cb) {
     // Top level npm-shrinkwrap file is not copied over. Do it now.
@@ -151,7 +155,7 @@ function npmInstallDist(cb) {
         "issues",
         "repository",
         "dependencies",
-        "optionalDependencies"
+        "optionalDependencies",
     ]);
 
     common.writeJSON("dist/package.json", appJson);
@@ -165,9 +169,7 @@ function npmInstallDist(cb) {
 
         // dist/www/node_modules
         const packageJSONSrc = file.readJSON("src/package.json");
-        const srcJson = _.omit(packageJSONSrc, [
-            "scripts"
-        ]);
+        const srcJson = _.omit(packageJSONSrc, ["scripts"]);
         common.writeJSON("dist/www/package.json", srcJson);
 
         const dirs = ["dist/www"];
@@ -177,7 +179,9 @@ function npmInstallDist(cb) {
             runNpmInstall(dir, function (errSrc) {
                 if (errSrc) {
                     log.error(errSrc);
-                    const errPlugin = new PluginError("npm-install-dist", errSrc, { showStack: true });
+                    const errPlugin = new PluginError("npm-install-dist", errSrc, {
+                        showStack: true,
+                    });
                     return cb(errPlugin);
                 }
 
@@ -186,9 +190,9 @@ function npmInstallDist(cb) {
         });
     });
 }
-npmInstallDist.description = "Install node_modules to the dist folder so it gets bundled with release";
+npmInstallDist.description =
+    "Install node_modules to the dist folder so it gets bundled with release";
 gulp.task("npm-install-dist", npmInstallDist);
-
 
 function npmInstallSrc(cb) {
     const dirs = ["src"];
@@ -209,14 +213,13 @@ function npmInstallSrc(cb) {
 npmInstallSrc.description = "Install node_modules to the src folder";
 gulp.task("npm-install-src", npmInstallSrc);
 
-
 function npmInstallExtensions(globs, filterOutNodeModules = true, runProduction = true) {
     return new Promise(function (resolve) {
         let error;
         const doneWithGlob = _.after(globs.length, () => {
             resolve(error);
         });
-        globs.forEach(g => {
+        globs.forEach((g) => {
             glob(g, function (err, files) {
                 if (err) {
                     log.error(err);
@@ -231,7 +234,10 @@ function npmInstallExtensions(globs, filterOutNodeModules = true, runProduction 
                 const doneWithFile = _.after(files.length, doneWithGlob);
                 files.forEach(function (_file) {
                     const packageJSON = file.readJSON(_file);
-                    if (!packageJSON.dependencies || !Object.keys(packageJSON.dependencies).length) {
+                    if (
+                        !packageJSON.dependencies ||
+                        !Object.keys(packageJSON.dependencies).length
+                    ) {
                         return doneWithFile();
                     }
 
@@ -249,47 +255,61 @@ function npmInstallExtensions(globs, filterOutNodeModules = true, runProduction 
 }
 
 function npmInstallExtensionsSrc(cb) {
-    npmInstallExtensions([
-        "src/+(extensibility|extensions|LiveDevelopment)/**/package.json"
-    ]).then(function (err) {
-        if (err) {
-            const errPlugin = new PluginError("npm-install-extensions-src", err, { showStack: true });
-            return cb(errPlugin);
-        }
+    npmInstallExtensions(["src/+(extensibility|extensions|LiveDevelopment)/**/package.json"]).then(
+        function (err) {
+            if (err) {
+                const errPlugin = new PluginError("npm-install-extensions-src", err, {
+                    showStack: true,
+                });
+                return cb(errPlugin);
+            }
 
-        cb();
-    });
+            cb();
+        }
+    );
 }
-npmInstallExtensionsSrc.description = "Install node_modules for default extensions which have package.json defined";
+npmInstallExtensionsSrc.description =
+    "Install node_modules for default extensions which have package.json defined";
 gulp.task("npm-install-extensions-src", npmInstallExtensionsSrc);
 
 function npmInstallExtensionsDist(cb) {
     Promise.all([
+        npmInstallExtensions(
+            [
+                "dist/www/node_modules/codemirror/package.json", // make sure codemirror builds
+            ],
+            false,
+            false
+        ),
         npmInstallExtensions([
-            "dist/www/node_modules/codemirror/package.json" // make sure codemirror builds
-        ], false, false),
-        npmInstallExtensions([
-            "dist/www/+(extensibility|extensions|LiveDevelopment)/**/package.json"
-        ])
-    ]).then(function (results) {
-        const hasError = results.some(x => x !== null && x !== undefined);
-        if (hasError) {
-            return cb(hasError);
-        }
+            "dist/www/+(extensibility|extensions|LiveDevelopment)/**/package.json",
+        ]),
+    ])
+        .then(function (results) {
+            const hasError = results.some((x) => x !== null && x !== undefined);
+            if (hasError) {
+                return cb(hasError);
+            }
 
-        cb();
-    }).catch(function (err) {
-        log.error("err " + err);
-        const errPlugin = new PluginError("npm-install-extensions-dist", err, { showStack: true });
-        return cb(errPlugin);
-    });
+            cb();
+        })
+        .catch(function (err) {
+            log.error("err " + err);
+            const errPlugin = new PluginError("npm-install-extensions-dist", err, {
+                showStack: true,
+            });
+            return cb(errPlugin);
+        });
 }
-npmInstallExtensionsDist.description = "Install node_modules for default extensions which have package.json defined";
+npmInstallExtensionsDist.description =
+    "Install node_modules for default extensions which have package.json defined";
 gulp.task("npm-install-extensions-dist", npmInstallExtensionsDist);
 
-
-gulp.task("npm-install-source", gulp.series(
-    "npm-install-src",
-    "copy-thirdparty"
-    // "npm-install-extensions-src"
-));
+gulp.task(
+    "npm-install-source",
+    gulp.series(
+        "npm-install-src",
+        "copy-thirdparty"
+        // "npm-install-extensions-src"
+    )
+);
