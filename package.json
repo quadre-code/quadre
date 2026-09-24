@@ -90,7 +90,6 @@
     "css-minimizer-webpack-plugin": "^7.0.0",
     "electron": "^34.5.8",
     "electron-builder": "^25.1.8",
-    "electron-packager": "^17.1.1",
     "eslint": "^8.57.0",
     "eslint-config-moody-tsx": "^2.1.0",
     "eslint-plugin-react": "^7.35.0",
