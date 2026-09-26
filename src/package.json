@@ -2,7 +2,7 @@
   "name": "brackets-src",
   "dependencies": {
     "acorn": "5.1.1",
-    "codemirror": "^5.65.17",
+    "codemirror": "^5.65.21",
     "codemirror-addon-toggle-comment": "~0.11.1",
     "create-react-class": "^15.7.0",
     "immutable": "3.8.2",
@@ -12,12 +12,12 @@
   },
   "devDependencies": {
     "@types/acorn": "^4.0.6",
-    "@types/codemirror": "^5.60.15",
+    "@types/codemirror": "^5.60.18",
     "@types/jquery": "^2.0.41",
-    "@types/less": "^3.0.6",
+    "@types/less": "^3.0.8",
     "@types/lodash": "^3.10.9",
-    "@types/react": "^16.14.60",
-    "@types/react-dom": "^16.9.24",
+    "@types/react": "^16.14.70",
+    "@types/react-dom": "^16.9.25",
     "@types/requirejs": "^2.1.37"
   }
 }
