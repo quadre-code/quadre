@@ -1,3 +1,32 @@
+## v2.0.0-alpha.7 (2026-09-27)
+
+Update electron to 34.5.8
+
+With this newer version of electron the following OS are not supported anymore:
+- Windows 7, 8 and 8.1
+- macOS 10.13, 10.14 and 10.15
+
+Update CodeMirror to 5.65.21
+
+Auto-update should work with alpha releases
+
+Support eslint from version 6 to 8
+
+Fix parsing of enableBlinkFeatures
+
+Add an experimental pref shell.type to use node process instead of websocket
+
+More conversion of the code base to TypeScript
+
+Remove grunt scripts
+
+Start to use webpack to transpile the code
+
+Start to use prettier to format the code
+
+Update some dependencies across the tree
+
+
 ## v2.0.0-alpha.6 (2022-11-13)
 
 Merge all Brackets commits. Some shell api not implemented yet like file encoding\decoding
