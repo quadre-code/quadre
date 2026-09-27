@@ -99,22 +99,22 @@ jobs:
       run: npm run test:node
 
     - name: Unit Test
-      run: DISPLAY=:99.0 npm run test:unit
+      run: DISPLAY=:99.0 npm run test:unit -- --no-sandbox
 
     # - name: Integration Test
     #   uses: GabrielBB/xvfb-action@v1
     #   with:
-    #     run: npm run test:integration
+    #     run: npm run test:integration -- --no-sandbox
 
     # - name: MainView Test
     #   uses: GabrielBB/xvfb-action@v1
     #   with:
-    #     run: npm run test:mainview
+    #     run: npm run test:mainview -- --no-sandbox
 
     # - name: Extension Test
     #   uses: GabrielBB/xvfb-action@v1
     #   with:
-    #     run: npm run test:extension
+    #     run: npm run test:extension -- --no-sandbox
 
     - name: Publish Linux
       if: ${{ fromJSON(env.PUSH_PACKAGES) }}
