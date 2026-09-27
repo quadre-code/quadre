@@ -73,7 +73,7 @@ function testIntegration(cb) {
     const resultsPath = common.resolve(results).replace(/\\/g, "/");
     const specRunnerPath = common.resolve("dist/test/SpecRunner.html");
     const isCI = /true/i.test(process.env.CI);
-    const args =
+    let args =
         ' --startup-path="' +
         specRunnerPath +
         "?suite=" +
@@ -85,6 +85,11 @@ function testIntegration(cb) {
         "&isCI=" +
         isCI +
         '"';
+
+    if (argv.sandbox === false || argv["no-sandbox"] === true) {
+        args += " --no-sandbox";
+    }
+
     const cmd = electronPath + " . " + args;
 
     log.info(cmd);
