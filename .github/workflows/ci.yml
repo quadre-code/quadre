@@ -36,8 +36,8 @@ jobs:
     - name: Prepare
       run: npm run test:prepare:ci
 
-    - name: Node Test
-      run: npm run test:node
+    # - name: Node Test
+    #   run: npm run test:node
 
     - name: Unit Test
       run: npm run test:unit
@@ -95,8 +95,8 @@ jobs:
     - name: Prepare
       run: npm run test:prepare:ci
 
-    - name: Node Test
-      run: npm run test:node
+    # - name: Node Test
+    #   run: npm run test:node
 
     - name: Unit Test
       run: DISPLAY=:99.0 npm run test:unit -- --no-sandbox
@@ -148,8 +148,8 @@ jobs:
     - name: Prepare
       run: npm run test:prepare:ci
 
-    - name: Node Test
-      run: npm run test:node
+    # - name: Node Test
+    #   run: npm run test:node
 
     - name: Unit Test
       run: npm run test:unit

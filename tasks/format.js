@@ -12,7 +12,6 @@ const { meta } = require("./eslint");
 
 function getGlobs() {
     const globs = [
-        "gulpfile.js",
         ...meta.app,
         // ...meta.src,
         // ...meta.test,
