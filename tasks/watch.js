@@ -3,7 +3,6 @@
 const _ = require("lodash");
 const path = require("path");
 const gulp = require("gulp");
-const watch = require("gulp-watch");
 
 const BASE_DIRS = ["app", "src", "samples"];
 const DIST_DIRS = ["dist", "dist/www", "dist/samples"];
@@ -39,7 +38,7 @@ gulp.task("watch-dev", () => {
     const BASE_WATCH_DIRS = BASE_DIRS.concat(BASE_TESTS_DIRS);
     const DIST_WATCH_DIRS = DIST_DIRS.concat(DIST_TESTS_DIRS);
     BASE_WATCH_DIRS.forEach((srcDir, idx) => {
-        watch(`${srcDir}/**/!(*.ts|*.tsx)`, (file) => {
+        gulp.watch(`${srcDir}/**/!(*.ts|*.tsx)`, (file) => {
             copyJs(file.path, srcDir, DIST_WATCH_DIRS[idx]);
             console.log(`copied modified ${file.path} from ${srcDir} to ${DIST_WATCH_DIRS[idx]}`);
         });
