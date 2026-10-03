@@ -10,7 +10,6 @@ const gulp = require("gulp");
     "./tasks/format",
     "./tasks/npm-install",
     "./tasks/test",
-    "./tasks/watch",
     "./tasks/webpack",
     "./tasks/write-config",
 ].forEach((taskfile) => {
