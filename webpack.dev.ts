@@ -5,14 +5,95 @@
  */
 
 import path from "node:path";
-import { Configuration, css } from "webpack";
+import { Configuration, Compilation, Compiler, css } from "webpack";
 import TranspilePlugin from "transpile-webpack-plugin";
 import nodeExternals from "webpack-node-externals";
 import MinimizerPlugin from "minimizer-webpack-plugin";
 
 const { cssMinify } = css.syntax;
 
+const globOptions = {
+    ignore: ["**/*.{ts,tsx}"],
+};
+
+class DeleteAssetPlugin {
+
+    #pattern: string | RegExp;
+
+    constructor(options: { pattern: string | RegExp } = { pattern: "" }) {
+        this.#pattern = options.pattern;
+
+        if (!this.#pattern) {
+            throw new Error("DeleteAssetPlugin: pattern not specified");
+        }
+    }
+
+    apply(compiler: Compiler): void {
+        compiler.hooks.compilation.tap("DeleteAssetPlugin", (compilation) => {
+            compilation.hooks.processAssets.tap(
+                {
+                    name: "DeleteAssetPlugin",
+                    stage: Compilation.PROCESS_ASSETS_STAGE_OPTIMIZE,
+                },
+                (assets) => {
+                    Object.keys(assets).forEach((assetName) => {
+                        const shouldDelete = this.#pattern instanceof RegExp
+                            ? this.#pattern.test(assetName)
+                            : assetName === this.#pattern;
+
+                        if (shouldDelete) {
+                            console.log(`\n[DeleteAssetPlugin] Rimosso: ${assetName}`);
+                            delete compilation.assets[assetName];
+                        }
+                    });
+                })
+        });
+    }
+}
+
 const configs: Array<Configuration> = [
+    {
+        name: "copy-src-dist",
+        entry: {
+            "empty-src": "./tasks/empty.js",
+        },
+        output: {
+            path: path.resolve(__dirname, "dist"),
+            filename: "[name].[contenthash].js",
+            copy: [
+                // Source.
+                { from: "./app/**", to: "./", globOptions },
+                { from: "./src/**", to: "./www", globOptions },
+                { from: "./samples/**", to: "./samples", globOptions },
+            ],
+        },
+        mode: "development",
+        devtool: "source-map",
+        target: "node",
+        plugins: [
+            new DeleteAssetPlugin({ pattern: /(^|\/)empty-src\..*\.js$/ })
+        ],
+    },
+    {
+        name: "copy-test-dist",
+        entry: {
+            "empty-test": "./tasks/empty.js",
+        },
+        output: {
+            path: path.resolve(__dirname, "dist"),
+            filename: "[name].[contenthash].js",
+            copy: [
+                // Test.
+                { from: "./test/**", to: "./test", globOptions },
+            ],
+        },
+        mode: "development",
+        devtool: "source-map",
+        target: "node",
+        plugins: [
+            new DeleteAssetPlugin({ pattern: /(^|\/)empty-test\..*\.js$/ })
+        ],
+    },
     // App
     {
         entry: [
