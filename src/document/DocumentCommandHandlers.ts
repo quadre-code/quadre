@@ -1793,7 +1793,7 @@ function browserReload(href: string): void | JQueryPromise<void> {
                 href = href.substr(0, fragment);
             }
 
-            setTimeout(function () { electronRemote.require("./main").restart(href); }, 500);
+            setTimeout(function () { electronRemote.require(node.__dirname + "/main").restart(href); }, 500);
         });
     }).fail(function () {
         _isReloading = false;
