@@ -1,0 +1,57 @@
+{
+  "name": "quadre-eslint",
+  "version": "7.0.0",
+  "engines": {
+    "brackets": ">=1.9.0"
+  },
+  "title": "ESLint",
+  "description": "Adds ESLint support to Brackets",
+  "keywords": [
+    "brackets-extension",
+    "eslint",
+    "lint",
+    "linting",
+    "linter"
+  ],
+  "homepage": "https://github.com/quadre-code/quadre-eslint",
+  "bugs": "https://github.com/quadre-code/quadre-eslint/issues",
+  "license": "MIT",
+  "author": {
+    "name": "Martin Zagora",
+    "email": "zaggino@gmail.com",
+    "url": "https://github.com/zaggino"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/quadre-code/quadre-eslint.git"
+  },
+  "scripts": {
+    "dev": "concurrently --kill-others \"tsc --watch --project tsconfig.json\" \"tsc --watch --project src/node/tsconfig.json\"",
+    "test": "npm prune && npm run build && npm run lint && npm run format-check",
+    "prepublishOnly": "npm run test",
+    "build": "rimraf ./dist && npm run tsc",
+    "lint": "eslint . --ignore-path .gitignore --ignore-pattern \"unittest-files/*\"",
+    "format": "prettier \"./**/*.(js|ts)\" \"!unittest-files\" --write",
+    "format-check": "prettier \"./**/*.(js|ts)\" \"!unittest-files\" --check",
+    "tsc": "tsc --project tsconfig.json && tsc --project src/node/tsconfig.json"
+  },
+  "dependencies": {
+    "brackets-inspection-gutters": "0.2.10",
+    "eslint": "^8.57.0"
+  },
+  "devDependencies": {
+    "@types/eslint": "^8.56.12",
+    "@types/jquery": "^2.0.68",
+    "@types/node": "20.0.0",
+    "@typescript-eslint/eslint-plugin": "^8.3.0",
+    "@typescript-eslint/parser": "^8.3.0",
+    "concurrently": "^8.2.2",
+    "eslint-config-moody-tsx": "^2.1.0",
+    "eslint-plugin-react": "^7.35.0",
+    "eslint6": "npm:@types/eslint@^6.8.1",
+    "eslint8": "npm:@types/eslint@^8.56.12",
+    "prettier": "^3.3.3",
+    "rimraf": "^6.0.1",
+    "typescript": "^5.5.4"
+  }
+}

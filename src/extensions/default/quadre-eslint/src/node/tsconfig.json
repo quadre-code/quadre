@@ -1,0 +1,28 @@
+{
+  "compilerOptions": {
+    "outDir": "../../dist",
+    "rootDir": "../../src",
+    "sourceMap": false,
+    "target": "es5",
+    "module": "commonjs",
+    "moduleResolution": "node",
+    "forceConsistentCasingInFileNames": true,
+    "newLine": "LF",
+    "noFallthroughCasesInSwitch": true,
+    "noImplicitAny": false,
+    "noImplicitReturns": true,
+    "noImplicitThis": true,
+    "noUnusedLocals": true,
+    "removeComments": true,
+    "strictNullChecks": true,
+    "skipLibCheck": true
+  },
+  "include": [
+    "./**/*",
+    "../types.ts"
+  ],
+  "exclude": [
+    "node_modules",
+    "../src/*"
+  ]
+}
