@@ -5,7 +5,7 @@ const domainName = EXTENSION_NAME;
 
 let domainManager: any;
 
-exports.init = (_domainManager: any): void => {
+export function init(_domainManager: any): void {
     domainManager = _domainManager;
 
     if (!domainManager.hasDomain(domainName)) {
@@ -49,4 +49,4 @@ exports.init = (_domainManager: any): void => {
         [{ name: "projectRoot", type: "string" }],
         [{ name: "result", type: "boolean" }]
     );
-};
+}

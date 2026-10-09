@@ -66,7 +66,7 @@ interface Result {
 
 interface Provider {
     name: string;
-    scanFileAsync?<T>(text: string, fullpath: string): JQueryPromise<T>;
+    scanFileAsync?(text: string, fullpath: string): JQueryPromise<unknown>;
     scanFile?(text: string, fullpath: string): Result;
 }
 

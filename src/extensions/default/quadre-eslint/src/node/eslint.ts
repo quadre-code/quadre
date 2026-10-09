@@ -55,7 +55,8 @@ function isELint8(value: ESLintModule): value is typeof ESLint8 {
 function getESLintModule(eslintPath: string): ESLintModule {
     let _realPath: string;
     try {
-        _realPath = require.resolve(eslintPath);
+        // @ts-expect-error
+        _realPath = require.resolve(/* webpackIgnore: true*/ eslintPath);
     } catch (err) {
         log.error(`Wasn't able to resolve path to eslint: ${err.stack}`);
         throw new Error("Wasn't able to resolve path to eslint.");
@@ -63,7 +64,7 @@ function getESLintModule(eslintPath: string): ESLintModule {
 
     let _eslint: ESLintModule;
     try {
-        _eslint = require(eslintPath);
+        _eslint = require(/* webpackIgnore: true*/ eslintPath);
     } catch (err) {
         log.error(
             `Wasn't able to load eslint from ${_realPath}, be sure to run 'npm install' properly: ${err.stack}`
@@ -205,11 +206,14 @@ function getESlintOptions(projectRoot: string): ESLintOptions {
     return opts;
 }
 
-function mapToQuadreLintReport(eslintModule: typeof ESLint6, data: ESLint6.CLIEngine.LintReport);
+function mapToQuadreLintReport(
+    eslintModule: typeof ESLint6,
+    data: ESLint6.CLIEngine.LintReport
+): QuadreLintReport;
 function mapToQuadreLintReport(
     eslintModule: typeof ESLint8,
     data: Array<ESLint8.ESLint.LintResult>
-);
+): QuadreLintReport;
 function mapToQuadreLintReport(
     eslintModule: ESLintModule,
     data: ESLint6.CLIEngine.LintReport | Array<ESLint8.ESLint.LintResult>
@@ -453,6 +457,7 @@ export function fixFile(
         cli.lintText(text, { filePath: fullPath })
             .then((lintResult) => {
                 res = mapToQuadreLintReport(eslintModule, lintResult);
+                callback(err, res);
             })
             .catch((e) => {
                 log.error(e.stack);
