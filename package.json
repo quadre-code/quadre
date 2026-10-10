@@ -7,7 +7,7 @@
   "homepage": "https://github.com/quadre-code/quadre",
   "version": "2.0.0-alpha.8",
   "apiVersion": "1.15.0",
-  "electronVersion": "34.5.8",
+  "electronVersion": "43.7.7",
   "issues": {
     "url": "https://github.com/quadre-code/quadre/issues"
   },
@@ -88,7 +88,7 @@
     "@typescript-eslint/parser": "^8.3.0",
     "concurrently": "^7.5.0",
     "cross-spawn": "^7.0.3",
-    "electron": "^34.5.8",
+    "electron": "^43.7.7",
     "electron-builder": "^25.1.8",
     "eslint": "^8.57.0",
     "eslint-config-moody-tsx": "^2.1.0",
