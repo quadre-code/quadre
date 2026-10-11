@@ -1128,7 +1128,7 @@ class PrefixedPreferencesSystem {
      *      - `options.valueType`          In case the preference type is `array`, `valueType` should hold data type of its elements.
      * @return {Object} The preference object.
      */
-    public definePreference(id, type, initial, options: PreferenceOptions) {
+    public definePreference(id, type, initial, options?: PreferenceOptions) {
         return this.base.definePreference(this.prefix + id, type, initial, options);
     }
 

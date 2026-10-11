@@ -13,7 +13,7 @@ import MinimizerPlugin from "minimizer-webpack-plugin";
 const { cssMinify } = css.syntax;
 
 const globOptions = {
-    ignore: ["**/*.{ts,tsx}"],
+    ignore: ["**/*.{ts,tsx}", "**/node_modules/**"],
 };
 
 class DeleteAssetPlugin {
@@ -153,6 +153,45 @@ const configs: Array<Configuration> = [
         entry: "./src/filesystem/impls/appshell/node/FileWatcherDomain.ts",
         output: {
             path: path.resolve(__dirname, "dist/www/filesystem/impls/appshell/node"),
+        },
+        mode: "development",
+        devtool: "source-map",
+        target: "node",
+        externalsPresets: { node: true }, // in order to ignore built-in modules like path, fs, etc.
+        externals: [nodeExternals()], // in order to ignore all modules in node_modules folder
+        module: {
+            parser: {
+                javascript: {
+                    commonjsMagicComments: true,
+                },
+            },
+            rules: [
+                {
+                    test: /\.tsx?$/,
+                    use: "ts-loader",
+                    exclude: /node_modules/,
+                },
+            ],
+        },
+        resolve: {
+            extensions: [".tsx", ".ts"],
+        },
+        plugins: [
+            new TranspilePlugin({
+                extentionMapping: {
+                    ".ts": ".js",
+                }
+            }),
+        ],
+        stats: {
+            errorDetails: true
+        }
+    },
+    // quadre-eslint
+    {
+        entry: "./src/extensions/default/quadre-eslint/src/node/domain.ts",
+        output: {
+            path: path.resolve(__dirname, "dist/www/extensions/default/quadre-eslint/src"),
         },
         mode: "development",
         devtool: "source-map",

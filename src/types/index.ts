@@ -54,6 +54,7 @@ import * as HealthLogger from "utils/HealthLogger";
 import * as KeyEvent from "utils/KeyEvent";
 import * as LocalizationUtils from "utils/LocalizationUtils";
 import * as PerfUtils from "utils/PerfUtils";
+import NodeDomain = require("utils/NodeDomain");
 import * as StringMatch from "utils/StringMatch";
 import * as StringUtils from "utils/StringUtils";
 import * as TokenUtils from "utils/TokenUtils";
@@ -146,6 +147,7 @@ declare global {
             : T extends "utils/KeyEvent" ? typeof KeyEvent
             : T extends "utils/LocalizationUtils" ? typeof LocalizationUtils
             : T extends "utils/PerfUtils" ? typeof PerfUtils
+            : T extends "utils/NodeDomain" ? typeof NodeDomain
             : T extends "utils/StringMatch" ? typeof StringMatch
             : T extends "utils/StringUtils" ? typeof StringUtils
             : T extends "utils/TokenUtils" ? typeof TokenUtils

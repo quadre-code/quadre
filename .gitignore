@@ -14,6 +14,10 @@ package-lock.json
 /src/node_modules
 
 # ignore node_modules inside extensions
+/src/extensions/default/AutoUpdate/node/node_modules
+/src/extensions/default/OpenWithExternalApplication/node/node_modules
+/src/extensions/default/quadre-eslint/node_modules
+/src/extensions/default/quadre-eslint/src/node/node_modules
 /src/extensions/default/StaticServer/node/node_modules
 /src/extensions/default/TypeScriptTooling/node/node_modules
 
@@ -40,7 +44,6 @@ package-lock.json
 # (so that the directory is non-empty and can be in git)
 /src/extensions/dev/*
 !/src/extensions/dev/README.*
-/src/extensions/default/quadre-eslint
 /src/extensions/default/quadre-git
 
 /src/extensions/disabled

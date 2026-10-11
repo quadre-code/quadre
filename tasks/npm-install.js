@@ -255,18 +255,19 @@ function npmInstallExtensions(globs, filterOutNodeModules = true, runProduction 
 }
 
 function npmInstallExtensionsSrc(cb) {
-    npmInstallExtensions(["src/+(extensibility|extensions|LiveDevelopment)/**/package.json"]).then(
-        function (err) {
-            if (err) {
-                const errPlugin = new PluginError("npm-install-extensions-src", err, {
-                    showStack: true,
-                });
-                return cb(errPlugin);
-            }
-
-            cb();
-        }
-    );
+    npmInstallExtensions(
+        ["src/+(extensibility|extensions|LiveDevelopment)/**/package.json"],
+        true,
+        false
+    )
+        .then(() => cb())
+        .catch(function (err) {
+            log.error("err " + err);
+            const errPlugin = new PluginError("npm-install-extensions-src", err, {
+                showStack: true,
+            });
+            return cb(errPlugin);
+        });
 }
 npmInstallExtensionsSrc.description =
     "Install node_modules for default extensions which have package.json defined";
@@ -307,9 +308,5 @@ gulp.task("npm-install-extensions-dist", npmInstallExtensionsDist);
 
 gulp.task(
     "npm-install-source",
-    gulp.series(
-        "npm-install-src",
-        "copy-thirdparty"
-        // "npm-install-extensions-src"
-    )
+    gulp.series("npm-install-src", "copy-thirdparty", "npm-install-extensions-src")
 );

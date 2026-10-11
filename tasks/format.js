@@ -14,10 +14,17 @@ function getGlobs() {
     const globs = [
         ...meta.app,
         // ...meta.src,
+        "src/extensions/default/quadre-eslint/**/*.js",
+        "src/extensions/default/quadre-eslint/**/*.ts",
+        "!src/extensions/default/quadre-eslint/unittest-files/**/*.js",
+        "!src/extensions/default/quadre-eslint/**/node_modules/**",
         // ...meta.test,
         ...meta.build,
     ];
-    return globs;
+
+    const positives = globs.filter((g) => !g.startsWith("!"));
+    const negatives = globs.filter((g) => g.startsWith("!"));
+    return [...positives, ...negatives];
 }
 
 function format() {

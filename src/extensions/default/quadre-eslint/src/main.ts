@@ -24,9 +24,11 @@ const supportedLanguageIds = ["javascript", "jsx", "typescript", "tsx", "vue"];
 const preferences = PreferencesManager.getExtensionPrefs(EXTENSION_NAME);
 
 // Setup preferences used by the extension
+// TODO: add description.
 preferences.definePreference("gutterMarks", "boolean", true);
 preferences.set("gutterMarks", preferences.get("gutterMarks"));
 
+// TODO: add description.
 preferences.definePreference("useEmbeddedESLint", "boolean", false);
 preferences.set("useEmbeddedESLint", preferences.get("useEmbeddedESLint"));
 
@@ -43,7 +45,7 @@ function handleLintSync(text: string, fullPath: string): never {
 
 function handleLintAsync(text: string, fullPath: string): JQueryPromise<CodeInspectionReport> {
     const deferred: JQueryDeferred<CodeInspectionReport> = $.Deferred();
-    const projectRoot = ProjectManager.getProjectRoot().fullPath;
+    const projectRoot = ProjectManager.getProjectRoot()!.fullPath;
     const useEmbeddedESLint = preferences.get("useEmbeddedESLint");
     nodeDomain.exec("lintFile", projectRoot, fullPath, text, useEmbeddedESLint).then(
         (report: CodeInspectionReport) => {
@@ -69,11 +71,11 @@ function handleLintAsync(text: string, fullPath: string): JQueryPromise<CodeInsp
 }
 
 function handleAutoFix(): void {
-    const doc = DocumentManager.getCurrentDocument();
+    const doc = DocumentManager.getCurrentDocument()!;
     const language = doc.getLanguage();
     const fileType = language.getId();
     const fullPath = doc.file.fullPath;
-    const editor = EditorManager.getCurrentFullEditor();
+    const editor = EditorManager.getCurrentFullEditor()!;
     const cursor = editor.getCursorPos();
     const scroll = editor.getScrollPos();
 
@@ -82,7 +84,7 @@ function handleAutoFix(): void {
         return;
     }
 
-    const projectRoot = ProjectManager.getProjectRoot().fullPath;
+    const projectRoot = ProjectManager.getProjectRoot()!.fullPath;
     const useEmbeddedESLint = preferences.get("useEmbeddedESLint");
     nodeDomain.exec("fixFile", projectRoot, fullPath, doc.getText(), useEmbeddedESLint).then(
         (response) => {
@@ -117,7 +119,7 @@ contextMenu.addMenuItem(AUTOFIX_COMMAND_ID);
 
 FileSystem.on("change", (event, entry) => {
     if (!entry || /^\.eslintrc(\.(js|yaml|yml|json))?$/.test(entry.name)) {
-        const projectRoot = ProjectManager.getProjectRoot().fullPath;
+        const projectRoot = ProjectManager.getProjectRoot()!.fullPath;
         const useEmbeddedESLint = preferences.get("useEmbeddedESLint");
         nodeDomain.exec("configFileModified", projectRoot, useEmbeddedESLint);
     }

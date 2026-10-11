@@ -37,7 +37,6 @@
     ],
     "exclude": [
         "node_modules",
-        "extensions/default/quadre-eslint",
         "extensions/default/quadre-git",
         "**/node/**"
     ]
