@@ -64,8 +64,8 @@ function spawn(what, args, options, callback) {
         exitCode = code;
     });
     child.addListener("close", function () {
-        stderr = Buffer.concat(stderr);
-        stdout = Buffer.concat(stdout);
+        stderr = Buffer.concat(stderr).toString();
+        stdout = Buffer.concat(stdout).toString();
         return callback(exitCode > 0 ? new Error(stderr) : null, stdout, stderr);
     });
     child.stdin.end();
@@ -100,6 +100,7 @@ function runNpmInstall(where, productionMode, callback) {
             log.info("skipping electron-rebuild in " + where);
             return callback();
         }
+
         const npmRebuildPath = path.resolve(
             __dirname,
             "..",
@@ -107,8 +108,11 @@ function runNpmInstall(where, productionMode, callback) {
             ".bin",
             process.platform === "win32" ? "electron-rebuild.cmd" : "electron-rebuild"
         );
-        const args = ["-m=" + path.resolve(__dirname, "..", where)];
-        log.info("running electron-rebuild " + args.join(" "));
+        const args = ["-m", path.resolve(__dirname, "..", where)];
+
+        log.info("running electron-rebuild");
+        log.info(npmRebuildPath + " " + args.join(" "));
+
         spawn(
             npmRebuildPath,
             args,
@@ -129,6 +133,9 @@ function runNpmInstall(where, productionMode, callback) {
 
                 if (stdoutSpawn) {
                     log.info(stdoutSpawn);
+                }
+                if (stderrSpawn) {
+                    log.info(stderrSpawn);
                 }
                 log.info("finished electron-rebuild in " + where);
                 callback();
