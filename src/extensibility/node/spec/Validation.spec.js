@@ -117,7 +117,7 @@ describe("Package Validation", function () {
             var errors = result.errors;
             expect(errors.length).toEqual(1);
             expect(errors[0][0]).toEqual("INVALID_PACKAGE_JSON");
-            expect(errors[0][1]).toEqual("SyntaxError: Expected property name or '}' in JSON at position 6");
+            expect(errors[0][1]).toEqual("SyntaxError: Expected property name or '}' in JSON at position 6 (line 2 column 5)");
             expect(errors[0][2]).toEqual(invalidJSON);
             expect(result.metadata).toBeUndefined();
             done();

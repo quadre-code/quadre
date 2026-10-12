@@ -271,7 +271,7 @@ define(function (require, exports, module) {
 
             if (currentTime >= nextTimeToSend || forceSend) {
                 // Check if the app is not running in dev mode
-                var isDev = electronRemote.require("./utils").isDev;
+                var isDev = electronRemote.require(node.__dirname + "/utils").isDev;
                 if (isDev()) {
                     result.reject();
                     return;

@@ -23,7 +23,7 @@ export const ERR_NODE_PORT_NOT_YET_SET = -2;
 // TODO: this should be changeable
 export const language = "en";
 
-const shellState = electronRemote.require("./shell-state");
+const shellState = electronRemote.require(__dirname + "/../shell-state");
 
 export function getNodeState(callback: (errCode: string, port: number) => void): void {
     process.nextTick(function () {
