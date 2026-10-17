@@ -22,62 +22,59 @@
  *
  */
 
-define(function (require, exports, module) {
-    "use strict";
+/// <amd-dependency path="module" name="module"/>
 
+const AppInit              = brackets.getModule("utils/AppInit");
+const PreferencesManager   = brackets.getModule("preferences/PreferencesManager");
+const Strings              = brackets.getModule("strings");
+const FileViewController   = brackets.getModule("project/FileViewController");
+const ExtensionUtils       = brackets.getModule("utils/ExtensionUtils");
+const NodeDomain           = brackets.getModule("utils/NodeDomain");
+const FileUtils            = brackets.getModule("file/FileUtils");
+const FileSystem           = brackets.getModule("filesystem/FileSystem");
+import * as GraphicsFile from "./GraphicsFile";
 
-    var AppInit              = brackets.getModule("utils/AppInit"),
-        PreferencesManager   = brackets.getModule("preferences/PreferencesManager"),
-        Strings              = brackets.getModule("strings"),
-        FileViewController   = brackets.getModule("project/FileViewController"),
-        ExtensionUtils       = brackets.getModule("utils/ExtensionUtils"),
-        NodeDomain           = brackets.getModule("utils/NodeDomain"),
-        FileUtils            = brackets.getModule("file/FileUtils"),
-        FileSystem           = brackets.getModule("filesystem/FileSystem"),
-        GraphicsFile         = require("GraphicsFile");
+/**
+ * @private
+ * @type {string} fullPath of the OpenWithExternalEditor Domain implementation
+ */
+const _domainPath = ExtensionUtils.getModulePath(module, "node/OpenWithExternalApplicationDomain");
 
-    /**
-     * @private
-     * @type {string} fullPath of the OpenWithExternalEditor Domain implementation
-     */
-    var _domainPath = ExtensionUtils.getModulePath(module, "node/OpenWithExternalApplicationDomain");
+/**
+ * @private
+ * @type {NodeDomain}
+ */
+const _nodeDomain = new NodeDomain("OpenWithExternalApplication", _domainPath);
 
-    /**
-     * @private
-     * @type {NodeDomain}
-     */
-    var _nodeDomain = new NodeDomain("OpenWithExternalApplication", _domainPath);
+let extensionToExtApplicationMap = {};
 
-    var extensionToExtApplicationMap = {};
-
-    function convertUnixPathToWindowsPath(path) {
-        if (brackets.platform === "win" && path && FileSystem.isAbsolutePath(path)) {
-            path = path.replace(RegExp("/", "g"), "\\");
-        }
-        return path;
+function convertUnixPathToWindowsPath(path) {
+    if (brackets.platform === "win" && path && FileSystem.isAbsolutePath(path)) {
+        path = path.replace(RegExp("/", "g"), "\\");
     }
+    return path;
+}
 
-    function _openWithExternalApplication(event, path) {
-        _nodeDomain.exec("open", {
-            path: convertUnixPathToWindowsPath(path),
-            app: extensionToExtApplicationMap[FileUtils.getFileExtension(path).toLowerCase()]
-        });
-    }
-
-    PreferencesManager.definePreference("externalApplications", "object", {}, {
-        description: Strings.DESCRIPTION_EXTERNAL_APPLICATION_ASSOCIATE
+function _openWithExternalApplication(event, path) {
+    _nodeDomain.exec("open", {
+        path: convertUnixPathToWindowsPath(path),
+        app: extensionToExtApplicationMap[FileUtils.getFileExtension(path).toLowerCase()]
     });
+}
 
-    PreferencesManager.on("change", "externalApplications", function () {
-        extensionToExtApplicationMap = PreferencesManager.get("externalApplications");
-        FileUtils.addExtensionToExternalAppList(Object.keys(extensionToExtApplicationMap));
-    });
+PreferencesManager.definePreference("externalApplications", "object", {}, {
+    description: Strings.DESCRIPTION_EXTERNAL_APPLICATION_ASSOCIATE
+});
 
-    FileViewController.on("openWithExternalApplication", _openWithExternalApplication);
+PreferencesManager.on("change", "externalApplications", function () {
+    extensionToExtApplicationMap = PreferencesManager.get("externalApplications");
+    FileUtils.addExtensionToExternalAppList(Object.keys(extensionToExtApplicationMap));
+});
 
-    AppInit.appReady(function () {
-        GraphicsFile.init(_nodeDomain);
-        extensionToExtApplicationMap = PreferencesManager.get("externalApplications");
-        FileUtils.addExtensionToExternalAppList(Object.keys(extensionToExtApplicationMap));
-    });
+FileViewController.on("openWithExternalApplication", _openWithExternalApplication);
+
+AppInit.appReady(function () {
+    GraphicsFile.init(_nodeDomain);
+    extensionToExtApplicationMap = PreferencesManager.get("externalApplications");
+    FileUtils.addExtensionToExternalAppList(Object.keys(extensionToExtApplicationMap));
 });

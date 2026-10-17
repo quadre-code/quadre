@@ -22,196 +22,188 @@
  *
  */
 
-define(function (require, exports, module) {
-    "use strict";
+const PreferencesManager   = brackets.getModule("preferences/PreferencesManager");
+const Strings              = brackets.getModule("strings");
+const StringsUtils         = brackets.getModule("utils/StringUtils");
+const ProjectManager       = brackets.getModule("project/ProjectManager");
+const Dialogs              = brackets.getModule("widgets/Dialogs");
+const DefaultDialogs       = brackets.getModule("widgets/DefaultDialogs");
+const HealthLogger         = brackets.getModule("utils/HealthLogger");
 
 
-    var PreferencesManager   = brackets.getModule("preferences/PreferencesManager"),
-        Strings              = brackets.getModule("strings"),
-        StringsUtils         = brackets.getModule("utils/StringUtils"),
-        ProjectManager       = brackets.getModule("project/ProjectManager"),
-        Dialogs              = brackets.getModule("widgets/Dialogs"),
-        DefaultDialogs       = brackets.getModule("widgets/DefaultDialogs"),
-        HealthLogger            = brackets.getModule("utils/HealthLogger");
+let _requestID = 0;
+let _initialized = false;
 
+const _graphicsFileTypes = ["jpg", "jpeg", "png", "svg", "xd", "psd", "ai"];
 
-    var _requestID = 0,
-        _initialized = false;
+let _nodeDomain;
 
-    var _graphicsFileTypes = ["jpg", "jpeg", "png", "svg", "xd", "psd", "ai"];
+export function init(nodeDomain) {
 
-    var _nodeDomain;
+    if (_initialized) {
+        return;
+    }
+    _initialized = true;
 
-    function init(nodeDomain) {
+    _nodeDomain = nodeDomain;
 
-        if (_initialized) {
+    _nodeDomain.on("checkFileTypesInFolderResponse", function (event, response) {
+        if (response.id !== _requestID) {
             return;
         }
-        _initialized = true;
+        _graphicsFilePresentInProject(response.present);
+    });
 
-        _nodeDomain = nodeDomain;
-
-        _nodeDomain.on("checkFileTypesInFolderResponse", function (event, response) {
-            if (response.id !== _requestID) {
-                return;
-            }
-            _graphicsFilePresentInProject(response.present);
-        });
-
-        ProjectManager.on("projectOpen", function () {
-            _checkForGraphicsFileInPrjct();
-        });
-
+    ProjectManager.on("projectOpen", function () {
         _checkForGraphicsFileInPrjct();
+    });
 
+    _checkForGraphicsFileInPrjct();
+
+}
+
+
+function _checkForGraphicsFileInPrjct() {
+
+    if (PreferencesManager.getViewState("AssociateGraphicsFileDialogShown")) {
+        return;
     }
 
+    const userUuid = PreferencesManager.getViewState("UUID");
+    const olderUuid = PreferencesManager.getViewState("OlderUUID");
 
-    function _checkForGraphicsFileInPrjct() {
-
-        if (PreferencesManager.getViewState("AssociateGraphicsFileDialogShown")) {
-            return;
-        }
-
-        var userUuid = PreferencesManager.getViewState("UUID"),
-            olderUuid = PreferencesManager.getViewState("OlderUUID");
-
-        if (!(userUuid || olderUuid)) {
-            return;
-        }
-
-        _nodeDomain.exec("checkFileTypesInFolder", {
-            extensions: _graphicsFileTypes.join(),
-            folder: ProjectManager.getProjectRoot().fullPath,
-            reqId: ++_requestID
-        });
-
+    if (!(userUuid || olderUuid)) {
+        return;
     }
 
-    function _graphicsFilePresentInProject(isPresent) {
+    _nodeDomain.exec("checkFileTypesInFolder", {
+        extensions: _graphicsFileTypes.join(),
+        folder: ProjectManager.getProjectRoot()!.fullPath,
+        reqId: ++_requestID
+    });
 
-        if (!isPresent) {
-            return;
-        }
+}
 
-        Dialogs.showModalDialog(
-            DefaultDialogs.DIALOG_ID_INFO,
-            Strings.ASSOCIATE_GRAPHICS_FILE_TO_DEFAULT_APP_TITLE,
-            Strings.ASSOCIATE_GRAPHICS_FILE_TO_DEFAULT_APP_MSG,
-            [
-                { className: Dialogs.DIALOG_BTN_CLASS_NORMAL, id: Dialogs.DIALOG_BTN_CANCEL,
-                    text: Strings.CANCEL
-                },
-                { className: Dialogs.DIALOG_BTN_CLASS_PRIMARY, id: Dialogs.DIALOG_BTN_OK,
-                    text: Strings.OK
-                }
-            ]
-        ).done(function (id) {
+function _graphicsFilePresentInProject(isPresent) {
 
-            if (id !== Dialogs.DIALOG_BTN_OK) {
-                HealthLogger.sendAnalyticsData(
-                    "externalEditorsCancelled",
-                    "usage",
-                    "externalEditors",
-                    "Cancelled",
-                    ""
-                );
-                return;
+    if (!isPresent) {
+        return;
+    }
+
+    Dialogs.showModalDialog(
+        DefaultDialogs.DIALOG_ID_INFO,
+        Strings.ASSOCIATE_GRAPHICS_FILE_TO_DEFAULT_APP_TITLE,
+        Strings.ASSOCIATE_GRAPHICS_FILE_TO_DEFAULT_APP_MSG,
+        [
+            { className: Dialogs.DIALOG_BTN_CLASS_NORMAL, id: Dialogs.DIALOG_BTN_CANCEL,
+                text: Strings.CANCEL
+            },
+            { className: Dialogs.DIALOG_BTN_CLASS_PRIMARY, id: Dialogs.DIALOG_BTN_OK,
+                text: Strings.OK
             }
+        ]
+    ).done(function (id) {
+
+        if (id !== Dialogs.DIALOG_BTN_OK) {
             HealthLogger.sendAnalyticsData(
-                "LinkExternalEditors",
+                "externalEditorsCancelled",
                 "usage",
                 "externalEditors",
-                "LinkExternalEditors",
+                "Cancelled",
                 ""
             );
+            return;
+        }
+        HealthLogger.sendAnalyticsData(
+            "LinkExternalEditors",
+            "usage",
+            "externalEditors",
+            "LinkExternalEditors",
+            ""
+        );
 
-            brackets.app.getSystemDefaultApp(_graphicsFileTypes.join(), function (err, out) {
+        brackets.app.getSystemDefaultApp(_graphicsFileTypes.join(), function (err, out) {
 
-                if (err) {
+            if (err) {
+                return;
+            }
+            const associateApp = out.split(",");
+            const fileTypeToAppMap = {};
+            const AppToFileTypeMap = {};
+
+            associateApp.forEach(function (item) {
+
+                const filetype = item.split("##")[0];
+                let app = item.split("##")[1];
+
+                if (!filetype) {
                     return;
                 }
-                var associateApp = out.split(","),
-                    fileTypeToAppMap = {},
-                    AppToFileTypeMap = {};
 
-                associateApp.forEach(function (item) {
-
-                    var filetype = item.split("##")[0],
-                        app = item.split("##")[1];
-
-                    if (!filetype) {
+                if (filetype === "xd") {
+                    if (app.toLowerCase() !== "adobe xd" && app.toLowerCase() !== "adobe.cc.xd") {
                         return;
                     }
 
-                    if (filetype === "xd") {
-                        if (app.toLowerCase() !== "adobe xd" && app.toLowerCase() !== "adobe.cc.xd") {
-                            return;
-                        }
-
-                        app = "Adobe XD";
-                    }
-                    fileTypeToAppMap[filetype] = app;
-
-                    if (brackets.platform === "win" && app.toLowerCase().endsWith(".exe")) {
-                        app = app.substring(app.lastIndexOf("\\") + 1, app.length - 4);
-                    }
-                    if (AppToFileTypeMap[app]) {
-                        AppToFileTypeMap[app].push(filetype);
-                    } else {
-                        AppToFileTypeMap[app] = [filetype];
-                    }
-                });
-
-                var prefs = PreferencesManager.get("externalApplications");
-
-                for (var key in fileTypeToAppMap) {
-                    if (fileTypeToAppMap.hasOwnProperty(key)) {
-                        if (key && !prefs[key]) {
-                            prefs[key] = fileTypeToAppMap[key];
-                            if (brackets.platform === "win" && !fileTypeToAppMap[key].toLowerCase().endsWith(".exe")) {
-                                prefs[key] = "default";
-                            }
-                            HealthLogger.sendAnalyticsData(
-                                "AddExternalEditorForFileType_" + key.toUpperCase(),
-                                "usage",
-                                "externalEditors",
-                                "AddExternalEditorForFileType_" + key.toUpperCase(),
-                                ""
-                            );
-                        }
-                    }
+                    app = "Adobe XD";
                 }
+                fileTypeToAppMap[filetype] = app;
 
-                PreferencesManager.set("externalApplications", prefs);
-
-                var str = "";
-                for (var app in AppToFileTypeMap) {
-                    str += AppToFileTypeMap[app].join() + "->" + app + "<br/>";
+                if (brackets.platform === "win" && app.toLowerCase().endsWith(".exe")) {
+                    app = app.substring(app.lastIndexOf("\\") + 1, app.length - 4);
                 }
-
-                if (!str) {
-                    return;
+                if (AppToFileTypeMap[app]) {
+                    AppToFileTypeMap[app].push(filetype);
+                } else {
+                    AppToFileTypeMap[app] = [filetype];
                 }
-
-                str += "<br/>";
-
-                Dialogs.showModalDialog(
-                    DefaultDialogs.DIALOG_ID_INFO,
-                    Strings.ASSOCIATE_GRAPHICS_FILE_TO_DEFAULT_APP_TITLE,
-                    StringsUtils.format(Strings.ASSOCIATE_GRAPHICS_FILE_TO_DEFAULT_APP_CNF_MSG, str),
-                    [
-                        { className: Dialogs.DIALOG_BTN_CLASS_PRIMARY, id: Dialogs.DIALOG_BTN_OK,
-                            text: Strings.OK
-                        }
-                    ]
-                );
             });
+
+            const prefs = PreferencesManager.get("externalApplications");
+
+            for (const key in fileTypeToAppMap) {
+                if (fileTypeToAppMap.hasOwnProperty(key)) {
+                    if (key && !prefs[key]) {
+                        prefs[key] = fileTypeToAppMap[key];
+                        if (brackets.platform === "win" && !fileTypeToAppMap[key].toLowerCase().endsWith(".exe")) {
+                            prefs[key] = "default";
+                        }
+                        HealthLogger.sendAnalyticsData(
+                            "AddExternalEditorForFileType_" + key.toUpperCase(),
+                            "usage",
+                            "externalEditors",
+                            "AddExternalEditorForFileType_" + key.toUpperCase(),
+                            ""
+                        );
+                    }
+                }
+            }
+
+            PreferencesManager.set("externalApplications", prefs);
+
+            let str = "";
+            for (const app in AppToFileTypeMap) {
+                str += AppToFileTypeMap[app].join() + "->" + app + "<br/>";
+            }
+
+            if (!str) {
+                return;
+            }
+
+            str += "<br/>";
+
+            Dialogs.showModalDialog(
+                DefaultDialogs.DIALOG_ID_INFO,
+                Strings.ASSOCIATE_GRAPHICS_FILE_TO_DEFAULT_APP_TITLE,
+                StringsUtils.format(Strings.ASSOCIATE_GRAPHICS_FILE_TO_DEFAULT_APP_CNF_MSG, str),
+                [
+                    { className: Dialogs.DIALOG_BTN_CLASS_PRIMARY, id: Dialogs.DIALOG_BTN_OK,
+                        text: Strings.OK
+                    }
+                ]
+            );
         });
-        PreferencesManager.setViewState("AssociateGraphicsFileDialogShown", true);
+    });
+    PreferencesManager.setViewState("AssociateGraphicsFileDialogShown", true);
 
-    }
-
-    exports.init = init;
-
-});
+}

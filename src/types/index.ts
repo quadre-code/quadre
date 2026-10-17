@@ -36,6 +36,7 @@ import * as PathConverters from "languageTools/PathConverters";
 import * as FileUtils from "file/FileUtils";
 import * as FileSystem from "filesystem/FileSystem";
 import * as PreferencesManager from "preferences/PreferencesManager";
+import * as FileViewController from "project/FileViewController";
 import * as ProjectManager from "project/ProjectManager";
 import * as SidebarView from "project/SidebarView";
 import * as WorkingSetView from "project/WorkingSetView";
@@ -129,6 +130,7 @@ declare global {
             : T extends "file/FileUtils" ? typeof FileUtils
             : T extends "filesystem/FileSystem" ? typeof FileSystem
             : T extends "preferences/PreferencesManager" ? typeof PreferencesManager
+            : T extends "project/FileViewController" ? typeof FileViewController & EventDispatcher.DispatcherEvents
             : T extends "project/ProjectManager" ? typeof ProjectManager & EventDispatcher.DispatcherEvents
             : T extends "project/SidebarView" ? typeof SidebarView
             : T extends "project/WorkingSetView" ? typeof WorkingSetView
