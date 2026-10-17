@@ -1,7 +1,12 @@
 {
   "name": "brackets-open-external_application",
   "dependencies": {
-    "open": "0.0.5",
-    "glob": "7.1.1"
+    "glob": "7.1.1",
+    "open": "0.0.5"
+  },
+  "devDependencies": {
+    "@types/glob": "^7.2.0",
+    "@types/node": "^24.19.2",
+    "@types/open": "^0.0.29"
   }
 }

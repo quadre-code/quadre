@@ -187,6 +187,45 @@ const configs: Array<Configuration> = [
             errorDetails: true
         }
     },
+    // Extension OpenWithExternalApplicationDomain
+    {
+        entry: "./src/extensions/default/OpenWithExternalApplication/node/OpenWithExternalApplicationDomain.ts",
+        output: {
+            path: path.resolve(__dirname, "dist/www/extensions/default/OpenWithExternalApplication/node"),
+        },
+        mode: "development",
+        devtool: "source-map",
+        target: "node",
+        externalsPresets: { node: true }, // in order to ignore built-in modules like path, fs, etc.
+        externals: [nodeExternals()], // in order to ignore all modules in node_modules folder
+        module: {
+            parser: {
+                javascript: {
+                    commonjsMagicComments: true,
+                },
+            },
+            rules: [
+                {
+                    test: /\.tsx?$/,
+                    use: "ts-loader",
+                    exclude: /node_modules/,
+                },
+            ],
+        },
+        resolve: {
+            extensions: [".tsx", ".ts"],
+        },
+        plugins: [
+            new TranspilePlugin({
+                extentionMapping: {
+                    ".ts": ".js",
+                }
+            }),
+        ],
+        stats: {
+            errorDetails: true
+        }
+    },
     // quadre-eslint
     {
         entry: "./src/extensions/default/quadre-eslint/src/node/domain.ts",

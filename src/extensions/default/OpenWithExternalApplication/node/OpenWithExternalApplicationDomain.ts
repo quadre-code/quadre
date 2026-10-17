@@ -22,23 +22,30 @@
  *
  */
 
-/*jslint node: true */
+import open = require("open");
+import { Glob } from "glob";
+import * as path from "path";
 
-"use strict";
+let _domainManager: any;
 
-var open     = require("open"),
-    Glob     = require("glob").Glob,
-    path     = require("path");
+interface OpenParams {
+    app: string
+    path: string
+}
 
-var _domainManager;
+interface CheckParams {
+    extensions: string
+    folder: string
+    reqId: string
+}
 
 /**
  * @private
  *
  * @param {Object} params Object to use
  */
-function _openWithExternalApplication(params) {
-    var application =  "default" === params.app ? "" : params.app;
+function _openWithExternalApplication(params: OpenParams) {
+    const application =  "default" === params.app ? "" : params.app;
     open(params.path, application);
 }
 
@@ -47,16 +54,16 @@ function _openWithExternalApplication(params) {
  *
  * @param {Object} params Object to use
  */
-function _checkFileTypesInFolder(params) {
+function _checkFileTypesInFolder(params: CheckParams) {
 
-    var extList = params.extensions,
-        dirPath = path.normalize(params.folder),
+    const extList = params.extensions;
+    const dirPath = path.normalize(params.folder);
 
-        pattern = dirPath + "/**/*.+(" + extList.replace(/,/g, "|") + ")";
+    const pattern = dirPath + "/**/*.+(" + extList.replace(/,/g, "|") + ")";
 
-    var globMgr = new Glob(pattern, function (err, matches) {
+    const globMgr = new Glob(pattern, function (err, matches) {
 
-        var respObj = {
+        const respObj = {
             id: params.reqId,
             present: matches.length > 0 ? true : false
         };
@@ -65,7 +72,7 @@ function _checkFileTypesInFolder(params) {
 
     globMgr.on("match", function () {
         globMgr.abort();
-        var respObj = {
+        const respObj = {
             id: params.reqId,
             present: true
         };
@@ -79,7 +86,7 @@ function _checkFileTypesInFolder(params) {
  * Initializes the OpenWithExternalEditor domain with its commands.
  * @param {DomainManager} domainManager The DomainManager for the server
  */
-function init(domainManager) {
+export function init(domainManager: any) {
     _domainManager = domainManager;
 
     if (!domainManager.hasDomain("OpenWithExternalApplication")) {
@@ -126,5 +133,3 @@ function init(domainManager) {
         ]
     );
 }
-
-exports.init = init;
