@@ -18,6 +18,22 @@ const options: Configuration = {
         "!**/{appveyor.yml,.travis.yml,circle.yml}",
         "!**/{npm-debug.log,yarn.lock,.yarn-integrity,.yarn-metadata.json}",
         {
+            "from": "www/extensions/default/AutoUpdate/node/node_modules",
+            "to": "www/extensions/default/AutoUpdate/node/node_modules",
+            "filter": [
+                "*/**",
+                "!.bin/**"
+            ]
+        },
+        {
+            "from": "www/extensions/default/OpenWithExternalApplication/node/node_modules",
+            "to": "www/extensions/default/OpenWithExternalApplication/node/node_modules",
+            "filter": [
+                "*/**",
+                "!.bin/**"
+            ]
+        },
+        {
             "from": "www/extensions/default/quadre-git/node_modules",
             "to": "www/extensions/default/quadre-git/node_modules",
             "filter": [
@@ -34,8 +50,8 @@ const options: Configuration = {
             ]
         },
         {
-            "from": "www/extensions/default/JavaScriptCodeHints/node_modules",
-            "to": "www/extensions/default/JavaScriptCodeHints/node_modules",
+            "from": "www/extensions/default/quadre-eslint/src/node/node_modules",
+            "to": "www/extensions/default/quadre-eslint/src/node/node_modules",
             "filter": [
                 "*/**",
                 "!.bin/**"
@@ -44,6 +60,14 @@ const options: Configuration = {
         {
             "from": "www/extensions/default/StaticServer/node/node_modules",
             "to": "www/extensions/default/StaticServer/node/node_modules",
+            "filter": [
+                "*/**",
+                "!.bin/**"
+            ]
+        },
+        {
+            "from": "www/extensions/default/TypeScriptTooling/node/node_modules",
+            "to": "www/extensions/default/TypeScriptTooling/node/node_modules",
             "filter": [
                 "*/**",
                 "!.bin/**"
