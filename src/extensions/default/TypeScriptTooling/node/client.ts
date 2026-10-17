@@ -116,13 +116,17 @@ const serverOptions = function (): Promise<any> {
         const options: cp.SpawnOptions = {
             cwd: __dirname + "/node_modules/.bin/"
         };
+        let serverProcess;
+
+
         if (isWindows) {
             options.shell = true;
+            serverProcess = cp.spawn(executablePath + " --stdio", options);
+        } else {
+            serverProcess = cp.spawn(executablePath, [
+                "--stdio"
+            ], options);
         }
-
-        const serverProcess = cp.spawn(executablePath, [
-            "--stdio"
-        ], options);
 
         if (serverProcess && serverProcess.pid) {
             resolve({
