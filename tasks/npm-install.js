@@ -39,15 +39,19 @@ const isWindows = process.platform.startsWith("win");
 
 function spawn(what, args, options, callback) {
     let opts = options;
+    let child;
+
     if (isWindows) {
         if (opts === null || opts === undefined) {
             opts = {};
         }
 
         opts.shell = true;
+        child = _spawn(what + " " + args.join(" "), options);
+    } else {
+        child = _spawn(what, args, options);
     }
 
-    const child = _spawn(what, args, options);
     child.on("error", function (err) {
         return callback(err, null, err.toString());
     });
@@ -79,7 +83,7 @@ function runNpmInstall(where, productionMode, callback) {
 
     let cmd = "npm install";
     if (productionMode) {
-        cmd += " --production";
+        cmd += " --omit=dev";
     }
 
     log.info("running " + cmd + " in " + where);
@@ -94,7 +98,7 @@ function runNpmInstall(where, productionMode, callback) {
         if (stdout) {
             log.info(stdout);
         }
-        log.info("finished npm install --production in " + where);
+        log.info("finished npm install --omit=dev in " + where);
         if (!stdout) {
             // nothing done by npm, skip electron-rebuild
             log.info("skipping electron-rebuild in " + where);
@@ -159,6 +163,7 @@ function npmInstallDist(cb) {
         "homepage",
         "version",
         "apiVersion",
+        "electronVersion",
         "issues",
         "repository",
         "dependencies",

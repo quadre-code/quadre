@@ -33,10 +33,10 @@ var Errors = {
 };
 
 /**
- * Private function to run "npm install --production" command in the extension directory.
+ * Private function to run "npm install --omit=dev" command in the extension directory.
  *
  * @param {string} installDirectory Directory to remove
- * @param {array} npmOptions can contain additional options like `--production` or `--proxy http://127.0.0.1:8888`
+ * @param {array} npmOptions can contain additional options like `--omit=dev` or `--proxy http://127.0.0.1:8888`
  * @param {function} callback NodeJS style callback to call after finish
  */
 function _performNpmInstall(installDirectory, npmOptions, callback) {
@@ -48,11 +48,14 @@ function _performNpmInstall(installDirectory, npmOptions, callback) {
     console.log("running npm " + args.join(" ") + " in " + installDirectory);
 
     const spawnOptions = { cwd: installDirectory };
+    let child;
+
     if (process.platform === "win32") {
         spawnOptions.shell = true;
+        child = spawn(npmPath + " " + args.join(" "), spawnOptions);
+    } else {
+        child = spawn(npmPath, args, spawnOptions);
     }
-
-    var child = spawn(npmPath, args, spawnOptions);
 
     child.on("error", function (err) {
         return callback(err);
