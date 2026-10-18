@@ -62,7 +62,7 @@ const _exclusionListRegEx = /\.pyc$|^\.git$|^\.svn$|^\.DS_Store$|^Icon\r|^Thumbs
 
 /**
  * Glob definition of files and folders that should be excluded directly
- * inside node domain watching with chokidar
+ * inside node domain watching.
  */
 export const defaultIgnoreGlobs = [
     "**/(.pyc|.git|.svn|.DS_Store|Thumbs.db|.hg|CVS|.hgtags|.idea|.c9revisions|.SyncArchive|.SyncID|.SyncIgnore)",
