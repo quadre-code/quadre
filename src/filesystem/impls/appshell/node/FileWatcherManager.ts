@@ -47,7 +47,7 @@ interface DomainManager {
     emitEvent(domainName: string, eventName: string, parameters?: Array<any>): void;
 }
 
-const _watcherMap: Record<string, any> = {};
+const _watcherMap: WatcherMap = {};
 let _domainManager!: DomainManager;
 let _watcherImpl!: WatcherImpl;
 

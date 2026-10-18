@@ -22,13 +22,8 @@
  *
  */
 
-const watcherManager = require("./FileWatcherManager");
-let watcherImpl!: any;
-if (process.platform === "win32") {
-    watcherImpl = require("./CSharpWatcher");
-} else {
-    watcherImpl = require("./ChokidarWatcher");
-}
+import * as watcherManager from "./FileWatcherManager";
+import * as watcherImpl from "./ParcelWatcher";
 
 /**
  * Initialize the "fileWatcher" domain.
