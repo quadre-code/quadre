@@ -20,9 +20,6 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-/*jslint vars: true, plusplus: true, devel: true, nomen: true,  regexp: true, indent: 4, maxerr: 50 */
-/*global define, brackets, $, window, _hideSettings */
-
 define(function (require, exports, module) {
     "use strict";
 
@@ -130,7 +127,7 @@ define(function (require, exports, module) {
             bodyText = marked(docText);
 
             // Show URL in link tooltip
-            bodyText = bodyText.replace(/(href=\"([^\"]*)\")/g, "$1 title=\"$2\"");
+            bodyText = bodyText.replace(/(href="([^"]*)")/g, "$1 title=\"$2\"");
 
             // Convert protocol-relative URLS
             bodyText = bodyText.replace(/src="\/\//g, "src=\"http://");
@@ -328,7 +325,10 @@ define(function (require, exports, module) {
     // Update preview 300 ms ofter document change
     // Sync scroll 1ms after document scroll (just enough to ensure
     // the document scroll isn't blocked).
+
+    // eslint-disable-next-line no-func-assign
     _documentChange = _.debounce(_documentChange, 300);
+    // eslint-disable-next-line no-func-assign
     _editorScroll = _.debounce(_editorScroll, 1);
 
     // Insert CSS for this extension
