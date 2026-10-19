@@ -19,6 +19,7 @@ const meta = {
         "!src/extensions/**/unittest-files/**/*.js",
         "!src/extensions/**/thirdparty/**/*.js",
         "!src/extensions/default/quadre-git/**",
+        "!src/extensions/default/MarkdownPreview/lib/marked.js",
         "!src/extensions/dev/**",
         "!src/extensions/disabled/**",
         "!**/node_modules/**",
