@@ -96,7 +96,7 @@ let _editorScroll = function _editorScroll() {
     if (_prefs.get("syncScroll") && $iframe) {
         const scrollTop = _calcScrollPos();
 
-        $iframe[0].contentDocument.body.scrollTop = scrollTop;
+        $iframe[0].contentWindow?.scrollTo(0, scrollTop);
     }
 }
 
@@ -138,14 +138,14 @@ function _loadDoc(doc, isReload = false) {
             const htmlSource = _.template(previewHTML)({
                 baseUrl    : baseUrl,
                 themeUrl   : require.toUrl("./themes/" + _prefs.get("theme") + ".css"),
-                scrollTop  : scrollPos,
                 bodyText   : bodyText
             });
-            $iframe.attr("srcdoc", htmlSource);
 
             // Remove any existing load handlers
             $iframe.off("load");
-            $iframe.load(function () {
+            $iframe.on("load", function (this: any) {
+                this.contentWindow?.scrollTo(0, scrollPos);
+
                 // Open external browser when links are clicked
                 // (similar to what brackets.js does - but attached to the iframe's document)
                 $iframe[0].contentDocument.body.addEventListener("click", _handleLinkClick, true);
@@ -158,6 +158,8 @@ function _loadDoc(doc, isReload = false) {
                 // Make sure iframe is showing
                 $iframe.show();
             });
+
+            $iframe.attr("srcdoc", htmlSource);
         }
     }
 }
@@ -322,9 +324,7 @@ function _toggleVisibility() {
 // Sync scroll 1ms after document scroll (just enough to ensure
 // the document scroll isn't blocked).
 
-// eslint-disable-next-line no-func-assign
 _documentChange = _.debounce(_documentChange, 300);
-// eslint-disable-next-line no-func-assign
 _editorScroll = _.debounce(_editorScroll, 1);
 
 // Insert CSS for this extension
