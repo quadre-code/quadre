@@ -173,7 +173,7 @@ class Panel {
 
     public panelID;
 
-    constructor($panel, minSize) {
+    constructor($panel, minSize?: number) {
         this.$panel = $panel;
 
         Resizer.makeResizable($panel[0], Resizer.DIRECTION_VERTICAL, Resizer.POSITION_TOP, minSize, false, undefined, true);
@@ -228,7 +228,7 @@ class Panel {
  * @param {number=} minSize  Minimum height of panel in px.
  * @return {!Panel}
  */
-export function createBottomPanel(id: string, $panel: JQuery, minSize: number): Panel {
+export function createBottomPanel(id: string, $panel: JQuery, minSize?: number): Panel {
     $panel.insertBefore("#status-bar");
     $panel.hide();
     updateResizeLimits();  // initialize panel's max size
