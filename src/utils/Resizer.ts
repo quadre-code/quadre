@@ -197,8 +197,8 @@ export function makeResizable(
     element: Element | JQuery,
     direction: string,
     position: string,
-    minSize: number,
-    collapsible: boolean,
+    minSize: number | undefined,
+    collapsible: boolean | undefined,
     forceLeft?: string,
     createdByWorkspaceManager?: boolean,
     usePercentages?: boolean,
@@ -442,7 +442,7 @@ export function makeResizable(
         function onMouseMove(e: JQueryEventObject): void {
             // calculate newSize adding to startSize the difference
             // between starting and current position, capped at minSize
-            newSize = Math.max(startSize + directionIncrement * (startPosition - e[directionProperty]), minSize);
+            newSize = Math.max(startSize + directionIncrement * (startPosition - e[directionProperty]), minSize!);
 
             // respect max size if one provided (e.g. by WorkspaceManager)
             let maxSize = $element.data("maxsize");
