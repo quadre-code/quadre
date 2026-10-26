@@ -15,6 +15,7 @@ package-lock.json
 
 # ignore node_modules inside extensions
 /src/extensions/default/AutoUpdate/node/node_modules
+/src/extensions/default/MarkdownPreview/node_modules
 /src/extensions/default/OpenWithExternalApplication/node/node_modules
 /src/extensions/default/quadre-eslint/node_modules
 /src/extensions/default/quadre-eslint/src/node/node_modules

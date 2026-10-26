@@ -8,5 +8,9 @@
     "license": "MIT",
     "engines": {
         "brackets": ">=1.1"
+    },
+    "dependencies": {
+        "dompurify": "^3.4.17",
+        "marked": "^18.1.1"
     }
 }

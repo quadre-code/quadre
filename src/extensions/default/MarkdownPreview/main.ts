@@ -43,7 +43,11 @@ import * as previewHTML from "text!templates/preview.html";
 import * as settingsHTML from "text!templates/settings.html";
 
 // Local modules
-import * as marked from "lib/marked";
+// See also src\main.ts for relative requirejs configuration.
+// @ts-ignore
+import { marked } from "marked";
+// @ts-ignore
+import * as DOMPurify from "dompurify";
 
 // jQuery objects
 let $iframe;
@@ -120,7 +124,7 @@ function _loadDoc(doc, isReload = false) {
         }
 
         // Parse markdown into HTML
-        bodyText = marked(docText);
+        bodyText = DOMPurify.sanitize(marked.parse(docText) as string);
 
         // Show URL in link tooltip
         bodyText = bodyText.replace(/(href="([^"]*)")/g, "$1 title=\"$2\"");
