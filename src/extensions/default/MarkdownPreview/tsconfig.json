@@ -1,0 +1,14 @@
+{
+    "extends": "../../../tsconfig.json",
+    "compilerOptions": {
+        "baseUrl": ".",
+        "paths": {
+            "marked": [
+                "node_modules/marked/lib/marked.d.ts"
+            ],
+            "dompurify": [
+                "node_modules/dompurify/dist/purify.cjs.d.ts"
+            ]
+        }
+    }
+}

@@ -33,6 +33,9 @@
         "react"             : "thirdparty/react",
         "react-dom"         : "thirdparty/react-dom",
 
+        "marked": "extensions/default/MarkdownPreview/node_modules/marked/lib/marked.umd",
+        "dompurify": "extensions/default/MarkdownPreview/node_modules/dompurify/dist/purify.min",
+
         // The file system implementation. Change this value to use different
         // implementations (e.g. cloud-based storage).
         "fileSystemImpl"    : "filesystem/impls/appshell/AppshellFileSystem"
