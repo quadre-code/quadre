@@ -76,7 +76,8 @@ export function readTextFile(
             err2.code = "ECHARSET";
             return callback(err2);
         }
-        fs.readFile(filename, encoding, function (err2, content) {
+
+        fs.readFile(filename, encoding as BufferEncoding, function (err2, content) {
             if (err2) {
                 return callback(err2);
             }
@@ -96,7 +97,7 @@ export function readTextFile(
     });
 }
 
-export function remove(path: string, callback: (err?: Error) => void): void {
+export function remove(path: string, callback: fs.NoParamCallback): void {
     fs.stat(path, function (err, stats) {
         if (err) {
             return callback(err);
@@ -105,7 +106,7 @@ export function remove(path: string, callback: (err?: Error) => void): void {
     });
 }
 
-export function rename(oldPath: string, newPath: string, callback: (err?: Error) => void): void {
+export function rename(oldPath: string, newPath: string, callback: fs.NoParamCallback): void {
     fs.stat(newPath, function (err, stats) {
         if (err && err.code === "ENOENT") {
             return fs.rename(oldPath, newPath, callback);
