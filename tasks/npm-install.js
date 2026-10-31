@@ -164,6 +164,7 @@ function npmInstallDist(cb) {
         "version",
         "apiVersion",
         "electronVersion",
+        "desktopName",
         "issues",
         "repository",
         "dependencies",
