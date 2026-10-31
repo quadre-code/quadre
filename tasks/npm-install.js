@@ -32,7 +32,7 @@ const common = require("./lib/common");
 const file = require("./lib/file");
 const exec = require("child_process").exec;
 const _spawn = require("child_process").spawn;
-const glob = require("glob");
+const { glob } = require("glob");
 const path = require("path");
 
 const isWindows = process.platform.startsWith("win");
@@ -233,36 +233,39 @@ function npmInstallExtensions(globs, filterOutNodeModules = true, runProduction 
             resolve(error);
         });
         globs.forEach((g) => {
-            glob(g, function (err, files) {
-                if (err) {
-                    log.error(err);
-                    error = err;
-                    return doneWithGlob();
-                }
-                if (filterOutNodeModules) {
-                    files = files.filter(function (_path) {
-                        return _path.indexOf("node_modules") === -1;
-                    });
-                }
-                const doneWithFile = _.after(files.length, doneWithGlob);
-                files.forEach(function (_file) {
-                    const packageJSON = file.readJSON(_file);
-                    if (
-                        !packageJSON.dependencies ||
-                        !Object.keys(packageJSON.dependencies).length
-                    ) {
-                        return doneWithFile();
+            glob(g)
+                .then(function (files) {
+                    if (filterOutNodeModules) {
+                        files = files.filter(function (_path) {
+                            return _path.indexOf("node_modules") === -1;
+                        });
                     }
-
-                    runNpmInstall(path.dirname(_file), runProduction, function (errFile) {
-                        if (errFile) {
-                            log.error(errFile);
-                            error = errFile;
+                    const doneWithFile = _.after(files.length, doneWithGlob);
+                    files.forEach(function (_file) {
+                        const packageJSON = file.readJSON(_file);
+                        if (
+                            !packageJSON.dependencies ||
+                            !Object.keys(packageJSON.dependencies).length
+                        ) {
+                            return doneWithFile();
                         }
-                        return doneWithFile();
+
+                        runNpmInstall(path.dirname(_file), runProduction, function (errFile) {
+                            if (errFile) {
+                                log.error(errFile);
+                                error = errFile;
+                            }
+                            return doneWithFile();
+                        });
                     });
+                })
+                .catch(function (err) {
+                    if (err) {
+                        log.error(err);
+                        error = err;
+                        return doneWithGlob();
+                    }
                 });
-            });
         });
     });
 }

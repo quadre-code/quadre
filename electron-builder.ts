@@ -26,6 +26,14 @@ const options: Configuration = {
             ]
         },
         {
+            "from": "www/extensions/default/MarkdownPreview/node_modules",
+            "to": "www/extensions/default/MarkdownPreview/node_modules",
+            "filter": [
+                "*/**",
+                "!.bin/**"
+            ]
+        },
+        {
             "from": "www/extensions/default/OpenWithExternalApplication/node/node_modules",
             "to": "www/extensions/default/OpenWithExternalApplication/node/node_modules",
             "filter": [
