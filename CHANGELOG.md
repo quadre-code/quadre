@@ -1,3 +1,19 @@
+## v2.0.0-alpha.8 (2026-10-31)
+
+Update electron to 43.7.7
+
+Add a Markdown previewer
+- Based on https://github.com/gruehle/MarkdownPreview
+
+Replace ChokidarWatcher and CSharpWatcher with a new ParcelWatcher based on @parcel/watcher
+
+Move quadre-eslint development in core
+
+More conversion of the code base to TypeScript
+
+Update some dependencies across the tree
+
+
 ## v2.0.0-alpha.7 (2026-09-27)
 
 Update electron to 34.5.8
