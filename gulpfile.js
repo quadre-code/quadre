@@ -6,6 +6,7 @@ const gulp = require("gulp");
     "./tasks/copy",
     "./tasks/download-default-extensions",
     "./tasks/nls-check",
+    "./tasks/electron-builder-config-check",
     "./tasks/eslint",
     "./tasks/format",
     "./tasks/npm-install",
@@ -67,5 +68,8 @@ gulp.task(
     )
 );
 
-gulp.task("test", gulp.parallel("eslint", "nls-check", "format-check"));
+gulp.task(
+    "test",
+    gulp.parallel("eslint", "nls-check", "format-check", "electron-builder-config-check")
+);
 gulp.task("default", gulp.series("test"));
