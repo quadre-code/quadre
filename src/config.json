@@ -121,7 +121,7 @@
         "eslint-plugin-react": "^7.35.0",
         "fancy-log": "^2.0.0",
         "get-port": "^4.2.0",
-        "glob": "^7.1.4",
+        "glob": "^14.0.3",
         "gulp": "^5.0.1",
         "gulp-eslint-new": "^2.6.2",
         "gulp-prettier": "^5.0.0",
