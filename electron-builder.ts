@@ -77,8 +77,7 @@ const options: Configuration = {
             "from": "www/extensions/default/TypeScriptTooling/node/node_modules",
             "to": "www/extensions/default/TypeScriptTooling/node/node_modules",
             "filter": [
-                "*/**",
-                "!.bin/**"
+                "*/**"
             ]
         }
     ],
