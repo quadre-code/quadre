@@ -1,9 +1,9 @@
+import * as pathLib from "node:path";
 import * as fs from "fs-extra";
 import * as utils from "../utils";
-import { dialog } from "@electron/remote";
+import { dialog, shell } from "@electron/remote";
 const isbinaryfile = require("isbinaryfile");
 const stripBom = require("strip-bom");
-const trash = require("trash");
 
 /*
     additions to native fs provided by node
@@ -43,8 +43,14 @@ export function moveToTrash(
         if (err) {
             return callback(err);
         }
-        // trash expects an array of files which is inconsistent with fs-extra apis
-        trash(Array.isArray(path) ? path : [path])
+
+        const pathsToTrash = Array.isArray(path) ? path : [path];
+        const promises = pathsToTrash.map((pathToTrash) => {
+            const resolvedPath = pathLib.resolve(pathToTrash);
+            return shell.trashItem(resolvedPath);
+        });
+
+        Promise.all(promises)
             .then((r: any) => callback(null, r))
             .catch((e: Error) => callback(e));
     });
