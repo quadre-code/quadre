@@ -22,44 +22,47 @@
  *
  */
 
-/*jslint node: true */
+import { Server as WebSocketServer } from "ws";
+import type * as WebSocket from "ws";
+import * as _ from "lodash";
 
-"use strict";
-
-var WebSocketServer = require("ws").Server,
-    _ = require("lodash");
+interface Client {
+    id: number
+    url: string
+    socket: WebSocket
+}
 
 /**
  * @private
  * The WebSocket server we listen for incoming connections on.
  * @type {?WebSocketServer}
  */
-var _wsServer;
+let _wsServer: WebSocketServer | null;
 
 /**
  * @private
  * The Brackets domain manager for registering node extensions.
  * @type {?DomainManager}
  */
-var _domainManager;
+let _domainManager: any;
 
 /**
  * @private
  * The ID that should be allocated to the next client that connects to the transport.
  * @type {number}
  */
-var _nextClientId = 1;
+let _nextClientId = 1;
 
 /**
  * @private
  * A map of client IDs to the URL and WebSocket for the given ID.
  * @type {Object.<number, {id: number, url: string, socket: WebSocket}>}
  */
-var _clients = {};
+const _clients: Record<number, Client> = {};
 
 // This must match the port declared in NodeSocketTransport.js.
 // TODO: randomize this?
-var SOCKET_PORT = 8125;
+const SOCKET_PORT = 8125;
 
 /**
  * @private
@@ -67,7 +70,7 @@ var SOCKET_PORT = 8125;
  * @param {WebSocket} ws
  * @return {?{id: number, url: string, socket: WebSocket}}
  */
-function _clientForSocket(ws) {
+function _clientForSocket(ws: WebSocket): Client | undefined {
     return _.find(_clients, function (client) {
         return (client.socket === ws);
     });
@@ -77,14 +80,14 @@ function _clientForSocket(ws) {
  * @private
  * Creates the WebSocketServer and handles incoming connections.
  */
-function _createServer() {
+function _createServer(): void {
     if (!_wsServer) {
         // TODO: make port configurable, or use random port
         _wsServer = new WebSocketServer({port: SOCKET_PORT});
         _wsServer.on("connection", function (ws) {
             ws.on("message", function (msg) {
                 console.log("WebSocketServer - received - " + msg);
-                var msgObj;
+                let msgObj;
                 try {
                     msgObj = JSON.parse(msg);
                 } catch (e) {
@@ -100,7 +103,7 @@ function _createServer() {
                         console.error("nodeSocketTransport: Malformed connect message: " + msg);
                         return;
                     }
-                    var clientId = _nextClientId++;
+                    const clientId = _nextClientId++;
                     _clients[clientId] = {
                         id: clientId,
                         url: msgObj.url,
@@ -109,7 +112,7 @@ function _createServer() {
                     console.log("emitting connect event");
                     _domainManager.emitEvent("nodeSocketTransport", "connect", [clientId, msgObj.url]);
                 } else if (msgObj.type === "message") {
-                    var client = _clientForSocket(ws);
+                    const client = _clientForSocket(ws);
                     if (client) {
                         _domainManager.emitEvent("nodeSocketTransport", "message", [client.id, msgObj.message]);
                     } else {
@@ -120,10 +123,10 @@ function _createServer() {
                 }
             }).on("error", function (e) {
                 // TODO: emit error event
-                var client = _clientForSocket(ws);
+                const client = _clientForSocket(ws);
                 console.error("nodeSocketTransport: Error on socket for client " + JSON.stringify(client) + ": " + e);
             }).on("close", function () {
-                var client = _clientForSocket(ws);
+                const client = _clientForSocket(ws);
                 if (client) {
                     _domainManager.emitEvent("nodeSocketTransport", "close", [client.id]);
                     delete _clients[client.id];
@@ -142,7 +145,7 @@ function _createServer() {
  * Initializes the socket server.
  * @param {string} url
  */
-function _cmdStart(url) {
+function _cmdStart(url: string): void {
     _createServer();
 }
 
@@ -151,12 +154,12 @@ function _cmdStart(url) {
  * @param {number|Array.<number>} idOrArray A client ID or array of client IDs to send the message to.
  * @param {string} msgStr The message to send as a JSON string.
  */
-function _cmdSend(idOrArray, msgStr) {
+function _cmdSend(idOrArray: number | Array<number>, msgStr: string): void {
     if (!Array.isArray(idOrArray)) {
         idOrArray = [idOrArray];
     }
     idOrArray.forEach(function (id) {
-        var client = _clients[id];
+        const client = _clients[id];
         if (!client) {
             console.error("nodeSocketTransport: Couldn't find client ID: " + id);
         } else {
@@ -169,8 +172,8 @@ function _cmdSend(idOrArray, msgStr) {
  * Closes the connection for a given client ID.
  * @param {number} clientId
  */
-function _cmdClose(clientId) {
-    var client = _clients[clientId];
+function _cmdClose(clientId: number): void {
+    const client = _clients[clientId];
     if (client) {
         client.socket.close();
         delete _clients[clientId];
@@ -181,7 +184,7 @@ function _cmdClose(clientId) {
  * Initializes the domain and registers commands.
  * @param {DomainManager} domainManager The DomainManager for the server
  */
-function init(domainManager) {
+export function init(domainManager: any): void {
     _domainManager = domainManager;
     if (!domainManager.hasDomain("nodeSocketTransport")) {
         domainManager.registerDomain("nodeSocketTransport", {major: 0, minor: 1});
@@ -241,5 +244,3 @@ function init(domainManager) {
         ]
     );
 }
-
-exports.init = init;
