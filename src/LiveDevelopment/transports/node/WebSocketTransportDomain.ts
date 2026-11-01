@@ -29,38 +29,34 @@
  * brings the cursor to the tag corresponding to that particular tagID
  */
 
-/*jslint node: true */
-
-"use strict";
-
-var WebSocketServer = require("ws").Server;
+import { Server as WebSocketServer } from "ws";
 
 /**
  * @private
  * The WebSocket server we listen for incoming connections on.
  * @type {?WebSocketServer}
  */
-var _wsServer;
+let _wsServer: WebSocketServer | null;
 
 /**
  * @private
  * The Brackets domain manager for registering node extensions.
  * @type {?DomainManager}
  */
-var _domainManager;
+let _domainManager: any;
 
 /**
  * @private
  * Creates the WebSocketServer and handles incoming connections.
  */
-function _createServer(socketPort) {
+function _createServer(socketPort: number): void {
     if (!_wsServer) {
         // TODO: make port configurable, or use random port
         _wsServer = new WebSocketServer({port: socketPort});
         _wsServer.on("connection", function (ws) {
             ws.on("message", function (msg) {
                 console.log("WebSocketServer - received - " + msg);
-                var msgObj;
+                let msgObj;
                 try {
                     msgObj = JSON.parse(msg);
                 } catch (e) {
@@ -88,14 +84,14 @@ function _createServer(socketPort) {
  * Initializes the socket server.
  * @param {number} port
  */
-function _cmdStart(port) {
+function _cmdStart(port: number): void {
     _createServer(port);
 }
 
 /**
  * Kill the WebSocketServer
  */
-function _cmdClose() {
+function _cmdClose(): void {
     if (_wsServer) {
         _wsServer.close();
         _wsServer = null;
@@ -106,7 +102,7 @@ function _cmdClose() {
  * Initializes the domain and registers commands.
  * @param {DomainManager} domainManager The DomainManager for the server
  */
-function init(domainManager) {
+export function init(domainManager: any): void {
     _domainManager = domainManager;
     if (!domainManager.hasDomain("webSocketTransport")) {
         domainManager.registerDomain("webSocketTransport", {major: 0, minor: 1});
@@ -149,5 +145,3 @@ function init(domainManager) {
         []
     );
 }
-
-exports.init = init;
