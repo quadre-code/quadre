@@ -58,7 +58,7 @@ function _createServer(socketPort: number): void {
                 console.log("WebSocketServer - received - " + msg);
                 let msgObj;
                 try {
-                    msgObj = JSON.parse(msg);
+                    msgObj = JSON.parse(msg.toString());
                 } catch (e) {
                     console.error("webSocketTransport: Error parsing message: " + msg);
                     return;
