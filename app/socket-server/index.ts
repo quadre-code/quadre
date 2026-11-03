@@ -1,15 +1,15 @@
 import * as http from "http";
 import { DomainManager, ConnectionManager } from "./domain-manager";
 import { getLogger } from "../utils";
-import * as WebSocket from "ws";
-const Server = WebSocket.Server;
+import { Server as WebSocketServer } from "ws";
+
 const log = getLogger("socket-server");
 const portscanner = require("portscanner");
 
 const DEFAULT_PORT = 8123;
 let httpServer: http.Server | null = null;
 let httpPort: number = 0;
-let wsServer: WebSocket.Server | null = null;
+let wsServer: WebSocketServer | null = null;
 
 function initPort(): Promise<void> {
     return new Promise<void>(function (resolve, reject) {
@@ -53,7 +53,7 @@ function initHttp(): Promise<http.Server> {
 }
 
 function initWebsockets(_httpServer: http.Server): void {
-    wsServer = new Server({
+    wsServer = new WebSocketServer({
         server: _httpServer,
     });
     wsServer.on("error", function (err) {

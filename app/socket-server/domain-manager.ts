@@ -1,4 +1,4 @@
-import * as WebSocket from "ws";
+import type * as WebSocket from "ws";
 import { errToMessage, errToString, getLogger } from "../utils";
 
 export interface DomainDescription {

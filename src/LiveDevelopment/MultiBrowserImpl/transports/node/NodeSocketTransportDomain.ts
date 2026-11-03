@@ -89,7 +89,7 @@ function _createServer(): void {
                 console.log("WebSocketServer - received - " + msg);
                 let msgObj;
                 try {
-                    msgObj = JSON.parse(msg);
+                    msgObj = JSON.parse(msg.toString());
                 } catch (e) {
                     console.error("nodeSocketTransport: Error parsing message: " + msg);
                     return;
