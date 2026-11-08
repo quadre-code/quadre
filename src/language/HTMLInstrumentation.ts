@@ -109,7 +109,7 @@ interface UnappliedEdit {
     edits: Array<HTMLDOMDiff.EditOperation>;
 }
 
-const allowIncremental = true;
+export const _allowIncremental = true;
 
 // Hash of scanned documents. Key is the full path of the doc. Value is an object
 // with two properties: timestamp and dom. Timestamp is the document timestamp,
@@ -141,7 +141,7 @@ function _posEq(pos1: CodeMirror.Position, pos2: CodeMirror.Position): boolean {
     return pos1 && pos2 && pos1.line === pos2.line && pos1.ch === pos2.ch;
 }
 
-function getPositionFromTagId(editor: Editor, tagId: string): CodeMirror.Position | null {
+export function getPositionFromTagId(editor: Editor, tagId: string): CodeMirror.Position | null {
     const marks = editor._codeMirror.getAllMarks();
 
     const markFound = _.find(marks, function (mark: any) {
@@ -199,7 +199,7 @@ function _getSortedTagMarks(marks: Array<CodeMirror.TextMarker<CodeMirror.Marker
  * @return {Object} The CodeMirror mark object that represents the DOM node at the
  *     given position.
  */
-function _getMarkerAtDocumentPos(editor: Editor, pos: CodeMirror.Position, preferParent: boolean, markCache?: Cache): CodeMirror.TextMarker<CodeMirror.MarkerRange> | null | undefined {
+export function _getMarkerAtDocumentPos(editor: Editor, pos: CodeMirror.Position, preferParent: boolean, markCache?: Cache): CodeMirror.TextMarker<CodeMirror.MarkerRange> | null | undefined {
     markCache = markCache || {};
     const marks = _getSortedTagMarks(editor._codeMirror.findMarksAt(pos), markCache);
     if (!marks.length) {
@@ -254,7 +254,7 @@ void (_dumpMarks);
  *     which is expensive.)
  * @return {number} tagID at the specified position, or -1 if there is no tag
  */
-function _getTagIDAtDocumentPos(editor: Editor, pos: CodeMirror.Position, markCache: Cache): number {
+export function _getTagIDAtDocumentPos(editor: Editor, pos: CodeMirror.Position, markCache: Cache): number {
     const match = _getMarkerAtDocumentPos(editor, pos, false, markCache);
 
     return (match) ? match.tagID : -1;
@@ -285,7 +285,7 @@ function _markTags(cm: CodeMirror.Editor, node: HTMLSimpleDOM.DOMNodePosition): 
  * @param {Editor} editor Editor object holding this document
  * @param {Object} dom SimpleDOM root object that contains the parsed structure
  */
-function _markTextFromDOM(editor: Editor, dom: HTMLSimpleDOM.DOMNodePosition): void {
+export function _markTextFromDOM(editor: Editor, dom: HTMLSimpleDOM.DOMNodePosition): void {
     const cm = editor._codeMirror;
 
     // Remove existing marks
@@ -617,8 +617,8 @@ class DOMUpdater extends HTMLSimpleDOM.Builder {
  *     editor, and an array of edits that can be applied to update the browser (see
  *     HTMLDOMDiff for more information on the edit format).
  */
-function _updateDOM(previousDOM: HTMLSimpleDOM.SimpleNode, editor: Editor, changeList: Array<CodeMirror.EditorChange>): DOMEditorState | DOMError {
-    if (!allowIncremental) {
+export function _updateDOM(previousDOM: HTMLSimpleDOM.SimpleNode, editor: Editor, changeList: Array<CodeMirror.EditorChange>): DOMEditorState | DOMError {
+    if (!_allowIncremental) {
         (changeList as any) = undefined;
     }
     const updater = new DOMUpdater(previousDOM, editor, changeList);
@@ -664,7 +664,7 @@ function _updateDOM(previousDOM: HTMLSimpleDOM.SimpleNode, editor: Editor, chang
  * @return {Array} edits A list of edits to apply in the browser. See HTMLDOMDiff for
  *     more information on the format of these edits.
  */
-function getUnappliedEditList(editor: Editor, changeList: Array<CodeMirror.EditorChange>): UnappliedEdit | DOMError {
+export function getUnappliedEditList(editor: Editor, changeList: Array<CodeMirror.EditorChange>): UnappliedEdit | DOMError {
     const cachedValue = _cachedValues[editor.document.file.fullPath];
 
     // We might not have a previous DOM if the document was empty before this edit.
@@ -749,7 +749,7 @@ function _processBrowserSimpleDOM(browserRoot: HTMLSimpleDOM.SimpleNode, editorR
  * @param {Editor} editor
  * @param {Object} browserSimpleDOM
  */
-function _getBrowserDiff(editor: Editor, browserSimpleDOM: HTMLSimpleDOM.SimpleNode): BrowserDiff {
+export function _getBrowserDiff(editor: Editor, browserSimpleDOM: HTMLSimpleDOM.SimpleNode): BrowserDiff {
     const cachedValue = _cachedValues[editor.document.file.fullPath];
     const editorRoot  = cachedValue.dom;
     const browserRoot = _processBrowserSimpleDOM(browserSimpleDOM, editorRoot.tagID);
@@ -775,7 +775,7 @@ function _getBrowserDiff(editor: Editor, browserSimpleDOM: HTMLSimpleDOM.SimpleN
  * @param {Document} doc The doc to scan.
  * @return {Object} Root DOM node of the document.
  */
-function scanDocument(doc: DocumentManager.Document): HTMLSimpleDOM.SimpleNode {
+export function scanDocument(doc: DocumentManager.Document): HTMLSimpleDOM.SimpleNode {
     if (!_cachedValues.hasOwnProperty(doc.file.fullPath)) {
         doc.on("change.htmlInstrumentation", function () {
             if (_cachedValues[doc.file.fullPath]) {
@@ -824,7 +824,7 @@ function scanDocument(doc: DocumentManager.Document): HTMLSimpleDOM.SimpleNode {
  *     mark ranges in.
  * @return {string} instrumented html content
  */
-function generateInstrumentedHTML(editor: Editor): string | null {
+export function generateInstrumentedHTML(editor: Editor): string | null {
     const doc = editor.document;
     const dom = scanDocument(doc) as HTMLSimpleDOM.DOMNodePosition;
     const orig = doc.getText()!;
@@ -872,7 +872,7 @@ function generateInstrumentedHTML(editor: Editor): string | null {
  * @param {Editor} editor The editor whose text should be marked.
  * @return none
  */
-function _markText(editor: Editor): void {
+export function _markText(editor: Editor): void {
     const cache = _cachedValues[editor.document.file.fullPath];
     const dom = cache && cache.dom;
 
@@ -888,22 +888,6 @@ function _markText(editor: Editor): void {
  * @private
  * Clear the DOM cache. For unit testing only.
  */
-function _resetCache(): void {
+export function _resetCache(): void {
     _cachedValues = {};
 }
-
-// private methods
-exports._markText                   = _markText;
-exports._getMarkerAtDocumentPos     = _getMarkerAtDocumentPos;
-exports._getTagIDAtDocumentPos      = _getTagIDAtDocumentPos;
-exports.getPositionFromTagId        = getPositionFromTagId;
-exports._markTextFromDOM            = _markTextFromDOM;
-exports._updateDOM                  = _updateDOM;
-exports._allowIncremental           = allowIncremental;
-exports._getBrowserDiff             = _getBrowserDiff;
-exports._resetCache                 = _resetCache;
-
-// public API
-exports.scanDocument                = scanDocument;
-exports.generateInstrumentedHTML    = generateInstrumentedHTML;
-exports.getUnappliedEditList        = getUnappliedEditList;
