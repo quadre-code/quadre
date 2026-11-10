@@ -15,9 +15,22 @@ declare global {
     // these are globals from /app/preload.ts
     var appshell: any;
     var brackets: {
-        platform: "win"
+        platform: "win" | "mac"
+        app: {
+            getApplicationSupportDirectory(): string
+            getUserHomeDirectory(): string
+        },
         fs: {
-            chmod(path: string, mode: number, callback: (err) => void)
+            readdir(path: string, callback: (err, content) => void): void
+            readTextFile(path: string, encoding: string, callback: (err, content) => void): void
+            writeFile(path: string, content: string, encoding: string, callback: (err) => void): void
+            remove(path: string, callback: (err) => void): void
+            mkdir(path: string, mode: number, callback: (err) => void): void
+            rename(path: string, newPath: string, callback: (err) => void): void
+            copy(path: string, newPath: string, callback: (err) => void): void
+            stat(path: string, callback: (err, content) => void): void
+            chmod(path: string, mode: number, callback: (err) => void): void
+            moveToTrash(path: string, callback: (err) => void): void
         }
         testing: {
             nodeConnection: NodeConnection
