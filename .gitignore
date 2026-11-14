@@ -22,6 +22,9 @@ package-lock.json
 /src/extensions/default/StaticServer/node/node_modules
 /src/extensions/default/TypeScriptTooling/node/node_modules
 
+# ignore node_modules inside test
+/test/node_modules
+
 # ignore files copied from node_modules to src/thirdparty
 /src/thirdparty/CodeMirror
 /src/thirdparty/codemirror-addon-toggle-comment

@@ -208,7 +208,7 @@ npmInstallDist.description =
 gulp.task("npm-install-dist", npmInstallDist);
 
 function npmInstallSrc(cb) {
-    const dirs = ["src"];
+    const dirs = ["src", "test"];
     const done = _.after(dirs.length, cb);
 
     dirs.forEach(function (dir) {

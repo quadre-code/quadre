@@ -1366,7 +1366,7 @@ export class Editor extends EventDispatcher.EventDispatcherBase {
      * @param {(number|string)} width
      * @param {(number|string)} height
      */
-    public setSize(width: number | string | null, height: number | string): void {
+    public setSize(width: number | string | null, height: number | string | null): void {
         this._codeMirror.setSize(width, height);
     }
 

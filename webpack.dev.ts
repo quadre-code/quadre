@@ -433,7 +433,7 @@ const configs: Array<Configuration> = [
         stats: {
             errorDetails: true
         }
-    },
+    }
 ];
 
 export default configs;
