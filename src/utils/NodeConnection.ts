@@ -131,6 +131,7 @@ function waitFor(condition: Function, delay = CONNECTION_TIMEOUT): JQueryPromise
 
 interface NodeDomain {
     base?: any;
+    [key: string]: unknown;
 }
 
 interface NodeEvent {
@@ -898,7 +899,7 @@ class NodeConnection extends EventDispatcher.EventDispatcherBase {
                 const domainSpec = spec[domainKey];
                 self.domains[domainKey] = {};
                 Object.keys(domainSpec.commands).forEach(function (commandKey) {
-                    self.domains[domainKey][commandKey] = makeCommandFunction(domainKey, commandKey);
+                    (self.domains[domainKey] as any)[commandKey] = makeCommandFunction(domainKey, commandKey);
                 });
                 self.domainEvents[domainKey] = {};
                 Object.keys(domainSpec.events).forEach(function (eventKey) {
@@ -944,7 +945,7 @@ class NodeConnection extends EventDispatcher.EventDispatcherBase {
             const domainSpec: NodeConnectionDomainSpec = spec[domainKey];
             self.domains[domainKey] = {};
             Object.keys(domainSpec.commands).forEach(function (commandKey) {
-                self.domains[domainKey][commandKey] = makeCommandFunction(domainKey, commandKey);
+                (self.domains[domainKey] as any)[commandKey] = makeCommandFunction(domainKey, commandKey);
             });
             self.domainEvents[domainKey] = {};
             Object.keys(domainSpec.events).forEach(function (eventKey) {

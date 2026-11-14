@@ -80,7 +80,7 @@ interface Layer {
     contextChanged?(data: any, oldContext: string, newContext: string): Array<string> | void;
 }
 
-interface PreferenceOptions {
+export interface PreferenceOptions {
     name?: string;
     description: string;
     validator?: () => any;
@@ -1101,9 +1101,9 @@ function _addEventDispatcherImpl(proto) {
  * @param {string} prefix Prefix that is used for preferences lookup. Any separator characters should already be added.
  */
 class PrefixedPreferencesSystem {
-    private base: PreferencesSystem;
-    private prefix: string;
-    private _listenerInstalled;
+    public base: PreferencesSystem;
+    public prefix: string;
+    public _listenerInstalled;
 
     constructor(base: PreferencesSystem, prefix: string) {
         this.base = base;
@@ -1183,7 +1183,7 @@ class PrefixedPreferencesSystem {
      * Listens for events on the base PreferencesSystem to filter down to the
      * events that consumers of this PreferencesSystem would be interested in.
      */
-    private _installListener() {
+    public _installListener() {
         if (this._listenerInstalled) {
             return;
         }

@@ -60,7 +60,7 @@ interface EventListener {
     handler?: () => void;
 }
 
-interface Listener {
+export interface Listener {
     _deprecatedEvents?: Record<string, string>;
     _eventHandlers?: Record<string, Array<EventListener>>;
 }

@@ -27,7 +27,9 @@
         "noImplicitThis": true,
         "noUnusedLocals": true,
         "removeComments": true,
-        "strictNullChecks": true
+        "strictNullChecks": true,
+        "composite": true,
+        "declaration": true
     },
     "include": [
         "./**/*",

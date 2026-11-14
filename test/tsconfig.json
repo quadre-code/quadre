@@ -1,0 +1,52 @@
+{
+    "compilerOptions": {
+        "outDir": "../dist/test",
+        "module": "amd",
+        "moduleResolution": "classic",
+        "noImplicitAny": false,
+        "jsx": "react",
+        "baseUrl": ".",
+        "paths": {
+            "*": [
+                "./*",
+                "../dist/www/*"
+            ],
+            "thirdparty/*": [
+                "*",
+                "../dist/www/thirdparty/*"
+            ]
+        },
+        "sourceMap": true,
+        "lib": [
+            "DOM",
+            "ES2015",
+            "ES2016.Array.Include"
+        ],
+        "target": "es6",
+        "skipLibCheck": true,
+        "forceConsistentCasingInFileNames": true,
+        "newLine": "lf",
+        "noFallthroughCasesInSwitch": true,
+        "noImplicitReturns": true,
+        "noImplicitThis": true,
+        "noUnusedLocals": true,
+        "removeComments": true,
+        "strictNullChecks": true
+    },
+    "include": [
+        "./**/*",
+        "./node_modules/@types/**/*",
+        "../node_modules/electron/electron.d.ts",
+        "../node_modules/@electron/remote/index.d.ts"
+    ],
+    "exclude": [
+        "node_modules",
+        "extensions/default/quadre-git",
+        "**/node/**"
+    ],
+    "references": [
+        {
+            "path": "../src"
+        }
+    ]
+}

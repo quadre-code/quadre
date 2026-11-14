@@ -387,7 +387,7 @@ export class Document extends EventDispatcher.EventDispatcherBase {
      * and "documentChange" on the Document module.
      * @param {Object} changeList Changelist in CodeMirror format
      */
-    private _notifyDocumentChange(changeList: Array<EditorChange>): void {
+    public _notifyDocumentChange(changeList: Array<EditorChange>): void {
         this.trigger("change", this, changeList);
         (exports as unknown as EventDispatcher.DispatcherEvents).trigger("documentChange", this, changeList);
     }
@@ -512,7 +512,7 @@ export class Document extends EventDispatcher.EventDispatcherBase {
      * to that Editor's UI, OR by our setText()/refreshText() methods.
      * @private
      */
-    private _handleEditorChange(event, editor: Editor, changeList: Array<EditorChange>): void {
+    public _handleEditorChange(event, editor: Editor, changeList: Array<EditorChange>): void {
         // Handle editor change event only when it is originated from the master editor for this doc
         if (this._masterEditor !== editor) {
             return;

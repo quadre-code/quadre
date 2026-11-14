@@ -92,7 +92,7 @@ declare module "codemirror" {
     }
 
     interface Fold {
-        auto: (cm: Editor, pos: Position) => SimpleRange;
+        auto: (cm: CodeMirror.Editor, pos: CodeMirror.Position) => SimpleRange;
     }
     const fold: Fold;
 
@@ -100,13 +100,13 @@ declare module "codemirror" {
     const registerGlobalHelper: (
         type: string,
         name: string,
-        predicate: (mode: any, cm: Editor) => void,
-        value: (cm: Editor, start: Position) => void
+        predicate: (mode: any, cm: CodeMirror.Editor) => void,
+        value: (cm: CodeMirror.Editor, start: CodeMirror.Position) => void
     ) => void;
 
     interface CommandActions {
-        unfoldAll: (cm: Editor, fromLine?: number, toline?: number) => void;
-        foldToLevel: (cm: Editor, fromLine?: number, toline?: number) => void;
+        unfoldAll: (cm: CodeMirror.Editor, fromLine?: number, toline?: number) => void;
+        foldToLevel: (cm: CodeMirror.Editor, fromLine?: number, toline?: number) => void;
     }
 }
 
