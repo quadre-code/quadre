@@ -179,7 +179,7 @@ export class _SpecialMatch {
     public index;
     public upper;
 
-    constructor(index, upper) {
+    constructor(index, upper?) {
         this.index = index;
         if (upper) {
             this.upper = upper;
@@ -192,7 +192,7 @@ export class _NormalMatch {
     public index;
     public upper;
 
-    constructor(index, upper) {
+    constructor(index, upper?) {
         this.index = index;
         if (upper) {
             this.upper = upper;
@@ -477,7 +477,7 @@ export function _lastSegmentSearch(
     originalStr: string,
     specials: Array<number>,
     startingSpecial: number,
-    lastSegmentStart: number
+    lastSegmentStart?: number
 ): Matched | null {
     let queryCounter;
     let matchList;
@@ -844,7 +844,7 @@ function _prefixMatchResult(str: string, query: string): SearchResult {
  *                  This is generally just used by StringMatcher for optimization.
  * @return {{ranges:Array.<{text:string, matched:boolean, includesLastSegment:boolean}>, matchGoodness:int, scoreDebug: Object}} matched ranges and score
  */
-export function stringMatch(str: string, query: string, options: StringMatcherOptions, special?): SearchResult {
+export function stringMatch(str: string, query: string, options?: StringMatcherOptions, special?): SearchResult {
     let result;
 
     options = options || {};
@@ -996,7 +996,7 @@ export function basicMatchSort(searchResults: Array<SearchResult>): void {
  *                  segmentedSearch treats segments of the string specially.
  */
 export class StringMatcher {
-    private options: StringMatcherOptions;
+    private options: StringMatcherOptions | undefined;
     private _lastQuery;
 
     /**
@@ -1004,16 +1004,16 @@ export class StringMatcher {
      * since this info doesn't change as the query changes.
      * @type {Object.<string, {specials:Array.<number>, lastSegmentSpecialsIndex:number}>}
      */
-    private _specialsCache;
+    public _specialsCache;
 
     /**
      * Set of search-result strings that we know don't match the query _lastQuery - or any other query with
      * that prefix.
      * @type {Object.<string, boolean>}
      */
-    private _noMatchCache;
+    public _noMatchCache;
 
-    constructor(options: StringMatcherOptions) {
+    constructor(options?: StringMatcherOptions) {
         this.options = options;
         this.reset();
     }

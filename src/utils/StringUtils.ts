@@ -180,7 +180,7 @@ export function breakableUrl(url: string): string {
  * @param {number} precision Number of digits after the decimal separator
  * @return {string}
  */
-export function prettyPrintBytes(bytes: number, precision: number): string {
+export function prettyPrintBytes(bytes: number, precision?: number): string {
     const kilobyte = 1024;
     const megabyte = kilobyte * 1024;
     const gigabyte = megabyte * 1024;

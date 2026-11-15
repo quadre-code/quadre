@@ -67,7 +67,7 @@ let _commandsOriginal: Record<string, Command> = {};
 export class Command extends EventDispatcher.EventDispatcherBase {
     private _name;
     private _id;
-    private _commandFn;
+    public _commandFn;
     private _checked: boolean | undefined;
     private _enabled;
 
