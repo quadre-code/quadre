@@ -69,7 +69,7 @@ interface Size {
 
 // Exclude keys from `typeof globalThis` that conflict with `Window`
 type CustomGlobals = Omit<typeof globalThis, keyof Window>;
-type TestWindow = Window & CustomGlobals
+export type TestWindow = Window & CustomGlobals
 
 export const TEST_PREFERENCES_KEY    = "com.adobe.brackets.test.preferences";
 export const EDITOR_USE_TABS         = false;
@@ -567,7 +567,7 @@ export function clickDialogButton(buttonId, enableFirst): void {
     waitsForDone(promise, "dismiss dialog");
 }
 
-export function createTestWindowAndRun(spec, callback, options): void {
+export function createTestWindowAndRun(spec, callback: (w: TestWindow) => void, options?): void {
     runs(function () {
         // Position popup windows in the lower right so they're out of the way
         const testWindowWid = 1000;
@@ -1052,7 +1052,7 @@ export function toggleQuickEditAtOffset(editor: Editor, offset): JQueryPromise<u
  * @param {HTMLElement} element Element to receive event
  * @param {KeyboardEventInit} options Optional arguments for key event
  */
-export function simulateKeyEvent(key, event, element, options): void {
+export function simulateKeyEvent(key, event, element, options?): void {
     const doc = element.ownerDocument;
 
     if (typeof options === "undefined") {

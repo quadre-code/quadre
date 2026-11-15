@@ -22,139 +22,148 @@
  *
  */
 
-define(function (require, exports, module) {
-    "use strict";
+import type * as TCommandManager from "command/CommandManager";
+import type * as TCommands from "command/Commands";
+import type * as TEditorManager from "editor/EditorManager";
+import type * as TFileViewController from "project/FileViewController";
+import type { Editor } from "editor/Editor";
 
-    var CommandManager,      // loaded from brackets.test
-        Commands,            // loaded from brackets.test
-        EditorManager,       // loaded from brackets.test
-        FileViewController,
-        SpecRunnerUtils     = require("spec/SpecRunnerUtils");
+let CommandManager: typeof TCommandManager;         // loaded from brackets.test
+let Commands: typeof TCommands;                     // loaded from brackets.test
+let EditorManager: typeof TEditorManager;           // loaded from brackets.test
+let FileViewController: typeof TFileViewController;
+import * as SpecRunnerUtils from "spec/SpecRunnerUtils";
 
-    // Verify if we are running in a CI.
-    var UrlParams = require("utils/UrlParams").UrlParams,
-        params    = new UrlParams();
+interface Editors {
+    editor: Editor;
+    inline: Editor;
+}
 
-    // parse URL parameters
-    params.parse();
+// Verify if we are running in a CI.
+import { UrlParams } from "utils/UrlParams";
+const params    = new UrlParams();
 
-    var isCI = /true/i.test(params.get("isCI"));
+// parse URL parameters
+params.parse();
 
-    (isCI ? xdescribe : describe)("ViewCommandHandlers", function () {
-        this.category = "integration";
+const isCI = /true/i.test(params.get("isCI"));
 
-        var testPath = SpecRunnerUtils.getTestPath("/spec/ViewCommandHandlers-test-files"),
-            testWindow;
+(isCI ? xdescribe : describe)("ViewCommandHandlers", function (this: jasmine.Spec) {
+    this.category = "integration";
 
-        var CSS_FILE  = testPath + "/test.css",
-            HTML_FILE = testPath + "/test.html";
+    const testPath = SpecRunnerUtils.getTestPath("/spec/ViewCommandHandlers-test-files");
+    let testWindow: SpecRunnerUtils.TestWindow | null;
 
-        beforeFirst(function () {
-            var promise;
+    const CSS_FILE  = testPath + "/test.css";
+    const HTML_FILE = testPath + "/test.html";
 
-            SpecRunnerUtils.createTestWindowAndRun(this, function (w) {
-                testWindow = w;
+    beforeFirst(function (this: jasmine.Spec) {
+        let promise;
 
-                // Load module instances from brackets.test
-                CommandManager      = testWindow.brackets.test.CommandManager;
-                Commands            = testWindow.brackets.test.Commands;
-                EditorManager       = testWindow.brackets.test.EditorManager;
-                FileViewController  = testWindow.brackets.test.FileViewController;
+        SpecRunnerUtils.createTestWindowAndRun(this, function (w) {
+            testWindow = w;
 
-                SpecRunnerUtils.loadProjectInTestWindow(testPath);
-            });
+            // Load module instances from brackets.test
+            CommandManager      = testWindow.brackets.test.CommandManager;
+            Commands            = testWindow.brackets.test.Commands;
+            EditorManager       = testWindow.brackets.test.EditorManager;
+            FileViewController  = testWindow.brackets.test.FileViewController;
 
+            SpecRunnerUtils.loadProjectInTestWindow(testPath);
+        });
+
+        runs(function () {
+            promise = CommandManager.execute(Commands.CMD_ADD_TO_WORKINGSET_AND_OPEN, {fullPath: HTML_FILE});
+            waitsForDone(promise, "Open into working set");
+        });
+
+        runs(function () {
+            // Open inline editor onto test.css's ".testClass" rule
+            promise = SpecRunnerUtils.toggleQuickEditAtOffset(EditorManager.getCurrentFullEditor()!, {line: 8, ch: 11});
+            waitsForDone(promise, "Open inline editor");
+        });
+    });
+
+    afterLast(function () {
+        testWindow = null;
+        (CommandManager as any)      = null;
+        (Commands as any)            = null;
+        (EditorManager as any)       = null;
+        (FileViewController as any)  = null;
+        SpecRunnerUtils.closeTestWindow();
+    });
+
+
+    function getEditors(): Editors {
+        const editor = EditorManager.getCurrentFullEditor()!;
+        return {
+            editor: editor,
+            inline: (editor.getInlineWidgets()[0] as any).editor
+        };
+    }
+
+
+    describe("Adjust the Font Size", function () {
+        it("should increase the font size in both editor and inline editor", function () {
             runs(function () {
-                promise = CommandManager.execute(Commands.CMD_ADD_TO_WORKINGSET_AND_OPEN, {fullPath: HTML_FILE});
-                waitsForDone(promise, "Open into working set");
-            });
+                const editors      = getEditors();
+                const originalSize = editors.editor.getTextHeight();
 
-            runs(function () {
-                // Open inline editor onto test.css's ".testClass" rule
-                promise = SpecRunnerUtils.toggleQuickEditAtOffset(EditorManager.getCurrentFullEditor(), {line: 8, ch: 11});
-                waitsForDone(promise, "Open inline editor");
+                CommandManager.execute(Commands.VIEW_INCREASE_FONT_SIZE);
+
+                expect(editors.editor.getTextHeight()).toBeGreaterThan(originalSize);
+                expect(editors.inline.getTextHeight()).toBeGreaterThan(originalSize);
             });
         });
 
-        afterLast(function () {
-            testWindow          = null;
-            CommandManager      = null;
-            Commands            = null;
-            EditorManager       = null;
-            FileViewController  = null;
-            SpecRunnerUtils.closeTestWindow();
+        it("should decrease the font size in both editor and inline editor", function () {
+            runs(function () {
+                const editors      = getEditors();
+                const originalSize = editors.editor.getTextHeight();
+
+                CommandManager.execute(Commands.VIEW_DECREASE_FONT_SIZE);
+
+                expect(editors.editor.getTextHeight()).toBeLessThan(originalSize);
+                expect(editors.inline.getTextHeight()).toBeLessThan(originalSize);
+            });
         });
 
+        it("should restore the font size in both editor and inline editor", function () {
+            runs(function () {
+                const editors      = getEditors();
+                const expectedSize = editors.editor.getTextHeight();
 
-        function getEditors() {
-            var editor = EditorManager.getCurrentFullEditor();
-            return {
-                editor: editor,
-                inline: editor.getInlineWidgets()[0].editor
-            };
-        }
+                CommandManager.execute(Commands.VIEW_INCREASE_FONT_SIZE);
+                CommandManager.execute(Commands.VIEW_INCREASE_FONT_SIZE);
+                CommandManager.execute(Commands.VIEW_RESTORE_FONT_SIZE);
 
+                expect(editors.editor.getTextHeight()).toBe(expectedSize);
+                expect(editors.inline.getTextHeight()).toBe(expectedSize);
+            });
+        });
 
-        describe("Adjust the Font Size", function () {
-            it("should increase the font size in both editor and inline editor", function () {
-                runs(function () {
-                    var editors      = getEditors(),
-                        originalSize = editors.editor.getTextHeight();
+        it("should keep the same font size when opening another document", function () {
+            let promise;
+            let originalSize;
+            let editor;
 
-                    CommandManager.execute(Commands.VIEW_INCREASE_FONT_SIZE);
+            runs(function () {
+                editor       = EditorManager.getCurrentFullEditor();
+                originalSize = editor.getTextHeight();
 
-                    expect(editors.editor.getTextHeight()).toBeGreaterThan(originalSize);
-                    expect(editors.inline.getTextHeight()).toBeGreaterThan(originalSize);
-                });
+                promise = CommandManager.execute(Commands.VIEW_INCREASE_FONT_SIZE);
+                waitsForDone(promise, "Increase font size");
             });
 
-            it("should decrease the font size in both editor and inline editor", function () {
-                runs(function () {
-                    var editors      = getEditors(),
-                        originalSize = editors.editor.getTextHeight();
-
-                    CommandManager.execute(Commands.VIEW_DECREASE_FONT_SIZE);
-
-                    expect(editors.editor.getTextHeight()).toBeLessThan(originalSize);
-                    expect(editors.inline.getTextHeight()).toBeLessThan(originalSize);
-                });
+            runs(function () {
+                // Open another document and bring it to the front
+                waitsForDone(FileViewController.openAndSelectDocument(CSS_FILE, FileViewController.PROJECT_MANAGER),
+                    "FILE_OPEN on file timeout", 1000);
             });
 
-            it("should restore the font size in both editor and inline editor", function () {
-                runs(function () {
-                    var editors      = getEditors();
-                    var expectedSize = editors.editor.getTextHeight();
-
-                    CommandManager.execute(Commands.VIEW_INCREASE_FONT_SIZE);
-                    CommandManager.execute(Commands.VIEW_INCREASE_FONT_SIZE);
-                    CommandManager.execute(Commands.VIEW_RESTORE_FONT_SIZE);
-
-                    expect(editors.editor.getTextHeight()).toBe(expectedSize);
-                    expect(editors.inline.getTextHeight()).toBe(expectedSize);
-                });
-            });
-
-            it("should keep the same font size when opening another document", function () {
-                var promise, originalSize, editor;
-
-                runs(function () {
-                    editor       = EditorManager.getCurrentFullEditor();
-                    originalSize = editor.getTextHeight();
-
-                    promise = CommandManager.execute(Commands.VIEW_INCREASE_FONT_SIZE);
-                    waitsForDone(promise, "Increase font size");
-                });
-
-                runs(function () {
-                    // Open another document and bring it to the front
-                    waitsForDone(FileViewController.openAndSelectDocument(CSS_FILE, FileViewController.PROJECT_MANAGER),
-                        "FILE_OPEN on file timeout", 1000);
-                });
-
-                runs(function () {
-                    editor = EditorManager.getCurrentFullEditor();
-                    expect(editor.getTextHeight()).toBeGreaterThan(originalSize);
-                });
+            runs(function () {
+                editor = EditorManager.getCurrentFullEditor();
+                expect(editor.getTextHeight()).toBeGreaterThan(originalSize);
             });
         });
     });

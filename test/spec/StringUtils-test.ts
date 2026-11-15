@@ -22,38 +22,33 @@
  *
  */
 
-define(function (require, exports, module) {
-    "use strict";
+import * as StringUtils from "utils/StringUtils";
 
-    var StringUtils = require("utils/StringUtils"),
-        kilobyte = 1024,
-        megabyte = kilobyte * 1024,
-        gigabyte = megabyte * 1024,
-        terabyte = gigabyte * 1024;
+const kilobyte = 1024;
+const megabyte = kilobyte * 1024;
+const gigabyte = megabyte * 1024;
+const terabyte = gigabyte * 1024;
 
-    describe("StringUtils", function () {
+describe("StringUtils", function () {
 
+    describe("prettyPrintBytes", function () {
+        it("should convert a number of bytes into a human readable string", function () {
 
-        describe("prettyPrintBytes", function () {
-            it("should convert a number of bytes into a human readable string", function () {
+            let prettyBytes = StringUtils.prettyPrintBytes(1);
+            expect(prettyBytes).toBe("1 B");
 
-                var prettyBytes = StringUtils.prettyPrintBytes(1);
-                expect(prettyBytes).toBe("1 B");
+            prettyBytes = StringUtils.prettyPrintBytes(kilobyte);
+            expect(prettyBytes).toBe("1 KB");
 
-                prettyBytes = StringUtils.prettyPrintBytes(kilobyte);
-                expect(prettyBytes).toBe("1 KB");
+            prettyBytes = StringUtils.prettyPrintBytes(megabyte);
+            expect(prettyBytes).toBe("1 MB");
 
-                prettyBytes = StringUtils.prettyPrintBytes(megabyte);
-                expect(prettyBytes).toBe("1 MB");
+            prettyBytes = StringUtils.prettyPrintBytes(gigabyte);
+            expect(prettyBytes).toBe("1 GB");
 
-                prettyBytes = StringUtils.prettyPrintBytes(gigabyte);
-                expect(prettyBytes).toBe("1 GB");
-
-                prettyBytes = StringUtils.prettyPrintBytes(terabyte);
-                expect(prettyBytes).toBe("1 TB");
-            });
+            prettyBytes = StringUtils.prettyPrintBytes(terabyte);
+            expect(prettyBytes).toBe("1 TB");
         });
-
-
     });
+
 });

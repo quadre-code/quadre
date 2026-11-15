@@ -56,7 +56,7 @@ export function isInteger(value: any): boolean {
  * @param {number=} upperLimit Optional upper limit (inclusive)
  * @return {boolean} true if value is an interger, and optionally in specified range.
  */
-export function isIntegerInRange(value: any, lowerLimit: number, upperLimit: number): boolean {
+export function isIntegerInRange(value: any, lowerLimit?: number | null, upperLimit?: number | null): boolean {
     // Validate value is an integer
     if (!isInteger(value)) {
         return false;

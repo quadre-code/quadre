@@ -22,46 +22,43 @@
  *
  */
 
-define(function (require, exports, module) {
-    "use strict";
+import * as SpecRunnerUtils from "spec/SpecRunnerUtils";
 
-    var SpecRunnerUtils = require("spec/SpecRunnerUtils");
+describe("SpecRunnerUtils", function () {
+    describe("simulateKeyEvent", function () {
+        let mockElement;
+        let capturedEvent;
 
-    describe("SpecRunnerUtils", function () {
-        describe("simulateKeyEvent", function () {
-            var mockElement, capturedEvent;
-
-            beforeEach(function () {
-                mockElement = SpecRunnerUtils.createMockElement();
-                mockElement.on("keydown", function (event) {
-                    capturedEvent = event;
-                });
+        beforeEach(function () {
+            mockElement = SpecRunnerUtils.createMockElement();
+            mockElement.on("keydown", function (event) {
+                capturedEvent = event;
             });
+        });
 
-            afterEach(function () {
-                mockElement.remove();
-                capturedEvent = null;
-            });
+        afterEach(function () {
+            mockElement.remove();
+            capturedEvent = null;
+        });
 
-            it("should create and dispatch a key event to an element", function () {
-                SpecRunnerUtils.simulateKeyEvent(82, "keydown", mockElement[0]);
-                expect(capturedEvent.keyCode).toEqual(82);
-                expect(capturedEvent.which).toEqual(82);
-                expect(capturedEvent.charCode).toEqual(82);
-            });
+        it("should create and dispatch a key event to an element", function () {
+            SpecRunnerUtils.simulateKeyEvent(82, "keydown", mockElement[0]);
+            expect(capturedEvent.keyCode).toEqual(82);
+            expect(capturedEvent.which).toEqual(82);
+            expect(capturedEvent.charCode).toEqual(82);
+        });
 
-            it("should create and dispatch a key event with modifiers to an element", function () {
-                var modifiers = {
-                    ctrlKey: true,
-                    altKey: true
-                };
-                SpecRunnerUtils.simulateKeyEvent(82, "keydown", mockElement[0], modifiers);
-                expect(capturedEvent.keyCode).toEqual(82);
-                expect(capturedEvent.which).toEqual(82);
-                expect(capturedEvent.charCode).toEqual(82);
-                expect(capturedEvent.ctrlKey).toEqual(true);
-                expect(capturedEvent.altKey).toEqual(true);
-            });
+        it("should create and dispatch a key event with modifiers to an element", function () {
+            const modifiers = {
+                ctrlKey: true,
+                altKey: true
+            };
+            SpecRunnerUtils.simulateKeyEvent(82, "keydown", mockElement[0], modifiers);
+            expect(capturedEvent.keyCode).toEqual(82);
+            expect(capturedEvent.which).toEqual(82);
+            expect(capturedEvent.charCode).toEqual(82);
+            expect(capturedEvent.ctrlKey).toEqual(true);
+            expect(capturedEvent.altKey).toEqual(true);
         });
     });
 });

@@ -22,46 +22,46 @@
  *
  */
 
-define(function (require, exports, module) {
-    "use strict";
+import * as MainViewFactory from "view/MainViewFactory";
 
-    var MainViewFactory = require("view/MainViewFactory");
-
-    describe("ViewFactory", function () {
-        function createMockFactory() {
-            return {
-                canOpenFile: function (fullPath) {
-                    return (fullPath === "blah");
-                }
-            };
-        }
-        it("should register a factory", function () {
-            runs(function () {
-                var factory = createMockFactory();
-                spyOn(factory, "canOpenFile");
-                MainViewFactory.registerViewFactory(factory);
-                MainViewFactory.findSuitableFactoryForPath();
-                expect(factory.canOpenFile).toHaveBeenCalled();
-            });
+describe("ViewFactory", function () {
+    function createMockFactory(): MainViewFactory.Factory {
+        return {
+            canOpenFile: function (fullPath): boolean {
+                return (fullPath === "blah");
+            },
+            openFile: function (path, pane): JQueryPromise<unknown> {
+                return $.Deferred().resolve().promise();
+            }
+        };
+    }
+    it("should register a factory", function () {
+        runs(function () {
+            const factory = createMockFactory();
+            spyOn(factory, "canOpenFile");
+            MainViewFactory.registerViewFactory(factory);
+            // @ts-expect-error
+            // Intentionally without parameter just to check canOpenFile is actually called.
+            MainViewFactory.findSuitableFactoryForPath();
+            expect(factory.canOpenFile).toHaveBeenCalled();
         });
-        it("should find a factory", function () {
-            runs(function () {
-                var factory = createMockFactory();
+    });
+    it("should find a factory", function () {
+        runs(function () {
+            const factory = createMockFactory();
 
-                MainViewFactory.registerViewFactory(factory);
-                var result = MainViewFactory.findSuitableFactoryForPath("blah");
+            MainViewFactory.registerViewFactory(factory);
+            const result = MainViewFactory.findSuitableFactoryForPath("blah");
 
-                expect(result).toBeTruthy();
-            });
+            expect(result).toBeTruthy();
         });
-        it("should not find a factory", function () {
-            runs(function () {
-                var factory = createMockFactory();
-                MainViewFactory.registerViewFactory(factory);
-                var result = MainViewFactory.findSuitableFactoryForPath("blahblah");
-                expect(result).toBeFalsy();
-            });
+    });
+    it("should not find a factory", function () {
+        runs(function () {
+            const factory = createMockFactory();
+            MainViewFactory.registerViewFactory(factory);
+            const result = MainViewFactory.findSuitableFactoryForPath("blahblah");
+            expect(result).toBeFalsy();
         });
     });
 });
-

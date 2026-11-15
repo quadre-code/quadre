@@ -4,6 +4,7 @@ import * as CommandManager from "command/CommandManager"
 import * as DefaultDialogs from "widgets/DefaultDialogs";
 import * as Dialogs from "widgets/Dialogs";
 import * as DocumentManager from "document/DocumentManager";
+import * as EditorManager from "editor/EditorManager";
 import * as FileSystem from "filesystem/FileSystem";
 import * as FileViewController from "project/FileViewController"
 import * as ProjectManager from "project/ProjectManager";
@@ -42,6 +43,7 @@ declare global {
             DefaultDialogs: typeof DefaultDialogs
             Dialogs: typeof Dialogs
             DocumentManager: typeof DocumentManager
+            EditorManager: typeof EditorManager
             FileSystem: typeof FileSystem
             FileViewController: typeof FileViewController
             ProjectManager: typeof ProjectManager
@@ -56,5 +58,3 @@ declare global {
     var waitsForDone: (promise: JQueryPromise<any>, operationName: string, timeout?: number) => void
     var waitsForFail: (promise: JQueryPromise<any>, operationName: string, timeout: number) => void
 }
-
-export {}
