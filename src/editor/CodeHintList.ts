@@ -393,7 +393,7 @@ export class CodeHintList {
      * @param {KeyBoardEvent} keyEvent
      * @param {bool} isFakeKeydown - True if faked key down call (for example calling CTRL+Space while hints are open)
      */
-    private _keydownHook(event: JQueryKeyEventObject, isFakeKeydown: boolean): boolean {
+    public _keydownHook(event: JQueryKeyEventObject, isFakeKeydown?: boolean): boolean {
         let keyCode;
         const self = this;
 

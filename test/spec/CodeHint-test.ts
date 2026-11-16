@@ -22,484 +22,489 @@
  *
  */
 
-define(function (require, exports, module) {
-    "use strict";
+// Load dependent modules
+import * as SpecRunnerUtils from "spec/SpecRunnerUtils";
+import * as KeyEvent from "utils/KeyEvent";
+import * as Commands from "command/Commands";
 
-    // Load dependent modules
-    var SpecRunnerUtils = require("spec/SpecRunnerUtils"),
-        KeyEvent        = require("utils/KeyEvent"),
-        Commands        = require("command/Commands"),
-        EditorManager,      // loaded from brackets.test
-        CommandManager,
-        CodeHintManager,
-        KeyBindingManager;
+import type * as TEditorManager from "editor/EditorManager";
+import type * as TCommandManager from "command/CommandManager";
+import type * as TCodeHintManager from "editor/CodeHintManager";
+import type * as TKeyBindingManager from "command/KeyBindingManager";
+import type { CodeHintList } from "editor/CodeHintList";
 
-    var testPath = SpecRunnerUtils.getTestPath("/spec/CodeHint-test-files"),
-        testWindow;
+let EditorManager: typeof TEditorManager;      // loaded from brackets.test
+let CommandManager: typeof TCommandManager;
+let CodeHintManager: typeof TCodeHintManager;
+let KeyBindingManager: typeof TKeyBindingManager;
 
-    // Verify if we are running in a CI.
-    var UrlParams = require("utils/UrlParams").UrlParams,
-        params    = new UrlParams();
+const testPath = SpecRunnerUtils.getTestPath("/spec/CodeHint-test-files");
+let testWindow: SpecRunnerUtils.TestWindow;
 
-    // parse URL parameters
-    params.parse();
+// Verify if we are running in a CI.
+import { UrlParams } from "utils/UrlParams";
 
-    var isCI = /true/i.test(params.get("isCI"));
+const params    = new UrlParams();
 
-    (isCI ? xdescribe : describe)("CodeHintManager", function () {
-        this.category = "integration";
+// parse URL parameters
+params.parse();
 
-        /**
-         * Performs setup for a code hint test. Opens a file and set pos.
-         *
-         * @param {!string} openFile Project relative file path to open in a main editor.
-         * @param {!number|Array} openPos The pos within openFile to place the IP, or an array
-         *      representing a multiple selection to set.
-         */
-        function initCodeHintTest(openFile, openPos) {
-            SpecRunnerUtils.loadProjectInTestWindow(testPath);
+const isCI = /true/i.test(params.get("isCI"));
 
-            runs(function () {
-                var promise = SpecRunnerUtils.openProjectFiles([openFile]);
-                waitsForDone(promise);
-            });
+(isCI ? xdescribe : describe)("CodeHintManager", function (this: jasmine.Spec) {
+    this.category = "integration";
 
-            runs(function () {
-                var editor = EditorManager.getCurrentFullEditor();
-                if (Array.isArray(openPos)) {
-                    editor.setSelections(openPos);
-                } else {
-                    editor.setCursorPos(openPos.line, openPos.ch);
-                }
-            });
-        }
+    /**
+     * Performs setup for a code hint test. Opens a file and set pos.
+     *
+     * @param {!string} openFile Project relative file path to open in a main editor.
+     * @param {!number|Array} openPos The pos within openFile to place the IP, or an array
+     *      representing a multiple selection to set.
+     */
+    function initCodeHintTest(openFile: string, openPos): void {
+        SpecRunnerUtils.loadProjectInTestWindow(testPath);
 
-        beforeFirst(function () {
-            SpecRunnerUtils.createTestWindowAndRun(this, function (w) {
-                testWindow = w;
-
-                // uncomment this line to debug test window:
-                //testWindow.brackets.app.showDeveloperTools();
-
-                // Load module instances from brackets.test
-                CodeHintManager     = testWindow.brackets.test.CodeHintManager;
-                EditorManager       = testWindow.brackets.test.EditorManager;
-                CommandManager      = testWindow.brackets.test.CommandManager;
-                KeyBindingManager   = testWindow.brackets.test.KeyBindingManager;
-            });
+        runs(function () {
+            const promise = SpecRunnerUtils.openProjectFiles([openFile]);
+            waitsForDone(promise, "openProjectFiles");
         });
 
-        afterLast(function () {
-            testWindow          = null;
-            CodeHintManager     = null;
-            EditorManager       = null;
-            CommandManager      = null;
-            KeyBindingManager   = null;
-            SpecRunnerUtils.closeTestWindow();
-        });
-
-        afterEach(function () {
-            runs(function () {
-                testWindow.closeAllFiles();
-            });
-        });
-
-        function invokeCodeHints() {
-            CommandManager.execute(Commands.SHOW_CODE_HINTS);
-        }
-
-        // Note: these don't request hint results - they only examine hints that might already be open
-        function expectNoHints() {
-            var codeHintList = CodeHintManager._getCodeHintList();
-            expect(codeHintList).toBeFalsy();
-        }
-
-        function expectSomeHints() {
-            var codeHintList = CodeHintManager._getCodeHintList();
-            expect(codeHintList).toBeTruthy();
-            expect(codeHintList.isOpen()).toBe(true);
-            return codeHintList;
-        }
-
-        // TODO: There seems to be an issue with CodeHintManager._removeHintProvider because of which the tests
-        // added for "Hint Provider Registration" are interfering with this test case
-        // (mock provider added for new language shows up for RegExp, even though no code hint should show up)
-        // I am unable to reproduce this in a real scenario though/
-        // This is the reason this test case is being added before the registration test cases.
-        // We need to either figure out whats going wrong with register or change the RegExp code hint fix to bail
-        // before HintUtils (Something like the fix for no code hints for multiple selection)
-        describe("RegExp codehint tests", function () {
-            it("should not show codehints for regular expression in a script block in html", function () {
-                var editor,
-                    pos = {line: 8, ch: 30};
-
-                // Place cursor inside a sample regular expression
-                // Note: line for pos is 0-based and editor lines numbers are 1-based
-                initCodeHintTest("test1.html", pos);
-
-                runs(function () {
-                    editor = EditorManager.getCurrentFullEditor();
-                    expect(editor).toBeTruthy();
-                    invokeCodeHints();
-                    expectNoHints();
-                    editor = null;
-                });
-            });
-
-            it("should not show codehints for regular expression in a Javascript file", function () {
-                var editor,
-                    pos = {line: 2, ch: 30};
-
-                // Place cursor inside a sample regular expression
-                // Note: line for pos is 0-based and editor lines numbers are 1-based
-                initCodeHintTest("testRegExp.js", pos);
-
-                runs(function () {
-                    editor = EditorManager.getCurrentFullEditor();
-                    expect(editor).toBeTruthy();
-                    invokeCodeHints();
-                    expectNoHints();
-                    editor = null;
-                });
-            });
-        });
-
-        describe("Hint Provider Registration", function () {
-            beforeEach(function () {
-                initCodeHintTest("test1.html", {line: 0, ch: 0});
-            });
-
-            var mockProvider = {
-                hasHints: function (editor, implicitChar) {
-                    return true;
-                },
-                getHints: function (implicitChar) {
-                    return { hints: ["mock hint"], match: null, selectInitial: false };
-                },
-                insertHint: function (hint) { /* Do nothing */ }
-            };
-
-            function expectMockHints() {
-                var codeHintList = expectSomeHints();
-                expect(codeHintList.hints[0]).toBe("mock hint");
-                expect(codeHintList.hints.length).toBe(1);
+        runs(function () {
+            const editor = EditorManager.getCurrentFullEditor()!;
+            if (Array.isArray(openPos)) {
+                editor.setSelections(openPos);
+            } else {
+                editor.setCursorPos(openPos.line, openPos.ch);
             }
+        });
+    }
 
-            it("should register provider for a new language", function () {
-                runs(function () {
-                    CodeHintManager.registerHintProvider(mockProvider, ["clojure"], 0);
+    beforeFirst(function (this: jasmine.Spec) {
+        SpecRunnerUtils.createTestWindowAndRun(this, function (w) {
+            testWindow = w;
 
-                    // Ensure no hints in language we didn't register for
-                    invokeCodeHints();
-                    expectNoHints();
+            // uncomment this line to debug test window:
+            //testWindow.brackets.app.showDeveloperTools();
 
-                    // Expect hints in language we did register for
-                    var promise = CommandManager.execute(Commands.FILE_OPEN, { fullPath: SpecRunnerUtils.makeAbsolute("test.clj") });
-                    waitsForDone(promise);
-                });
-                runs(function () {
-                    invokeCodeHints();
-                    expectMockHints();
+            // Load module instances from brackets.test
+            CodeHintManager     = testWindow.brackets.test.CodeHintManager;
+            EditorManager       = testWindow.brackets.test.EditorManager;
+            CommandManager      = testWindow.brackets.test.CommandManager;
+            KeyBindingManager   = testWindow.brackets.test.KeyBindingManager;
+        });
+    });
 
-                    CodeHintManager._removeHintProvider(mockProvider, ["clojure"], 0);
-                });
-            });
+    afterLast(function () {
+        (testWindow as any)          = null;
+        (CodeHintManager as any)     = null;
+        (EditorManager as any)       = null;
+        (CommandManager as any)      = null;
+        (KeyBindingManager as any)   = null;
+        SpecRunnerUtils.closeTestWindow();
+    });
 
-            it("should register higher-priority provider for existing language", function () {
-                runs(function () {
-                    CodeHintManager.registerHintProvider(mockProvider, ["html"], 1);
+    afterEach(function () {
+        runs(function () {
+            testWindow.closeAllFiles();
+        });
+    });
 
-                    // Expect hints to replace default HTML hints
-                    var editor = EditorManager.getCurrentFullEditor();
-                    editor.setCursorPos(3, 1);
-                    invokeCodeHints();
-                    expectMockHints();
+    function invokeCodeHints(): void {
+        CommandManager.execute(Commands.SHOW_CODE_HINTS);
+    }
 
-                    CodeHintManager._removeHintProvider(mockProvider, ["html"], 1);
-                });
-            });
+    // Note: these don't request hint results - they only examine hints that might already be open
+    function expectNoHints(): void {
+        const codeHintList = CodeHintManager._getCodeHintList();
+        expect(codeHintList).toBeFalsy();
+    }
 
-            it("should register \"all\" languages provider", function () {
-                runs(function () {
-                    CodeHintManager.registerHintProvider(mockProvider, ["all"], 0);
+    function expectSomeHints(): CodeHintList {
+        const codeHintList = CodeHintManager._getCodeHintList();
+        expect(codeHintList).toBeTruthy();
+        expect(codeHintList!.isOpen()).toBe(true);
+        return codeHintList!;
+    }
 
-                    // Expect hints in language that already had hints (when not colliding with original provider)
-                    invokeCodeHints();
-                    expectMockHints();
+    // TODO: There seems to be an issue with CodeHintManager._removeHintProvider because of which the tests
+    // added for "Hint Provider Registration" are interfering with this test case
+    // (mock provider added for new language shows up for RegExp, even though no code hint should show up)
+    // I am unable to reproduce this in a real scenario though/
+    // This is the reason this test case is being added before the registration test cases.
+    // We need to either figure out whats going wrong with register or change the RegExp code hint fix to bail
+    // before HintUtils (Something like the fix for no code hints for multiple selection)
+    describe("RegExp codehint tests", function () {
+        it("should not show codehints for regular expression in a script block in html", function () {
+            let editor;
+            const pos = {line: 8, ch: 30};
 
-                    // Expect hints in language that had no hints before
-                    var promise = CommandManager.execute(Commands.FILE_OPEN, { fullPath: SpecRunnerUtils.makeAbsolute("test.clj") });
-                    waitsForDone(promise);
-                });
-                runs(function () {
-                    invokeCodeHints();
-                    expectMockHints();
+            // Place cursor inside a sample regular expression
+            // Note: line for pos is 0-based and editor lines numbers are 1-based
+            initCodeHintTest("test1.html", pos);
 
-                    CodeHintManager._removeHintProvider(mockProvider, ["all"], 0);
-                });
+            runs(function () {
+                editor = EditorManager.getCurrentFullEditor();
+                expect(editor).toBeTruthy();
+                invokeCodeHints();
+                expectNoHints();
+                editor = null;
             });
         });
 
+        it("should not show codehints for regular expression in a Javascript file", function () {
+            let editor;
+            const pos = {line: 2, ch: 30};
 
-        describe("HTML Tests", function () {
+            // Place cursor inside a sample regular expression
+            // Note: line for pos is 0-based and editor lines numbers are 1-based
+            initCodeHintTest("testRegExp.js", pos);
 
-            it("should show code hints menu and insert text at IP", function () {
-                var editor,
-                    pos = {line: 3, ch: 1},
-                    lineBefore,
-                    lineAfter;
+            runs(function () {
+                editor = EditorManager.getCurrentFullEditor();
+                expect(editor).toBeTruthy();
+                invokeCodeHints();
+                expectNoHints();
+                editor = null;
+            });
+        });
+    });
 
-                // minimal markup with an open '<' before IP
-                // Note: line for pos is 0-based and editor lines numbers are 1-based
-                initCodeHintTest("test1.html", pos);
+    describe("Hint Provider Registration", function () {
+        beforeEach(function () {
+            initCodeHintTest("test1.html", {line: 0, ch: 0});
+        });
 
-                runs(function () {
-                    editor = EditorManager.getCurrentFullEditor();
-                    expect(editor).toBeTruthy();
+        const mockProvider: TCodeHintManager.CodeHintProvider = {
+            hasHints: function (editor, implicitChar) {
+                return true;
+            },
+            getHints: function (implicitChar) {
+                return { hints: ["mock hint"], match: null, selectInitial: false };
+            },
+            // @ts-expect-error
+            insertHint: function (hint) { /* Do nothing */ }
+        };
 
-                    // get text before insert operation
-                    lineBefore = editor.document.getLine(pos.line);
+        function expectMockHints(): void {
+            const codeHintList = expectSomeHints();
+            expect(codeHintList.hints[0]).toBe("mock hint");
+            expect(codeHintList.hints.length).toBe(1);
+        }
 
-                    invokeCodeHints();
-                    expectSomeHints();
-                });
+        it("should register provider for a new language", function () {
+            runs(function () {
+                CodeHintManager.registerHintProvider(mockProvider, ["clojure"], 0);
 
-                // simulate Enter key to insert code hint into doc
-                runs(function () {
-                    var e = $.Event("keydown");
-                    e.keyCode = KeyEvent.DOM_VK_RETURN;
+                // Ensure no hints in language we didn't register for
+                invokeCodeHints();
+                expectNoHints();
 
-                    editor = EditorManager.getCurrentFullEditor();
-                    expect(editor).toBeTruthy();
+                // Expect hints in language we did register for
+                const promise = CommandManager.execute(Commands.FILE_OPEN, { fullPath: SpecRunnerUtils.makeAbsolute("test.clj") });
+                waitsForDone(promise, "CommandManager.execute");
+            });
+            runs(function () {
+                invokeCodeHints();
+                expectMockHints();
 
-                    CodeHintManager._getCodeHintList()._keydownHook(e);
+                CodeHintManager._removeHintProvider(mockProvider, ["clojure"]);
+            });
+        });
 
-                    // doesn't matter what was inserted, but line should be different
-                    var newPos = editor.getCursorPos();
-                    lineAfter = editor.document.getLine(newPos.line);
-                    expect(lineBefore).not.toEqual(lineAfter);
+        it("should register higher-priority provider for existing language", function () {
+            runs(function () {
+                CodeHintManager.registerHintProvider(mockProvider, ["html"], 1);
 
-                    // and popup should auto-close
-                    expectNoHints();
+                // Expect hints to replace default HTML hints
+                const editor = EditorManager.getCurrentFullEditor()!;
+                editor.setCursorPos(3, 1);
+                invokeCodeHints();
+                expectMockHints();
 
-                    editor = null;
-                });
+                CodeHintManager._removeHintProvider(mockProvider, ["html"]);
+            });
+        });
+
+        it("should register \"all\" languages provider", function () {
+            runs(function () {
+                CodeHintManager.registerHintProvider(mockProvider, ["all"], 0);
+
+                // Expect hints in language that already had hints (when not colliding with original provider)
+                invokeCodeHints();
+                expectMockHints();
+
+                // Expect hints in language that had no hints before
+                const promise = CommandManager.execute(Commands.FILE_OPEN, { fullPath: SpecRunnerUtils.makeAbsolute("test.clj") });
+                waitsForDone(promise, "CommandManager.execute");
+            });
+            runs(function () {
+                invokeCodeHints();
+                expectMockHints();
+
+                CodeHintManager._removeHintProvider(mockProvider, ["all"]);
+            });
+        });
+    });
+
+
+    describe("HTML Tests", function () {
+
+        it("should show code hints menu and insert text at IP", function () {
+            let editor;
+            const pos = {line: 3, ch: 1};
+            let lineBefore;
+            let lineAfter;
+
+            // minimal markup with an open '<' before IP
+            // Note: line for pos is 0-based and editor lines numbers are 1-based
+            initCodeHintTest("test1.html", pos);
+
+            runs(function () {
+                editor = EditorManager.getCurrentFullEditor();
+                expect(editor).toBeTruthy();
+
+                // get text before insert operation
+                lineBefore = editor.document.getLine(pos.line);
+
+                invokeCodeHints();
+                expectSomeHints();
             });
 
-            it("should go to next hint with ctrl+space", function () {
-                var editor,
-                    pos = {line: 3, ch: 1},
-                    hintBefore,
-                    hintAfter;
+            // simulate Enter key to insert code hint into doc
+            runs(function () {
+                const e = $.Event("keydown");
+                e.keyCode = KeyEvent.DOM_VK_RETURN;
 
-                // minimal markup with an open '<' before IP
-                // Note: line for pos is 0-based and editor lines numbers are 1-based
-                initCodeHintTest("test1.html", pos);
+                editor = EditorManager.getCurrentFullEditor();
+                expect(editor).toBeTruthy();
 
-                // simulate ctrl+space key to make sure it goes to next hint
-                runs(function () {
-                    var e = $.Event("keydown");
-                    e.keyCode = KeyEvent.DOM_VK_SPACE;
-                    e.ctrlKey = true;
+                CodeHintManager._getCodeHintList()!._keydownHook(e);
 
-                    editor = EditorManager.getCurrentFullEditor();
-                    expect(editor).toBeTruthy();
+                // doesn't matter what was inserted, but line should be different
+                const newPos = editor.getCursorPos();
+                lineAfter = editor.document.getLine(newPos.line);
+                expect(lineBefore).not.toEqual(lineAfter);
 
-                    invokeCodeHints();
-                    var codeHintList = expectSomeHints();
-                    hintBefore = codeHintList.selectedIndex;
+                // and popup should auto-close
+                expectNoHints();
 
-                    // make sure hint list starts at 0
-                    expect(hintBefore).toEqual(0);
+                editor = null;
+            });
+        });
 
-                    // simulate ctrl+space keyhook
-                    CodeHintManager._getCodeHintList()._keydownHook(e);
-                    hintAfter = codeHintList.selectedIndex;
+        it("should go to next hint with ctrl+space", function () {
+            let editor;
+            const pos = {line: 3, ch: 1};
+            let hintBefore;
+            let hintAfter;
 
-                    // selectedIndex should be one more after doing ctrl+space key event.
-                    expect(hintBefore).toEqual(hintAfter - 1);
+            // minimal markup with an open '<' before IP
+            // Note: line for pos is 0-based and editor lines numbers are 1-based
+            initCodeHintTest("test1.html", pos);
 
-                    editor = null;
-                });
+            // simulate ctrl+space key to make sure it goes to next hint
+            runs(function () {
+                const e = $.Event("keydown");
+                e.keyCode = KeyEvent.DOM_VK_SPACE;
+                e.ctrlKey = true;
+
+                editor = EditorManager.getCurrentFullEditor();
+                expect(editor).toBeTruthy();
+
+                invokeCodeHints();
+                const codeHintList = expectSomeHints();
+                hintBefore = codeHintList.selectedIndex;
+
+                // make sure hint list starts at 0
+                expect(hintBefore).toEqual(0);
+
+                // simulate ctrl+space keyhook
+                CodeHintManager._getCodeHintList()!._keydownHook(e);
+                hintAfter = codeHintList.selectedIndex;
+
+                // selectedIndex should be one more after doing ctrl+space key event.
+                expect(hintBefore).toEqual(hintAfter - 1);
+
+                editor = null;
+            });
+        });
+
+        it("should loop to first hint when ctrl+space at last hint", function () {
+            let editor;
+            const pos = {line: 3, ch: 1};
+            let hintBefore;
+            let hintAfter;
+
+            // minimal markup with an open '<' before IP
+            // Note: line for pos is 0-based and editor lines numbers are 1-based
+            initCodeHintTest("test1.html", pos);
+
+            // simulate ctrl+space key to make sure it goes to next hint
+            runs(function () {
+                const e = $.Event("keydown");
+                e.keyCode = KeyEvent.DOM_VK_UP;
+
+                editor = EditorManager.getCurrentFullEditor();
+                expect(editor).toBeTruthy();
+
+                invokeCodeHints();
+
+                // simulate up keyhook to send it to last hint
+                CodeHintManager._getCodeHintList()!._keydownHook(e);
+
+                const codeHintList = expectSomeHints();
+                hintBefore = codeHintList.selectedIndex;
+                const numberOfHints = codeHintList.$hintMenu.find("li").length - 1;
+
+                // should be at last hint
+                expect(hintBefore).toEqual(numberOfHints);
+
+                // call ctrl+space to loop it to first hint
+                e.keyCode = KeyEvent.DOM_VK_SPACE;
+                e.ctrlKey = true;
+
+                // simulate ctrl+space keyhook to send it to first hint
+                CodeHintManager._getCodeHintList()!._keydownHook(e);
+                hintAfter = codeHintList.selectedIndex;
+
+                // should now be at hint 0
+                expect(hintAfter).toEqual(0);
+
+                editor = null;
+            });
+        });
+
+        it("should not show code hints if there is a multiple selection", function () {
+            // minimal markup with an open '<' before IP
+            // Note: line for pos is 0-based and editor lines numbers are 1-based
+            initCodeHintTest("test1.html", [
+                {start: {line: 3, ch: 1}, end: {line: 3, ch: 1}, primary: true},
+                {start: {line: 4, ch: 1}, end: {line: 4, ch: 1}}
+            ]);
+
+            runs(function () {
+                invokeCodeHints();
+                expectNoHints();
+            });
+        });
+
+        it("should dismiss existing code hints if selection changes to a multiple selection", function () {
+            let editor;
+
+            initCodeHintTest("test1.html", {line: 3, ch: 1});
+
+            runs(function () {
+                editor = EditorManager.getCurrentFullEditor();
+                expect(editor).toBeTruthy();
+
+                invokeCodeHints();
+                expectSomeHints();
             });
 
-            it("should loop to first hint when ctrl+space at last hint", function () {
-                var editor,
-                    pos = {line: 3, ch: 1},
-                    hintBefore,
-                    hintAfter;
-
-                // minimal markup with an open '<' before IP
-                // Note: line for pos is 0-based and editor lines numbers are 1-based
-                initCodeHintTest("test1.html", pos);
-
-                // simulate ctrl+space key to make sure it goes to next hint
-                runs(function () {
-                    var e = $.Event("keydown");
-                    e.keyCode = KeyEvent.DOM_VK_UP;
-
-                    editor = EditorManager.getCurrentFullEditor();
-                    expect(editor).toBeTruthy();
-
-                    invokeCodeHints();
-
-                    // simulate up keyhook to send it to last hint
-                    CodeHintManager._getCodeHintList()._keydownHook(e);
-
-                    var codeHintList = expectSomeHints();
-                    hintBefore = codeHintList.selectedIndex;
-                    var numberOfHints = codeHintList.$hintMenu.find("li").length - 1;
-
-                    // should be at last hint
-                    expect(hintBefore).toEqual(numberOfHints);
-
-                    // call ctrl+space to loop it to first hint
-                    e.keyCode = KeyEvent.DOM_VK_SPACE;
-                    e.ctrlKey = true;
-
-                    // simulate ctrl+space keyhook to send it to first hint
-                    CodeHintManager._getCodeHintList()._keydownHook(e);
-                    hintAfter = codeHintList.selectedIndex;
-
-                    // should now be at hint 0
-                    expect(hintAfter).toEqual(0);
-
-                    editor = null;
-                });
-            });
-
-            it("should not show code hints if there is a multiple selection", function () {
-                // minimal markup with an open '<' before IP
-                // Note: line for pos is 0-based and editor lines numbers are 1-based
-                initCodeHintTest("test1.html", [
+            runs(function () {
+                editor.setSelections([
                     {start: {line: 3, ch: 1}, end: {line: 3, ch: 1}, primary: true},
                     {start: {line: 4, ch: 1}, end: {line: 4, ch: 1}}
                 ]);
+                expectNoHints();
+            });
+        });
 
-                runs(function () {
-                    invokeCodeHints();
-                    expectNoHints();
-                });
+        it("should dismiss code hints menu with Esc key", function () {
+            const pos = {line: 3, ch: 1};
+
+            // minimal markup with an open '<' before IP
+            // Note: line for pos is 0-based and editor lines numbers are 1-based
+            initCodeHintTest("test1.html", pos);
+
+            runs(function () {
+                invokeCodeHints();
+
+                // verify list is open
+                expectSomeHints();
             });
 
-            it("should dismiss existing code hints if selection changes to a multiple selection", function () {
-                var editor;
+            // simulate Esc key to dismiss code hints menu
+            runs(function () {
+                const key = KeyEvent.DOM_VK_ESCAPE;
+                const element = testWindow.$(".dropdown.open")[0];
+                SpecRunnerUtils.simulateKeyEvent(key, "keydown", element);
 
-                initCodeHintTest("test1.html", {line: 3, ch: 1});
+                // verify list is no longer open
+                expectNoHints();
+            });
+        });
 
-                runs(function () {
-                    editor = EditorManager.getCurrentFullEditor();
-                    expect(editor).toBeTruthy();
+        it("should dismiss code hints menu when launching a command", function () {
+            let editor;
+            const pos = {line: 3, ch: 1};
 
-                    invokeCodeHints();
-                    expectSomeHints();
-                });
+            // minimal markup with an open '<' before IP
+            // Note: line for pos is 0-based and editor lines numbers are 1-based
+            initCodeHintTest("test1.html", pos);
 
-                runs(function () {
-                    editor.setSelections([
-                        {start: {line: 3, ch: 1}, end: {line: 3, ch: 1}, primary: true},
-                        {start: {line: 4, ch: 1}, end: {line: 4, ch: 1}}
-                    ]);
-                    expectNoHints();
-                });
+            runs(function () {
+                editor = EditorManager.getCurrentFullEditor();
+                expect(editor).toBeTruthy();
+
+                editor.document.replaceRange("di", pos);
+                invokeCodeHints();
+
+                // verify list is open
+                expectSomeHints();
             });
 
-            it("should dismiss code hints menu with Esc key", function () {
-                var pos = {line: 3, ch: 1};
+            // Call Undo command to remove "di" and then verify no code hints
+            runs(function () {
+                CommandManager.execute(Commands.EDIT_UNDO);
 
-                // minimal markup with an open '<' before IP
-                // Note: line for pos is 0-based and editor lines numbers are 1-based
-                initCodeHintTest("test1.html", pos);
+                // verify list is no longer open
+                expectNoHints();
 
-                runs(function () {
-                    invokeCodeHints();
-
-                    // verify list is open
-                    expectSomeHints();
-                });
-
-                // simulate Esc key to dismiss code hints menu
-                runs(function () {
-                    var key = KeyEvent.DOM_VK_ESCAPE,
-                        element = testWindow.$(".dropdown.open")[0];
-                    SpecRunnerUtils.simulateKeyEvent(key, "keydown", element);
-
-                    // verify list is no longer open
-                    expectNoHints();
-                });
+                editor = null;
             });
+        });
 
-            it("should dismiss code hints menu when launching a command", function () {
-                var editor,
-                    pos = {line: 3, ch: 1};
+        it("should stop handling keydowns if closed by a click outside", function () {
+            let editor;
+            const pos = {line: 3, ch: 1};
 
-                // minimal markup with an open '<' before IP
-                // Note: line for pos is 0-based and editor lines numbers are 1-based
-                initCodeHintTest("test1.html", pos);
+            // minimal markup with an open '<' before IP
+            // Note: line for pos is 0-based and editor lines numbers are 1-based
+            initCodeHintTest("test1.html", pos);
 
-                runs(function () {
-                    editor = EditorManager.getCurrentFullEditor();
-                    expect(editor).toBeTruthy();
+            runs(function () {
+                editor = EditorManager.getCurrentFullEditor();
+                expect(editor).toBeTruthy();
 
-                    editor.document.replaceRange("di", pos);
-                    invokeCodeHints();
+                editor.document.replaceRange("di", pos);
+                invokeCodeHints();
 
-                    // verify list is open
-                    expectSomeHints();
-                });
+                // verify list is open
+                expectSomeHints();
 
-                // Call Undo command to remove "di" and then verify no code hints
-                runs(function () {
-                    CommandManager.execute(Commands.EDIT_UNDO);
+                // get the document text and make sure it doesn't change if we
+                // click outside and then keydown
+                const text = editor.document.getText();
 
-                    // verify list is no longer open
-                    expectNoHints();
+                testWindow.$("body").click();
+                KeyBindingManager._handleKeyEvent({
+                    keyCode: KeyEvent.DOM_VK_ENTER,
+                    stopImmediatePropagation: function () { /* Do nothing */ },
+                    stopPropagation: function () { /* Do nothing */ },
+                    preventDefault: function () { /* Do nothing */ }
+                } as KeyboardEvent);
 
-                    editor = null;
-                });
-            });
+                // Verify that after the keydown, the session is closed
+                // (not just the hint popup). Because of #1381, we don't
+                // actually have a way to close the session as soon as the
+                // popup is dismissed by Bootstrap, so we do so on the next
+                // keydown. Eventually, once that's fixed, we should be able
+                // to move this expectNoHints() up after the click.
+                expectNoHints();
+                expect(editor.document.getText()).toEqual(text);
 
-            it("should stop handling keydowns if closed by a click outside", function () {
-                var editor,
-                    pos = {line: 3, ch: 1};
-
-                // minimal markup with an open '<' before IP
-                // Note: line for pos is 0-based and editor lines numbers are 1-based
-                initCodeHintTest("test1.html", pos);
-
-                runs(function () {
-                    editor = EditorManager.getCurrentFullEditor();
-                    expect(editor).toBeTruthy();
-
-                    editor.document.replaceRange("di", pos);
-                    invokeCodeHints();
-
-                    // verify list is open
-                    expectSomeHints();
-
-                    // get the document text and make sure it doesn't change if we
-                    // click outside and then keydown
-                    var text = editor.document.getText();
-
-                    testWindow.$("body").click();
-                    KeyBindingManager._handleKeyEvent({
-                        keyCode: KeyEvent.DOM_VK_ENTER,
-                        stopImmediatePropagation: function () { /* Do nothing */ },
-                        stopPropagation: function () { /* Do nothing */ },
-                        preventDefault: function () { /* Do nothing */ }
-                    });
-
-                    // Verify that after the keydown, the session is closed
-                    // (not just the hint popup). Because of #1381, we don't
-                    // actually have a way to close the session as soon as the
-                    // popup is dismissed by Bootstrap, so we do so on the next
-                    // keydown. Eventually, once that's fixed, we should be able
-                    // to move this expectNoHints() up after the click.
-                    expectNoHints();
-                    expect(editor.document.getText()).toEqual(text);
-
-                    editor = null;
-                });
+                editor = null;
             });
         });
     });

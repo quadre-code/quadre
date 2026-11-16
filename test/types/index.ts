@@ -7,6 +7,7 @@ import type * as DefaultDialogs from "widgets/DefaultDialogs";
 import type * as Dialogs from "widgets/Dialogs";
 import type * as DocumentManager from "document/DocumentManager";
 import type * as EditorManager from "editor/EditorManager";
+import type * as CodeHintManager from "editor/CodeHintManager";
 import type * as FileSystem from "filesystem/FileSystem";
 import type * as FileViewController from "project/FileViewController"
 import type * as ProjectManager from "project/ProjectManager";
@@ -118,6 +119,7 @@ declare global {
             Dialogs: typeof Dialogs
             DocumentManager: typeof DocumentManager
             EditorManager: typeof EditorManager
+            CodeHintManager: typeof CodeHintManager
             FileSystem: typeof FileSystem
             FileViewController: typeof FileViewController
             ProjectManager: typeof ProjectManager
