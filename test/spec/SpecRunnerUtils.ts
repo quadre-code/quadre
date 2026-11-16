@@ -411,8 +411,8 @@ export function createMockActiveDocument(options): DocumentManager.Document {
  * @param {?string} languageId      Defaults to JavaScript
  * @param {?string} filename        Defaults to an auto-generated filename with the language's extension
  */
-export function createMockDocument(initialContent: string, languageId: string, filename?: string): DocumentManager.Document {
-    const language    = LanguageManager.getLanguage(languageId) || LanguageManager.getLanguage("javascript");
+export function createMockDocument(initialContent: string, languageId?: string, filename?: string): DocumentManager.Document {
+    const language    = LanguageManager.getLanguage(languageId as any) || LanguageManager.getLanguage("javascript");
     const options     = { language: language, content: initialContent, filename: filename };
     const docToShim   = createMockActiveDocument(options);
 
