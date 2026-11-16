@@ -184,7 +184,7 @@ export function addMenu(
     id: string,
     position: string,
     relativeId: string,
-    callback: () => void
+    callback: (err: string | null) => void
 ): void {
     assert(typeof winId === "number", "winId must be a number");
     assert(title && typeof title === "string", "title must be a string");
