@@ -41,7 +41,6 @@
     ],
     "exclude": [
         "node_modules",
-        "extensions/default/quadre-git",
         "**/node/**"
     ],
     "references": [
