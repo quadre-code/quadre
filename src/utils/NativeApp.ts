@@ -57,7 +57,7 @@ export function openLiveBrowser(url: string, enableRemoteDebugging: boolean): JQ
             }
             result.resolve(pid);
         } else {
-            result.reject(_browserErrToFileError(err));
+            result.reject(_browserErrToFileError(err as any));
         }
     });
 

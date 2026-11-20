@@ -83,7 +83,7 @@ function setDeferredTimeout<T>(deferred: JQueryDeferred<T>, delay = CONNECTION_T
  */
 function attemptSingleConnect(): JQueryPromise<any> {
     const deferred = $.Deferred<any>();
-    let port = null;
+    let port: number | null = null;
     let ws: WebSocket;
     setDeferredTimeout(deferred, CONNECTION_TIMEOUT);
 

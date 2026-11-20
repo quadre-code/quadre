@@ -213,12 +213,13 @@ export function addMeasurement(id): void {
     }
 
     if (perfData[id]) {
+        const perfDataId = perfData[id]
         // We have existing data, add to it
-        if (Array.isArray(perfData[id])) {
+        if (Array.isArray(perfDataId)) {
             (perfData[id] as Array<number>).push(elapsedTime);
         } else {
             // Current data is a number, convert to Array
-            perfData[id] = [perfData[id], elapsedTime];
+            perfData[id] = [perfDataId, elapsedTime];
         }
     } else {
         perfData[id] = elapsedTime;
