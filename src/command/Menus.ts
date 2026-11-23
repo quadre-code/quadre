@@ -645,7 +645,7 @@ export class Menu {
             }
 
             const winId = electronRemote.getCurrentWindow().id;
-            brackets.app.addMenuItem(winId, this.id, name, commandID, bindingStr, displayStr, position, relativeID, function (err) {
+            brackets.app.addMenuItem(winId, this.id, name, commandID, bindingStr, displayStr, position!, relativeID as string, function (err) {
                 switch (err) {
                     case NO_ERROR:
                         break;
@@ -1017,7 +1017,7 @@ export class MenuItem {
     public _nameChanged(): void {
         if (this.isNative) {
             const winId = electronRemote.getCurrentWindow().id;
-            brackets.app.setMenuTitle(winId, this._command.getID(), this._command.getName(), function (err) {
+            brackets.app.setMenuTitle(winId, this._command.getID(), this._command.getName()!, function (err) {
                 if (err) {
                     console.log("Error setting menu title: " + err);
                 }
@@ -1113,7 +1113,7 @@ export function addMenu(name: string, id: string, position?: Position, relativeI
 
     if (!_isHTMLMenu(id)) {
         const winId = electronRemote.getCurrentWindow().id;
-        brackets.app.addMenu(winId, name, id, position, relativeID, function (err) {
+        brackets.app.addMenu(winId, name, id, position!, relativeID as string, function (err) {
             switch (err) {
                 case NO_ERROR:
                     // Make sure name is up to date

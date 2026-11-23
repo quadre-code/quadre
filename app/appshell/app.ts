@@ -33,7 +33,7 @@ export function getNodeState(callback: (errCode: string, port: number) => void):
     });
 }
 
-export function closeLiveBrowser(callback: (err?: Error) => void): void {
+export function closeLiveBrowser(callback: (err?: Error) => void, pid: number): void {
     process.nextTick(function () {
         // TODO: implement
         callback(new Error("app.closeLiveBrowser not implemented"));
@@ -65,7 +65,7 @@ export function showExtensionsFolder(appURL: any, callback: (err?: Error) => voi
     });
 }
 
-export function getDroppedFiles(callback: (err?: Error) => void): void {
+export function getDroppedFiles(callback: (err?: Error, paths?: Array<string>) => void): void {
     process.nextTick(function () {
         // TODO: implement
         callback(new Error("app.getDroppedFiles not implemented"));
@@ -110,7 +110,7 @@ export function installCommandLine(callback: (err?: Error) => void): void {
 export function openLiveBrowser(
     url: string,
     enableRemoteDebugging: boolean,
-    callback: (err?: Error) => void
+    callback: (err?: Error, pid?: number) => void
 ): void {
     process.nextTick(function () {
         // TODO: implement
@@ -118,7 +118,7 @@ export function openLiveBrowser(
     });
 }
 
-export function openURLInDefaultBrowser(url: string, callback: (err?: Error) => void): void {
+export function openURLInDefaultBrowser(url: string, callback?: (err?: Error) => void): void {
     assert(url && typeof url === "string", "url must be a string");
     process.nextTick(function () {
         shell.openExternal(url);
@@ -139,7 +139,7 @@ export function showDeveloperTools(): void {
 }
 
 // TODO: get rid of callback? This call is not throwing any error.
-export function showOSFolder(path: string, callback: () => void): void {
+export function showOSFolder(path: string, callback?: (err?: any) => void): void {
     process.nextTick(function () {
         shell.showItemInFolder(utils.convertBracketsPathToWindowsPath(path));
         if (callback) {

@@ -212,7 +212,7 @@ export function attachHandlers(): void {
 
             brackets.app.getDroppedFiles(function (err, paths) {
                 if (!err) {
-                    openDroppedFiles(paths);
+                    openDroppedFiles(paths!);
                 }
             });
         }
