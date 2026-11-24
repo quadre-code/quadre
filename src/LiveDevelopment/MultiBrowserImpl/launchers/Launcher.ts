@@ -22,30 +22,20 @@
  *
  */
 
-define(function (require, exports, module) {
-    "use strict";
+import * as PathUtils from "thirdparty/path-utils/path-utils";
+import * as NativeApp from "utils/NativeApp";
 
-    var PathUtils = require("thirdparty/path-utils/path-utils");
-
-    /**
-     * Launch the given URL in the system default browser.
-     * @param {string} url
-     */
-    function launch(url) {
-        var parsed = PathUtils.parseUrl(url);
-        if (!["https:", "http:"].includes(parsed.protocol)) {
-            console.error("Unknown protocol: " + url);
-            return;
-        }
-
-        // TODO: it now launching just on default browser, add launchers for specific browsers?
-        electronRemote.shell.openExternal(url)
-            .then(() => {
-                console.log("Success opening: " + url);
-            })
-            .catch(err => console.error(err));
+/**
+ * Launch the given URL in the system default browser.
+ * @param {string} url
+ */
+export function launch(url: string): void {
+    const parsed = PathUtils.parseUrl(url);
+    if (!["https:", "http:"].includes(parsed.protocol)) {
+        console.error("Unknown protocol: " + url);
+        return;
     }
 
-    // Exports
-    exports.launch = launch;
-});
+    // TODO: it now launching just on default browser, add launchers for specific browsers?
+    NativeApp.openURLInDefaultBrowser(url);
+}
